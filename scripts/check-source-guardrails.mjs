@@ -162,6 +162,8 @@ const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain
 const feedbackAffinityPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicyTest.kt"), "utf8");
 const dailyCardPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "card", "DailyCardPolicy.kt"), "utf8");
 const dailyCardPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "card", "DailyCardPolicyTest.kt"), "utf8");
+const cardDatePolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "card", "CardDatePolicy.kt"), "utf8");
+const cardDatePolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "card", "CardDatePolicyTest.kt"), "utf8");
 const cardRecognitionPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "card", "CardRecognitionPolicy.kt"), "utf8");
 const cardRecognitionPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "card", "CardRecognitionPolicyTest.kt"), "utf8");
 const backendCardPresentation = await readFile(path.join(root, "backend", "src", "domain", "card-presentation.ts"), "utf8");
@@ -430,7 +432,8 @@ check(
   "Saved-card collection has no complete visible add/list/remove UI"
 );
 check(
-  mainActivity.includes('"今日识物"') &&
+  mainActivity.includes("datePresentation.visibleLabel") &&
+    mainActivity.includes("DailyCardSectionHeader(datePresentation.section)") &&
     mainActivity.includes('"为什么是这张照片"') &&
     mainActivity.includes('"这张卡对你有用吗？"') &&
     mainActivity.indexOf('"为什么是这张照片"') < mainActivity.indexOf('"收藏这张知识卡"') &&
@@ -648,6 +651,19 @@ for (const marker of [
 for (const marker of ["future cache stays hidden", "opens separately without entering daily history", "unavailable entry without revealing future content"]) {
   check(dailyCardPolicyTest.includes(marker), `Daily-card visibility test is missing case: ${marker}`);
 }
+for (const marker of ["CardDateSection", "scheduledDate == today", "today.minusDays(1)", "scheduledDate.year == today.year", "卡片日期：$visibleLabel"]) {
+  check(cardDatePolicy.includes(marker), `Truthful card-date policy is missing marker: ${marker}`);
+}
+for (const marker of ["current card is identified as today", "across a year boundary", "current year shows month and day", "another year includes the year", "future cache shows its scheduled date"]) {
+  check(cardDatePolicyTest.includes(marker), `Truthful card-date test is missing case: ${marker}`);
+}
+check(
+  mainActivity.includes("cardDatePresentation(card.scheduledDate, state.currentDay)") &&
+    mainActivity.includes("cardDatePresentation(card.scheduledDate, currentDay)") &&
+    mainActivity.includes("datePresentation.accessibilityLabel") &&
+    mainActivity.includes('CardDateSection.HISTORY -> "往日"'),
+  "App cards can misrepresent historical or future cards as today's content"
+);
 for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "cardTitleForConfidence", "这可能是", "slice(0, 30)"]) {
   check(backendCardPresentation.includes(marker), `Backend object-certainty policy is missing marker: ${marker}`);
 }
@@ -1113,7 +1129,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

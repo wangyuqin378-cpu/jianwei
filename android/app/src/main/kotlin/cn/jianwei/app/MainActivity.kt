@@ -77,6 +77,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -91,6 +92,8 @@ import cn.jianwei.app.widget.DailyWidgetReceiver
 import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
 import cn.jianwei.domain.card.cardRecognitionPresentation
+import cn.jianwei.domain.card.cardDatePresentation
+import cn.jianwei.domain.card.CardDateSection
 import cn.jianwei.domain.card.FocusedCardStatus
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
@@ -719,6 +722,7 @@ private fun HomeScreen(
                     item(key = "focused-${card.cardId}") {
                         KnowledgeCardView(
                             card,
+                            state.currentDay,
                             state.trackedItems[card.cardId],
                             state.feedbackStates[card.cardId],
                             card.cardId in savedCardIds,
@@ -800,9 +804,19 @@ private fun HomeScreen(
                     }
                 }
                 itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
+                    val datePresentation = cardDatePresentation(card.scheduledDate, state.currentDay)
+                    val previousSection = visibleCards.getOrNull(index - 1)
+                        ?.let { previous -> cardDatePresentation(previous.scheduledDate, state.currentDay).section }
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        if (
+                            !showSavedCards &&
+                            datePresentation.section != previousSection
+                        ) {
+                            DailyCardSectionHeader(datePresentation.section)
+                        }
                         KnowledgeCardView(
                             card,
+                            state.currentDay,
                             state.trackedItems[card.cardId],
                             state.feedbackStates[card.cardId],
                             card.cardId in savedCardIds,
@@ -1017,8 +1031,25 @@ private fun EmptyState(
 }
 
 @Composable
+private fun DailyCardSectionHeader(section: CardDateSection) {
+    val title = when (section) {
+        CardDateSection.TODAY -> "今天"
+        CardDateSection.HISTORY -> "往日"
+        CardDateSection.UPCOMING -> "即将展示"
+    }
+    Text(
+        title,
+        modifier = Modifier.semantics { heading() },
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
+        fontWeight = FontWeight.SemiBold
+    )
+}
+
+@Composable
 private fun KnowledgeCardView(
     card: KnowledgeCard,
+    currentDay: LocalDate,
     trackedItem: TrackedItem?,
     feedbackState: CardFeedbackState?,
     isSaved: Boolean,
@@ -1098,6 +1129,7 @@ private fun KnowledgeCardView(
             )
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val recognition = cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)
+                val datePresentation = cardDatePresentation(card.scheduledDate, currentDay)
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1105,7 +1137,10 @@ private fun KnowledgeCardView(
                 ) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            "今日识物",
+                            datePresentation.visibleLabel,
+                            modifier = Modifier.semantics {
+                                contentDescription = datePresentation.accessibilityLabel
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.SemiBold
