@@ -681,6 +681,8 @@ private fun HomeScreen(
     val snackbar = remember { SnackbarHostState() }
     val fontScale = LocalDensity.current.fontScale
     var showSavedCards by rememberSaveable { mutableStateOf(false) }
+    val actionsEnabled = areUserMutationsEnabled(state.activeOperation)
+    val activityIndicator = homeActivityIndicator(state.activeOperation, state.analysisProgress)
     val focusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
     val dailyListState = rememberLazyListState()
     val savedListState = rememberLazyListState()
@@ -707,12 +709,20 @@ private fun HomeScreen(
                 Column(Modifier.weight(1f)) {
                     Text("见微", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Text("照片权限：${accessLabel(access)}", style = MaterialTheme.typography.labelMedium)
+                    state.activeOperation?.let { operation ->
+                        Text(
+                            operation.progressLabel,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-                if (state.busy || isAnalysisActive(state.analysisProgress)) {
+                if (activityIndicator != null) {
                     CircularProgressIndicator(
                         Modifier.size(24.dp).semantics {
-                            contentDescription = "照片分析"
-                            stateDescription = "正在处理"
+                            contentDescription = activityIndicator.contentDescription
+                            stateDescription = activityIndicator.stateDescription
                             liveRegion = LiveRegionMode.Polite
                         },
                         strokeWidth = 2.dp
@@ -739,6 +749,7 @@ private fun HomeScreen(
                             state.trackedItems[card.cardId],
                             state.feedbackStates[card.cardId],
                             card.cardId in savedCardIds,
+                            actionsEnabled,
                             onFeedback,
                             onSetSaved,
                             onTrack,
@@ -806,7 +817,7 @@ private fun HomeScreen(
                     }
                 }
                 item {
-                    if (!showSavedCards && state.cards.isEmpty()) EmptyState(state.paused, access, state.analysisProgress, onPick, onResume, onRetry)
+                    if (!showSavedCards && state.cards.isEmpty()) EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
                     if (showSavedCards && state.savedCards.isEmpty()) {
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -833,6 +844,7 @@ private fun HomeScreen(
                             state.trackedItems[card.cardId],
                             state.feedbackStates[card.cardId],
                             card.cardId in savedCardIds,
+                            actionsEnabled,
                             onFeedback,
                             onSetSaved,
                             onTrack,
@@ -845,10 +857,10 @@ private fun HomeScreen(
                     }
                 }
                 item {
-                    InterestPreferenceCenter(state.selectedInterests, onUpdateInterests)
+                    InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
                 }
                 item {
-                    PrivacyCenter(state.paused, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
+                    PrivacyCenter(state.paused, actionsEnabled, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
                 }
             }
         }
@@ -952,6 +964,7 @@ private fun WidgetCallToActionCopy(modifier: Modifier = Modifier) {
 @Composable
 private fun InterestPreferenceCenter(
     selectedInterests: Set<String>,
+    actionsEnabled: Boolean,
     onSave: (Set<String>) -> Boolean
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -996,12 +1009,12 @@ private fun InterestPreferenceCenter(
                         onClick = {
                             if (onSave(draft)) editing = false
                         },
-                        enabled = isValidInterestSelection(draft) && draft != selectedInterests,
+                        enabled = actionsEnabled && isValidInterestSelection(draft) && draft != selectedInterests,
                         modifier = Modifier.weight(1f)
                     ) { Text("保存偏好") }
                 }
             } else {
-                OutlinedButton(onClick = { editing = true }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { editing = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                     Text("调整推荐兴趣")
                 }
             }
@@ -1022,6 +1035,7 @@ private fun EmptyState(
     paused: Boolean,
     access: PhotoAccess,
     progress: cn.jianwei.domain.model.AnalysisProgress,
+    actionsEnabled: Boolean,
     onPick: () -> Unit,
     onResume: () -> Unit,
     onRetry: () -> Unit
@@ -1037,6 +1051,7 @@ private fun EmptyState(
                     EmptyDiscoveryAction.RESUME -> onResume
                     EmptyDiscoveryAction.RETRY -> onRetry
                 },
+                enabled = actionsEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) { Text(copy.actionLabel) }
         }
@@ -1066,6 +1081,7 @@ private fun KnowledgeCardView(
     trackedItem: TrackedItem?,
     feedbackState: CardFeedbackState?,
     isSaved: Boolean,
+    actionsEnabled: Boolean,
     onFeedback: (String, FeedbackAction) -> Unit,
     onSetSaved: (String, Boolean) -> Unit,
     onTrack: (ItemReminderSubmission) -> Unit,
@@ -1087,6 +1103,7 @@ private fun KnowledgeCardView(
             card = card,
             existing = trackedItem,
             onDismiss = { showReminderDialog = false },
+            actionsEnabled = actionsEnabled,
             onConfirm = {
                 showReminderDialog = false
                 onTrack(it)
@@ -1102,7 +1119,7 @@ private fun KnowledgeCardView(
                 TextButton(onClick = {
                     showCancelReminderDialog = false
                     onCancelReminder(card.cardId)
-                }) { Text("确认取消") }
+                }, enabled = actionsEnabled) { Text("确认取消") }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelReminderDialog = false }) { Text("保留提醒") }
@@ -1123,7 +1140,7 @@ private fun KnowledgeCardView(
                 TextButton(onClick = {
                     showPrivateFeedbackDialog = false
                     onFeedback(card.cardId, FeedbackAction.TOO_PRIVATE)
-                }) { Text("删除并停止分析") }
+                }, enabled = actionsEnabled) { Text("删除并停止分析") }
             },
             dismissButton = {
                 TextButton(onClick = { showPrivateFeedbackDialog = false }) { Text("保留卡片") }
@@ -1232,12 +1249,14 @@ private fun KnowledgeCardView(
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = { onSetSaved(card.cardId, !isSaved) },
+                                enabled = actionsEnabled,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
                             }
                             OutlinedButton(
                                 onClick = { showReminderDialog = true },
+                                enabled = actionsEnabled,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
@@ -1247,12 +1266,14 @@ private fun KnowledgeCardView(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Button(
                                 onClick = { onSetSaved(card.cardId, !isSaved) },
+                                enabled = actionsEnabled,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
                             }
                             OutlinedButton(
                                 onClick = { showReminderDialog = true },
+                                enabled = actionsEnabled,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
@@ -1275,7 +1296,7 @@ private fun KnowledgeCardView(
                     }
                 }
                 if (trackedItem != null) {
-                    TextButton(onClick = { showCancelReminderDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = { showCancelReminderDialog = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                         Text("取消物品提醒")
                     }
                 }
@@ -1294,12 +1315,14 @@ private fun KnowledgeCardView(
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(
                                     onClick = { onFeedback(card.cardId, FeedbackAction.LIKE) },
+                                    enabled = actionsEnabled,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(FeedbackAction.LIKE.userLabel())
                                 }
                                 OutlinedButton(
                                     onClick = { onFeedback(card.cardId, FeedbackAction.DISLIKE) },
+                                    enabled = actionsEnabled,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(FeedbackAction.DISLIKE.userLabel())
@@ -1307,6 +1330,7 @@ private fun KnowledgeCardView(
                             }
                             OutlinedButton(
                                 onClick = { onFeedback(card.cardId, FeedbackAction.WRONG_OBJECT) },
+                                enabled = actionsEnabled,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(FeedbackAction.WRONG_OBJECT.userLabel())
@@ -1340,6 +1364,7 @@ private fun KnowledgeCardView(
                         }
                         TextButton(
                             onClick = { showPrivateFeedbackDialog = true },
+                            enabled = actionsEnabled,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(FeedbackAction.TOO_PRIVATE.userLabel())
@@ -1362,6 +1387,7 @@ private fun ItemReminderDialog(
     card: KnowledgeCard,
     existing: TrackedItem?,
     onDismiss: () -> Unit,
+    actionsEnabled: Boolean,
     onConfirm: (ItemReminderSubmission) -> Unit
 ) {
     val context = LocalContext.current
@@ -1425,7 +1451,7 @@ private fun ItemReminderDialog(
                 onClick = {
                     onConfirm(ItemReminderSubmission(card.cardId, startedOn, reminderDays))
                 },
-                enabled = isValidItemReminderDraft(startedOn, reminderDays, today)
+                enabled = actionsEnabled && isValidItemReminderDraft(startedOn, reminderDays, today)
             ) { Text(if (existing == null) "确认并开启提醒" else "保存提醒") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
@@ -1435,6 +1461,7 @@ private fun ItemReminderDialog(
 @Composable
 private fun PrivacyCenter(
     paused: Boolean,
+    actionsEnabled: Boolean,
     onPick: () -> Unit,
     onAddWidget: () -> Unit,
     onPause: () -> Unit,
@@ -1462,13 +1489,13 @@ private fun PrivacyCenter(
             }
             if (expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth()) { Text("选择照片导入") }
-                    OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth()) { Text("添加桌面组件") }
-                    OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
+                    OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("添加桌面组件") }
+                    OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                         Text(if (paused) "恢复分析" else "暂停分析")
                     }
-                    OutlinedButton(onClick = onClearIndex, modifier = Modifier.fillMaxWidth()) { Text("清除本地照片索引") }
-                    OutlinedButton(onClick = { showCloudDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth()) { Text("删除云端数据") }
+                    OutlinedButton(onClick = onClearIndex, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("清除本地照片索引") }
+                    OutlinedButton(onClick = { showCloudDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("删除云端数据") }
                     OutlinedButton(onClick = onExportMetrics, modifier = Modifier.fillMaxWidth()) { Text("导出内测报告") }
                     Text("系统相册权限只控制自动发现；你曾逐次选择或分享导入的照片是独立同意。如需终止所有待处理任务，请点“暂停分析”。", style = MaterialTheme.typography.bodySmall)
                     Text("暂停状态会跨重启保留，手动恢复前不再扫描、上传或同步卡片。删除云端数据也会暂停分析，并清除匿名设备身份、待处理任务和云端卡片；本地原照片不会被删除。", style = MaterialTheme.typography.bodySmall)
@@ -1486,7 +1513,7 @@ private fun PrivacyCenter(
                 TextButton(onClick = {
                     showCloudDeleteConfirmation = false
                     onDeleteCloud()
-                }) { Text("确认删除") }
+                }, enabled = actionsEnabled) { Text("确认删除") }
             },
             dismissButton = { TextButton(onClick = { showCloudDeleteConfirmation = false }) { Text("取消") } }
         )

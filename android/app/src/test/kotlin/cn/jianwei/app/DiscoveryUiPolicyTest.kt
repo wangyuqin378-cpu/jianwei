@@ -103,4 +103,27 @@ class DiscoveryUiPolicyTest {
         assertThat(analysisStatusBanner(retry, hasCards = true)).isEqualTo("系统会自动重试")
         assertThat(analysisStatusBanner(ready, hasCards = true)).isNull()
     }
+
+    @Test
+    fun `user mutation status takes priority and disables conflicting mutations`() {
+        val active = homeActivityIndicator(
+            UserOperation.DELETE_CLOUD_DATA,
+            AnalysisProgress(phase = AnalysisPhase.FILTERING)
+        )
+
+        assertThat(active?.contentDescription).isEqualTo("操作进度")
+        assertThat(active?.stateDescription).isEqualTo("正在删除云端数据")
+        assertThat(areUserMutationsEnabled(UserOperation.DELETE_CLOUD_DATA)).isFalse()
+        assertThat(areUserMutationsEnabled(null)).isTrue()
+    }
+
+    @Test
+    fun `photo analysis indicator remains truthful when no user mutation is active`() {
+        val active = homeActivityIndicator(null, AnalysisProgress(phase = AnalysisPhase.SYNCING))
+        val idle = homeActivityIndicator(null, AnalysisProgress(phase = AnalysisPhase.READY))
+
+        assertThat(active?.contentDescription).isEqualTo("照片分析")
+        assertThat(active?.stateDescription).isEqualTo("正在处理")
+        assertThat(idle).isNull()
+    }
 }

@@ -13,6 +13,11 @@ internal data class EmptyDiscoveryCopy(
     val action: EmptyDiscoveryAction
 )
 
+internal data class HomeActivityIndicator(
+    val contentDescription: String,
+    val stateDescription: String
+)
+
 internal fun shouldScheduleAutomaticDiscovery(access: PhotoAccess): Boolean =
     access != PhotoAccess.PICKER_ONLY
 
@@ -44,6 +49,18 @@ internal fun isAnalysisActive(progress: AnalysisProgress): Boolean = progress.ph
     AnalysisPhase.FILTERING,
     AnalysisPhase.SYNCING
 )
+
+internal fun areUserMutationsEnabled(activeOperation: UserOperation?): Boolean =
+    activeOperation == null
+
+internal fun homeActivityIndicator(
+    activeOperation: UserOperation?,
+    progress: AnalysisProgress
+): HomeActivityIndicator? = when {
+    activeOperation != null -> HomeActivityIndicator("操作进度", activeOperation.progressLabel)
+    isAnalysisActive(progress) -> HomeActivityIndicator("照片分析", "正在处理")
+    else -> null
+}
 
 internal fun analysisStatusBanner(progress: AnalysisProgress, hasCards: Boolean): String? = when {
     !hasCards -> null

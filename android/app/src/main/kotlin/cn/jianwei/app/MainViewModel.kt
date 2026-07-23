@@ -19,9 +19,11 @@ import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -34,13 +36,15 @@ data class MainUiState(
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
     val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
     val selectedInterests: Set<String> = DEFAULT_INTEREST_SELECTION,
-    val busy: Boolean = false,
+    val activeOperation: UserOperation? = null,
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
     val paused: Boolean = false,
     val currentDay: LocalDate = ChinaCalendar.today(),
     val focusedCardId: String? = null
-)
+) {
+    val busy: Boolean get() = activeOperation != null
+}
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -52,6 +56,7 @@ class MainViewModel @Inject constructor(
     private val betaMetrics: BetaMetricsStore,
     private val itemReminders: ItemReminderScheduler
 ) : ViewModel() {
+    private val operationGate = UserOperationGate()
     private val localState = MutableStateFlow(MainUiState(paused = scheduler.isPaused()))
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
@@ -108,7 +113,7 @@ class MainViewModel @Inject constructor(
         false
     }
 
-    fun startDiscovery(access: PhotoAccess) = runBusy {
+    fun startDiscovery(access: PhotoAccess) = runBusy(UserOperation.START_DISCOVERY) {
         if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
         discoveryStartMessage(access)
     }
@@ -131,25 +136,31 @@ class MainViewModel @Inject constructor(
 
     fun importUris(uris: List<String>) {
         if (uris.isEmpty()) return
-        runBusy {
+        runBusy(UserOperation.IMPORT_PHOTOS) {
             val imported = photos.importUris(uris)
             scheduler.scheduleImportedPhotos()
             "已导入 ${imported.size} 张照片，原图不会长期上云"
         }
     }
 
-    fun retry(access: PhotoAccess) {
+    fun retry(access: PhotoAccess) = runBusy(UserOperation.RETRY_ANALYSIS) {
         if (scheduler.isPaused()) scheduler.setPaused(false)
-        localState.value = localState.value.copy(paused = false)
-        if (shouldScheduleAutomaticDiscovery(access)) {
-            scheduler.scheduleAccessReconciliation(access)
-            scheduler.scheduleDailyRefresh()
-        } else {
-            scheduler.scheduleImportedPhotos()
+        localState.update { it.copy(paused = false) }
+        scheduleAvailableAnalysis(access)
+        "已重新安排分析；系统会在条件允许时继续"
+    }
+
+    private fun scheduleAvailableAnalysis(access: PhotoAccess) {
+        when {
+            shouldScheduleAutomaticDiscovery(access) -> {
+                scheduler.scheduleAccessReconciliation(access)
+                scheduler.scheduleDailyRefresh()
+            }
+            else -> scheduler.scheduleImportedPhotos()
         }
     }
 
-    fun feedback(cardId: String, action: FeedbackAction) = runBusy {
+    fun feedback(cardId: String, action: FeedbackAction) = runBusy(UserOperation.RECORD_FEEDBACK) {
         val result = cards.sendFeedback(cardId, action)
         if (result.accepted) {
             if (action == FeedbackAction.TOO_PRIVATE) itemReminders.cancel(cardId)
@@ -158,13 +169,13 @@ class MainViewModel @Inject constructor(
         feedbackResultMessage(result)
     }
 
-    fun setSaved(cardId: String, saved: Boolean) = runBusy {
+    fun setSaved(cardId: String, saved: Boolean) = runBusy(UserOperation.UPDATE_SAVED) {
         val newPreferenceSignal = cards.setSaved(cardId, saved)
         if (newPreferenceSignal) betaMetrics.markFeedback(FeedbackAction.SAVE) else betaMetrics.markEngaged()
         if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
     }
 
-    fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = runBusy {
+    fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = runBusy(UserOperation.SET_REMINDER) {
         require(isValidItemReminderDraft(startedOn, reminderDays)) {
             "请选择不晚于今天的启用日期和有效提醒周期"
         }
@@ -174,41 +185,38 @@ class MainViewModel @Inject constructor(
         "已设置物品提醒；预计 ${startedOn.plusDays(reminderDays.toLong())} 上午送达，系统省电可能造成延迟"
     }
 
-    fun cancelReminder(cardId: String) = runBusy {
+    fun cancelReminder(cardId: String) = runBusy(UserOperation.CANCEL_REMINDER) {
         itemReminders.cancel(cardId)
         cards.cancelTracking(cardId)
         betaMetrics.markEngaged()
         "已取消物品提醒；云端记录会在联网且分析未暂停时撤销"
     }
 
-    fun pauseAnalysis() = runBusy {
+    fun pauseAnalysis() = runBusy(UserOperation.PAUSE_ANALYSIS) {
         scheduler.pauseAndCancel()
-        localState.value = localState.value.copy(paused = true)
+        localState.update { it.copy(paused = true) }
         "分析已暂停，进行中的网络任务已经退出"
     }
 
-    fun resume(access: PhotoAccess) {
+    fun resume(access: PhotoAccess) = runBusy(UserOperation.RESUME_ANALYSIS) {
         scheduler.setPaused(false)
-        localState.value = localState.value.copy(paused = false)
-        startDiscovery(access)
-        if (shouldScheduleAutomaticDiscovery(access)) {
-            scheduler.scheduleDailyRefresh()
-        } else {
-            scheduler.scheduleImportedPhotos()
-        }
+        localState.update { it.copy(paused = false) }
+        if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
+        scheduleAvailableAnalysis(access)
+        discoveryStartMessage(access)
     }
 
-    fun clearLocalIndex() = runBusy {
+    fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
         cards.clearLocalPhotoReferences()
         photos.clearIndex()
         "本地照片索引和卡片中的照片引用已清除"
     }
 
-    fun deleteCloudData() = runBusy {
+    fun deleteCloudData() = runBusy(UserOperation.DELETE_CLOUD_DATA) {
         scheduler.pauseAndCancel()
         itemReminders.cancelAllAndAwait()
         cards.clearCloudData()
-        localState.value = localState.value.copy(paused = true)
+        localState.update { it.copy(paused = true) }
         "云端设备数据和未完成任务已删除"
     }
 
@@ -216,13 +224,25 @@ class MainViewModel @Inject constructor(
         localState.value = localState.value.copy(message = null)
     }
 
-    private fun runBusy(block: suspend () -> String) {
+    private fun runBusy(operation: UserOperation, block: suspend () -> String) {
+        if (!operationGate.tryStart(operation)) return
+        localState.update { it.copy(activeOperation = operation, message = null) }
         viewModelScope.launch {
-            localState.value = localState.value.copy(busy = true, message = null)
-            localState.value = try {
-                localState.value.copy(busy = false, message = block())
+            var completionMessage: String? = null
+            try {
+                completionMessage = block()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (error: Exception) {
-                localState.value.copy(busy = false, message = error.message ?: "操作失败，请稍后重试")
+                completionMessage = error.message ?: "操作失败，请稍后重试"
+            } finally {
+                operationGate.finish(operation)
+                localState.update { state ->
+                    state.copy(
+                        activeOperation = operationGate.current(),
+                        message = completionMessage ?: state.message
+                    )
+                }
             }
         }
     }
