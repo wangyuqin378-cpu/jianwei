@@ -11,6 +11,7 @@ import androidx.test.runner.lifecycle.Stage
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.TrackedItemEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import com.google.common.truth.Truth.assertThat
@@ -22,7 +23,7 @@ import org.junit.Test
 
 class ItemReminderPrivacyGuardInstrumentedTest {
     @Test
-    fun removedTrackingCannotNotifyEvenWhenStaleWorkStillExecutes() = runBlocking {
+    fun missingCardOrTrackingCannotNotifyEvenWhenStaleWorkStillExecutes() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         if (Build.VERSION.SDK_INT >= 33) {
@@ -43,6 +44,7 @@ class ItemReminderPrivacyGuardInstrumentedTest {
         val database = buildJianweiDatabase(context)
         try {
             notifications.cancel(notificationId)
+            database.cards().upsertAll(listOf(reminderCard(cardId, startedOn)))
             database.cards().upsertTrackedItem(
                 TrackedItemEntity(
                     cardId = cardId,
@@ -88,6 +90,16 @@ class ItemReminderPrivacyGuardInstrumentedTest {
             }
 
             notifications.cancel(notificationId)
+            database.cards().deleteById(cardId)
+
+            val missingCardRequest = reminderRequest(cardId, startedOn, reminderDays)
+            workManager.enqueue(missingCardRequest).result.get(5, TimeUnit.SECONDS)
+            awaitFinished(workManager, missingCardRequest.id)
+            assertThat(
+                notifications.activeNotifications.map { it.id }
+            ).doesNotContain(notificationId)
+
+            database.cards().upsertAll(listOf(reminderCard(cardId, startedOn)))
             database.cards().removeTrackedItem(cardId)
 
             // This request models the crash window after the Room privacy transaction removed
@@ -102,9 +114,27 @@ class ItemReminderPrivacyGuardInstrumentedTest {
         } finally {
             notifications.cancel(notificationId)
             database.cards().removeTrackedItem(cardId)
+            database.cards().deleteById(cardId)
             database.close()
         }
     }
+
+    private fun reminderCard(cardId: String, scheduledDate: LocalDate) = CardEntity(
+        cardId = cardId,
+        candidateToken = "candidate-$cardId",
+        photoUri = "",
+        topicId = "reminder-test",
+        factId = "reminder-test-fact",
+        title = "提醒回卡测试",
+        detectedObjectName = "测试物品",
+        body = "这是一张仅用于本地提醒回卡验证的合成卡片。",
+        personalContext = "本地 API 34 测试",
+        confidence = 0.99,
+        sources = "[]",
+        status = "scheduled",
+        scheduledDate = scheduledDate.toString(),
+        createdAtMillis = 1L
+    )
 
     private fun reminderRequest(
         cardId: String,

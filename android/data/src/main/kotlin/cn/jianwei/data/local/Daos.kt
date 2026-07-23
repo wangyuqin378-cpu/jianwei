@@ -265,6 +265,22 @@ interface CardDao {
     @Query("SELECT * FROM local_tracked_items WHERE cardId = :cardId LIMIT 1")
     suspend fun findTrackedItem(cardId: String): TrackedItemEntity?
 
+    @Query(
+        "SELECT EXISTS(" +
+            "SELECT 1 FROM local_tracked_items AS tracked " +
+            "INNER JOIN knowledge_cards AS card ON card.cardId = tracked.cardId " +
+            "WHERE tracked.cardId = :cardId " +
+            "AND tracked.syncAction != 'DELETE' " +
+            "AND tracked.startedOn = :startedOn " +
+            "AND tracked.reminderDays = :reminderDays" +
+            ")"
+    )
+    suspend fun isTrackedReminderCurrent(
+        cardId: String,
+        startedOn: String,
+        reminderDays: Int
+    ): Boolean
+
     @Query("SELECT * FROM local_tracked_items WHERE syncAction != 'NONE' ORDER BY updatedAtMillis ASC LIMIT :limit")
     suspend fun pendingTrackedItems(limit: Int = 50): List<TrackedItemEntity>
 
