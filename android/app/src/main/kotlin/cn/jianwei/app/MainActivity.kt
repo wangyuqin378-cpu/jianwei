@@ -91,6 +91,7 @@ import cn.jianwei.app.widget.DailyWidgetReceiver
 import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
 import cn.jianwei.domain.card.cardRecognitionPresentation
+import cn.jianwei.domain.card.FocusedCardStatus
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
@@ -209,13 +210,14 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 } else {
+                    val hasVisibleCard = state.cards.isNotEmpty() || state.focusedCard != null
                     LaunchedEffect(Unit) {
                         betaMetrics.markOnboardingCompleted()
                         viewModel.ensureDailyRefresh(photoAccess)
-                        if (state.cards.isNotEmpty()) betaMetrics.markFirstCardObserved()
+                        if (hasVisibleCard) betaMetrics.markFirstCardObserved()
                     }
-                    LaunchedEffect(state.cards.isNotEmpty()) {
-                        if (state.cards.isNotEmpty()) betaMetrics.markFirstCardObserved()
+                    LaunchedEffect(hasVisibleCard) {
+                        if (hasVisibleCard) betaMetrics.markFirstCardObserved()
                     }
                     HomeScreen(
                         state = state,
@@ -234,6 +236,7 @@ class MainActivity : ComponentActivity() {
                         onDeleteCloud = viewModel::deleteCloudData,
                         onExportMetrics = ::shareBetaMetrics,
                         onUpdateInterests = { viewModel.updateInterests(it) },
+                        onCloseFocusedCard = { viewModel.focusCard(null) },
                         onMessageShown = viewModel::clearMessage
                     )
                     LaunchedEffect(state.cards) { DailyWidget().updateAll(context) }
@@ -668,13 +671,16 @@ private fun HomeScreen(
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit,
     onUpdateInterests: (Set<String>) -> Boolean,
+    onCloseFocusedCard: () -> Unit,
     onMessageShown: () -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
     val fontScale = LocalDensity.current.fontScale
     var showSavedCards by rememberSaveable { mutableStateOf(false) }
+    val focusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
     val visibleCards = if (showSavedCards) state.savedCards else state.cards
     val savedCardIds = state.savedCards.mapTo(remember(state.savedCards) { mutableSetOf() }) { it.cardId }
+    BackHandler(enabled = focusedEntry) { onCloseFocusedCard() }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
     }
@@ -705,95 +711,169 @@ private fun HomeScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item {
-                BoxWithConstraints {
-                    val compactLabels = shouldUseCompactTabLabels(maxWidth.value, fontScale)
-                    val dailyTabLabel = if (compactLabels) "每日" else "每日卡片"
-                    val savedTabLabel = "收藏 ${state.savedCards.size}"
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (showSavedCards) {
-                            OutlinedButton(
-                                onClick = { showSavedCards = false },
-                                modifier = Modifier.weight(1f).semantics {
-                                    role = Role.Tab
-                                    selected = false
-                                    contentDescription = "每日卡片"
-                                }
-                            ) { Text(dailyTabLabel) }
-                            Button(
-                                onClick = { },
-                                modifier = Modifier.weight(1f).semantics {
-                                    role = Role.Tab
-                                    selected = true
-                                    contentDescription = savedTabLabel
-                                }
-                            ) { Text(savedTabLabel) }
-                        } else {
-                            Button(
-                                onClick = { },
-                                modifier = Modifier.weight(1f).semantics {
-                                    role = Role.Tab
-                                    selected = true
-                                    contentDescription = "每日卡片"
-                                }
-                            ) { Text(dailyTabLabel) }
-                            OutlinedButton(
-                                onClick = { showSavedCards = true },
-                                modifier = Modifier.weight(1f).semantics {
-                                    role = Role.Tab
-                                    selected = false
-                                    contentDescription = savedTabLabel
-                                }
-                            ) { Text(savedTabLabel) }
-                        }
+            if (focusedEntry) {
+                state.focusedCard?.let { card ->
+                    item {
+                        FocusedCardEntryHeader(onCloseFocusedCard)
                     }
-                }
-            }
-            analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
-                item {
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                        Text(
-                            bannerMessage,
-                            modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
-                            style = MaterialTheme.typography.bodyMedium
+                    item(key = "focused-${card.cardId}") {
+                        KnowledgeCardView(
+                            card,
+                            state.trackedItems[card.cardId],
+                            state.feedbackStates[card.cardId],
+                            card.cardId in savedCardIds,
+                            onFeedback,
+                            onSetSaved,
+                            onTrack,
+                            onCancelReminder,
+                            onEngagement
                         )
                     }
+                } ?: item {
+                    FocusedCardUnavailable(onCloseFocusedCard)
                 }
-            }
-            item {
-                if (!showSavedCards && state.cards.isEmpty()) EmptyState(state.paused, access, state.analysisProgress, onPick, onResume, onRetry)
-                if (showSavedCards && state.savedCards.isEmpty()) {
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("还没有收藏", style = MaterialTheme.typography.titleLarge)
-                            Text("看到想留住的知识卡时，点击“收藏这张知识卡”。")
+            } else {
+                item {
+                    BoxWithConstraints {
+                        val compactLabels = shouldUseCompactTabLabels(maxWidth.value, fontScale)
+                        val dailyTabLabel = if (compactLabels) "每日" else "每日卡片"
+                        val savedTabLabel = "收藏 ${state.savedCards.size}"
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (showSavedCards) {
+                                OutlinedButton(
+                                    onClick = { showSavedCards = false },
+                                    modifier = Modifier.weight(1f).semantics {
+                                        role = Role.Tab
+                                        selected = false
+                                        contentDescription = "每日卡片"
+                                    }
+                                ) { Text(dailyTabLabel) }
+                                Button(
+                                    onClick = { },
+                                    modifier = Modifier.weight(1f).semantics {
+                                        role = Role.Tab
+                                        selected = true
+                                        contentDescription = savedTabLabel
+                                    }
+                                ) { Text(savedTabLabel) }
+                            } else {
+                                Button(
+                                    onClick = { },
+                                    modifier = Modifier.weight(1f).semantics {
+                                        role = Role.Tab
+                                        selected = true
+                                        contentDescription = "每日卡片"
+                                    }
+                                ) { Text(dailyTabLabel) }
+                                OutlinedButton(
+                                    onClick = { showSavedCards = true },
+                                    modifier = Modifier.weight(1f).semantics {
+                                        role = Role.Tab
+                                        selected = false
+                                        contentDescription = savedTabLabel
+                                    }
+                                ) { Text(savedTabLabel) }
+                            }
                         }
                     }
                 }
-            }
-            itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    KnowledgeCardView(
-                        card,
-                        state.trackedItems[card.cardId],
-                        state.feedbackStates[card.cardId],
-                        card.cardId in savedCardIds,
-                        onFeedback,
-                        onSetSaved,
-                        onTrack,
-                        onCancelReminder,
-                        onEngagement
-                    )
-                    if (shouldShowWidgetCallToAction(showSavedCards, index)) {
-                        WidgetCallToAction(onAddWidget)
+                analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                            Text(
+                                bannerMessage,
+                                modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
+                item {
+                    if (!showSavedCards && state.cards.isEmpty()) EmptyState(state.paused, access, state.analysisProgress, onPick, onResume, onRetry)
+                    if (showSavedCards && state.savedCards.isEmpty()) {
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("还没有收藏", style = MaterialTheme.typography.titleLarge)
+                                Text("看到想留住的知识卡时，点击“收藏这张知识卡”。")
+                            }
+                        }
+                    }
+                }
+                itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        KnowledgeCardView(
+                            card,
+                            state.trackedItems[card.cardId],
+                            state.feedbackStates[card.cardId],
+                            card.cardId in savedCardIds,
+                            onFeedback,
+                            onSetSaved,
+                            onTrack,
+                            onCancelReminder,
+                            onEngagement
+                        )
+                        if (shouldShowWidgetCallToAction(showSavedCards, index)) {
+                            WidgetCallToAction(onAddWidget)
+                        }
+                    }
+                }
+                item {
+                    InterestPreferenceCenter(state.selectedInterests, onUpdateInterests)
+                }
+                item {
+                    PrivacyCenter(state.paused, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
+                }
             }
-            item {
-                InterestPreferenceCenter(state.selectedInterests, onUpdateInterests)
+        }
+    }
+}
+
+@Composable
+private fun FocusedCardEntryHeader(onClose: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "打开的知识卡",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "这是你刚刚从桌面组件或物品提醒打开的卡片。返回后只会看到今天及过去的卡片。",
+                style = MaterialTheme.typography.bodySmall
+            )
+            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                Text("返回每日卡片")
             }
-            item {
-                PrivacyCenter(state.paused, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
+        }
+    }
+}
+
+@Composable
+private fun FocusedCardUnavailable(onClose: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(22.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                "这张卡已不可用",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("它可能已被删除、标记为太私人，或本机缓存已经清理。")
+            Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                Text("返回每日卡片")
             }
         }
     }

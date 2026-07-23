@@ -634,10 +634,18 @@ for (const marker of ["remainingQuota", "remainingCards", "暂无更多卡片", 
 for (const marker of ["single card never offers a dead switch action", "remaining label reflects both quota and unseen cards", "end of list and invalid current card fail closed"]) {
   check(widgetSwitchPolicyTest.includes(marker), `Widget switch affordance test is missing case: ${marker}`);
 }
-for (const marker of ["it.status == SCHEDULED_STATUS", "SCHEDULED_STATUS = \"scheduled\"", "!it.scheduledDate.isAfter(today)", "focusedCardId"]) {
+for (const marker of [
+  "DailyCardPresentation",
+  "FocusedCardStatus",
+  "it.status == SCHEDULED_STATUS",
+  "SCHEDULED_STATUS = \"scheduled\"",
+  "!it.scheduledDate.isAfter(today)",
+  "dailyCards = due",
+  "focusedCard = focused"
+]) {
   check(dailyCardPolicy.includes(marker), `Daily-card visibility policy is missing marker: ${marker}`);
 }
-for (const marker of ["future cache stays hidden", "focused future card", "unknown or unscheduled focus"]) {
+for (const marker of ["future cache stays hidden", "opens separately without entering daily history", "unavailable entry without revealing future content"]) {
   check(dailyCardPolicyTest.includes(marker), `Daily-card visibility test is missing case: ${marker}`);
 }
 for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "cardTitleForConfidence", "这可能是", "slice(0, 30)"]) {
@@ -687,11 +695,17 @@ check(
   "Widget card does not consume the domain-owned compact object identity presentation"
 );
 check(
-  mainViewModel.includes("visibleDailyCards(") &&
+  mainViewModel.includes("dailyCardPresentation(") &&
+    mainViewModel.includes("focusedCard = presentation.focusedCard") &&
+    mainViewModel.includes("focusedCardStatus = presentation.focusedCardStatus") &&
     mainViewModel.includes("focusedCardId") &&
     mainActivity.includes("viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))") &&
-    mainActivity.includes('EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"'),
-  "App daily feed can expose future cache or widget card deep-link is not focused"
+    mainActivity.includes('EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"') &&
+    mainActivity.includes("BackHandler(enabled = focusedEntry)") &&
+    mainActivity.includes("FocusedCardEntryHeader(onCloseFocusedCard)") &&
+    mainActivity.includes('"返回每日卡片"') &&
+    mainActivity.includes('"这张卡已不可用"'),
+  "App daily feed can expose future cache or focused card entry lacks a separate return/failure state"
 );
 check(androidManifest.includes("android.permission.POST_NOTIFICATIONS"), "Item reminders are missing the Android notification permission declaration");
 check(mainActivity.includes("确认并开启提醒") && mainActivity.includes("datePicker.maxDate"), "Item tracking does not require an explicit non-future start-date confirmation");
@@ -1099,7 +1113,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

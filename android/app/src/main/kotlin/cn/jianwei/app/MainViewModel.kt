@@ -2,7 +2,8 @@ package cn.jianwei.app
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.jianwei.domain.card.visibleDailyCards
+import cn.jianwei.domain.card.FocusedCardStatus
+import cn.jianwei.domain.card.dailyCardPresentation
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
@@ -28,6 +29,8 @@ import java.time.LocalDate
 data class MainUiState(
     val cards: List<KnowledgeCard> = emptyList(),
     val savedCards: List<KnowledgeCard> = emptyList(),
+    val focusedCard: KnowledgeCard? = null,
+    val focusedCardStatus: FocusedCardStatus = FocusedCardStatus.NONE,
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
     val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
     val selectedInterests: Set<String> = DEFAULT_INTEREST_SELECTION,
@@ -62,9 +65,12 @@ class MainViewModel @Inject constructor(
         localState,
         analysisStatus.observeProgress()
     ) { cardList, savedCards, cardState, state, progress ->
+        val presentation = dailyCardPresentation(cardList, state.currentDay, state.focusedCardId)
         state.copy(
-            cards = visibleDailyCards(cardList, state.currentDay, state.focusedCardId),
+            cards = presentation.dailyCards,
             savedCards = savedCards,
+            focusedCard = presentation.focusedCard,
+            focusedCardStatus = presentation.focusedCardStatus,
             trackedItems = cardState.first.associateBy(TrackedItem::cardId),
             feedbackStates = cardState.second.associateBy(CardFeedbackState::cardId),
             selectedInterests = cardState.third,
