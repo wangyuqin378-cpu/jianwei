@@ -8,6 +8,7 @@
 ## 已完成并验证
 
 - 2026-07-23 已建立首个本地 Git 产品基线：根提交 `5f66df607b4cc99c88fbd61d9c74367a9dcf61bb` 固定 589 个文件、78,344 行，归档 SHA-256 为 `be81cda29e9227d9866e53ce640ccb2dda04082a9a63913cd1a9857ecfa8f6d4`；工作树、Git 对象、敏感文件名/常见私钥模式和 macOS PostgreSQL 门禁脚本的 `100755` 模式均已复核。仓库未配置远端、未推送，该提交只提供本地可追溯工程基线，不构成 Release/Beta 证据。
+- 2026-07-23 知识卡已从长表单式按钮堆叠重构为阅读优先层级：照片、标题/收藏状态、识别把握、核心知识、推送原因/来源、收藏/提醒、反馈、安装级排除。引导增加品牌副标题和三段进度轨；收藏/提醒在 `<340dp` 或 `fontScale >=1.5` 时纵向回流。API 34 实跑覆盖标准宽度、第三屏引导及精确 320dp/2.0 倍字体，临时 `visual-audit-card` 已删除、显示设置恢复、crash buffer 为空；`.tooling/card-experience-audit/audit.json` 为 `GO`、`releaseEvidence=false`，SHA-256 `3ffeb2a17fcea8ba1fd00e7cad3ec3c0d4ecda3d7c3bd759d5a24fe0c5f45192`。JVM 119/119，Debug/Release Lint 0 error（32/8 warning），Debug/R8 Release 成功；新 APK SHA-256 为 `A7BF5D93AD8C218D101E31C87B78D40F6C0899ABADC0FC8214E5D9DEEB1B5AFB` / `1774C9CDF153F39208F10196778260BADBFD2F20C6B6D31090C27A4B2A882839`。外部 Beta 阻断不变。
 - 后端 TypeScript check/build 与 98/98 项基础测试通过；API 契约、供应链、运行预算和源码护栏均为 GO。
 - 2026-07-23 在隔离 PostgreSQL 17.10 (Homebrew) 上三次运行全部 13 个迁移，13/13 仓储/升级测试和编译服务 TCP E2E 通过。新增测试会在模拟旧表中执行 `013_card_detected_object_name.sql`，证明旧卡片按 title 回填对象名、空白对象名受约束拒绝，并验证仓储读写保留“扫帚”。macOS 门禁位于 `scripts/run-postgres-integration-macos.sh`，运行后数据库进程已关闭；结果在 `.tooling/postgres-integration-results-macos/`。这仍是本地 PostgreSQL，不是托管云证据。
 - Android：31 个 JVM 套件 118/118、API 34 instrumentation 46/46；当前 Debug、R8 Release、真实 Pixel Launcher 组件添加/缩放/两次换卡/精准回卡及 crash buffer 均通过。App/Data Lint 均为 0 error，分别 32/20 warning。

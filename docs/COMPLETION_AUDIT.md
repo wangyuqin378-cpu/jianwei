@@ -1,5 +1,7 @@
 # 见微完成度审计
 
+2026-07-23 知识卡产品化呈现（当前最新权威摘要）：首页主卡不再把识别、来源、收藏、反馈、提醒和隐私动作平铺成长表单。当前层级固定为照片 → “今日识物”标题 → 识别把握 → 核心知识 → “为什么是这张照片”与可点击来源 → 收藏/物品提醒 → 推荐反馈 → 本次安装不再分析；收藏状态有独立可见标记。引导页增加品牌副标题和三段进度轨，颜色系统补齐容器、正文、轮廓与对比色。收藏/提醒在常规宽度并排，在 `<340dp` 或字体倍率 `>=1.5` 时纵向回流，纯策略测试及源码门禁防止回归。API 34 实际运行验证标准宽度首屏层级、第三屏引导，以及精确 320dp/2.0 倍字体下的纵向主操作、四类反馈和隐私动作均可达；临时 `visual-audit-card` 已删除，显示设置已恢复，crash buffer 为空。`.tooling/card-experience-audit/audit.json` 为 `GO` 且明确 `releaseEvidence=false`，SHA-256 为 `3ffeb2a17fcea8ba1fd00e7cad3ec3c0d4ecda3d7c3bd759d5a24fe0c5f45192`。Android 31 个 JVM 套件 119/119，Debug/Release Lint 0 error（32/8 warning），Debug 与 R8 Release 构建成功；APK SHA-256 为 `A7BF5D93AD8C218D101E31C87B78D40F6C0899ABADC0FC8214E5D9DEEB1B5AFB` / `1774C9CDF153F39208F10196778260BADBFD2F20C6B6D31090C27A4B2A882839`。本轮没有把模拟器夹具当作真实内容或发布证据，真人审核、真实云、正式签名、国产 OEM 与 cohort 阻断不变，发布结论保持 `NO_GO`。
+
 2026-07-23 PostgreSQL 迁移 13 真实执行（当前最新权威摘要）：新增 `scripts/run-postgres-integration-macos.sh`，使用 PostgreSQL 17.10 (Homebrew) 在随机回环端口初始化隔离集群，不注册常驻服务。首次迁移应用 001–013，第二次迁移确认 schema current，编译服务启动再执行迁移；13/13 仓储/升级测试通过。迁移 13 专用测试在模拟旧表中执行真实 SQL，确认旧卡片由 title 回填对象名、空白对象名被长度约束拒绝，仓储读回独立 `detectedObjectName`；编译 Fastify 的 PostgreSQL TCP 闭环也验证认证、敏感拒绝、一次性上传、分析、卡片、反馈、追踪、未知物件、删除和对象归零。最终 `pg_ctl status` 为 no server running。后端 98/98 基础测试、check/build、源码护栏通过。`.tooling/postgres-integration-results-macos/` 和 `.tooling/backend-e2e-postgres/` 是本地工程证据，不代表托管 PostgreSQL 或真实 OSS/Qwen/HTTPS；发布结论保持 `NO_GO`。
 
 状态解释：下文仍保留各时间点的历史摘要；其中“PostgreSQL 测试 skipped / 迁移 13 未真实执行”已被本段 13/13 真实数据库证据取代。

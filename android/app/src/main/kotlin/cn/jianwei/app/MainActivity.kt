@@ -288,10 +288,20 @@ class MainActivity : ComponentActivity() {
 private fun JianweiTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = androidx.compose.material3.lightColorScheme(
-            primary = androidx.compose.ui.graphics.Color(0xFF355C49),
-            secondary = androidx.compose.ui.graphics.Color(0xFF8A5A44),
-            background = androidx.compose.ui.graphics.Color(0xFFF5F1E8),
-            surface = androidx.compose.ui.graphics.Color(0xFFFFFBF3)
+            primary = androidx.compose.ui.graphics.Color(0xFF28543F),
+            onPrimary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+            primaryContainer = androidx.compose.ui.graphics.Color(0xFFD9EADD),
+            onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF102C20),
+            secondary = androidx.compose.ui.graphics.Color(0xFF85543D),
+            onSecondary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+            secondaryContainer = androidx.compose.ui.graphics.Color(0xFFF1DFD5),
+            onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF351A0F),
+            background = androidx.compose.ui.graphics.Color(0xFFF4F0E7),
+            surface = androidx.compose.ui.graphics.Color(0xFFFFFCF5),
+            surfaceVariant = androidx.compose.ui.graphics.Color(0xFFE8E3DA),
+            onSurface = androidx.compose.ui.graphics.Color(0xFF1D211E),
+            onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF454B46),
+            outline = androidx.compose.ui.graphics.Color(0xFF747A74)
         ),
         content = content
     )
@@ -312,11 +322,29 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Column {
-                Text("见微", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(48.dp))
+                Text(
+                    "见微",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text("照片里的日常知识", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(28.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    pages.indices.forEach { index ->
+                        Box(
+                            Modifier.weight(1f).height(4.dp).background(
+                                color = if (index <= step) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                        )
+                    }
+                }
+                Spacer(Modifier.height(28.dp))
                 Text(pages[step].first, style = MaterialTheme.typography.headlineMedium)
                 Spacer(Modifier.height(16.dp))
-                Text(pages[step].second, style = MaterialTheme.typography.bodyLarge)
+                Text(pages[step].second, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (step == 2) {
                     Spacer(Modifier.height(24.dp))
                     Text("先选 3 个兴趣", fontWeight = FontWeight.SemiBold)
@@ -635,51 +663,125 @@ private fun KnowledgeCardView(
             )
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val recognition = cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)
-                Text(card.title, style = MaterialTheme.typography.titleLarge)
-                Text(
-                    recognition.visibleLabel,
-                    modifier = Modifier.semantics {
-                        contentDescription = recognition.accessibilityLabel
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(card.body, style = MaterialTheme.typography.bodyLarge)
-                Text("为什么推给你：${card.personalContext}", style = MaterialTheme.typography.bodySmall)
-                safeSources.forEach { source ->
-                    TextButton(onClick = {
-                        val opened = runCatching { uriHandler.openUri(source.url) }.isSuccess
-                        if (opened) {
-                            onEngagement()
-                        } else {
-                            Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            "今日识物",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(card.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    }
+                    if (isSaved) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Text(
+                                "已收藏",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         }
-                    }) {
-                        Text("来源：${source.publisher} · ${source.title}")
                     }
                 }
-                if (safeSources.isEmpty()) {
-                    Text("来源链接暂不可用", style = MaterialTheme.typography.bodySmall)
-                }
-                OutlinedButton(
-                    onClick = { onSetSaved(card.cardId, !isSaved) },
-                    modifier = Modifier.fillMaxWidth()
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
+                    Text(
+                        recognition.visibleLabel,
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                            .semantics { contentDescription = recognition.accessibilityLabel },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
-                HorizontalDivider()
-                FeedbackAction.entries.take(4).chunked(2).forEach { actions ->
-                    Row(Modifier.fillMaxWidth()) {
-                        actions.forEach { action ->
+                Text(
+                    card.body,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            "为什么是这张照片",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
+                        safeSources.forEach { source ->
                             TextButton(
-                                onClick = { onFeedback(card.cardId, action) },
+                                onClick = {
+                                    val opened = runCatching { uriHandler.openUri(source.url) }.isSuccess
+                                    if (opened) {
+                                        onEngagement()
+                                    } else {
+                                        Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("查看来源 · ${source.publisher} · ${source.title}")
+                            }
+                        }
+                        if (safeSources.isEmpty()) {
+                            Text("来源链接暂不可用", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                BoxWithConstraints {
+                    val stacked = shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)
+                    if (stacked) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onSetSaved(card.cardId, !isSaved) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
+                            }
+                            OutlinedButton(
+                                onClick = { showReminderDialog = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
+                            }
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Button(
+                                onClick = { onSetSaved(card.cardId, !isSaved) },
                                 modifier = Modifier.weight(1f)
-                            ) { Text(action.label()) }
+                            ) {
+                                Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
+                            }
+                            OutlinedButton(
+                                onClick = { showReminderDialog = true },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
+                            }
                         }
                     }
                 }
                 trackedItem?.let { reminder ->
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
                         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("物品提醒已开启", fontWeight = FontWeight.SemiBold)
                             Text(
@@ -689,12 +791,34 @@ private fun KnowledgeCardView(
                         }
                     }
                 }
-                OutlinedButton(onClick = { showReminderDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
-                }
                 if (trackedItem != null) {
                     TextButton(onClick = { showCancelReminderDialog = true }, modifier = Modifier.fillMaxWidth()) {
                         Text("取消物品提醒")
+                    }
+                }
+                HorizontalDivider()
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("这张卡对你有用吗？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("你的选择只用于改进本次安装的推荐。", style = MaterialTheme.typography.bodySmall)
+                        FeedbackAction.entries.take(4).chunked(2).forEach { actions ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                actions.forEach { action ->
+                                    OutlinedButton(
+                                        onClick = { onFeedback(card.cardId, action) },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(action.label())
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 TextButton(onClick = { onNeverAnalyze(card.cardId) }, modifier = Modifier.fillMaxWidth()) {

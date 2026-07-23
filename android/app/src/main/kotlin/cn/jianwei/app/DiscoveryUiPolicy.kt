@@ -25,6 +25,9 @@ internal fun shouldStackWidgetCallToAction(availableWidthDp: Float, fontScale: F
 internal fun shouldUseCompactTabLabels(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 360f || fontScale >= 1.5f
 
+internal fun shouldStackKnowledgeCardActions(availableWidthDp: Float, fontScale: Float): Boolean =
+    availableWidthDp < 340f || fontScale >= 1.5f
+
 internal fun discoveryStartMessage(access: PhotoAccess): String =
     if (shouldScheduleAutomaticDiscovery(access)) {
         "已开始扫描近 90 天照片；端侧筛选将在后台继续"

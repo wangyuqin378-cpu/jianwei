@@ -340,6 +340,17 @@ check(
     mainActivity.includes("已收藏 · 点击取消"),
   "Saved-card collection has no complete visible add/list/remove UI"
 );
+check(
+  mainActivity.includes('"今日识物"') &&
+    mainActivity.includes('"为什么是这张照片"') &&
+    mainActivity.includes('"这张卡对你有用吗？"') &&
+    mainActivity.indexOf('"为什么是这张照片"') < mainActivity.indexOf('"收藏这张知识卡"') &&
+    mainActivity.indexOf('"收藏这张知识卡"') < mainActivity.indexOf('"这张卡对你有用吗？"') &&
+    mainActivity.includes("shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)") &&
+    discoveryUiPolicy.includes("availableWidthDp < 340f || fontScale >= 1.5f") &&
+    discoveryUiPolicyTest.includes("knowledge card actions stack before labels become cramped"),
+  "Knowledge card does not preserve the product hierarchy or narrow/large-text action reflow"
+);
 for (const marker of [
   "privateBarrierAndDeletionSurviveCrashRestart",
   "savedCardSurvivesRefreshAndResaveDoesNotDuplicateSignal",

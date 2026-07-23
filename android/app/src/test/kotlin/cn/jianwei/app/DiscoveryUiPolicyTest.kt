@@ -55,6 +55,13 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
+    fun `knowledge card actions stack before labels become cramped`() {
+        assertThat(shouldStackKnowledgeCardActions(availableWidthDp = 320f, fontScale = 1f)).isTrue()
+        assertThat(shouldStackKnowledgeCardActions(availableWidthDp = 411f, fontScale = 2f)).isTrue()
+        assertThat(shouldStackKnowledgeCardActions(availableWidthDp = 411f, fontScale = 1f)).isFalse()
+    }
+
+    @Test
     fun `pipeline phases produce truthful empty states and actions`() {
         val filtering = emptyDiscoveryCopy(
             paused = false,
