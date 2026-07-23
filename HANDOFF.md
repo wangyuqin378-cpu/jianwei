@@ -7,6 +7,7 @@
 
 ## 已完成并验证
 
+- 2026-07-23 已建立首个本地 Git 产品基线：根提交 `5f66df607b4cc99c88fbd61d9c74367a9dcf61bb` 固定 589 个文件、78,344 行，归档 SHA-256 为 `be81cda29e9227d9866e53ce640ccb2dda04082a9a63913cd1a9857ecfa8f6d4`；工作树、Git 对象、敏感文件名/常见私钥模式和 macOS PostgreSQL 门禁脚本的 `100755` 模式均已复核。仓库未配置远端、未推送，该提交只提供本地可追溯工程基线，不构成 Release/Beta 证据。
 - 后端 TypeScript check/build 与 98/98 项基础测试通过；API 契约、供应链、运行预算和源码护栏均为 GO。
 - 2026-07-23 在隔离 PostgreSQL 17.10 (Homebrew) 上三次运行全部 13 个迁移，13/13 仓储/升级测试和编译服务 TCP E2E 通过。新增测试会在模拟旧表中执行 `013_card_detected_object_name.sql`，证明旧卡片按 title 回填对象名、空白对象名受约束拒绝，并验证仓储读写保留“扫帚”。macOS 门禁位于 `scripts/run-postgres-integration-macos.sh`，运行后数据库进程已关闭；结果在 `.tooling/postgres-integration-results-macos/`。这仍是本地 PostgreSQL，不是托管云证据。
 - Android：31 个 JVM 套件 118/118、API 34 instrumentation 46/46；当前 Debug、R8 Release、真实 Pixel Launcher 组件添加/缩放/两次换卡/精准回卡及 crash buffer 均通过。App/Data Lint 均为 0 error，分别 32/20 warning。
