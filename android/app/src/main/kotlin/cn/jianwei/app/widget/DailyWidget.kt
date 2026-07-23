@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -34,6 +33,7 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -42,6 +42,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import cn.jianwei.app.MainActivity
@@ -110,16 +111,18 @@ private fun WidgetCard(
     val modifier = GlanceModifier
         .fillMaxSize()
         .appWidgetBackground()
-        .background(ColorProvider(Color(0xFFF5F1E8)))
-        .cornerRadius(20.dp)
+        .background(widgetSurface())
+        .cornerRadius(22.dp)
         .clickable(openApp)
         .padding(12.dp)
 
     if (card == null) {
         Column(modifier) {
-            Text("见微", style = titleStyle())
-            Spacer(GlanceModifier.height(8.dp))
-            Text("打开 App 选择照片，准备第一张知识卡。", style = bodyStyle())
+            Text("见微 · 照片里的日常知识", style = brandStyle(), maxLines = 1)
+            Spacer(GlanceModifier.height(10.dp))
+            Text("让普通照片，带来一个今天值得知道的细节。", style = titleStyle(), maxLines = 3)
+            Spacer(GlanceModifier.defaultWeight())
+            Text("打开 App 选择照片", style = sourceStyle(), maxLines = 1)
         }
         return
     }
@@ -127,13 +130,19 @@ private fun WidgetCard(
     val recognition = cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)
     if (wide) {
         Row(modifier) {
-            Photo(bitmap, "${card.title}的原照片缩略图", GlanceModifier.size(96.dp).cornerRadius(14.dp))
+            Photo(
+                bitmap,
+                "${card.title}的原照片缩略图",
+                GlanceModifier.width(104.dp).fillMaxHeight().cornerRadius(16.dp)
+            )
             Spacer(GlanceModifier.width(12.dp))
-            Column(GlanceModifier.defaultWeight()) {
+            Column(GlanceModifier.defaultWeight().fillMaxHeight()) {
+                Text("见微 · 今日", style = brandStyle(), maxLines = 1)
+                Spacer(GlanceModifier.height(2.dp))
                 Text(card.title, style = titleStyle(), maxLines = 1)
-                Text(recognition.visibleLabel, style = sourceStyle(), maxLines = 1)
-                Spacer(GlanceModifier.height(5.dp))
-                Text(card.body, style = bodyStyle(), maxLines = 3)
+                Text(recognition.compactLabel, style = objectStyle(), maxLines = 1)
+                Spacer(GlanceModifier.height(4.dp))
+                Text(card.body, style = bodyStyle(), maxLines = 2)
                 if (cacheDepleted) {
                     Text("新卡缓存已用完 · 打开 App 更新", style = sourceStyle(), maxLines = 1)
                 } else {
@@ -143,11 +152,7 @@ private fun WidgetCard(
                 }
                 Spacer(GlanceModifier.defaultWeight())
                 if (switchAffordance.canSwitch) {
-                    Button(
-                        switchAffordance.label,
-                        actionRunCallback<NextCardAction>(),
-                        modifier = GlanceModifier.fillMaxWidth()
-                    )
+                    SwitchControl(switchAffordance.label)
                 } else {
                     Text(switchAffordance.label, style = sourceStyle(), maxLines = 1)
                 }
@@ -155,12 +160,13 @@ private fun WidgetCard(
         }
     } else {
         Column(modifier) {
-            Box(GlanceModifier.fillMaxWidth().height(54.dp)) {
-                Photo(bitmap, "${card.title}的原照片缩略图", GlanceModifier.fillMaxSize().cornerRadius(12.dp))
+            Text("见微 · ${recognition.compactLabel}", style = brandStyle(), maxLines = 1)
+            Spacer(GlanceModifier.height(6.dp))
+            Box(GlanceModifier.fillMaxWidth().height(88.dp)) {
+                Photo(bitmap, "${card.title}的原照片缩略图", GlanceModifier.fillMaxSize().cornerRadius(14.dp))
             }
-            Spacer(GlanceModifier.height(7.dp))
+            Spacer(GlanceModifier.height(6.dp))
             Text(card.title, style = titleStyle(), maxLines = 1)
-            Text(recognition.visibleLabel, style = sourceStyle(), maxLines = 1)
             Text(card.body, style = bodyStyle(), maxLines = if (cacheDepleted) 1 else 2)
             if (cacheDepleted) {
                 Text("新卡缓存已用完", style = sourceStyle(), maxLines = 1)
@@ -170,12 +176,31 @@ private fun WidgetCard(
 }
 
 @androidx.compose.runtime.Composable
+private fun SwitchControl(label: String) {
+    Box(
+        GlanceModifier
+            .fillMaxWidth()
+            .background(widgetPrimary())
+            .cornerRadius(12.dp)
+            .clickable(actionRunCallback<NextCardAction>())
+            .padding(horizontal = 10.dp, vertical = 7.dp)
+    ) {
+        Text(
+            label,
+            modifier = GlanceModifier.fillMaxWidth(),
+            style = switchStyle(),
+            maxLines = 1
+        )
+    }
+}
+
+@androidx.compose.runtime.Composable
 private fun Photo(bitmap: Bitmap?, contentDescription: String, modifier: GlanceModifier) {
     if (bitmap != null) {
         Image(ImageProvider(bitmap), contentDescription, modifier, contentScale = ContentScale.Crop)
     } else {
-        Box(modifier.background(ColorProvider(Color(0xFFDDE5DD)))) {
-            Text("照片在本机", style = TextStyle(color = ColorProvider(Color(0xFF355C49)), fontSize = 11.sp))
+        Box(modifier.background(widgetPrimaryContainer())) {
+            Text("照片在本机", style = objectStyle())
         }
     }
 }
@@ -199,14 +224,37 @@ internal fun isWidgetCacheDepleted(today: String, scheduledDate: String?): Boole
     scheduledDate != null && scheduledDate < today
 
 private fun titleStyle() = TextStyle(
-    color = ColorProvider(Color(0xFF1F2A24)),
-    fontSize = 16.sp,
+    color = ColorProvider(Color(0xFF1D211E)),
+    fontSize = 15.sp,
     fontWeight = FontWeight.Bold
 )
 
-private fun bodyStyle() = TextStyle(color = ColorProvider(Color(0xFF33443B)), fontSize = 12.sp)
+private fun bodyStyle() = TextStyle(color = ColorProvider(Color(0xFF343A35)), fontSize = 12.sp)
 
-private fun sourceStyle() = TextStyle(color = ColorProvider(Color(0xFF64756C)), fontSize = 10.sp)
+private fun brandStyle() = TextStyle(
+    color = ColorProvider(Color(0xFF85543D)),
+    fontSize = 10.sp,
+    fontWeight = FontWeight.Bold
+)
+
+private fun objectStyle() = TextStyle(
+    color = ColorProvider(Color(0xFF28543F)),
+    fontSize = 10.sp,
+    fontWeight = FontWeight.Bold
+)
+
+private fun sourceStyle() = TextStyle(color = ColorProvider(Color(0xFF606761)), fontSize = 10.sp)
+
+private fun switchStyle() = TextStyle(
+    color = ColorProvider(Color.White),
+    fontSize = 11.sp,
+    fontWeight = FontWeight.Bold,
+    textAlign = TextAlign.Center
+)
+
+private fun widgetSurface() = ColorProvider(Color(0xFFFFFCF5))
+private fun widgetPrimary() = ColorProvider(Color(0xFF28543F))
+private fun widgetPrimaryContainer() = ColorProvider(Color(0xFFD9EADD))
 
 private fun widgetDatabase(context: Context) = buildJianweiDatabase(context)
 

@@ -250,6 +250,24 @@ check(
     dailyWidgetPolicyTest.includes("cache is depleted only after the selected card schedule date"),
   "Widget does not expose an honest cache-exhaustion state"
 );
+check(
+  cardRecognitionPolicy.includes("val compactLabel: String") &&
+    cardRecognitionPolicy.includes('uncertain -> "可能是 $objectName"') &&
+    cardRecognitionPolicy.includes('"$objectName · 中等把握"') &&
+    cardRecognitionPolicyTest.includes('compactLabel).isEqualTo("把握较低")') &&
+    cardRecognitionPolicyTest.includes('compactLabel).isEqualTo("牙刷 · 中等把握")'),
+  "Domain recognition policy does not provide tested compact widget wording"
+);
+check(
+  dailyWidget.includes('Text("见微 · 今日"') &&
+    dailyWidget.includes('Text("见微 · ${recognition.compactLabel}"') &&
+    dailyWidget.includes("GlanceModifier.width(104.dp).fillMaxHeight().cornerRadius(16.dp)") &&
+    dailyWidget.includes("Column(GlanceModifier.defaultWeight().fillMaxHeight())") &&
+    dailyWidget.includes("private fun SwitchControl(label: String)") &&
+    dailyWidget.includes(".background(widgetPrimary())") &&
+    dailyWidget.includes("textAlign = TextAlign.Center"),
+  "Widget is missing the branded 2x2/4x2 hierarchy or full-height wide layout"
+);
 for (const marker of ["schedulesSevenIndependentCalendarDayRefreshes", "firstIds", "isEqualTo(firstIds.getValue(day))", "hasSize(7)"]) {
   check(dailyWidgetRefreshDeviceTest.includes(marker), `Widget calendar refresh device evidence is missing marker: ${marker}`);
 }
@@ -535,13 +553,17 @@ for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "HIGH_OBJECT_CONFIDE
 for (const marker of ["canonical uncertain title does not repeat", "low confidence remains explicit", "medium qualitative label", "high qualitative label", "blank legacy value fails closed", "invalid confidence fails closed"]) {
   check(cardRecognitionPolicyTest.includes(marker), `Android object-certainty test is missing case: ${marker}`);
 }
-for (const source of [mainActivity, dailyWidget]) {
-  check(
-    source.includes("cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)") &&
-      source.includes("recognition.visibleLabel"),
-    "App or widget card omits the deduplicated object identity presentation"
-  );
-}
+check(
+  mainActivity.includes("cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)") &&
+    mainActivity.includes("recognition.visibleLabel") &&
+    mainActivity.includes("recognition.accessibilityLabel"),
+  "App card omits the full deduplicated object identity or accessibility presentation"
+);
+check(
+  dailyWidget.includes("cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)") &&
+    dailyWidget.includes("recognition.compactLabel"),
+  "Widget card does not consume the domain-owned compact object identity presentation"
+);
 check(
   mainViewModel.includes("visibleDailyCards(") &&
     mainViewModel.includes("focusedCardId") &&

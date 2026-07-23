@@ -7,6 +7,7 @@ const val HIGH_OBJECT_CONFIDENCE = 0.90
 
 data class CardRecognitionPresentation(
     val visibleLabel: String,
+    val compactLabel: String,
     val accessibilityLabel: String
 )
 
@@ -29,6 +30,13 @@ fun cardRecognitionPresentation(
         normalizedConfidence < HIGH_OBJECT_CONFIDENCE -> "识别对象：$objectName · 把握中等"
         else -> "识别对象：$objectName · 把握较高"
     }
+    val compactLabel = when {
+        objectName == "未知物件" -> "未知物件"
+        uncertain && titleAlreadyCarriesIdentity -> "把握较低"
+        uncertain -> "可能是 $objectName"
+        normalizedConfidence < HIGH_OBJECT_CONFIDENCE -> "$objectName · 中等把握"
+        else -> objectName
+    }
     val accessibilityLabel = when {
         objectName == "未知物件" -> "识别对象未知，识别置信度 $confidencePercent%"
         uncertain -> "识别对象可能是 $objectName，识别置信度 $confidencePercent%"
@@ -36,6 +44,7 @@ fun cardRecognitionPresentation(
     }
     return CardRecognitionPresentation(
         visibleLabel = visibleLabel,
+        compactLabel = compactLabel,
         accessibilityLabel = accessibilityLabel
     )
 }

@@ -11,6 +11,7 @@ class CardRecognitionPolicyTest {
         assertThat(presentation.visibleLabel).isEqualTo("识别把握较低")
         assertThat(presentation.accessibilityLabel)
             .isEqualTo("识别对象可能是 牙刷，识别置信度 68%")
+        assertThat(presentation.compactLabel).isEqualTo("把握较低")
     }
 
     @Test
@@ -20,6 +21,7 @@ class CardRecognitionPolicyTest {
         assertThat(presentation.visibleLabel).isEqualTo("可能是 牙刷 · 把握较低")
         assertThat(presentation.accessibilityLabel)
             .isEqualTo("识别对象可能是 牙刷，识别置信度 71%")
+        assertThat(presentation.compactLabel).isEqualTo("可能是 牙刷")
     }
 
     @Test
@@ -33,6 +35,7 @@ class CardRecognitionPolicyTest {
         assertThat(presentation.visibleLabel).isEqualTo("识别对象：牙刷 · 把握中等")
         assertThat(presentation.accessibilityLabel)
             .isEqualTo("识别对象是 牙刷，识别置信度 72%")
+        assertThat(presentation.compactLabel).isEqualTo("牙刷 · 中等把握")
     }
 
     @Test
@@ -44,6 +47,7 @@ class CardRecognitionPolicyTest {
         )
 
         assertThat(presentation.visibleLabel).isEqualTo("识别对象：牙刷 · 把握较高")
+        assertThat(presentation.compactLabel).isEqualTo("牙刷")
     }
 
     @Test
@@ -53,6 +57,7 @@ class CardRecognitionPolicyTest {
         assertThat(presentation.visibleLabel).isEqualTo("识别对象：未知物件")
         assertThat(presentation.accessibilityLabel)
             .isEqualTo("识别对象未知，识别置信度 90%")
+        assertThat(presentation.compactLabel).isEqualTo("未知物件")
     }
 
     @Test
@@ -62,5 +67,6 @@ class CardRecognitionPolicyTest {
         assertThat(presentation.visibleLabel).isEqualTo("可能是 牙刷 · 把握较低")
         assertThat(presentation.accessibilityLabel)
             .isEqualTo("识别对象可能是 牙刷，识别置信度 0%")
+        assertThat(presentation.compactLabel).isEqualTo("可能是 牙刷")
     }
 }
