@@ -1,3 +1,77 @@
+export function reviewDecisionIssues(item, decision) {
+  if (!item || !decision) return ["审核数据不完整。"];
+  const issues = [];
+  const checked = new Set(Array.isArray(decision.checkedSourceIds) ? decision.checkedSourceIds : []);
+  const sources = Array.isArray(item.sources) ? item.sources : [];
+  const referencedIds = new Set(sources.map((source) => source.sourceId));
+  const checkedReferenced = [...checked].filter((sourceId) => referencedIds.has(sourceId)).length;
+
+  if (decision.decision === "pending") {
+    return ["请选择批准或拒绝。"];
+  }
+  if (decision.decision === "approve") {
+    if (checkedReferenced !== referencedIds.size || checked.size !== referencedIds.size) {
+      issues.push(`已核对来源 ${checkedReferenced}/${referencedIds.size}；批准前需勾选本条全部来源。`);
+    }
+    if (decision.semanticSupportConfirmed !== true) issues.push("请确认来源直接支持完整表述。");
+    if (decision.unsupportedClaimsChecked !== true) issues.push("请检查数字、因果、范围和不支持结论。");
+    if (item.riskLevel !== "general") {
+      const authoritative = new Set(sources
+        .filter((source) => source.authority === "official" || source.authority === "professional")
+        .map((source) => source.sourceId));
+      if (authoritative.size < 2) issues.push("本条高风险事实不足两个权威来源，不能批准。");
+    }
+    const bodyLength = [...String(item.factText ?? "")].length;
+    if (bodyLength < 28 || bodyLength > 80) issues.push("批准内容必须是 28–80 个字符。");
+    return issues;
+  }
+  if (decision.decision === "reject") {
+    if (checkedReferenced < 1) issues.push("拒绝前至少核对并勾选一个来源。");
+    if ([...String(decision.notes ?? "").trim()].length < 10) issues.push("请填写至少 10 个字符的拒绝原因。");
+    if (decision.semanticSupportConfirmed === true) issues.push("拒绝时不能同时确认来源支持完整表述。");
+    if (decision.unsupportedClaimsChecked !== true) issues.push("拒绝前仍需确认已检查不支持的结论。");
+    return issues;
+  }
+  return ["审核决定无效。"];
+}
+
+export function reviewBatchReadiness(items, decisions) {
+  if (!Array.isArray(items) || !Array.isArray(decisions) || items.length !== decisions.length) {
+    throw new Error("审核事实与决定数量不一致");
+  }
+  const entries = items.map((item, index) => ({
+    factId: item.factId,
+    issues: reviewDecisionIssues(item, decisions[index])
+  }));
+  const ready = entries.filter((entry) => entry.issues.length === 0).length;
+  const pending = decisions.filter((decision) => decision.decision === "pending").length;
+  return {
+    total: entries.length,
+    ready,
+    open: entries.length - ready,
+    pending,
+    complete: ready === entries.length,
+    entries
+  };
+}
+
+export function createReviewRecoveryDraft(model, now = new Date()) {
+  if (!model || !Number.isFinite(now.getTime())) throw new Error("无法生成本地恢复草稿");
+  return {
+    schemaVersion: 1,
+    evidenceKind: "local_review_recovery_draft",
+    warning: "仅用于人工恢复本地输入，不能直接应用到知识目录，也不构成审核签注。",
+    exportedAt: now.toISOString(),
+    sessionId: model.sessionId,
+    reviewerId: model.reviewerId,
+    catalogVersion: model.catalogVersion,
+    nextCatalogVersion: model.nextCatalogVersion,
+    revision: model.revision,
+    revisionSha256: model.revisionSha256,
+    decisions: cloneDecisions(model.decisions)
+  };
+}
+
 export function createReviewAutosaveController({
   getModel,
   setModel,
@@ -159,6 +233,8 @@ function startReviewWorkbenchClient() {
   let model = null;
   let autosave = null;
   let finalizing = false;
+  let activeFilter = "all";
+  const reviewRecords = [];
   const byId = (id) => document.getElementById(id);
   const el = (tag, className, text) => {
     const node = document.createElement(tag);
@@ -228,24 +304,32 @@ function startReviewWorkbenchClient() {
   function render() {
     byId("meta").textContent = `目录 ${model.catalogVersion} → ${model.nextCatalogVersion} · 审核人 ${model.reviewerId} · 输出 ${model.outputFileName}`;
     const root = byId("facts");
+    reviewRecords.length = 0;
     root.replaceChildren();
-    model.items.forEach((item, index) => root.appendChild(renderFact(item, model.decisions[index])));
+    model.items.forEach((item, index) => root.appendChild(renderFact(item, model.decisions[index], index)));
     if (model.finalized) {
       setStatus("批次已完成；尚未应用到知识目录。");
       byId("command").textContent = model.applyCommand || "";
       byId("command").hidden = false;
     }
-    updateProgress(autosave?.getState());
-    updateControls(autosave?.getState());
+    refreshBatchPresentation();
   }
 
-  function renderFact(item, decision) {
+  function renderFact(item, decision, index) {
     const card = el("article", "fact");
+    card.id = `fact-${item.factId}`;
     const head = el("div", "fact-head");
     const left = el("div");
     left.append(el("div", "topic", `${item.topicName} · ${item.factId}`));
-    head.append(left, el("span", `risk ${item.riskLevel}`, item.riskLevel));
+    const badges = el("div", "fact-badges");
+    const readinessBadge = el("span", "readiness-badge", "待处理");
+    readinessBadge.dataset.role = "readiness";
+    badges.append(readinessBadge, el("span", `risk ${item.riskLevel}`, item.riskLevel));
+    head.append(left, badges);
     card.append(head, el("p", "fact-text", item.factText));
+    if (item.riskLevel !== "general") {
+      card.append(el("p", "risk-guidance", "高风险事实：批准前必须核对至少两个权威来源，并勾选本条全部来源。"));
+    }
 
     const sources = el("div", "sources");
     item.sources.forEach((source) => {
@@ -259,7 +343,7 @@ function startReviewWorkbenchClient() {
         const checked = new Set(decision.checkedSourceIds);
         check.checked ? checked.add(source.sourceId) : checked.delete(source.sourceId);
         decision.checkedSourceIds = [...checked];
-        autosave.changed();
+        decisionChanged();
       });
       const body = el("div");
       const link = el("a", null, source.title);
@@ -288,17 +372,17 @@ function startReviewWorkbenchClient() {
     select.disabled = model.finalized;
     select.addEventListener("change", () => {
       decision.decision = select.value;
-      autosave.changed();
+      decisionChanged();
     });
     decisionLabel.append(select);
     grid.append(decisionLabel);
     grid.append(checkLabel("来源直接支持完整表述", decision.semanticSupportConfirmed, model.finalized, (value) => {
       decision.semanticSupportConfirmed = value;
-      autosave.changed();
+      decisionChanged();
     }));
     grid.append(checkLabel("已检查数字、因果、范围与不支持结论", decision.unsupportedClaimsChecked, model.finalized, (value) => {
       decision.unsupportedClaimsChecked = value;
-      autosave.changed();
+      decisionChanged();
     }));
 
     const notesLabel = el("label", "wide");
@@ -309,11 +393,19 @@ function startReviewWorkbenchClient() {
     notes.disabled = model.finalized;
     notes.addEventListener("input", () => {
       decision.notes = notes.value;
-      autosave.changed();
+      decisionChanged();
     });
     notesLabel.append(notes);
     grid.append(notesLabel);
     card.append(grid);
+    const validation = el("div", "decision-validation");
+    validation.dataset.role = "validation";
+    card.append(validation);
+    function decisionChanged() {
+      autosave.changed();
+      refreshBatchPresentation();
+    }
+    reviewRecords[index] = { card, item, decision };
     return card;
   }
 
@@ -328,18 +420,56 @@ function startReviewWorkbenchClient() {
     return label;
   }
 
-  function updateProgress(state = {}) {
+  function refreshBatchPresentation() {
     if (!model) return;
-    const done = model.decisions.filter((item) => item.decision !== "pending").length;
-    const suffix = state.conflict ? " · 冲突待处理" : state.saving ? " · 保存中" : state.dirty ? " · 未保存" : " · 已保存";
-    byId("progress").textContent = `已决定 ${done} / ${model.decisions.length} · 修订 ${model.revision}${suffix}`;
+    const readiness = reviewBatchReadiness(model.items, model.decisions);
+    readiness.entries.forEach((entry, index) => {
+      const record = reviewRecords[index];
+      if (!record) return;
+      const ready = entry.issues.length === 0;
+      record.card.dataset.reviewState = ready ? "ready" : "open";
+      record.card.hidden = activeFilter === "open" ? ready : activeFilter === "ready" ? !ready : false;
+      const badge = record.card.querySelector('[data-role="readiness"]');
+      badge.textContent = ready ? "已就绪" : "待处理";
+      badge.className = `readiness-badge ${ready ? "ready" : "open"}`;
+      const validation = record.card.querySelector('[data-role="validation"]');
+      validation.className = `decision-validation ${ready ? "ready" : "open"}`;
+      validation.replaceChildren();
+      if (ready) {
+        validation.append(el("strong", null, "本条已就绪"));
+      } else {
+        validation.append(el("strong", null, "还需完成"));
+        const list = el("ul");
+        entry.issues.forEach((issue) => {
+          const item = el("li", null, issue);
+          list.append(item);
+        });
+        validation.append(list);
+      }
+    });
+    const filter = byId("filter");
+    filter.options[0].textContent = `全部（${readiness.total}）`;
+    filter.options[1].textContent = `待处理（${readiness.open}）`;
+    filter.options[2].textContent = `已就绪（${readiness.ready}）`;
+    filter.value = activeFilter;
+    byId("next-open").disabled = readiness.open === 0 || model.finalized;
+    updateProgress(autosave?.getState(), readiness);
+    updateControls(autosave?.getState(), readiness);
   }
 
-  function updateControls(state = {}) {
+  function updateProgress(state = {}, readiness = reviewBatchReadiness(model.items, model.decisions)) {
+    if (!model) return;
+    const suffix = state.conflict ? " · 冲突待处理" : state.saving ? " · 保存中" : state.dirty ? " · 未保存" : " · 已保存";
+    byId("progress").textContent = `已就绪 ${readiness.ready} / ${readiness.total} · 待处理 ${readiness.open} · 修订 ${model.revision}${suffix}`;
+  }
+
+  function updateControls(state = {}, readiness = reviewBatchReadiness(model.items, model.decisions)) {
     const blocked = Boolean(model?.finalized || finalizing || state.saving || state.conflict);
     byId("save").disabled = blocked || !state.dirty;
-    byId("finalize").disabled = blocked;
+    byId("finalize").disabled = blocked || !readiness.complete;
+    byId("finalize").title = readiness.complete ? "" : `还有 ${readiness.open} 条事实未就绪`;
     byId("reload").hidden = !state.conflict;
+    byId("export-draft").hidden = !(state.conflict || state.lastError) || model.finalized;
   }
 
   async function saveNow() {
@@ -351,6 +481,14 @@ function startReviewWorkbenchClient() {
   }
 
   async function finalize() {
+    const readiness = reviewBatchReadiness(model.items, model.decisions);
+    if (!readiness.complete) {
+      activeFilter = "open";
+      refreshBatchPresentation();
+      setStatus(`还有 ${readiness.open} 条事实未就绪，请逐条完成后再提交。`, "danger");
+      goToNextOpen();
+      return;
+    }
     if (!byId("checkpoint").checked) {
       setStatus("请先完成真人审核确认。", "danger");
       return;
@@ -399,9 +537,38 @@ function startReviewWorkbenchClient() {
 
   byId("save").addEventListener("click", saveNow);
   byId("finalize").addEventListener("click", finalize);
+  byId("filter").addEventListener("change", () => {
+    activeFilter = byId("filter").value;
+    refreshBatchPresentation();
+  });
+  byId("next-open").addEventListener("click", goToNextOpen);
+  byId("export-draft").addEventListener("click", downloadRecoveryDraft);
   byId("reload").addEventListener("click", () => {
     if (confirm("重新加载会丢弃本页尚未保存的输入。确定继续吗？")) location.reload();
   });
+
+  function goToNextOpen() {
+    const readiness = reviewBatchReadiness(model.items, model.decisions);
+    const nextIndex = readiness.entries.findIndex((entry) => entry.issues.length > 0);
+    if (nextIndex < 0) return;
+    activeFilter = "open";
+    refreshBatchPresentation();
+    reviewRecords[nextIndex].card.scrollIntoView({ behavior: "smooth", block: "start" });
+    reviewRecords[nextIndex].card.querySelector("select")?.focus({ preventScroll: true });
+  }
+
+  function downloadRecoveryDraft() {
+    const draft = createReviewRecoveryDraft(model);
+    const blob = new Blob([`${JSON.stringify(draft, null, 2)}\n`], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `jianwei-review-recovery-${model.sessionId}.json`;
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setStatus("本地恢复草稿已导出；冲突或保存失败仍需处理。该文件不能直接应用到知识目录。", "danger");
+  }
+
   addEventListener("beforeunload", (event) => {
     const state = autosave?.getState();
     if (state?.dirty || state?.saving) {

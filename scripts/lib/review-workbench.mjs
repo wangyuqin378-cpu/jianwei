@@ -25,7 +25,7 @@ const DECISION_KEYS = [
   "notes"
 ];
 const CLIENT_JS = await readFile(new URL("./review-workbench-client.mjs", import.meta.url), "utf8");
-const DATA_LOSS_CSS = `.summary #status[data-tone="danger"]{color:var(--red)}button.danger{border-color:var(--red);color:var(--red)}button.compact{justify-self:start;margin-top:8px;padding:7px 13px}`;
+const WORKBENCH_ENHANCEMENT_CSS = `.summary #status[data-tone="danger"]{color:var(--red)}.review-tools{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin-top:10px;padding-top:14px;border-top:1px solid var(--line)}.review-tools label{display:grid;gap:3px;color:var(--muted);font-size:13px}.review-tools select{width:auto;min-width:138px;padding:7px 30px 7px 10px}.fact-badges{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px}.readiness-badge{border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700}.readiness-badge.open{color:var(--amber);background:#fff3df}.readiness-badge.ready{color:var(--green);background:#e8f4ec}.risk-guidance{margin:14px 0;padding:10px 12px;border-left:3px solid var(--amber);background:#fff8e9;color:#754712}.decision-validation{margin-top:16px;padding:12px 14px;border-radius:12px}.decision-validation strong{display:block}.decision-validation ul{margin:5px 0 0;padding-left:20px}.decision-validation.open{background:#fff3df;color:#754712}.decision-validation.ready{background:#e8f4ec;color:var(--green)}.fact[hidden]{display:none}button.danger{border-color:var(--red);color:var(--red)}button.compact{padding:7px 13px}.summary button.compact{justify-self:start;margin-top:8px}@media(max-width:700px){.review-tools{align-items:stretch}.review-tools label,.review-tools select,.review-tools button{width:100%}}`;
 
 export async function prepareControlledRoots(workspaceRoot) {
   const root = path.resolve(workspaceRoot);
@@ -209,7 +209,7 @@ export async function startReviewWorkbench({ state: initialState, sessionDirecto
 
       if (!authorizedCookie(request.headers.cookie, cookieToken)) return sendText(response, 401, "Unauthorized");
       if (request.method === "GET" && url.pathname === "/") return send(response, 200, "text/html; charset=utf-8", HTML);
-      if (request.method === "GET" && url.pathname === "/app.css") return send(response, 200, "text/css; charset=utf-8", `${CSS}${DATA_LOSS_CSS}`);
+      if (request.method === "GET" && url.pathname === "/app.css") return send(response, 200, "text/css; charset=utf-8", `${CSS}${WORKBENCH_ENHANCEMENT_CSS}`);
       if (request.method === "GET" && url.pathname === "/app.js") return send(response, 200, "text/javascript; charset=utf-8", CLIENT_JS);
       if (request.method === "GET" && url.pathname === "/api/state") {
         return sendJson(response, 200, publicState(state, csrfToken));
@@ -558,7 +558,15 @@ const HTML = `<!doctype html>
 <body>
   <header><p class="eyebrow">见微 / LOCAL REVIEW</p><h1>真人知识审核工作台</h1><p>来源可访问不等于支持事实。逐一打开来源、核对原文，再作决定。</p></header>
   <main>
-    <section class="summary" aria-live="polite"><div id="meta">正在读取固定快照…</div><div id="progress"></div><div id="status"></div><button id="reload" class="danger compact" type="button" hidden>重新加载服务端版本</button></section>
+    <section class="summary" aria-live="polite">
+      <div id="meta">正在读取固定快照…</div><div id="progress"></div><div id="status"></div>
+      <div class="review-tools">
+        <label for="filter">查看<select id="filter"><option value="all">全部</option><option value="open">待处理</option><option value="ready">已就绪</option></select></label>
+        <button id="next-open" class="compact" type="button">下一条待处理</button>
+        <button id="export-draft" class="compact" type="button" hidden>导出本地恢复草稿</button>
+      </div>
+      <button id="reload" class="danger compact" type="button" hidden>重新加载服务端版本</button>
+    </section>
     <section id="facts" aria-label="待审核事实"></section>
     <section class="finalize">
       <label><input id="checkpoint" type="checkbox"> 我确认这些判断由我本人完成，且没有把 AI 输出当作审核结论。</label>

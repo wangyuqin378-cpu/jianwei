@@ -1037,10 +1037,10 @@ for (const marker of ["grantsApproval: false", "humanReviewRequired: true", "Rea
 for (const marker of ["decision: \"pending\"", "semanticSupportConfirmed: false", "unsupportedClaimsChecked: false", "grantsApproval=0"]) {
   check(knowledgeReviewTemplate.includes(marker) || knowledgeReviewTemplateLibrary.includes(marker), `Knowledge review template is missing fail-closed marker: ${marker}`);
 }
-for (const marker of ["--confirm-human-review-session", "loopback=127.0.0.1", "grantsApproval=0", "autoApply=0", "staleRevisionRejected=1", "humanCheckpoint=1", "symlinkRejected=", "decisionIdentityPreserved=1", "autosaveRaceSafe=1", "conflictPreservesInput=1", "finalizeFlush=1"]) {
+for (const marker of ["--confirm-human-review-session", "loopback=127.0.0.1", "grantsApproval=0", "autoApply=0", "staleRevisionRejected=1", "humanCheckpoint=1", "symlinkRejected=", "decisionIdentityPreserved=1", "autosaveRaceSafe=1", "conflictPreservesInput=1", "finalizeFlush=1", "decisionPreflight=1", "highRiskGuidance=1", "recoveryDraft=1"]) {
   check(knowledgeReviewWorkbench.includes(marker), `Knowledge review workbench command is missing fail-closed marker: ${marker}`);
 }
-for (const marker of ["createReviewAutosaveController", "editVersion", "currentModel.decisions", "async function flush()", "markConflict", "本页输入仍完整保留", "重新加载会丢弃本页尚未保存的输入"]) {
+for (const marker of ["createReviewAutosaveController", "editVersion", "currentModel.decisions", "async function flush()", "markConflict", "本页输入仍完整保留", "重新加载会丢弃本页尚未保存的输入", "reviewDecisionIssues", "reviewBatchReadiness", "createReviewRecoveryDraft", "不能直接应用到知识目录", "高风险事实：批准前必须核对至少两个权威来源"]) {
   check(knowledgeReviewWorkbenchClient.includes(marker), `Knowledge review workbench client is missing data-loss prevention marker: ${marker}`);
 }
 check(!knowledgeReviewWorkbenchClient.includes("if(response.status===409)await load()"), "Knowledge review workbench client still reloads destructively on revision conflict");

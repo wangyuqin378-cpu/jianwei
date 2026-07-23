@@ -15,7 +15,12 @@ import {
   resumeReviewSession,
   startReviewWorkbench
 } from "./lib/review-workbench.mjs";
-import { createReviewAutosaveController } from "./lib/review-workbench-client.mjs";
+import {
+  createReviewAutosaveController,
+  createReviewRecoveryDraft,
+  reviewBatchReadiness,
+  reviewDecisionIssues
+} from "./lib/review-workbench-client.mjs";
 
 if (process.argv.includes("--self-test")) {
   await runSelfTest();
@@ -97,6 +102,7 @@ function integerArgument(args, name, fallback, minimum, maximum) {
 }
 
 async function runSelfTest() {
+  runDecisionPreflightSelfTest();
   await runAutosaveControllerSelfTest();
   const workspace = path.join(process.cwd(), ".tooling", `review-workbench-self-test-${randomBytes(6).toString("hex")}`);
   const originalCatalog = fixtureCatalog();
@@ -180,9 +186,16 @@ async function runSelfTest() {
     const clientResponse = await call(workbench.origin, "/app.js", { headers: { cookie } });
     if (clientResponse.status !== 200 ||
         !clientResponse.body.includes("createReviewAutosaveController") ||
+        !clientResponse.body.includes("reviewBatchReadiness") ||
+        !clientResponse.body.includes("createReviewRecoveryDraft") ||
         !clientResponse.body.includes("currentModel.decisions") ||
         clientResponse.body.includes("if(response.status===409)await load()")) {
       throw new Error("Workbench did not serve the race-safe conflict-preserving browser client");
+    }
+    const shellResponse = await call(workbench.origin, "/", { headers: { cookie } });
+    if (shellResponse.status !== 200 || !shellResponse.body.includes('id="filter"') ||
+        !shellResponse.body.includes('id="next-open"') || !shellResponse.body.includes('id="export-draft"')) {
+      throw new Error("Workbench did not serve the operational review controls");
     }
     const bootstrapReplay = await call(workbench.origin, new URL(workbench.bootstrapUrl).pathname + new URL(workbench.bootstrapUrl).search);
     if (bootstrapReplay.status !== 403) throw new Error("Workbench bootstrap token was reusable");
@@ -239,12 +252,92 @@ async function runSelfTest() {
     if (applied.metrics.approved !== 1 || applied.metrics.rejected !== 1 || JSON.stringify(originalCatalog) !== JSON.stringify(fixtureCatalog())) {
       throw new Error("Workbench output was not apply-compatible or mutated the source catalog");
     }
-    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 decisionIdentityPreserved=1 autosaveRaceSafe=1 conflictPreservesInput=1 finalizeFlush=1 autoApply=0\n`);
+    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 decisionIdentityPreserved=1 autosaveRaceSafe=1 conflictPreservesInput=1 finalizeFlush=1 decisionPreflight=1 highRiskGuidance=1 recoveryDraft=1 autoApply=0\n`);
   } finally {
     if (workbench) await workbench.close();
     const resolved = path.resolve(workspace);
     const expectedRoot = path.resolve(process.cwd(), ".tooling");
     if (resolved.startsWith(`${expectedRoot}${path.sep}`)) await rm(resolved, { recursive: true, force: true });
+  }
+}
+
+function runDecisionPreflightSelfTest() {
+  const generalItem = {
+    factId: "general",
+    factText: "This general fixture fact is long enough for an approved knowledge card body.",
+    riskLevel: "general",
+    sources: [{ sourceId: "official-a", authority: "official" }]
+  };
+  const pending = {
+    factId: "general",
+    factSha256: "a".repeat(64),
+    decision: "pending",
+    checkedSourceIds: [],
+    semanticSupportConfirmed: false,
+    unsupportedClaimsChecked: false,
+    notes: ""
+  };
+  if (!reviewDecisionIssues(generalItem, pending).includes("请选择批准或拒绝。")) {
+    throw new Error("Decision preflight accepted a pending fact");
+  }
+  const incompleteApproval = {
+    ...pending,
+    decision: "approve"
+  };
+  if (reviewDecisionIssues(generalItem, incompleteApproval).length !== 3) {
+    throw new Error("Decision preflight missed incomplete approval requirements");
+  }
+  const validApproval = {
+    ...incompleteApproval,
+    checkedSourceIds: ["official-a"],
+    semanticSupportConfirmed: true,
+    unsupportedClaimsChecked: true
+  };
+  if (reviewDecisionIssues(generalItem, validApproval).length) {
+    throw new Error("Decision preflight rejected a valid general approval");
+  }
+  const validRejection = {
+    ...pending,
+    decision: "reject",
+    checkedSourceIds: ["official-a"],
+    unsupportedClaimsChecked: true,
+    notes: "The checked source does not support the full claim."
+  };
+  if (reviewDecisionIssues(generalItem, validRejection).length) {
+    throw new Error("Decision preflight rejected a valid rejection");
+  }
+  const highRiskItem = {
+    ...generalItem,
+    factId: "health",
+    riskLevel: "health"
+  };
+  if (!reviewDecisionIssues(highRiskItem, validApproval).some((issue) => issue.includes("不足两个权威来源"))) {
+    throw new Error("Decision preflight missed the high-risk source rule");
+  }
+  const readiness = reviewBatchReadiness(
+    [generalItem, highRiskItem],
+    [validApproval, { ...validApproval, factId: "health" }]
+  );
+  if (readiness.ready !== 1 || readiness.open !== 1 || readiness.complete) {
+    throw new Error("Batch readiness summary is incorrect");
+  }
+  const liveDecisions = [validApproval];
+  const draft = createReviewRecoveryDraft({
+    sessionId: "d".repeat(32),
+    reviewerId: "human-reviewer-1",
+    catalogVersion: "fixture-1",
+    nextCatalogVersion: "fixture-2",
+    revision: 4,
+    revisionSha256: "b".repeat(64),
+    csrfToken: "must-not-export",
+    decisions: liveDecisions
+  }, new Date("2026-01-01T00:00:00.000Z"));
+  if (draft.evidenceKind !== "local_review_recovery_draft" ||
+      "csrfToken" in draft ||
+      draft.decisions === liveDecisions ||
+      draft.decisions[0] === validApproval ||
+      !draft.warning.includes("不能直接应用")) {
+    throw new Error("Recovery draft is unsafe or aliases live decisions");
   }
 }
 
