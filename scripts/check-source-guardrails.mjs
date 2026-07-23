@@ -369,6 +369,24 @@ check(
     discoveryUiPolicyTest.includes("knowledge card actions stack before labels become cramped"),
   "Knowledge card does not preserve the product hierarchy or narrow/large-text action reflow"
 );
+check(
+  mainActivity.includes("private fun OnboardingValuePreview()") &&
+    mainActivity.includes("private fun OnboardingPrivacyPreview()") &&
+    mainActivity.includes("private fun OnboardingPreferences(") &&
+    mainActivity.includes("private fun OnboardingEntryChoice(") &&
+    mainActivity.includes('"事实有来源"') &&
+    mainActivity.includes('"可靠命中才生成"') &&
+    mainActivity.includes('"已选 ${interests.size} / 3"') &&
+    mainActivity.includes("shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)") &&
+    mainActivity.includes("val scrollState = rememberScrollState()") &&
+    mainActivity.includes("LaunchedEffect(step)") &&
+    mainActivity.includes("scrollState.scrollTo(0)") &&
+    mainActivity.includes("BackHandler(enabled = step > 0) { step-- }") &&
+    mainActivity.includes('Text("返回上一步")') &&
+    discoveryUiPolicy.includes("fun shouldStackOnboardingInterests") &&
+    discoveryUiPolicyTest.includes("onboarding interests reflow before choices become cramped"),
+  "Onboarding is missing its product preview, truthful privacy path, accessible reflow, or page scroll reset"
+);
 for (const marker of [
   "privateBarrierAndDeletionSurviveCrashRestart",
   "savedCardSurvivesRefreshAndResaveDoesNotDuplicateSignal",

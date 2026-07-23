@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
@@ -310,79 +311,331 @@ private fun JianweiTheme(content: @Composable () -> Unit) {
 @Composable
 private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>) -> Unit) {
     var step by remember { mutableIntStateOf(0) }
+    val scrollState = rememberScrollState()
+    LaunchedEffect(step) {
+        scrollState.scrollTo(0)
+    }
     val pages = listOf(
-        "让日常照片重新开口" to "见微会从你授权的照片中，挑一件普通物品，讲一个值得今天知道的细节。",
-        "先在手机里筛选" to "人脸、截图、证件、高文字图片和模糊照片会先在端侧尝试过滤；候选副本会去除 EXIF。",
-        "你随时拥有控制权" to "原图不建立云端照片库。关闭系统相册权限只会停止自动发现；你逐次选择或分享导入的照片仍按当时同意处理。“暂停分析”会停止全部待处理任务。"
+        "让日常照片重新开口" to "从你授权的照片里，挑一件普通物品，讲一个今天值得知道的细节。",
+        "先在手机里筛选，再寻找知识" to "大多数照片不会离开手机；只有通过隐私和质量筛选的少量候选，才会进入可靠知识匹配。",
+        "决定你想看什么" to "先选 3 个兴趣，再选择自动发现或逐次挑选照片。以后都可以在隐私中心暂停或删除。"
     )
     val interests = remember { mutableStateOf(setOf("生活设计", "物件历史", "科学原理")) }
+    BackHandler(enabled = step > 0) { step-- }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            Modifier.fillMaxSize().verticalScroll(scrollState).padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Column {
-                Text(
-                    "见微",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text("照片里的日常知识", style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(28.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    pages.indices.forEach { index ->
-                        Box(
-                            Modifier.weight(1f).height(4.dp).background(
-                                color = if (index <= step) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(20.dp)
-                            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        "见微",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text("照片里的日常知识", style = MaterialTheme.typography.labelMedium)
+                }
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        "${step + 1} / 3",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                pages.indices.forEach { index ->
+                    Box(
+                        Modifier.weight(1f).height(5.dp).background(
+                            color = if (index <= step) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(20.dp)
                         )
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(pages[step].first, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    pages[step].second,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            when (step) {
+                0 -> OnboardingValuePreview()
+                1 -> OnboardingPrivacyPreview()
+                else -> OnboardingPreferences(
+                    interests = interests.value,
+                    onInterestChanged = { interest, checked ->
+                        interests.value = when {
+                            checked && interests.value.size < 3 -> interests.value + interest
+                            !checked -> interests.value - interest
+                            else -> interests.value
+                        }
+                    }
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (step == 0) {
+                    Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) { Text("继续") }
+                } else if (step == 1) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) {
+                            Text("返回")
+                        }
+                        Button(onClick = { step++ }, modifier = Modifier.weight(1f)) {
+                            Text("继续")
+                        }
+                    }
+                } else {
+                    OnboardingEntryChoice(
+                        title = "自动发现",
+                        body = "授权后扫描近 90 天、最多 500 张照片；先在本机筛选，再上传少量候选。",
+                        badge = "推荐",
+                        buttonLabel = "自动发现（推荐）",
+                        enabled = interests.value.size == 3,
+                        onClick = { onAutomatic(interests.value) }
+                    )
+                    OnboardingEntryChoice(
+                        title = "仅选择照片",
+                        body = "不授予持续相册访问；每次使用系统选择器挑选，也可以从其他 App 分享。",
+                        buttonLabel = "仅选择照片",
+                        enabled = interests.value.size == 3,
+                        outlined = true,
+                        onClick = { onPick(interests.value) }
+                    )
+                    TextButton(onClick = { step-- }, modifier = Modifier.fillMaxWidth()) {
+                        Text("返回上一步")
                     }
                 }
-                Spacer(Modifier.height(28.dp))
-                Text(pages[step].first, style = MaterialTheme.typography.headlineMedium)
-                Spacer(Modifier.height(16.dp))
-                Text(pages[step].second, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (step == 2) {
-                    Spacer(Modifier.height(24.dp))
-                    Text("先选 3 个兴趣", fontWeight = FontWeight.SemiBold)
-                    listOf("生活设计", "物件历史", "科学原理", "实用技巧", "制造工艺").forEach { interest ->
-                        val selected = interest in interests.value
-                        Row(
-                            Modifier.fillMaxWidth().toggleable(
-                                value = selected,
-                                role = Role.Checkbox,
-                                onValueChange = { checked ->
-                                    interests.value = if (checked && interests.value.size < 3) interests.value + interest
-                                    else if (!checked) interests.value - interest else interests.value
-                                }
-                            ).padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = selected,
-                                onCheckedChange = null,
-                                // The whole labelled row is the single checkbox target.
-                                modifier = Modifier.clearAndSetSemantics { }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingValuePreview() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column {
+            Box(
+                Modifier.fillMaxWidth().height(156.dp).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Column(
+                        Modifier.padding(horizontal = 24.dp, vertical = 18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("你的日常照片", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Text("一件普通物品", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "今天的见微",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text("从照片中的物件，遇见一条有来源的知识", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("原照片只作为上下文；卡片会标明识别把握、推荐原因和可点击来源。", style = MaterialTheme.typography.bodyMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OnboardingTag("来自你的照片")
+                    OnboardingTag("事实有来源")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingTag(label: String) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(18.dp)) {
+        Text(label, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+private fun OnboardingPrivacyPreview() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            OnboardingPipelineStep(
+                number = "1",
+                title = "本机先筛选",
+                body = "人脸、截图、证件、高文字和模糊照片会先被排除。"
+            )
+            HorizontalDivider()
+            OnboardingPipelineStep(
+                number = "2",
+                title = "只上传少量候选",
+                body = "长边缩至 1280 px，并清除位置、设备、文件名和其他 EXIF。"
+            )
+            HorizontalDivider()
+            OnboardingPipelineStep(
+                number = "3",
+                title = "可靠命中才生成",
+                body = "只匹配审核过的事实；没有可靠对象或来源时不勉强出卡。"
+            )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    "随时可以暂停分析、清除本地索引或删除云端设备数据。",
+                    modifier = Modifier.padding(14.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingPipelineStep(number: String, title: String, body: String) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Surface(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(20.dp)) {
+            Text(
+                number,
+                modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun OnboardingPreferences(
+    interests: Set<String>,
+    onInterestChanged: (String, Boolean) -> Unit
+) {
+    val options = listOf("生活设计", "物件历史", "科学原理", "实用技巧", "制造工艺")
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("选择兴趣", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("已选 ${interests.size} / 3", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            Text("正好选择 3 项；它们只用于本次安装的推荐排序。", style = MaterialTheme.typography.bodySmall)
+            BoxWithConstraints {
+                val stacked = shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)
+                if (stacked) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        options.forEach { interest ->
+                            OnboardingInterestChoice(
+                                interest = interest,
+                                selected = interest in interests,
+                                onChecked = { onInterestChanged(interest, it) }
                             )
-                            Text(interest)
+                        }
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        options.chunked(2).forEach { rowOptions ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                rowOptions.forEach { interest ->
+                                    OnboardingInterestChoice(
+                                        interest = interest,
+                                        selected = interest in interests,
+                                        onChecked = { onInterestChanged(interest, it) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowOptions.size == 1) Spacer(Modifier.weight(1f))
+                            }
                         }
                     }
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (step < 2) Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) { Text("继续") }
-                else {
-                    Button(onClick = { onAutomatic(interests.value) }, modifier = Modifier.fillMaxWidth(), enabled = interests.value.size == 3) {
-                        Text("自动发现（推荐）")
-                    }
-                    OutlinedButton(onClick = { onPick(interests.value) }, modifier = Modifier.fillMaxWidth(), enabled = interests.value.size == 3) {
-                        Text("仅选择照片")
+        }
+    }
+}
+
+@Composable
+private fun OnboardingInterestChoice(
+    interest: String,
+    selected: Boolean,
+    onChecked: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = onChecked),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = selected,
+                onCheckedChange = null,
+                modifier = Modifier.clearAndSetSemantics { }
+            )
+            Text(interest, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+private fun OnboardingEntryChoice(
+    title: String,
+    body: String,
+    buttonLabel: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    badge: String? = null,
+    outlined: Boolean = false
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                badge?.let {
+                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(16.dp)) {
+                        Text(it, modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium)
                     }
                 }
-                Text("${step + 1} / 3", modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+            Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (outlined) {
+                OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth(), enabled = enabled) { Text(buttonLabel) }
+            } else {
+                Button(onClick = onClick, modifier = Modifier.fillMaxWidth(), enabled = enabled) { Text(buttonLabel) }
             }
         }
     }

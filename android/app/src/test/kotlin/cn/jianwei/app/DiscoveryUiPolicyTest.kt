@@ -62,6 +62,13 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
+    fun `onboarding interests reflow before choices become cramped`() {
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 320f, fontScale = 1f)).isTrue()
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 411f, fontScale = 2f)).isTrue()
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 411f, fontScale = 1f)).isFalse()
+    }
+
+    @Test
     fun `pipeline phases produce truthful empty states and actions`() {
         val filtering = emptyDiscoveryCopy(
             paused = false,
