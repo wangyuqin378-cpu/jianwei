@@ -14,9 +14,11 @@ import cn.jianwei.data.photos.MlKitPrivacyFilter
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.work.WorkManagerScheduler
 import cn.jianwei.data.status.SharedPreferencesAnalysisStatusRepository
+import cn.jianwei.data.preferences.SharedPreferencesInterestPreferencesRepository
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.domain.repository.CardRepository
+import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import dagger.Binds
 import dagger.Module
@@ -76,4 +78,5 @@ abstract class DataBindings {
     @Binds abstract fun privacyFilter(value: MlKitPrivacyFilter): PrivacyFilter
     @Binds abstract fun scheduler(value: WorkManagerScheduler): AnalysisScheduler
     @Binds abstract fun analysisStatus(value: SharedPreferencesAnalysisStatusRepository): AnalysisStatusRepository
+    @Binds abstract fun interestPreferences(value: SharedPreferencesInterestPreferencesRepository): InterestPreferencesRepository
 }

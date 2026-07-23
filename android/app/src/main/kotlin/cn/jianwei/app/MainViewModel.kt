@@ -9,9 +9,11 @@ import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.preferences.DEFAULT_INTEREST_SELECTION
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.domain.repository.CardRepository
+import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,7 @@ data class MainUiState(
     val savedCards: List<KnowledgeCard> = emptyList(),
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
     val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
+    val selectedInterests: Set<String> = DEFAULT_INTEREST_SELECTION,
     val busy: Boolean = false,
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
@@ -42,14 +45,16 @@ class MainViewModel @Inject constructor(
     private val cards: CardRepository,
     private val scheduler: AnalysisScheduler,
     private val analysisStatus: AnalysisStatusRepository,
+    private val interestPreferences: InterestPreferencesRepository,
     private val betaMetrics: BetaMetricsStore,
     private val itemReminders: ItemReminderScheduler
 ) : ViewModel() {
     private val localState = MutableStateFlow(MainUiState(paused = scheduler.isPaused()))
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
-        cards.observeFeedbackStates()
-    ) { tracked, feedback -> tracked to feedback }
+        cards.observeFeedbackStates(),
+        interestPreferences.observeSelected()
+    ) { tracked, feedback, interests -> Triple(tracked, feedback, interests) }
     val uiState = combine(
         cards.observeCards(),
         cards.observeSavedCards(),
@@ -62,6 +67,7 @@ class MainViewModel @Inject constructor(
             savedCards = savedCards,
             trackedItems = cardState.first.associateBy(TrackedItem::cardId),
             feedbackStates = cardState.second.associateBy(CardFeedbackState::cardId),
+            selectedInterests = cardState.third,
             analysisProgress = progress
         )
     }
@@ -79,6 +85,21 @@ class MainViewModel @Inject constructor(
         if (localState.value.currentDay != today) {
             localState.value = localState.value.copy(currentDay = today)
         }
+    }
+
+    fun updateInterests(interests: Set<String>, announce: Boolean = true): Boolean = try {
+        interestPreferences.updateSelected(interests)
+        if (announce) {
+            localState.value = localState.value.copy(
+                message = "推荐兴趣已更新；从下一批新照片开始用于候选排序"
+            )
+        }
+        true
+    } catch (error: Exception) {
+        localState.value = localState.value.copy(
+            message = error.message ?: "推荐兴趣保存失败，请重试"
+        )
+        false
     }
 
     fun startDiscovery(access: PhotoAccess) = runBusy {

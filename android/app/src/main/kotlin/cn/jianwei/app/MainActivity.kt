@@ -97,6 +97,11 @@ import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.TrackedItem
 import cn.jianwei.domain.model.normalizedSafeKnowledgeSourceUrl
+import cn.jianwei.domain.preferences.DEFAULT_INTEREST_SELECTION
+import cn.jianwei.domain.preferences.INTEREST_OPTIONS
+import cn.jianwei.domain.preferences.REQUIRED_INTEREST_COUNT
+import cn.jianwei.domain.preferences.isValidInterestSelection
+import cn.jianwei.domain.preferences.updatedInterestSelection
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import java.io.IOException
@@ -188,20 +193,19 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-                val saveInterests: (Set<String>) -> Unit = { interests ->
-                    preferences.edit { putStringSet("interests", interests) }
-                }
 
                 if (!onboarded) {
                     Onboarding(
                         onAutomatic = { interests ->
-                            saveInterests(interests)
-                            permission.launch(requiredPhotoPermissions())
+                            if (viewModel.updateInterests(interests, announce = false)) {
+                                permission.launch(requiredPhotoPermissions())
+                            }
                         },
                         onPick = { interests ->
-                            saveInterests(interests)
-                            completeOnboarding()
-                            choosePhotos()
+                            if (viewModel.updateInterests(interests, announce = false)) {
+                                completeOnboarding()
+                                choosePhotos()
+                            }
                         }
                     )
                 } else {
@@ -229,6 +233,7 @@ class MainActivity : ComponentActivity() {
                         onClearIndex = viewModel::clearLocalIndex,
                         onDeleteCloud = viewModel::deleteCloudData,
                         onExportMetrics = ::shareBetaMetrics,
+                        onUpdateInterests = { viewModel.updateInterests(it) },
                         onMessageShown = viewModel::clearMessage
                     )
                     LaunchedEffect(state.cards) { DailyWidget().updateAll(context) }
@@ -312,9 +317,9 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
     val pages = listOf(
         "让日常照片重新开口" to "从你授权的照片里，挑一件普通物品，讲一个今天值得知道的细节。",
         "先在手机里筛选，再寻找知识" to "大多数照片不会离开手机；只有通过隐私和质量筛选的少量候选，才会进入可靠知识匹配。",
-        "决定你想看什么" to "先选 3 个兴趣，再选择自动发现或逐次挑选照片。以后都可以在隐私中心暂停或删除。"
+        "决定你想看什么" to "先选 3 个兴趣，再选择自动发现或逐次挑选照片。以后可以在推荐偏好中调整。"
     )
-    val interests = remember { mutableStateOf(setOf("生活设计", "物件历史", "科学原理")) }
+    val interests = remember { mutableStateOf(DEFAULT_INTEREST_SELECTION) }
     BackHandler(enabled = step > 0) { step-- }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -368,11 +373,7 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
                 else -> OnboardingPreferences(
                     interests = interests.value,
                     onInterestChanged = { interest, checked ->
-                        interests.value = when {
-                            checked && interests.value.size < 3 -> interests.value + interest
-                            !checked -> interests.value - interest
-                            else -> interests.value
-                        }
+                        interests.value = updatedInterestSelection(interests.value, interest, checked)
                     }
                 )
             }
@@ -529,43 +530,57 @@ private fun OnboardingPreferences(
     interests: Set<String>,
     onInterestChanged: (String, Boolean) -> Unit
 ) {
-    val options = listOf("生活设计", "物件历史", "科学原理", "实用技巧", "制造工艺")
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(24.dp)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("选择兴趣", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("已选 ${interests.size} / 3", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            }
-            Text("正好选择 3 项；它们只用于本次安装的推荐排序。", style = MaterialTheme.typography.bodySmall)
-            BoxWithConstraints {
-                val stacked = shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)
-                if (stacked) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        options.forEach { interest ->
-                            OnboardingInterestChoice(
-                                interest = interest,
-                                selected = interest in interests,
-                                onChecked = { onInterestChanged(interest, it) }
-                            )
-                        }
+        InterestSelectionPanel(
+            interests = interests,
+            onInterestChanged = onInterestChanged,
+            supportingText = "正好选择 3 项；它们只用于本次安装的推荐排序。",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun InterestSelectionPanel(
+    interests: Set<String>,
+    onInterestChanged: (String, Boolean) -> Unit,
+    supportingText: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("选择兴趣", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("已选 ${interests.size} / $REQUIRED_INTEREST_COUNT", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+        Text(supportingText, style = MaterialTheme.typography.bodySmall)
+        BoxWithConstraints {
+            val stacked = shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)
+            if (stacked) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    INTEREST_OPTIONS.map { it.label }.forEach { interest ->
+                        OnboardingInterestChoice(
+                            interest = interest,
+                            selected = interest in interests,
+                            onChecked = { onInterestChanged(interest, it) }
+                        )
                     }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        options.chunked(2).forEach { rowOptions ->
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                rowOptions.forEach { interest ->
-                                    OnboardingInterestChoice(
-                                        interest = interest,
-                                        selected = interest in interests,
-                                        onChecked = { onInterestChanged(interest, it) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                if (rowOptions.size == 1) Spacer(Modifier.weight(1f))
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    INTEREST_OPTIONS.map { it.label }.chunked(2).forEach { rowOptions ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rowOptions.forEach { interest ->
+                                OnboardingInterestChoice(
+                                    interest = interest,
+                                    selected = interest in interests,
+                                    onChecked = { onInterestChanged(interest, it) },
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
+                            if (rowOptions.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
                 }
@@ -652,6 +667,7 @@ private fun HomeScreen(
     onClearIndex: () -> Unit,
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit,
+    onUpdateInterests: (Set<String>) -> Boolean,
     onMessageShown: () -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -774,6 +790,9 @@ private fun HomeScreen(
                 }
             }
             item {
+                InterestPreferenceCenter(state.selectedInterests, onUpdateInterests)
+            }
+            item {
                 PrivacyCenter(state.paused, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
             }
         }
@@ -822,6 +841,74 @@ private fun WidgetCallToActionCopy(modifier: Modifier = Modifier) {
         Text("添加组件后，无需打开 App 也能看到。", style = MaterialTheme.typography.bodySmall)
     }
 }
+
+@Composable
+private fun InterestPreferenceCenter(
+    selectedInterests: Set<String>,
+    onSave: (Set<String>) -> Boolean
+) {
+    var editing by rememberSaveable { mutableStateOf(false) }
+    var draftEncoded by rememberSaveable(selectedInterests) {
+        mutableStateOf(encodeInterestSelection(selectedInterests))
+    }
+    val draft = remember(draftEncoded) { decodeInterestSelection(draftEncoded) }
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("你的推荐偏好", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    INTEREST_OPTIONS.map { it.label }.filter { it in selectedInterests }.joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "兴趣决定新照片候选的优先顺序；卡片反馈会继续学习，但不会擅自改动你的显式选择。",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (editing) {
+                HorizontalDivider()
+                InterestSelectionPanel(
+                    interests = draft,
+                    onInterestChanged = { interest, checked ->
+                        draftEncoded = encodeInterestSelection(
+                            updatedInterestSelection(draft, interest, checked)
+                        )
+                    },
+                    supportingText = "正好保留 3 项。保存后从下一批新照片开始影响候选排序。"
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            draftEncoded = encodeInterestSelection(selectedInterests)
+                            editing = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("取消") }
+                    Button(
+                        onClick = {
+                            if (onSave(draft)) editing = false
+                        },
+                        enabled = isValidInterestSelection(draft) && draft != selectedInterests,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("保存偏好") }
+                }
+            } else {
+                OutlinedButton(onClick = { editing = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text("调整推荐兴趣")
+                }
+            }
+        }
+    }
+}
+
+private fun encodeInterestSelection(selection: Set<String>): String =
+    INTEREST_OPTIONS.map { it.label }.filter { it in selection }.joinToString("|")
+
+private fun decodeInterestSelection(encoded: String): Set<String> =
+    encoded.split("|").filterTo(linkedSetOf()) { value ->
+        INTEREST_OPTIONS.any { it.label == value }
+    }
 
 @Composable
 private fun EmptyState(

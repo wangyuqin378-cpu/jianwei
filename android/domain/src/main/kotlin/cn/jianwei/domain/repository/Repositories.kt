@@ -68,3 +68,9 @@ interface AnalysisStatusRepository {
     fun observeProgress(): Flow<AnalysisProgress>
     fun publishProgress(progress: AnalysisProgress)
 }
+
+interface InterestPreferencesRepository {
+    fun observeSelected(): Flow<Set<String>>
+    fun selected(): Set<String>
+    fun updateSelected(selection: Set<String>)
+}

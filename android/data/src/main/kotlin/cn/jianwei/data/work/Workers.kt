@@ -28,10 +28,12 @@ import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.PhotoOrigin
 import cn.jianwei.domain.model.ScanRequest
+import cn.jianwei.domain.preferences.expandedInterestTerms
 import cn.jianwei.domain.ranking.CandidateRanker
 import cn.jianwei.domain.time.ChinaCalendar
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.AnalysisStatusRepository
+import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -94,6 +96,7 @@ class PrivacyScanWorker @AssistedInject constructor(
     private val privacyFilter: PrivacyFilter,
     private val permissionGate: PhotoPermissionGate,
     private val affinities: LocalTopicAffinityStore,
+    private val interestPreferences: InterestPreferencesRepository,
     private val status: AnalysisStatusRepository
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
@@ -152,11 +155,7 @@ class PrivacyScanWorker @AssistedInject constructor(
                 ).toDomain()
             }
         }
-        val interests = applicationContext.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
-            .getStringSet("interests", emptySet())
-            .orEmpty()
-            .flatMap(::interestTerms)
-            .toSet()
+        val interests = expandedInterestTerms(interestPreferences.selected())
         val ranker = CandidateRanker()
         val currentIds = analyzed.mapTo(mutableSetOf()) { it.localId }
         val baselineHashes = dao.candidatesForDuplicateBaseline()
@@ -183,15 +182,6 @@ class PrivacyScanWorker @AssistedInject constructor(
         )
         return Result.success()
     }
-}
-
-private fun interestTerms(interest: String): Set<String> = when (interest) {
-    "生活设计" -> setOf("home", "furniture", "interior", "kitchen", "tableware", "lamp", "chair")
-    "物件历史" -> setOf("tool", "antique", "artifact", "craft", "instrument")
-    "科学原理" -> setOf("machine", "technology", "electronics", "vehicle", "science")
-    "实用技巧" -> setOf("cleaning", "food", "appliance", "household", "container")
-    "制造工艺" -> setOf("metal", "wood", "plastic", "textile", "ceramic", "glass")
-    else -> setOf(interest)
 }
 
 @HiltWorker
