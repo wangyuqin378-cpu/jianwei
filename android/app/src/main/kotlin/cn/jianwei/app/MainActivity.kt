@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
@@ -681,11 +682,22 @@ private fun HomeScreen(
     val fontScale = LocalDensity.current.fontScale
     var showSavedCards by rememberSaveable { mutableStateOf(false) }
     val focusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
+    val dailyListState = rememberLazyListState()
+    val savedListState = rememberLazyListState()
+    val focusedListState = rememberLazyListState()
+    val activeListState = when {
+        focusedEntry -> focusedListState
+        showSavedCards -> savedListState
+        else -> dailyListState
+    }
     val visibleCards = if (showSavedCards) state.savedCards else state.cards
     val savedCardIds = state.savedCards.mapTo(remember(state.savedCards) { mutableSetOf() }) { it.cardId }
     BackHandler(enabled = focusedEntry) { onCloseFocusedCard() }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
+    }
+    LaunchedEffect(state.focusedCardId) {
+        if (state.focusedCardId != null) focusedListState.scrollToItem(0)
     }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -710,6 +722,7 @@ private fun HomeScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = activeListState,
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
