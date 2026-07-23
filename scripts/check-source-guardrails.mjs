@@ -1055,13 +1055,13 @@ check(deprecatedDirectReview.includes("Direct single-fact approval is disabled")
 for (const marker of ["requestPublicHttpsMetadata", "bytes=0-4095", "JianweiSourceVerifier/1.0", "application/pdf", "KNOWLEDGE_SOURCE_PREFLIGHT_SELF_TEST=GO", "dnsPinning=1", "manualRedirect=1"]) {
   check(knowledgeSourcePreflight.includes(marker), `Knowledge source preflight is missing production-contract marker: ${marker}`);
 }
-for (const marker of ["requestPublicHttpsMetadata", "--resume-successes", "selectResumableSuccesses", "evidence.catalogVersion !== catalogVersion", "evidence.sourceScope !== sourceScope", "86_400_000", "resumedSuccesses", "checkedNow", "isSystemicNetworkFailure", "liveEvidenceOutputPlan", "canonicalUpdated=", "-latest-attempt.json", "dnsPinning=1", "manualRedirect=1"]) {
+for (const marker of ["requestPublicHttpsMetadata", "--resume-successes", "selectResumableSuccesses", "evidence.catalogVersion !== catalogVersion", "evidence.sourceScope !== sourceScope", "86_400_000", "resumedSuccesses", "checkedNow", "isSystemicNetworkFailure", "liveEvidenceOutputPlan", "canonicalUpdated=", "-latest-attempt.json", "dnsPinning=1", "manualRedirect=1", "--google-doh", "resolver: useGoogleDoh ? \"google_doh\" : \"system\"", "privateDohRejected=1"]) {
   check(knowledgeSourceChecker.includes(marker), `Knowledge source resumable evidence is missing fail-closed marker: ${marker}`);
 }
 for (const marker of ["evidence?.infrastructureFailure !== true", "trusted a systemic network-failure attempt"]) {
   check(knowledgeReviewQueue.includes(marker), `Knowledge review queue can trust failed source infrastructure evidence: ${marker}`);
 }
-for (const marker of ["dnsLookup", "all: true", "verbatim: true", "https.request", "REDIRECT_STATUSES", "maxRedirects", "addresses.some", "isPublicIpAddress", "hostnameWithoutIpv6Brackets", "servername: isIP(hostname) ? undefined : hostname", "lookup(_hostname", "timeout: timeoutMs"]) {
+for (const marker of ["dnsLookup", "all: true", "verbatim: true", "https.request", "REDIRECT_STATUSES", "maxRedirects", "addresses.some", "isPublicIpAddress", "hostnameWithoutIpv6Brackets", "servername: isIP(hostname) ? undefined : hostname", "lookup(_hostname", "timeout: timeoutMs", "resolveHostWithGoogleDoh", "https://dns.google/resolve", "application/dns-json", "redirect: \"error\"", "payload?.Question"]) {
   check(safeSourceRequest.includes(marker), `Safe source request helper is missing SSRF defense marker: ${marker}`);
 }
 check(ciWorkflow.includes("BACKEND_E2E_DATABASE_URL: ${{ env.DATABASE_URL }}"), "CI is missing the PostgreSQL-backed TCP E2E gate");

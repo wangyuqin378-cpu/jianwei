@@ -49,12 +49,23 @@ node scripts\check-knowledge-sources.mjs --self-test
 node scripts\check-knowledge-sources.mjs
 node scripts\check-knowledge-sources.mjs --live
 node scripts\check-knowledge-sources.mjs --all-live
+node scripts\check-knowledge-sources.mjs --live --google-doh
+node scripts\check-knowledge-sources.mjs --all-live --google-doh
 ```
 
 The static gate checks unique public HTTPS URLs, complete metadata, references and orphan sources.
 `--live` writes evidence for sources used by `approved` review candidates; `--all-live` also checks
 draft-only editorial sources. A 2xx response and suitable content type prove reachability only. They
 do not prove that a source supports the fact, and neither command creates a review attestation.
+
+Use `--google-doh` only when a VPN or proxy maps ordinary DNS to the reserved `198.18.0.0/15`
+benchmark range and the default resolver therefore fails closed. This mode queries the fixed
+`https://dns.google/resolve` endpoint without redirects, verifies that each JSON response binds the
+requested hostname and record type, and accepts only A/AAAA answers. The normal public-address
+check still rejects private, local, reserved, malformed, or mixed answers; the subsequent HTTPS
+request remains pinned to the vetted address while TLS certificate validation and SNI use the
+original source hostname. Evidence records `resolver: "google_doh"` so this path cannot be confused
+with the system resolver.
 
 Every live run writes a `*-latest-attempt.json` diagnostic. When all sources across multiple hosts
 fail for the same DNS or network reason, the command classifies the run as an infrastructure

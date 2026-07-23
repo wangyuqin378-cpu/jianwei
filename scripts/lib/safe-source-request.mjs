@@ -79,6 +79,69 @@ export function isPublicIpAddress(address) {
   return false;
 }
 
+export async function resolveHostWithGoogleDoh(hostname, {
+  fetchImpl = globalThis.fetch,
+  timeoutMs = 10_000
+} = {}) {
+  const normalized = hostnameWithoutIpv6Brackets(String(hostname ?? "").toLowerCase().replace(/\.$/, ""));
+  const literalFamily = isIP(normalized);
+  if (literalFamily) return [{ address: normalized, family: literalFamily }];
+  if (!normalized || normalized.length > 253 ||
+      !normalized.split(".").every((label) => /^(?!-)[a-z0-9-]{1,63}(?<!-)$/.test(label)) ||
+      typeof fetchImpl !== "function" ||
+      !Number.isInteger(timeoutMs) || timeoutMs < 1_000 || timeoutMs > 30_000) {
+    throw new Error("Google DoH resolver input is invalid");
+  }
+
+  const resolveType = async (recordType, recordCode) => {
+    const endpoint = new URL("https://dns.google/resolve");
+    endpoint.searchParams.set("name", normalized);
+    endpoint.searchParams.set("type", recordType);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetchImpl(endpoint, {
+        method: "GET",
+        headers: { accept: "application/dns-json" },
+        redirect: "error",
+        signal: controller.signal
+      });
+      const contentType = String(response?.headers?.get?.("content-type") ?? "");
+      if (!response?.ok || !/^application\/json(?:;|$)/i.test(contentType)) {
+        throw new Error(`Google DoH returned HTTP ${response?.status ?? 0} or an invalid content type`);
+      }
+      const payload = await response.json();
+      if (payload?.Status !== 0 && payload?.Status !== 3) {
+        throw new Error(`Google DoH returned DNS status ${payload?.Status ?? "<missing>"}`);
+      }
+      const questionMatches = Array.isArray(payload?.Question) && payload.Question.some((question) =>
+        String(question?.name ?? "").toLowerCase().replace(/\.$/, "") === normalized &&
+        question?.type === recordCode
+      );
+      if (!questionMatches) throw new Error("Google DoH response did not bind the requested hostname and type");
+      if (payload.Status === 3) return [];
+      return (Array.isArray(payload.Answer) ? payload.Answer : [])
+        .filter((answer) => answer?.type === recordCode && isIP(String(answer.data ?? "")) === (recordCode === 1 ? 4 : 6))
+        .map((answer) => ({
+          address: String(answer.data),
+          family: recordCode === 1 ? 4 : 6
+        }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown error";
+      if (/^Google DoH (?:returned|response)/.test(message)) throw error;
+      throw new Error(`Google DoH resolver failed: ${message}`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  const addresses = (await Promise.all([
+    resolveType("A", 1),
+    resolveType("AAAA", 28)
+  ])).flat();
+  return [...new Map(addresses.map((entry) => [`${entry.family}:${entry.address}`, entry])).values()];
+}
+
 async function defaultResolveHost(hostname) {
   return dnsLookup(hostname, { all: true, verbatim: true });
 }

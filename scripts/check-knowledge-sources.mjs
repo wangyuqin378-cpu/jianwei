@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import {
   parsePublicHttpsUrl,
-  requestPublicHttpsMetadata
+  requestPublicHttpsMetadata,
+  resolveHostWithGoogleDoh
 } from "./lib/safe-source-request.mjs";
 
 export function assessSourceCatalog(catalog) {
@@ -164,6 +165,11 @@ if (process.argv.includes("--self-test")) {
         { sourceId: "two", ok: true, status: 200 },
         infrastructureResults[2]
       ]) ||
+      !isSystemicNetworkFailure(infrastructureSources, infrastructureSources.map((source) => ({
+        sourceId: source.sourceId,
+        ok: false,
+        reason: "Google DoH resolver failed: fetch failed"
+      }))) ||
       isSystemicNetworkFailure([infrastructureSources[0]], [infrastructureResults[0]])) {
     throw new Error("Knowledge source self-test did not isolate a correlated infrastructure failure");
   }
@@ -190,7 +196,61 @@ if (process.argv.includes("--self-test")) {
   if (!privateDnsRejected || !privateRedirectRejected) {
     throw new Error("Knowledge source self-test accepted private DNS or redirect targets");
   }
-  process.stdout.write(`KNOWLEDGE_SOURCE_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length + 10} dnsPinning=1 manualRedirect=1\n`);
+  const dohQueries = [];
+  const dohAddresses = await resolveHostWithGoogleDoh("source.example.org", {
+    fetchImpl: async (url, options) => {
+      dohQueries.push({ url: url.toString(), options });
+      const type = url.searchParams.get("type");
+      const code = type === "A" ? 1 : 28;
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => "application/json; charset=UTF-8" },
+        json: async () => ({
+          Status: 0,
+          Question: [{ name: "source.example.org.", type: code }],
+          Answer: type === "A"
+            ? [{ name: "source.example.org.", type: 5, data: "edge.example.org." }, { name: "edge.example.org.", type: 1, data: "93.184.216.34" }]
+            : [{ name: "source.example.org.", type: 28, data: "2606:2800:220:1:248:1893:25c8:1946" }]
+        })
+      };
+    }
+  });
+  if (dohAddresses.length !== 2 ||
+      !dohAddresses.some((entry) => entry.address === "93.184.216.34" && entry.family === 4) ||
+      !dohAddresses.some((entry) => entry.address === "2606:2800:220:1:248:1893:25c8:1946" && entry.family === 6) ||
+      dohQueries.length !== 2 ||
+      dohQueries.some((query) => query.options.redirect !== "error" ||
+        query.options.headers.accept !== "application/dns-json" ||
+        !query.url.startsWith("https://dns.google/resolve?"))) {
+    throw new Error("Knowledge source self-test did not resolve through the fixed Google DoH endpoint");
+  }
+  let privateDohRejected = false;
+  try {
+    await requestPublicHttpsMetadata("https://source.example.org/source", {
+      resolveHost: (hostname) => resolveHostWithGoogleDoh(hostname, {
+        fetchImpl: async (url) => {
+          const type = url.searchParams.get("type");
+          const code = type === "A" ? 1 : 28;
+          return {
+            ok: true,
+            status: 200,
+            headers: { get: () => "application/json" },
+            json: async () => ({
+              Status: type === "A" ? 0 : 3,
+              Question: [{ name: "source.example.org.", type: code }],
+              Answer: type === "A"
+                ? [{ name: "source.example.org.", type: 1, data: "127.0.0.1" }]
+                : []
+            })
+          };
+        }
+      }),
+      requestOnce: async () => { throw new Error("request must not start"); }
+    });
+  } catch { privateDohRejected = true; }
+  if (!privateDohRejected) throw new Error("Knowledge source self-test trusted a private DoH answer");
+  process.stdout.write(`KNOWLEDGE_SOURCE_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length + 12} dnsPinning=1 manualRedirect=1 googleDoh=1 privateDohRejected=1\n`);
 } else if (process.argv.includes("--live") || process.argv.includes("--all-live")) {
   const staticResult = assessSourceCatalog(catalog);
   if (staticResult.status !== "GO") {
@@ -202,6 +262,8 @@ if (process.argv.includes("--self-test")) {
     const sources = selectLiveSources(catalog, includeDraftSources);
     if (sources.length === 0) throw new Error(`No sources found for live-check scope: ${sourceScope}`);
     const checkedAt = new Date().toISOString();
+    const useGoogleDoh = process.argv.includes("--google-doh");
+    const resolveHost = useGoogleDoh ? resolveHostWithGoogleDoh : undefined;
     const concurrency = parseLiveConcurrency(process.argv.slice(2));
     const directory = ".tooling/knowledge-source-results";
     const fileName = includeDraftSources ? "all-sources.json" : "release-candidates.json";
@@ -217,7 +279,7 @@ if (process.argv.includes("--self-test")) {
       });
     }
     const sourcesToCheck = sources.filter((source) => !resumable.has(source.sourceId));
-    const checkedResults = await mapConcurrent(sourcesToCheck, concurrency, checkSourceLive);
+    const checkedResults = await mapConcurrent(sourcesToCheck, concurrency, (source) => checkSourceLive(source, resolveHost));
     const checkedBySource = new Map(checkedResults.map((result) => [result.sourceId, result]));
     const results = sources.map((source) => resumable.get(source.sourceId) ?? checkedBySource.get(source.sourceId));
     const failures = results.filter((item) => !item.ok);
@@ -227,6 +289,7 @@ if (process.argv.includes("--self-test")) {
       evidenceKind: "live_knowledge_source_reachability",
       sourceScope,
       concurrency,
+      resolver: useGoogleDoh ? "google_doh" : "system",
       checkedAt,
       catalogVersion: catalog.version,
       total: results.length,
@@ -241,7 +304,7 @@ if (process.argv.includes("--self-test")) {
     await writeFile(outputPlan.attemptPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
     if (outputPlan.canonicalPath) await writeFile(outputPlan.canonicalPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
     const status = failures.length === 0 ? "GO" : "NO_GO";
-    process.stdout.write(`KNOWLEDGE_SOURCE_LIVE_GATE=${status} scope=${sourceScope} sources=${results.length} reachable=${results.length - failures.length} failed=${failures.length} resumed=${resumable.size} checkedNow=${sourcesToCheck.length} infrastructureFailure=${infrastructureFailure ? 1 : 0} canonicalUpdated=${infrastructureFailure ? 0 : 1}\n`);
+    process.stdout.write(`KNOWLEDGE_SOURCE_LIVE_GATE=${status} scope=${sourceScope} resolver=${evidence.resolver} sources=${results.length} reachable=${results.length - failures.length} failed=${failures.length} resumed=${resumable.size} checkedNow=${sourcesToCheck.length} infrastructureFailure=${infrastructureFailure ? 1 : 0} canonicalUpdated=${infrastructureFailure ? 0 : 1}\n`);
     if (infrastructureFailure) {
       process.stdout.write(`SOURCE_INFRASTRUCTURE_FAILURE hosts=${new Set(sourcesToCheck.map((source) => new URL(source.url).hostname)).size} reason=${checkedResults[0]?.reason ?? "network failure"}\n`);
     } else {
@@ -257,12 +320,13 @@ if (process.argv.includes("--self-test")) {
   if (result.status !== "GO") process.exitCode = 1;
 }
 
-async function checkSourceLive(source) {
+async function checkSourceLive(source, resolveHost) {
   let lastReason = "request failed";
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
       const response = await requestPublicHttpsMetadata(source.url, {
         timeoutMs: 15_000,
+        ...(resolveHost ? { resolveHost } : {}),
         headers: {
           accept: "text/html,application/xhtml+xml,application/pdf;q=0.9,text/plain;q=0.8",
           "accept-language": "en-US,en;q=0.8",
@@ -303,7 +367,8 @@ export function isSystemicNetworkFailure(sources, checkedResults) {
   if (hostnames.size < 3 || reasons.size !== 1) return false;
   const reason = String(checkedResults[0]?.reason ?? "");
   return reason === "Source hostname did not resolve exclusively to public IP addresses" ||
-    /\b(?:ENOTFOUND|EAI_AGAIN|ENETUNREACH|network is unreachable)\b/i.test(reason);
+    /\b(?:ENOTFOUND|EAI_AGAIN|ENETUNREACH|network is unreachable)\b/i.test(reason) ||
+    /^Google DoH (?:returned|response|resolver)/.test(reason);
 }
 
 export function liveEvidenceOutputPlan(directory, fileName, infrastructureFailure) {
