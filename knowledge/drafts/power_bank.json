@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "topicId": "power_bank",
+  "displayName": "充电宝",
+  "category": "digital",
+  "aliases": ["power bank", "充电宝"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-caac-power-bank-rules",
+      "title": "关于民航旅客携带充电宝乘机规定的公告",
+      "url": "https://www.caac.gov.cn/XXGK/XXGK/TZTG/201511/t20151105_11173.html",
+      "publisher": "中国民用航空局",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-caac-power-bank-rules-restated",
+      "title": "关于重申民航旅客携带充电宝乘机规定的公告",
+      "url": "https://www.caac.gov.cn/XXGK/XXGK/TZTG/201511/t20151105_11036.html",
+      "publisher": "中国民用航空局",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-caac-power-bank-ccc-rule",
+      "title": "民航局：禁止旅客携带无3C标识及被召回的充电宝乘坐境内航班",
+      "url": "https://www.caac.gov.cn/XWZX/MHYW/202506/t20250626_227805.html",
+      "publisher": "中国民用航空局",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-caac-east-power-bank-ccc",
+      "title": "华东局积极落实民航局关于旅客携带充电宝乘机安全工作的要求",
+      "url": "https://www.caac.gov.cn/PHONE/GLJ_PHONE/HDGLJ/HD_XWZX/202507/t20250730_228144.html",
+      "publisher": "中国民用航空局华东地区管理局",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "power-bank-draft-001",
+      "topicId": "power_bank",
+      "factText": "民航规则把充电宝视为备用锂电池，乘机时必须放入随身行李，不能托运；登机口托运行李前也要取出。",
+      "sourceIds": ["src-caac-power-bank-rules", "src-caac-power-bank-rules-restated"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "power-bank-draft-002",
+      "topicId": "power_bank",
+      "factText": "额定能量不超过一百瓦时的充电宝通常可随身携带；超过一百但不超过一百六十瓦时需先获航司批准。",
+      "sourceIds": ["src-caac-power-bank-rules", "src-caac-power-bank-rules-restated"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "power-bank-draft-003",
+      "topicId": "power_bank",
+      "factText": "乘坐境内航班时，没有或看不清 3C 标识，以及属于被召回型号或批次的充电宝，都不能带上飞机。",
+      "sourceIds": ["src-caac-power-bank-ccc-rule", "src-caac-east-power-bank-ccc"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

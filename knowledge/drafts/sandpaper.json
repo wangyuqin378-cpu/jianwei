@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "sandpaper",
+  "displayName": "砂纸",
+  "category": "tool",
+  "aliases": ["sandpaper", "砂纸"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-sandpaper-backing-binder-grains",
+      "title": "US20170129075A1: Abrasive article and method of making the same",
+      "url": "https://patents.google.com/patent/US20170129075A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-sandpaper-shaped-composites",
+      "title": "US5152917A: Structured abrasive article",
+      "url": "https://patents.google.com/patent/US5152917A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-sandpaper-dust-apertures",
+      "title": "US10076819B2: Sandpaper sheet for use with tools configured for dust extraction",
+      "url": "https://patents.google.com/patent/US10076819B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "sandpaper-draft-001",
+      "topicId": "sandpaper",
+      "factText": "砂纸是分层材料：纸、布或纤维背基先涂底胶，再把磨粒嵌入并固化；上方还可增加定型胶层来帮助固定磨粒。",
+      "sourceIds": ["src-sandpaper-backing-binder-grains"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sandpaper-draft-002",
+      "topicId": "sandpaper",
+      "factText": "结构化砂纸不把磨粒完全随机撒开，而是把磨粒与树脂做成尺寸较一致的微小棱锥复合体，再按重复阵列排在背基上。",
+      "sourceIds": ["src-sandpaper-shaped-composites"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sandpaper-draft-003",
+      "topicId": "sandpaper",
+      "factText": "集尘砂纸的孔位会按打磨底板的沟槽和吸尘口排列；磨屑穿过孔后沿沟槽汇向真空口，而不是只在砂面间隙里堆积。",
+      "sourceIds": ["src-sandpaper-dust-apertures"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

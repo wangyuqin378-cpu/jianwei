@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "game_controller",
+  "displayName": "游戏手柄",
+  "category": "digital",
+  "aliases": ["game controller", "gamepad", "游戏手柄", "手柄"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-contactless-hall-joystick",
+      "title": "EP3759566A1: Non-contact Hall-effect joystick",
+      "url": "https://patents.google.com/patent/EP3759566A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-gamepad-eccentric-rumble",
+      "title": "US6693622B1: Vibrotactile haptic feedback devices",
+      "url": "https://patents.google.com/patent/US6693622B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-force-feedback-trigger",
+      "title": "US10737172B2: Input device with force sensor feedback trigger",
+      "url": "https://patents.google.com/patent/US10737172B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "game-controller-draft-001",
+      "topicId": "game_controller",
+      "factText": "霍尔摇杆让磁铁随摇杆轴移动，再由不接触磁铁的传感器测量磁场变化并输出位置，因此位置检测无需滑动电触点。",
+      "sourceIds": ["src-contactless-hall-joystick"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "game-controller-draft-002",
+      "topicId": "game_controller",
+      "factText": "传统手柄震动常来自电机轴上的偏心重块；电机旋转时，失衡质量产生周期性惯性力，并把震动传到整个外壳。",
+      "sourceIds": ["src-gamepad-eccentric-rumble"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "game-controller-draft-003",
+      "topicId": "game_controller",
+      "factText": "力反馈扳机不仅测量按下角度和力度，还能通过电机与齿轮改变手指感到的阻力，甚至动态设置更早的硬止点。",
+      "sourceIds": ["src-force-feedback-trigger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

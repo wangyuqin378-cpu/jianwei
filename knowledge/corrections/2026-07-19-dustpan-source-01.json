@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "correctionId": "2026-07-19-dustpan-source-01",
+  "baseCatalogVersion": "2026-07-19-beta.28",
+  "nextCatalogVersion": "2026-07-19-beta.29",
+  "expectedCatalogSha256": "33e3ec60cbddeb37e0ebf399ad249825eb142c41cda2f6ba37159d261e46a512",
+  "drafts": [
+    "knowledge/drafts/dustpan_correction_01.json"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "corkscrew",
+  "displayName": "红酒开瓶器",
+  "category": "tableware",
+  "aliases": ["corkscrew", "wine opener", "开塞钻", "红酒开瓶器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-corkscrew-two-stage-link",
+      "title": "EP1132332A1: Corkscrew",
+      "url": "https://patents.google.com/patent/EP1132332A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-corkscrew-guided-worm",
+      "title": "US7069825B2: Corkscrew",
+      "url": "https://patents.google.com/patent/US7069825B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-corkscrew-auxiliary-fulcrum",
+      "title": "US5992269A: Corkscrew",
+      "url": "https://patents.google.com/patent/US5992269A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "corkscrew-draft-001",
+      "topicId": "corkscrew",
+      "factText": "两段式侍者开塞钻可以用连杆改变支撑臂与手柄的位置：同一只卡爪先后两次压在瓶口，分两段抬高手柄，把软木塞逐步拉出而不用重新旋入螺旋。",
+      "sourceIds": ["src-corkscrew-two-stage-link"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "corkscrew-draft-002",
+      "topicId": "corkscrew",
+      "factText": "有些台式开塞钻让螺旋穿过带螺纹的导向孔：压下手柄时螺旋一边下降一边自转钻入软木塞，抬起时导向件与滑架配合，把软木塞直线拔出。",
+      "sourceIds": ["src-corkscrew-guided-worm"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "corkscrew-draft-003",
+      "topicId": "corkscrew",
+      "factText": "折叠开塞钻的瓶口卡臂可以同时提供端部支点和可启用的中间辅助支点；支点位置改变后，手柄能在不同拔塞阶段保持合适的杠杆行程。",
+      "sourceIds": ["src-corkscrew-auxiliary-fulcrum"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

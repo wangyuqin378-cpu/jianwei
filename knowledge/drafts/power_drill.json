@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "power_drill",
+  "displayName": "电钻",
+  "category": "tool",
+  "aliases": ["power drill", "电钻"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-power-drill-trigger-chuck",
+      "title": "US9193055B2: Electronic clutch for power tool",
+      "url": "https://patents.google.com/patent/US9193055B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-power-drill-torque-clutch",
+      "title": "US8220561B2: Power tool with torque clutch",
+      "url": "https://patents.google.com/patent/US8220561B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-power-drill-direction-speed-trigger",
+      "title": "CA2846401A1: Variable speed toggle trigger",
+      "url": "https://patents.google.com/patent/CA2846401A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "power-drill-draft-001",
+      "topicId": "power_drill",
+      "factText": "电钻里，电机先经变速机构把动力送到主轴，再由夹头夹住钻头；可变速扳机则可用脉宽调制改变电机获得的平均功率。",
+      "sourceIds": ["src-power-drill-trigger-chuck"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "power-drill-draft-002",
+      "topicId": "power_drill",
+      "factText": "电钻前端的扭矩环会改变离合器从动件的预压力；输出超过设定值时，行星齿轮的环齿轮获准打滑，从而限制继续传出的扭矩。",
+      "sourceIds": ["src-power-drill-torque-clutch"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "power-drill-draft-003",
+      "topicId": "power_drill",
+      "factText": "一种双向变速扳机把按压方向和按压幅度同时送给控制器：方向决定电机正反转，幅度决定功率大小。",
+      "sourceIds": ["src-power-drill-direction-speed-trigger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

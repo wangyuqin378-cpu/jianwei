@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "nonstick_pan",
+  "displayName": "不粘锅",
+  "category": "tableware",
+  "aliases": ["nonstick pan", "non-stick pan", "不粘锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-nonstick-pan-textured-grooves",
+      "title": "US5440973A: Low-fat non-stick frying device",
+      "url": "https://patents.google.com/patent/US5440973A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-nonstick-pan-primer-topcoat",
+      "title": "US6863974B2: Multilayer non-stick coating",
+      "url": "https://patents.google.com/patent/US6863974B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-nonstick-pan-pvd-layers",
+      "title": "US20240374078A1: Non-stick vessel and non-stick cooking utensil",
+      "url": "https://patents.google.com/patent/US20240374078A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "nonstick-pan-draft-001",
+      "topicId": "nonstick_pan",
+      "factText": "有些不粘锅先把烹饪面压成波状沟槽再覆涂层；器具主要磨到凸起处，沟槽里的涂层因较少直接摩擦而被结构保护。",
+      "sourceIds": ["src-nonstick-pan-textured-grooves"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "nonstick-pan-draft-002",
+      "topicId": "nonstick_pan",
+      "factText": "多层不粘涂层并非只喷一层材料：一种方案先铺含耐热黏结成分和无机颗粒的底层，再覆盖含氟树脂的面层。",
+      "sourceIds": ["src-nonstick-pan-primer-topcoat"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "nonstick-pan-draft-003",
+      "topicId": "nonstick_pan",
+      "factText": "也有无机薄膜路线：先粗化金属内表面，再用物理气相沉积形成多层金属膜，并在锅体夹层加入高导热材料分散热量。",
+      "sourceIds": ["src-nonstick-pan-pvd-layers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

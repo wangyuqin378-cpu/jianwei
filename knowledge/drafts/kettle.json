@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "kettle",
+  "displayName": "水壶",
+  "category": "tableware",
+  "aliases": ["kettle", "stovetop kettle", "水壶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-kettle-handle-whistle-link",
+      "title": "US2624493A: Whistling teakettle and handle",
+      "url": "https://patents.google.com/patent/US2624493A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kettle-handle-spout-operator",
+      "title": "GB2257023A: Water heaters eg. kettles",
+      "url": "https://patents.google.com/patent/GB2257023A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kettle-subsidiary-pouring-lip",
+      "title": "US6431417B1: Spout or lip for pouring liquid",
+      "url": "https://patents.google.com/patent/US6431417B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "kettle-draft-001",
+      "topicId": "kettle",
+      "factText": "有些鸣笛水壶把壶嘴哨盖与提手做成联动：提起并倾斜水壶时，连杆抬起铰接哨盖以便倒水；放开提手后，提手自重又把哨盖压回壶嘴。",
+      "sourceIds": ["src-kettle-handle-whistle-link"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kettle-draft-002",
+      "topicId": "kettle",
+      "factText": "另一类鸣笛壶把开盖按钮藏在提手里：按钮通过机械传动让壶嘴盖绕轴翻开，哨片直接装在盖上，因此倒水时不必把鸣笛盖整个取下。",
+      "sourceIds": ["src-kettle-handle-spout-operator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kettle-draft-003",
+      "topicId": "kettle",
+      "factText": "壶嘴外缘可以在主倒水边下方再做一道横向沟槽和副唇；收壶时沿外壁回流的液滴会被这道边缘截住，留在沟槽或从副唇处滴落。",
+      "sourceIds": ["src-kettle-subsidiary-pouring-lip"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

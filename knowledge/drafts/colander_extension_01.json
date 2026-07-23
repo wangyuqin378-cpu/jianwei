@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "colander",
+  "displayName": "滤水篮",
+  "category": "tableware",
+  "aliases": ["colander", "strainer", "滤水篮", "漏勺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-1908-rotary-colander-patent",
+      "title": "US903104A: Colander",
+      "url": "https://patents.google.com/patent/US903104A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-colander-drip-pan-patent",
+      "title": "US2663428A: Colander",
+      "url": "https://patents.google.com/patent/US2663428A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "colander-draft-002",
+      "topicId": "colander",
+      "factText": "1908 年的一种滤水篮其实兼作手动食物磨：旋转螺旋刮片把果蔬压过小孔，苹果的果皮、果核和种子则留在篮内。",
+      "sourceIds": ["src-1908-rotary-colander-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "colander-draft-003",
+      "topicId": "colander",
+      "factText": "1953 年的一项滤水篮专利在穿孔篮下卡入可拆滴水盘，让尚未滴净的水留在盘里，端到桌面时不必一路滴水。",
+      "sourceIds": ["src-colander-drip-pan-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

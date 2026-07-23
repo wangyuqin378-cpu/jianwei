@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "washing_machine",
+  "displayName": "洗衣机",
+  "category": "cleaning",
+  "aliases": ["washing machine", "washer", "洗衣机", "滚筒洗衣机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-clothes-washers",
+      "title": "Clothes Washers",
+      "url": "https://www.energystar.gov/products/clothes_washers",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-energy-star-clothes-washer-criteria",
+      "title": "Clothes Washers Key Product Criteria",
+      "url": "https://www.energystar.gov/products/clothes_washers/key_product_criteria",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "washing-machine-draft-002",
+      "topicId": "washing_machine",
+      "factText": "洗衣机的 IMEF 会把洗涤用电、热水、衣物残余水分带来的烘干能耗和低功耗状态一起计算；数值越高代表越节能。",
+      "sourceIds": ["src-energy-star-clothes-washer-criteria"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "washing-machine-draft-003",
+      "topicId": "washing_machine",
+      "factText": "IWF 用每次洗涤的加权用水量除以滚筒容量，让不同容量的洗衣机可以比较用水效率；这个数值越低越省水。",
+      "sourceIds": ["src-energy-star-clothes-washer-criteria"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "washing-machine-draft-004",
+      "topicId": "washing_machine",
+      "factText": "若洗衣机提供高速脱水选项，适当提高转速能减少衣物残余水分，从而缩短后续烘干所需的时间。",
+      "sourceIds": ["src-energy-star-clothes-washers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

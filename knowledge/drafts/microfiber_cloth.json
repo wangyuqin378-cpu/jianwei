@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "microfiber_cloth",
+  "displayName": "超细纤维布",
+  "category": "cleaning",
+  "aliases": ["microfiber cloth", "microfibre cleaning cloth", "超细纤维布", "微纤维抹布"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-graded-microfiber-cloth",
+      "title": "US20120067108A1: Method of grading microfiber cleaning cloths",
+      "url": "https://patents.google.com/patent/US20120067108A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-dual-loop-cleaning-cloth",
+      "title": "CA2201875A1: Cleaning cloth for cleaning dirty surfaces",
+      "url": "https://patents.google.com/patent/CA2201875A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-layered-microfiber-cloth",
+      "title": "US10406565B2: Cleaning cloth",
+      "url": "https://patents.google.com/patent/US10406565B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "microfiber-cloth-draft-001",
+      "topicId": "microfiber_cloth",
+      "factText": "超细纤维布的聚合物纤维会在制造中反复劈分成许多微丝，增大清洁接触边缘，也为污物和水分提供更多容纳位置。",
+      "sourceIds": ["src-graded-microfiber-cloth"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "microfiber-cloth-draft-002",
+      "topicId": "microfiber_cloth",
+      "factText": "一种双面清洁布在一面混排较长普通纤维圈和较短微纤维圈，另一面主要使用短微纤维圈，让同一块布具有不同表面结构。",
+      "sourceIds": ["src-dual-loop-cleaning-cloth"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "microfiber-cloth-draft-003",
+      "topicId": "microfiber_cloth",
+      "factText": "耐洗型超细纤维布可把已劈分的细丝层与较粗纤维层交替叠放，再从两面用高压水射流缠结纤维，而不是只靠表面涂层粘合。",
+      "sourceIds": ["src-layered-microfiber-cloth"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "speed_bump",
+  "displayName": "减速带",
+  "category": "transport",
+  "aliases": ["speed bump", "speed hump", "speed cushion", "减速带", "减速丘", "减速垫"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-uk-dft-traffic-calming-guidance",
+      "title": "UK Department for Transport: Traffic Calming Guidance",
+      "url": "https://assets.publishing.service.gov.uk/media/5f622dfee90e072bc4ec886c/ltn-1-07_Traffic-calming-guidance.pdf",
+      "publisher": "UK Department for Transport",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-hse-workplace-transport-speed",
+      "title": "UK HSE: Workplace transport speed",
+      "url": "https://www.hse.gov.uk/workplacetransport/speed.htm",
+      "publisher": "UK Health and Safety Executive",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "speed-bump-draft-001",
+      "topicId": "speed_bump",
+      "factText": "减速丘通过让车辆经历可预期的垂直抬升来限制速度，通常需要沿路线成组布置，单独一处难以维持整段低速。",
+      "sourceIds": ["src-uk-dft-traffic-calming-guidance", "src-hse-workplace-transport-speed"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "speed-bump-draft-002",
+      "topicId": "speed_bump",
+      "factText": "减速垫不像整幅减速丘那样横贯道路，而是采用较窄的局部凸起；其宽度、间距和轮迹关系属于设计的一部分。",
+      "sourceIds": ["src-uk-dft-traffic-calming-guidance", "src-hse-workplace-transport-speed"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "speed-bump-draft-003",
+      "topicId": "speed_bump",
+      "factText": "减速设施本体应清晰标记，预警标志也要留出足够可见距离，让道路使用者能在到达凸起前识别并减速。",
+      "sourceIds": ["src-uk-dft-traffic-calming-guidance", "src-hse-workplace-transport-speed"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

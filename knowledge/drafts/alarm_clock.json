@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "alarm_clock",
+  "displayName": "闹钟",
+  "category": "home",
+  "aliases": ["alarm clock", "clock alarm", "闹钟", "机械闹钟"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-alarm-clock-hammer-bells",
+      "title": "DE9415102U1: Alarm clock with an external sound box",
+      "url": "https://patents.google.com/patent/DE9415102U1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-quartz-alarm-clock-circuit",
+      "title": "DE2941388A1: Circuit arrangement for an electronic clock with alarm",
+      "url": "https://patents.google.com/patent/DE2941388A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-digital-clock-snooze-cycle",
+      "title": "US4415273A: Microprocessor driven digital display alarm clock",
+      "url": "https://patents.google.com/patent/US4415273A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "alarm-clock-draft-001",
+      "topicId": "alarm_clock",
+      "factText": "双铃机械闹钟的声音来自两只铃之间的击锤；独立驱动让击锤快速往复，轮流敲击两侧金属铃体产生连续铃声。",
+      "sourceIds": ["src-alarm-clock-hammer-bells"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "alarm-clock-draft-002",
+      "topicId": "alarm_clock",
+      "factText": "石英指针闹钟先由石英振荡器产生稳定频率，经分频后用步进脉冲驱动指针；到点时，另一段信号再驱动压电发声片。",
+      "sourceIds": ["src-quartz-alarm-clock-circuit"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "alarm-clock-draft-003",
+      "topicId": "alarm_clock",
+      "factText": "贪睡键并非简单关掉闹铃：它会中断当前声音并启动一段定时，间隔结束后再次触发，通常还能重复若干轮。",
+      "sourceIds": ["src-digital-clock-snooze-cycle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

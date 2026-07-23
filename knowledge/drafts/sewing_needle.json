@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "sewing_needle",
+  "displayName": "缝衣针",
+  "category": "home",
+  "aliases": ["sewing needle", "hand needle", "缝衣针", "针线针"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-sewing-needle-wire-process",
+      "title": "US8028870B2: Eyeless sewing needle and fabrication method for the same",
+      "url": "https://patents.google.com/patent/US8028870B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-sewing-needle-side-opening-eye",
+      "title": "US3031116A: Sewing needles",
+      "url": "https://patents.google.com/patent/US3031116A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-sewing-needle-pressed-groove-eye",
+      "title": "US4037641A: Method of fabricating sewing machine needles",
+      "url": "https://patents.google.com/patent/US4037641A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "sewing-needle-draft-001",
+      "topicId": "sewing_needle",
+      "factText": "钢针制造从拉细金属线开始，反复拉丝和热处理达到针径后再定长切断；随后磨出针尖，并在另一端加工穿线孔。",
+      "sourceIds": ["src-sewing-needle-wire-process"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sewing-needle-draft-002",
+      "topicId": "sewing_needle",
+      "factText": "有些易穿线针会在针眼侧壁再开一道狭缝，让线从侧面压入针眼；狭缝与普通封闭针眼共存，并非把针尾完全劈开。",
+      "sourceIds": ["src-sewing-needle-side-opening-eye"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sewing-needle-draft-003",
+      "topicId": "sewing_needle",
+      "factText": "机针上的长沟槽和针眼可先用模具压出：模压形成导线沟与薄的针眼腹板，再冲出针眼，最后加工前端针尖。",
+      "sourceIds": ["src-sewing-needle-pressed-groove-eye"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

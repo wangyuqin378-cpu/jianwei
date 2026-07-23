@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "headphones",
+  "displayName": "耳机",
+  "category": "digital",
+  "aliases": ["headphones", "earphones", "耳机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-headphone-driver-patent",
+      "title": "US9491536B2: Headphone driver and loudspeaker",
+      "url": "https://patents.google.com/patent/US9491536B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "headphones-draft-002",
+      "topicId": "headphones",
+      "factText": "常见动圈耳机单元由磁轭、永久磁铁、极片、音圈、振膜、固定件和保护件共同组成。",
+      "sourceIds": ["src-headphone-driver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "headphones-draft-003",
+      "topicId": "headphones",
+      "factText": "音圈位于磁轭与磁铁、极片之间的气隙中，音频电流与磁场作用后产生随信号变化的力。",
+      "sourceIds": ["src-headphone-driver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "headphones-draft-004",
+      "topicId": "headphones",
+      "factText": "振膜与音圈相连，音圈受到洛伦兹力后带动振膜振动，把电流变化转换为空气中的声音。",
+      "sourceIds": ["src-headphone-driver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

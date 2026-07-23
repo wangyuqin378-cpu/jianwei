@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-safety-01",
+  "baseCatalogVersion": "2026-07-19-beta.13",
+  "nextCatalogVersion": "2026-07-19-beta.14",
+  "drafts": [
+    "knowledge/drafts/power_bank.json",
+    "knowledge/drafts/car_tire.json",
+    "knowledge/drafts/candle.json",
+    "knowledge/drafts/hair_dryer.json",
+    "knowledge/drafts/electrical_outlet.json",
+    "knowledge/drafts/pressure_cooker.json"
+  ]
+}

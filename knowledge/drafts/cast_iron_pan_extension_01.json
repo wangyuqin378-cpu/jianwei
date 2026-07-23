@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "cast_iron_pan",
+  "displayName": "铸铁锅",
+  "category": "tableware",
+  "aliases": ["cast iron pan", "skillet", "铸铁锅", "铸铁煎锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-lodge-cast-iron-seasoning",
+      "title": "What is Cast Iron Seasoning?",
+      "url": "https://www.lodgecastiron.com/cleaning-and-care/cast-iron/science-cast-iron-seasoning",
+      "publisher": "Lodge Cast Iron",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-usu-cast-iron-care",
+      "title": "Skillet Cooking",
+      "url": "https://extension.usu.edu/fscreate/files/handout_skillet_cooking.pdf",
+      "publisher": "Utah State University Extension",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "cast-iron-pan-draft-002",
+      "topicId": "cast_iron_pan",
+      "factText": "铸铁锅的“开锅层”是油脂受热后聚合并附着在铁表面形成的保护层，不是没有洗净的油污。",
+      "sourceIds": ["src-lodge-cast-iron-seasoning", "src-usu-cast-iron-care"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cast-iron-pan-draft-003",
+      "topicId": "cast_iron_pan",
+      "factText": "铸铁锅清洗后要彻底烘干，再薄薄擦一层食用油；残留水分会促进生锈，厚油层则容易发黏。",
+      "sourceIds": ["src-lodge-cast-iron-seasoning", "src-usu-cast-iron-care"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

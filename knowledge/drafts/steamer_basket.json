@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "steamer_basket",
+  "displayName": "蒸屉",
+  "category": "tableware",
+  "aliases": ["steamer basket", "蒸屉"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-steamer-basket-folding-leaves",
+      "title": "US4953452A: Collapsible steamer basket",
+      "url": "https://patents.google.com/patent/US4953452A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-steamer-basket-removable-handle",
+      "title": "CA3091425C: A multi-purpose cooking set",
+      "url": "https://patents.google.com/patent/CA3091425C/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-steamer-basket-slide-out",
+      "title": "US11937729B2: Food steamers and steamer baskets",
+      "url": "https://patents.google.com/patent/US11937729B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "steamer-basket-draft-001",
+      "topicId": "steamer_basket",
+      "factText": "折叠蒸屉常由一圈互相重叠的带孔叶片围住底盘；叶片绕底盘边缘转动，展开时就能顺着不同锅壁改变开口直径。",
+      "sourceIds": ["src-steamer-basket-folding-leaves"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "steamer-basket-draft-002",
+      "topicId": "steamer_basket",
+      "factText": "可拆提手蒸屉能在多孔底板中央开孔，让提手下端穿过；提起时较大的末端卡住底板，放下后则可把提手抽走。",
+      "sourceIds": ["src-steamer-basket-removable-handle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "steamer-basket-draft-003",
+      "topicId": "steamer_basket",
+      "factText": "多层蒸具不一定只能逐层向上叠放；一种矩形结构把各蒸屉做成带把手的抽屉，可单独横向滑入或拉出。",
+      "sourceIds": ["src-steamer-basket-slide-out"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

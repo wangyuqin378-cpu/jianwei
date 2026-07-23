@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-15",
+  "baseCatalogVersion": "2026-07-19-beta.44",
+  "nextCatalogVersion": "2026-07-19-beta.45",
+  "drafts": [
+    "knowledge/drafts/rubber_band.json",
+    "knowledge/drafts/sewing_needle.json",
+    "knowledge/drafts/shoehorn.json"
+  ]
+}

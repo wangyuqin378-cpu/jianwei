@@ -1,0 +1,78 @@
+edition: 3.0.0
+name: jianwei-api
+access: ${env('SERVERLESS_DEVS_ACCESS', 'default')}
+
+vars:
+  region: ${env('JIANWEI_REGION', 'cn-beijing')}
+
+resources:
+  jianwei_api:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: ${env('JIANWEI_FUNCTION_NAME', 'jianwei-api')}
+      description: 见微照片冷知识 API
+      runtime: custom-container
+      role: ${env('JIANWEI_FC_ROLE_ARN')}
+      timeout: 180
+      memorySize: 1024
+      cpu: 1
+      diskSize: 512
+      instanceConcurrency: 20
+      internetAccess: true
+      logConfig: auto
+      vpcConfig:
+        vpcId: ${env('JIANWEI_VPC_ID')}
+        vSwitchIds:
+          - ${env('JIANWEI_VSWITCH_ID')}
+        securityGroupId: ${env('JIANWEI_SECURITY_GROUP_ID')}
+      customContainerConfig:
+        image: ${env('JIANWEI_IMAGE')}
+        port: 9000
+        healthCheckConfig:
+          httpGetUrl: /health/live
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
+      environmentVariables:
+        NODE_ENV: production
+        HOST: 0.0.0.0
+        PORT: "9000"
+        TZ: Asia/Shanghai
+        PUBLIC_BASE_URL: ${env('JIANWEI_PUBLIC_BASE_URL')}
+        DATABASE_URL: ${env('JIANWEI_DATABASE_URL')}
+        OBJECT_STORE: oss
+        VISION_PROVIDER: qwen
+        DASHSCOPE_API_KEY: ${env('JIANWEI_DASHSCOPE_API_KEY')}
+        DASHSCOPE_BASE_URL: ${env('JIANWEI_DASHSCOPE_BASE_URL')}
+        OSS_REGION: ${vars.region}
+        OSS_BUCKET: ${env('JIANWEI_OSS_BUCKET')}
+        KNOWLEDGE_CATALOG_SHA256: ${env('JIANWEI_KNOWLEDGE_CATALOG_SHA256')}
+        KNOWLEDGE_REVIEWER_IDS: ${env('JIANWEI_KNOWLEDGE_REVIEWER_IDS')}
+        CONTAINER_IMAGE_DIGEST: ${env('JIANWEI_CONTAINER_IMAGE_DIGEST')}
+        QWEN_FLASH_MODEL: ${env('JIANWEI_QWEN_FLASH_MODEL', 'qwen3.6-flash-2026-04-16')}
+        QWEN_PLUS_MODEL: ${env('JIANWEI_QWEN_PLUS_MODEL', 'qwen3.6-plus-2026-04-02')}
+        MAX_JOBS_PER_DEVICE_PER_DAY: ${env('JIANWEI_MAX_DEVICE_DAY', '24')}
+        MAX_JOBS_PER_DEVICE_PER_MONTH: ${env('JIANWEI_MAX_DEVICE_MONTH', '300')}
+        MAX_JOBS_GLOBAL_PER_DAY: ${env('JIANWEI_MAX_GLOBAL_DAY', '2000')}
+        MAX_JOBS_GLOBAL_PER_MONTH: ${env('JIANWEI_MAX_GLOBAL_MONTH', '50000')}
+        WORST_CASE_COST_MICRO_CNY_PER_JOB: ${env('JIANWEI_WORST_CASE_COST_MICRO_CNY')}
+        MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: ${env('JIANWEI_MAX_COST_DAY_MICRO_CNY')}
+        MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: ${env('JIANWEI_MAX_COST_MONTH_MICRO_CNY')}
+        OBJECT_TTL_HOURS: "24"
+        ALLOW_UNATTESTED_FACTS: "false"
+      triggers:
+        - triggerName: jianwei-http
+          triggerType: http
+          qualifier: LATEST
+          triggerConfig:
+            authType: anonymous
+            disableURLInternet: false
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD

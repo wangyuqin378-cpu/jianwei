@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "squeegee",
+  "displayName": "刮水器",
+  "category": "cleaning",
+  "aliases": ["squeegee", "window squeegee", "刮水器", "玻璃刮"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-reabsorbing-squeegee",
+      "title": "US7594294B2: Cleaning implement",
+      "url": "https://patents.google.com/patent/US7594294B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-detachable-squeegee-blade",
+      "title": "US4430769A: Window cleaning device",
+      "url": "https://patents.google.com/patent/US4430769A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-dual-channel-squeegee",
+      "title": "US5864913A: Window cleaning squeegee",
+      "url": "https://patents.google.com/patent/US5864913A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "squeegee-draft-001",
+      "topicId": "squeegee",
+      "factText": "吸液刮水器让浸有清洁液的基材和胶条同时接触玻璃，并在胶条旁留出凹槽，把刮起的积液暂存后重新吸回基材。",
+      "sourceIds": ["src-reabsorbing-squeegee"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "squeegee-draft-002",
+      "topicId": "squeegee",
+      "factText": "可换胶条的刮水器用带弹性的 U 形金属条夹住橡胶片，再让手柄上的凸脊卡入缺口，既限制横向滑动又能拆换。",
+      "sourceIds": ["src-detachable-squeegee-blade"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "squeegee-draft-003",
+      "topicId": "squeegee",
+      "factText": "双通道玻璃刮的一侧滑入三角截面胶条，另一侧夹住包有网布的海绵；网布边缘还会折成双层，减缓最先磨损的位置。",
+      "sourceIds": ["src-dual-channel-squeegee"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

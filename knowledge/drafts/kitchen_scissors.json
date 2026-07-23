@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "kitchen_scissors",
+  "displayName": "厨房剪",
+  "category": "tableware",
+  "aliases": ["kitchen scissors", "kitchen shears", "厨房剪"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-kitchen-scissors-convertible-blades",
+      "title": "US20070209213A1: Convertible kitchen shears",
+      "url": "https://patents.google.com/patent/US20070209213A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-scissors-hidden-spring",
+      "title": "US5063671A: Kitchen shears with hiding spring",
+      "url": "https://patents.google.com/patent/US5063671A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-scissors-cap-grip",
+      "title": "US2131395A: Kitchen scissors",
+      "url": "https://patents.google.com/patent/US2131395A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "kitchen-scissors-draft-001",
+      "topicId": "kitchen_scissors",
+      "factText": "可拆厨房剪的转轴能手动解锁，让两片刀身分开；其中一片在外侧另磨刀刃，可单独当小刀使用，另一片的细齿则在剪切时限制食材向前滑。",
+      "sourceIds": ["src-kitchen-scissors-convertible-blades"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-scissors-draft-002",
+      "topicId": "kitchen_scissors",
+      "factText": "弹簧厨房剪可以在两片刀身相对的凹槽里藏一只扭簧，转轴从扭簧中心穿过；扭簧推动剪柄回到张开状态，锁扣则在收纳时把两柄合住。",
+      "sourceIds": ["src-kitchen-scissors-hidden-spring"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-scissors-draft-003",
+      "topicId": "kitchen_scissors",
+      "factText": "多用途厨房剪会把剪柄靠近转轴的部分做成外张弧面，两柄合拢时可夹住瓶盖或罐盖；柄内还可另做互相配合的撬盖凸部。",
+      "sourceIds": ["src-kitchen-scissors-cap-grip"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "mop",
+  "displayName": "拖把",
+  "category": "cleaning",
+  "aliases": ["mop", "floor mop", "拖把", "地拖"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-twist-mop",
+      "title": "US7093315B2: Twist mop",
+      "url": "https://patents.google.com/patent/US7093315B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-swivel-scrubber-mop",
+      "title": "US6871372B2: Mop with swivel cleaning head and scrubber",
+      "url": "https://patents.google.com/patent/US6871372B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "mop-draft-002",
+      "topicId": "mop",
+      "factText": "一种自拧水拖把让套环沿杆滑动并旋转，把纤维拉紧；棘爪与花键允许单向拧紧，并阻止套环反转松脱。",
+      "sourceIds": ["src-twist-mop"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mop-draft-003",
+      "topicId": "mop",
+      "factText": "平板拖把的转动接头不只方便转向：一种清洁头可向两侧各翻转 180 度，让边缘刷块接触顽固污渍。",
+      "sourceIds": ["src-swivel-scrubber-mop"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

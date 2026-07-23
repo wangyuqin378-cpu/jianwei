@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "mosquito_coil",
+  "displayName": "蚊香",
+  "category": "home",
+  "aliases": ["mosquito coil", "insect coil", "蚊香"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-mosquito-coil-fibre-board",
+      "title": "US5447713A: Mosquito coil and process for producing mosquito coils",
+      "url": "https://patents.google.com/patent/US5447713A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mosquito-coil-nested-cutting",
+      "title": "EP1653803A1: Method of manufacturing an insect coil",
+      "url": "https://patents.google.com/patent/EP1653803A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mosquito-coil-variable-section",
+      "title": "US5657574A: Coiled insect fumigant",
+      "url": "https://patents.google.com/patent/US5657574A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "mosquito-coil-draft-001",
+      "topicId": "mosquito_coil",
+      "factText": "蚊香可以先把木屑或木纤维与黏结材料压成板，再冲切出螺旋；有效成分既可混进材料，也可在成形后涂到表面。",
+      "sourceIds": ["src-mosquito-coil-fibre-board"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mosquito-coil-draft-002",
+      "topicId": "mosquito_coil",
+      "factText": "常见双盘蚊香不是两片分别冲出来：模具会在同一张材料片里切出彼此嵌套的两条螺旋，干燥后再轻轻分开。",
+      "sourceIds": ["src-mosquito-coil-nested-cutting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mosquito-coil-draft-003",
+      "topicId": "mosquito_coil",
+      "factText": "蚊香不一定整圈等宽：有的设计让先燃烧的外段更粗、内段较细且截面恒定，使前段释放更快，随后转为较稳定的释放。",
+      "sourceIds": ["src-mosquito-coil-variable-section"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

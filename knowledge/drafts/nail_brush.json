@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "nail_brush",
+  "displayName": "指甲刷",
+  "category": "cleaning",
+  "aliases": ["nail brush", "fingernail brush", "指甲刷", "清洁指甲刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-enveloping-nail-brush",
+      "title": "US20150289636A1: Hygienic nail brush",
+      "url": "https://patents.google.com/patent/US20150289636A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-concave-guide-nail-brush",
+      "title": "US1374851A: Nail-brush",
+      "url": "https://patents.google.com/patent/US1374851A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-reservoir-nail-brush",
+      "title": "CN201480373U: Cleaning nail brush",
+      "url": "https://patents.google.com/patent/CN201480373U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "nail-brush-draft-001",
+      "topicId": "nail_brush",
+      "factText": "一种指甲刷让刷毛自由端围成部分包住手指的凹形空间，使指尖伸入后不必精确对准传统的一排平面刷毛。",
+      "sourceIds": ["src-enveloping-nail-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "nail-brush-draft-002",
+      "topicId": "nail_brush",
+      "factText": "早期环形指甲刷把多束刷毛沿中空刷体的内壁排列，并用内凹导向面托住指尖，让刷毛更容易朝甲缘下方移动。",
+      "sourceIds": ["src-concave-guide-nail-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "nail-brush-draft-003",
+      "topicId": "nail_brush",
+      "factText": "带储液瓶的指甲刷把刷头旋接在可挤压瓶体上，液体经小孔送到波浪形刷毛，因此清洁液和刷毛能由同一只手控制。",
+      "sourceIds": ["src-reservoir-nail-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

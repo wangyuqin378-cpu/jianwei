@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "sponge",
+  "displayName": "清洁海绵",
+  "category": "cleaning",
+  "aliases": ["sponge", "cleaning sponge", "清洁海绵", "海绵", "百洁布"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usda-ars-sponge-news",
+      "title": "Best Ways to Clean Your Kitchen Sponge",
+      "url": "https://www.ars.usda.gov/oc/fnrb/fnrb0707/",
+      "publisher": "USDA Agricultural Research Service",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usda-ars-sponge-study",
+      "title": "Effective Household Disinfection Methods of Kitchen Sponges",
+      "url": "https://www.ars.usda.gov/research/publications/publication/?seqNo115=220972",
+      "publisher": "USDA Agricultural Research Service",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-contamination-cleaning-aids",
+      "title": "Contamination Contributing Factors",
+      "url": "https://www.cdc.gov/restaurant-food-safety/php/investigations/contamination-cfs.html",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-food-contamination-definitions",
+      "title": "Contributing Factor Definitions 2009-2021",
+      "url": "https://www.cdc.gov/restaurant-food-safety/media/pdfs/Contributing-Factor-Definitions-2009-2021_508.pdf",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "sponge-draft-002",
+      "topicId": "sponge",
+      "factText": "用洗碗机完整清洗厨房海绵并完成烘干循环，能显著降低其中的细菌、酵母和霉菌。",
+      "sourceIds": ["src-usda-ars-sponge-news", "src-usda-ars-sponge-study"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sponge-draft-003",
+      "topicId": "sponge",
+      "factText": "接触过生肉或生肉汁的海绵，不能未经消毒就再擦即食食品接触面，否则可能造成交叉污染。",
+      "sourceIds": ["src-cdc-contamination-cleaning-aids", "src-cdc-food-contamination-definitions"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    }
+  ]
+}

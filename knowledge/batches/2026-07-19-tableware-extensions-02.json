@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-extensions-02",
+  "baseCatalogVersion": "2026-07-19-beta.22",
+  "nextCatalogVersion": "2026-07-19-beta.23",
+  "drafts": [
+    "knowledge/drafts/chopsticks_extension_01.json",
+    "knowledge/drafts/whisk_extension_01.json",
+    "knowledge/drafts/colander_extension_01.json"
+  ]
+}

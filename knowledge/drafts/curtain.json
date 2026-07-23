@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "curtain",
+  "displayName": "窗帘",
+  "category": "home",
+  "aliases": ["curtain", "drape", "窗帘", "帘布"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-curtain-heading-tape",
+      "title": "EP1498056A2: Curtain heading tape",
+      "url": "https://patents.google.com/patent/EP1498056A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-curtain-blackout-lining",
+      "title": "US5741582A: Blackout drapery lining with dual fabric surfaces",
+      "url": "https://patents.google.com/patent/US5741582A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-curtain-pinch-pleat-hook",
+      "title": "US2963085A: Drapery support",
+      "url": "https://patents.google.com/patent/US2963085A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "curtain-draft-001",
+      "topicId": "curtain",
+      "factText": "窗帘顶部的褶皱带是一种织造结构：纵向抽绳负责收拢布料，成排小口袋接纳挂钩，因此同一块帘布能形成规则褶皱。",
+      "sourceIds": ["src-curtain-heading-tape"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "curtain-draft-002",
+      "topicId": "curtain",
+      "factText": "遮光窗帘衬里可以是多层复合材料：中间基材承担遮光作用，两侧再结合织物表面，让朝室内和朝窗的一面都保留布面外观。",
+      "sourceIds": ["src-curtain-blackout-lining"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "curtain-draft-003",
+      "topicId": "curtain",
+      "factText": "夹褶挂钩会把弹性金属线弯成宽窄相间的通道；较窄处夹住折叠后的帘布，独立的挂钩部分再连接窗帘杆或滑轨。",
+      "sourceIds": ["src-curtain-pinch-pleat-hook"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

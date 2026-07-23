@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "detergent_bottle",
+  "displayName": "洗涤剂瓶",
+  "category": "cleaning",
+  "aliases": ["detergent bottle", "laundry detergent bottle", "洗涤剂瓶", "洗衣液瓶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-drainback-dosing-spout",
+      "title": "WO2009025717A1: Dosing spout assembly",
+      "url": "https://patents.google.com/patent/WO2009025717A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-scraping-measuring-cap",
+      "title": "US4349056A: Non-drip measuring cap closure",
+      "url": "https://patents.google.com/patent/US4349056A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-metering-squeeze-bottle",
+      "title": "CN112389848A: Metering squeeze bottle",
+      "url": "https://patents.google.com/patent/CN112389848A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "detergent-bottle-draft-001",
+      "topicId": "detergent_bottle",
+      "factText": "常见洗衣液瓶口把导流嘴、回流槽和量杯式瓶盖组合起来：倒完后残液可沿导流件回到瓶内，量杯倒扣后兼作密封盖。",
+      "sourceIds": ["src-drainback-dosing-spout"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "detergent-bottle-draft-002",
+      "topicId": "detergent_bottle",
+      "factText": "一种防滴量杯盖在瓶颈加入柔性环唇；拧回瓶盖时，环唇刮过杯壁，把附着的洗涤剂引回瓶中。",
+      "sourceIds": ["src-scraping-measuring-cap"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "detergent-bottle-draft-003",
+      "topicId": "detergent_bottle",
+      "factText": "一种定量挤压瓶把液体经吸管送入瓶盖的临时储液腔，先看清份量再倒出，避免直接挤压时难以控制用量。",
+      "sourceIds": ["src-metering-squeeze-bottle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

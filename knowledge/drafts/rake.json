@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rake",
+  "displayName": "耙子",
+  "category": "tool",
+  "aliases": ["rake", "耙子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rake-removable-tines",
+      "title": "US4606180A: Gardening tool",
+      "url": "https://patents.google.com/patent/US4606180A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rake-dual-head",
+      "title": "US20070125058A1: Rake",
+      "url": "https://patents.google.com/patent/US20070125058A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rake-independent-flex",
+      "title": "US4189908A: Flexible rake",
+      "url": "https://patents.google.com/patent/US4189908A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rake-draft-001",
+      "topicId": "rake",
+      "factText": "耙齿不一定永久铆死在横梁上：环形金属带夹可以逐根把波浪形弹簧钢耙齿压紧，松开后又能更换或重新调整间距。",
+      "sourceIds": ["src-rake-removable-tines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rake-draft-002",
+      "topicId": "rake",
+      "factText": "双层耙头可以把较硬的园艺耙齿与较短、柔软的落叶耙齿叠在一起，并通过螺杆改变两层的距离和夹角。",
+      "sourceIds": ["src-rake-dual-head"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rake-draft-003",
+      "topicId": "rake",
+      "factText": "扇形弹性耙的横向固定条会给每根耙齿留出独立间隙，使耙齿除自身弯曲外，还能少量左右和上下移动以贴合不平地面。",
+      "sourceIds": ["src-rake-independent-flex"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

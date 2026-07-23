@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dish_brush",
+  "displayName": "洗碗刷",
+  "category": "cleaning",
+  "aliases": ["dish brush", "dishwashing brush", "洗碗刷", "锅刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-changeable-dish-scrubber",
+      "title": "US10285567B2: Dish scrubber with changeable head",
+      "url": "https://patents.google.com/patent/US10285567B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-elastomer-dish-brush",
+      "title": "US11141040B2: Dish cleaning brush",
+      "url": "https://patents.google.com/patent/US11141040B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-valved-soap-kitchen-brush",
+      "title": "US6250833B1: Soap-dispensing kitchen brush",
+      "url": "https://patents.google.com/patent/US6250833B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dish-brush-draft-001",
+      "topicId": "dish_brush",
+      "factText": "一种洗碗刷用局部螺纹、凸棱和导槽固定可换海绵头；旋紧适配器时，刷头被拉向手柄却不会跟着扭转。",
+      "sourceIds": ["src-changeable-dish-scrubber"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dish-brush-draft-002",
+      "topicId": "dish_brush",
+      "factText": "一种弹性洗碗刷把较软刷毛与较硬刮齿错位排列；刷毛弯曲时能从刮齿间穿过，刮齿同时分担顽固残渣。",
+      "sourceIds": ["src-elastomer-dish-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dish-brush-draft-003",
+      "topicId": "dish_brush",
+      "factText": "储液洗碗刷可用常闭塞子控制出液：按下手柄上的柔性圆顶推动杠杆，塞子才离开通孔，让洗涤剂流向刷毛。",
+      "sourceIds": ["src-valved-soap-kitchen-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

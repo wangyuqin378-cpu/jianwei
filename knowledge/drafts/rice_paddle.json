@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rice_paddle",
+  "displayName": "饭勺",
+  "category": "tableware",
+  "aliases": ["rice paddle", "rice scoop", "饭勺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rice-paddle-raised-stand",
+      "title": "JP3131797U: Rice paddle with stand",
+      "url": "https://patents.google.com/patent/JP3131797U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rice-paddle-surface-bumps",
+      "title": "US9215952B2: Modular food ingredient roller",
+      "url": "https://patents.google.com/patent/US9215952B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rice-paddle-coated-alloy",
+      "title": "JP3164364U: Rice paddle",
+      "url": "https://patents.google.com/patent/JP3164364U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rice-paddle-draft-001",
+      "topicId": "rice_paddle",
+      "factText": "有的饭勺在勺面与手柄交界处做出支撑凸点；横放时由凸点和手柄接触台面，让真正盛饭的勺面悬空。",
+      "sourceIds": ["src-rice-paddle-raised-stand"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rice-paddle-draft-002",
+      "topicId": "rice_paddle",
+      "factText": "饭勺表面的密集小凸点会把米饭与勺面的连续接触拆成许多小区域；相关设计还利用凸点帮助拨散黏在一起的米粒。",
+      "sourceIds": ["src-rice-paddle-surface-bumps"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rice-paddle-draft-003",
+      "topicId": "rice_paddle",
+      "factText": "饭勺并不一定是木或塑料一体成型；一种设计用铝合金制作勺身，再在盛饭部位覆一层氟树脂表面层。",
+      "sourceIds": ["src-rice-paddle-coated-alloy"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "lint_roller",
+  "displayName": "粘毛滚",
+  "category": "cleaning",
+  "aliases": ["lint roller", "adhesive lint roller", "粘毛滚", "粘毛器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-dual-roll-lint-roller",
+      "title": "US8225448B2: Lint roller",
+      "url": "https://patents.google.com/patent/US8225448B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tabbed-sheet-lint-roller",
+      "title": "US6014788A: Lint roller",
+      "url": "https://patents.google.com/patent/US6014788A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-reversible-housing-lint-roller",
+      "title": "US20210076902A1: Lint roller",
+      "url": "https://patents.google.com/patent/US20210076902A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "lint-roller-draft-001",
+      "topicId": "lint_roller",
+      "factText": "双滚筒粘毛器让两卷外露粘胶带分别转动，在增加一次清洁面积的同时，V 形排布仍能绕过衣物和家具的曲面。",
+      "sourceIds": ["src-dual-roll-lint-roller"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "lint-roller-draft-002",
+      "topicId": "lint_roller",
+      "factText": "分段式粘纸会在每张外层胶纸上设置无胶拉片和撕裂线，沾满毛屑后可抓住拉片揭去一层，露出新的粘面。",
+      "sourceIds": ["src-tabbed-sheet-lint-roller"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "lint-roller-draft-003",
+      "topicId": "lint_roller",
+      "factText": "可收纳粘毛器把握柄同时做成筒形外壳；使用时接到滚筒后方，不用时反向连接，便能把粘胶滚筒滑入筒内保护。",
+      "sourceIds": ["src-reversible-housing-lint-roller"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

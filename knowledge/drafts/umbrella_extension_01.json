@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "umbrella",
+  "displayName": "雨伞",
+  "category": "home",
+  "aliases": ["umbrella", "rain umbrella", "雨伞", "伞"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wind-resistant-umbrella",
+      "title": "US20170354215A1: Wind resistant umbrella",
+      "url": "https://patents.google.com/patent/US20170354215A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-automatic-opening-umbrella",
+      "title": "US6192906B1: Automatic opening umbrella mechanism",
+      "url": "https://patents.google.com/patent/US6192906B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "umbrella-draft-002",
+      "topicId": "umbrella",
+      "factText": "一种抗翻转雨伞在伞面顶部设置可开合套筒：下方阵风抬起它时，空气穿过出口泄压，减小伞面被吹翻的机会。",
+      "sourceIds": ["src-wind-resistant-umbrella"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "umbrella-draft-003",
+      "topicId": "umbrella",
+      "factText": "自动伞不一定只靠伞杆内的一根弹簧；一种机构在滑环与主撑骨之间再加拉簧，辅助滑环上移并展开伞面。",
+      "sourceIds": ["src-automatic-opening-umbrella"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

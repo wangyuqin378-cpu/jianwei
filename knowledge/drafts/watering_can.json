@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "watering_can",
+  "displayName": "浇水壶",
+  "category": "tool",
+  "aliases": ["watering can", "garden watering can", "浇水壶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-watering-can-rose-head",
+      "title": "US3648933A: Watering can",
+      "url": "https://patents.google.com/patent/US3648933A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-watering-can-balanced-stack",
+      "title": "US8763808B2: Watering can",
+      "url": "https://patents.google.com/patent/US8763808B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-watering-can-hinged-stack",
+      "title": "WO2006056788A1: Stackable watering can",
+      "url": "https://patents.google.com/patent/WO2006056788A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "watering-can-draft-001",
+      "topicId": "watering_can",
+      "factText": "浇水壶前端的多孔圆盘叫莲蓬头或 rose。许多小孔把一股水分成宽而细的水束；有的壶另设敞口壶嘴，可在直流水和喷淋间切换。",
+      "sourceIds": ["src-watering-can-rose-head"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "watering-can-draft-002",
+      "topicId": "watering_can",
+      "factText": "有些浇水壶把水箱分成左右对称的 V 形腔，提手位于水体质量中央；倾斜时两腔同步流向壶嘴，倒水会更均衡。",
+      "sourceIds": ["src-watering-can-balanced-stack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "watering-can-draft-003",
+      "topicId": "watering_can",
+      "factText": "为了让浇水壶像杯子一样套叠，设计可把顶盖和两半提手做成铰链结构；打开后锥形壶身彼此嵌套，合上时提手再扣成整体。",
+      "sourceIds": ["src-watering-can-hinged-stack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

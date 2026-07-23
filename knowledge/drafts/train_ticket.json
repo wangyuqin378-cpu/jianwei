@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "train_ticket",
+  "displayName": "火车票",
+  "category": "transport",
+  "aliases": ["train ticket", "火车票"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-train-ticket-magnetic-visible",
+      "title": "EP0386024A1: Improvements in or relating to ticketing",
+      "url": "https://patents.google.com/patent/EP0386024A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-train-ticket-barcode-reservation",
+      "title": "US20130204647A1: Ticketing solution",
+      "url": "https://patents.google.com/patent/US20130204647A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-train-ticket-rfid-seat",
+      "title": "US20110082714A1: Dynamic reallocation of seats in rail travel using RFID technology",
+      "url": "https://patents.google.com/patent/US20110082714A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "train-ticket-draft-001",
+      "topicId": "train_ticket",
+      "factText": "一张实体票可以同时有磁道和可视打印区：机器读取授权信息，人眼读取行程内容，验票系统再与订票电脑中的副本比对。",
+      "sourceIds": ["src-train-ticket-magnetic-visible"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "train-ticket-draft-002",
+      "topicId": "train_ticket",
+      "factText": "电子火车票的条码可以显示在纸面或手机上，并指向最新订票记录；同一条码还可代表同行乘客和多个行程区段。",
+      "sourceIds": ["src-train-ticket-barcode-reservation"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "train-ticket-draft-003",
+      "topicId": "train_ticket",
+      "factText": "有的铁路票务方案把 RFID 标签放进车票，车厢读卡器据此识别乘客、座位或候补号，并动态统计空余座位。",
+      "sourceIds": ["src-train-ticket-rfid-seat"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

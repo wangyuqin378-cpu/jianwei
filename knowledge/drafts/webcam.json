@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "webcam",
+  "displayName": "网络摄像头",
+  "category": "digital",
+  "aliases": ["webcam", "web camera", "网络摄像头", "电脑摄像头"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-webcam-vcm-focus",
+      "title": "US8049815B2: Camera module having voice-coil motor",
+      "url": "https://patents.google.com/patent/US8049815B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-webcam-privacy-shield",
+      "title": "US9465276B2: Webcam privacy shield",
+      "url": "https://patents.google.com/patent/US9465276B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-camera-microphone-beamforming",
+      "title": "US9258644B2: Method and apparatus for microphone beamforming",
+      "url": "https://patents.google.com/patent/US9258644B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "webcam-draft-001",
+      "topicId": "webcam",
+      "factText": "自动对焦摄像头可在线圈周围布置永磁体；线圈通电后推动镜头组件靠近或远离图像传感器，以改变合焦位置。",
+      "sourceIds": ["src-webcam-vcm-focus"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "webcam-draft-002",
+      "topicId": "webcam",
+      "factText": "机械隐私盖不是软件开关，而是把不透明挡片直接移到镜头前，阻断进入镜头的光线，并让遮挡状态一眼可见。",
+      "sourceIds": ["src-webcam-privacy-shield"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "webcam-draft-003",
+      "topicId": "webcam",
+      "factText": "视频会议摄像头旁的多麦克风阵列可做波束成形：结合相机的对焦和变焦信息估计声源方向，再增强该方向的拾音。",
+      "sourceIds": ["src-camera-microphone-beamforming"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

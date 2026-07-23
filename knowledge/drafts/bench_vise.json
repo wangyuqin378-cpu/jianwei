@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bench_vise",
+  "displayName": "台钳",
+  "category": "tool",
+  "aliases": ["bench vise", "bench vice", "台钳"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bench-vise-quick-release",
+      "title": "CA2757120A1: Quick release bench vise system",
+      "url": "https://patents.google.com/patent/CA2757120A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bench-vise-swivel-base",
+      "title": "US805013A: Bench-vise",
+      "url": "https://patents.google.com/patent/US805013A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bench-vise-interchangeable-jaws",
+      "title": "US2764047A: Screw-actuated vise having replaceable fixed and movable jaws",
+      "url": "https://patents.google.com/patent/US2764047A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bench-vise-draft-001",
+      "topicId": "bench_vise",
+      "factText": "快拆台钳仍保留丝杆微调，但螺母的一部分能移开：脱开螺纹时活动钳口可直接滑动，重新啮合后再转手柄精确夹紧。",
+      "sourceIds": ["src-bench-vise-quick-release"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bench-vise-draft-002",
+      "topicId": "bench_vise",
+      "factText": "旋转底座把台钳本体安装在圆形基座上，松开锁定结构后可改变钳口朝向，再在需要的角度把本体夹回基座。",
+      "sourceIds": ["src-bench-vise-swivel-base"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bench-vise-draft-003",
+      "topicId": "bench_vise",
+      "factText": "台钳的钳口也能模块化：同一底座配可拆的固定钳口和活动钳口，按工件形状更换成木工、金工或夹圆管的接触面。",
+      "sourceIds": ["src-bench-vise-interchangeable-jaws"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

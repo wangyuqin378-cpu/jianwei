@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-new-topics-21",
+  "baseCatalogVersion": "2026-07-19-beta.50",
+  "nextCatalogVersion": "2026-07-19-beta.51",
+  "drafts": [
+    "knowledge/drafts/aluminum_foil.json",
+    "knowledge/drafts/corkscrew.json",
+    "knowledge/drafts/dish_rack.json"
+  ]
+}

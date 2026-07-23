@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wifi_router",
+  "displayName": "无线路由器",
+  "category": "digital",
+  "aliases": ["Wi-Fi router", "wireless router", "无线路由器", "路由器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wifi-dual-band-antenna",
+      "title": "US8963793B2: Dual band antenna design",
+      "url": "https://patents.google.com/patent/US8963793B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wifi-mimo-spatial-multiplexing",
+      "title": "US20150244432A1: Beam training for MIMO operation",
+      "url": "https://patents.google.com/patent/US20150244432A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wifi-beamform-antenna-selection",
+      "title": "US11387959B2: WiFi antenna selection with beamforming",
+      "url": "https://patents.google.com/patent/US11387959B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wifi-router-draft-001",
+      "topicId": "wifi_router",
+      "factText": "双频路由器不一定为 2.4 GHz 和 5 GHz 各放一套天线；双频天线配合双工器，也能让同一天线覆盖两段频率。",
+      "sourceIds": ["src-wifi-dual-band-antenna"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wifi-router-draft-002",
+      "topicId": "wifi_router",
+      "factText": "MIMO 的空间复用会让多副天线沿不同空间路径同时发送不同数据流，从而提高数据速率，而不只是把同一信号重复发射。",
+      "sourceIds": ["src-wifi-mimo-spatial-multiplexing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wifi-router-draft-003",
+      "topicId": "wifi_router",
+      "factText": "波束成形路由器可测试多种天线组合，并依据目标设备反馈的信道信息，选择更合适的天线子集来定向传输。",
+      "sourceIds": ["src-wifi-beamform-antenna-selection"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "spray_bottle",
+  "displayName": "喷雾瓶",
+  "category": "cleaning",
+  "aliases": ["spray bottle", "trigger sprayer", "喷雾瓶", "喷壶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cdc-bleach-cleaning",
+      "title": "Cleaning and Disinfecting with Bleach",
+      "url": "https://www.cdc.gov/hygiene/about/cleaning-and-disinfecting-with-bleach.html",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-hypochlorite-disinfectants",
+      "title": "Chemical Disinfectants",
+      "url": "https://www.cdc.gov/infection-control/hcp/disinfection-sterilization/chemical-disinfectants.html",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-epa-household-hazardous-waste",
+      "title": "Household Hazardous Waste",
+      "url": "https://www.epa.gov/hw/household-hazardous-waste-hhw",
+      "publisher": "U.S. Environmental Protection Agency",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-epa-pesticide-storage",
+      "title": "Storing Pesticides Safely",
+      "url": "https://www.epa.gov/safepestcontrol/storing-pesticides-safely",
+      "publisher": "U.S. Environmental Protection Agency",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "spray-bottle-draft-002",
+      "topicId": "spray_bottle",
+      "factText": "装有含氯漂白剂的喷雾瓶绝不能与氨水、酸性清洁剂或其他清洁剂混用，否则可能释放危险气体。",
+      "sourceIds": ["src-cdc-bleach-cleaning", "src-cdc-hypochlorite-disinfectants"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "spray-bottle-draft-003",
+      "topicId": "spray_bottle",
+      "factText": "不要把清洁剂或杀虫剂装进饮料、食品容器，也不要撕掉原标签；标签保留了用途、成分和急救信息。",
+      "sourceIds": ["src-epa-household-hazardous-waste", "src-epa-pesticide-storage"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

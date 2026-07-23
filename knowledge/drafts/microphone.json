@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "microphone",
+  "displayName": "麦克风",
+  "category": "digital",
+  "aliases": ["microphone", "mic", "麦克风", "话筒"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-dynamic-microphone",
+      "title": "US2718272A: Dynamic microphone",
+      "url": "https://patents.google.com/patent/US2718272A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-condenser-capsule",
+      "title": "US9549236B2: Condenser microphone capsule backplate",
+      "url": "https://patents.google.com/patent/US9549236B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mems-back-volume",
+      "title": "EP4167595A2: MEMS microphone performance via back volume",
+      "url": "https://patents.google.com/patent/EP4167595A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "microphone-draft-001",
+      "topicId": "microphone",
+      "factText": "动圈麦克风把振膜与音圈相连；声波推动振膜时，音圈随之在磁场中运动，并在线圈里感应出对应的电压。",
+      "sourceIds": ["src-dynamic-microphone"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "microphone-draft-002",
+      "topicId": "microphone",
+      "factText": "电容麦克风的振膜和背板构成电容器；振膜受声波振动会改变两者间距，电路再把电容量的变化转换成电信号。",
+      "sourceIds": ["src-condenser-capsule"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "microphone-draft-003",
+      "topicId": "microphone",
+      "factText": "MEMS 麦克风虽小，封装里仍要安排进声孔、换能器和前后空气腔；增大后腔容积可改善信噪比和整体频率响应。",
+      "sourceIds": ["src-mems-back-volume"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

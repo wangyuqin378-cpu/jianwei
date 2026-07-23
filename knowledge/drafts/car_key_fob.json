@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "car_key_fob",
+  "displayName": "汽车遥控钥匙",
+  "category": "transport",
+  "aliases": ["car key fob", "汽车遥控钥匙"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-car-key-fob-command-packet",
+      "title": "US6718240B1: Remote keyless entry system",
+      "url": "https://patents.google.com/patent/US6718240B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-car-key-fob-rolling-code",
+      "title": "US5420925A: Rolling code encryption process for remote keyless entry system",
+      "url": "https://patents.google.com/patent/US5420925A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-car-key-fob-energy-harvesting",
+      "title": "US20080252432A1: Remote control with energy harvesting",
+      "url": "https://patents.google.com/patent/US20080252432A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "car-key-fob-draft-001",
+      "topicId": "car_key_fob",
+      "factText": "汽车遥控钥匙按键并不直接驱动车锁：微控制器把按键命令与识别码组成数据包，由无线发射器送到车内接收单元。",
+      "sourceIds": ["src-car-key-fob-command-packet"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-key-fob-draft-002",
+      "topicId": "car_key_fob",
+      "factText": "滚动码遥控把序列号与安全码持续更新，车辆接收端据此与钥匙保持同步，使每次按键发出的编码数据都不同。",
+      "sourceIds": ["src-car-key-fob-rolling-code"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-key-fob-draft-003",
+      "topicId": "car_key_fob",
+      "factText": "双向遥控钥匙既要发命令又要接收车辆状态，持续通信会消耗电池；有的设计把能量采集装置与电池组合供电。",
+      "sourceIds": ["src-car-key-fob-energy-harvesting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

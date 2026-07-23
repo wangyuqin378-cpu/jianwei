@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-11",
+  "baseCatalogVersion": "2026-07-19-beta.40",
+  "nextCatalogVersion": "2026-07-19-beta.41",
+  "drafts": [
+    "knowledge/drafts/curtain_rod.json",
+    "knowledge/drafts/door_handle.json",
+    "knowledge/drafts/door_lock.json"
+  ]
+}

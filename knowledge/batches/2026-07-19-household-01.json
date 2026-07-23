@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-household-01",
+  "baseCatalogVersion": "2026-07-19-beta.12",
+  "nextCatalogVersion": "2026-07-19-beta.13",
+  "drafts": [
+    "knowledge/drafts/air_purifier.json",
+    "knowledge/drafts/dehumidifier.json",
+    "knowledge/drafts/dishwasher.json",
+    "knowledge/drafts/led_bulb.json"
+  ]
+}

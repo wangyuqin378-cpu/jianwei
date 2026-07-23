@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "pressure_cooker",
+  "displayName": "压力锅",
+  "category": "tableware",
+  "aliases": ["pressure cooker", "压力锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usu-electric-pressure-cookers",
+      "title": "Electric Pressure Cookers: What You Need to Know",
+      "url": "https://extension.usu.edu/preserve-the-harvest/research/electric-pressure-cookers-what-you-need-to-know",
+      "publisher": "Utah State University Extension",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-cpsc-pressure-cooker-letter",
+      "title": "CPSC Staff Letter to UL 1026",
+      "url": "https://www.cpsc.gov/s3fs-public/CPSC-Staff-Letter-to-UL-1026_8-27-24.pdf?VersionId=9ZgSq.3OvwcVCFdferBDuacYjmoR22x_",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-uf-ifas-pressure-cookers",
+      "title": "The Misconceptions about Electric Pressure Cookers",
+      "url": "https://ask.ifas.ufl.edu/publication/FS446",
+      "publisher": "University of Florida IFAS Extension",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "pressure-cooker-draft-001",
+      "topicId": "pressure_cooker",
+      "factText": "压力锅密封后蒸汽使锅内压力和温度升高，从而加快烹饪；这也是它比普通锅更快的核心原理。",
+      "sourceIds": ["src-usu-electric-pressure-cookers", "src-uf-ifas-pressure-cookers"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pressure-cooker-draft-002",
+      "topicId": "pressure_cooker",
+      "factText": "锅盖难以打开通常表示内部仍有压力，必须等压力完全释放后再开盖，不能用力强行旋开。",
+      "sourceIds": ["src-usu-electric-pressure-cookers", "src-cpsc-pressure-cooker-letter"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pressure-cooker-draft-003",
+      "topicId": "pressure_cooker",
+      "factText": "汤、粥或淀粉类食物可能起泡并堵塞排气通道；装得过满或快速泄压会增加热液喷出的风险。",
+      "sourceIds": ["src-usu-electric-pressure-cookers", "src-cpsc-pressure-cooker-letter"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

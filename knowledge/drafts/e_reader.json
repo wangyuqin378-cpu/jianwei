@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "e_reader",
+  "displayName": "电子书阅读器",
+  "category": "digital",
+  "aliases": ["e-reader", "ebook reader", "电子书阅读器", "电纸书"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-electrophoretic-particle-display",
+      "title": "US20250006144A1: Electrophoretic device with adaptive frontlight",
+      "url": "https://patents.google.com/patent/US20250006144A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-toothed-epaper-frontlight",
+      "title": "EP3121628B1: Electronic paper display",
+      "url": "https://patents.google.com/patent/EP3121628B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-epaper-update-frontlight",
+      "title": "US9595240B1: Adjusting frontlight brightness during page updates",
+      "url": "https://patents.google.com/patent/US9595240B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "e-reader-draft-001",
+      "topicId": "e_reader",
+      "factText": "电泳电子纸通过电场改变带电有色颗粒相对透明观看面的远近；画面变化来自颗粒重新排列，而不是液晶发光。",
+      "sourceIds": ["src-electrophoretic-particle-display"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "e-reader-draft-002",
+      "topicId": "e_reader",
+      "factText": "电子纸的灯位于屏幕前侧：侧边 LED 把光送进覆盖显示面的导光板，入光面的齿形纹理用来打散亮斑并改善均匀度。",
+      "sourceIds": ["src-toothed-epaper-frontlight"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "e-reader-draft-003",
+      "topicId": "e_reader",
+      "factText": "电子纸整页刷新时常让像素先经过黑态再到新画面；一种控制会在刷新期间暂时改变前光亮度，结束后再恢复。",
+      "sourceIds": ["src-epaper-update-frontlight"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

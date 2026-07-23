@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "garden_trowel",
+  "displayName": "园艺铲",
+  "category": "tool",
+  "aliases": ["garden trowel", "园艺铲"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-garden-trowel-neutral-wrist",
+      "title": "US7836557B2: Ergonomic garden trowel",
+      "url": "https://patents.google.com/patent/US7836557B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-garden-trowel-multiple-grips",
+      "title": "US20050241839A1: Hand tool with multiple grips",
+      "url": "https://patents.google.com/patent/US20050241839A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-garden-trowel-two-hand-offset",
+      "title": "US6027153A: Trowel",
+      "url": "https://patents.google.com/patent/US6027153A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "garden-trowel-draft-001",
+      "topicId": "garden_trowel",
+      "factText": "有些人体工学园艺铲让手柄先高出、再低于铲面所在平面，使握持时前臂大致对准铲刃，手腕不必持续向下折。",
+      "sourceIds": ["src-garden-trowel-neutral-wrist"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "garden-trowel-draft-002",
+      "topicId": "garden_trowel",
+      "factText": "园艺手工具可以同时设置后部环形握把和靠近铲头的球状前握点，让同一把铲在推、拉或需要两手发力时切换握法。",
+      "sourceIds": ["src-garden-trowel-multiple-grips"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "garden-trowel-draft-003",
+      "topicId": "garden_trowel",
+      "factText": "加长型园艺铲把手柄做成可容纳双手的长度，并让铲刃与手柄略微错位；双手分开握持时可以增加拉挖和转动的杠杆。",
+      "sourceIds": ["src-garden-trowel-two-hand-offset"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

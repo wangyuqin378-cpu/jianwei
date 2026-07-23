@@ -1,0 +1,133 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: jianwei
+          POSTGRES_PASSWORD: jianwei_ci
+          POSTGRES_DB: jianwei
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jianwei -d jianwei"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://jianwei:jianwei_ci@127.0.0.1:5432/jianwei
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm release:identity -- --self-test
+      - run: pnpm build
+      - run: pnpm e2e:self-test
+      - run: pnpm e2e
+      - run: pnpm e2e
+        env:
+          BACKEND_E2E_DATABASE_URL: ${{ env.DATABASE_URL }}
+      - run: pnpm migrate
+      - run: pnpm migrate
+      - run: pnpm test:postgres
+        env:
+          RUN_POSTGRES_INTEGRATION: "1"
+      - run: node ../scripts/check-beta-readiness.mjs --self-test
+      - run: node ../scripts/sign-beta-evidence.mjs --self-test
+      - run: node ../scripts/sign-beta-evidence-assembly.mjs --self-test
+      - run: node ../scripts/create-image-evaluation-run.mjs --self-test
+      - run: node ../scripts/compile-image-evaluation.mjs --self-test
+      - run: node ../scripts/compile-card-audit.mjs --self-test
+      - run: node ../scripts/create-card-audit-template.mjs --self-test
+      - run: node ../scripts/compile-beta-cohort.mjs --self-test
+      - run: node ../scripts/create-physical-device-run-manifest.mjs --self-test
+      - run: node ../scripts/compile-physical-device-runs.mjs --self-test
+      - run: node ../scripts/create-accessibility-audit-manifest.mjs --self-test
+      - run: node ../scripts/compile-accessibility-audit.mjs --self-test
+      - run: node ../scripts/create-beta-evidence-assembly-manifest.mjs --self-test
+      - run: node ../scripts/assemble-beta-evidence.mjs --self-test
+      - run: node ../scripts/kimi-adversarial-review.mjs --self-test
+      - run: pwsh -NoProfile -File ../scripts/verify-release-apk-windows.ps1 -SelfTest
+      - run: node ../scripts/summarize-beta-device-metrics.mjs --self-test
+      - run: node ../scripts/build-topic-backlog.mjs
+      - run: git diff --exit-code -- ../knowledge/topic-backlog.json
+      - run: node ../scripts/check-knowledge-readiness.mjs --self-test
+      - run: node ../scripts/check-knowledge-sources.mjs --self-test
+      - run: node ../scripts/check-knowledge-sources.mjs
+      - run: node ../scripts/preflight-knowledge-sources.mjs --self-test
+      - run: node ../scripts/validate-topic-draft.mjs --self-test
+      - run: node ../scripts/ingest-topic-draft.mjs --self-test
+      - run: node ../scripts/ingest-topic-batch.mjs --self-test
+      - run: node ../scripts/apply-catalog-draft-correction.mjs --self-test
+      - run: node ../scripts/create-rejected-fact-replacement-batch.mjs --self-test
+      - run: node ../scripts/apply-rejected-fact-replacements.mjs --self-test
+      - run: node ../scripts/build-knowledge-review-queue.mjs --self-test
+      - run: node ../scripts/create-knowledge-review-batch.mjs --self-test
+      - run: node ../scripts/knowledge-review-workbench.mjs --self-test
+      - run: node ../scripts/apply-knowledge-review-batch.mjs --self-test
+      - run: node ../scripts/check-deployment-manifest.mjs --self-test
+      - run: node ../scripts/check-deployment-manifest.mjs
+      - run: node ../scripts/check-container-deployment-inputs.mjs --self-test
+      - run: node ../scripts/check-runtime-budgets.mjs --self-test
+      - run: node ../scripts/check-runtime-budgets.mjs
+      - run: node ../scripts/check-api-contract.mjs --self-test
+      - run: node ../scripts/check-api-contract.mjs
+      - run: node ../scripts/check-supply-chain.mjs --self-test
+      - run: node ../scripts/check-supply-chain.mjs
+      - run: node ../scripts/hash-knowledge-catalog.mjs ../knowledge/catalog.json
+      - run: node ../scripts/check-source-guardrails.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-tcp-e2e-evidence
+          path: |
+            .tooling/backend-e2e/result.json
+            .tooling/backend-e2e/result.txt
+            .tooling/backend-e2e-postgres/result.json
+            .tooling/backend-e2e-postgres/result.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
+      - run: chmod +x gradlew
+      - run: ./gradlew :domain:test :app:testDebugUnitTest :data:testDebugUnitTest :data:assembleDebugAndroidTest lintDebug assembleDebug assembleRelease --no-daemon --max-workers=2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jianwei-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

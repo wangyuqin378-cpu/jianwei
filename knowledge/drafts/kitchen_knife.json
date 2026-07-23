@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "kitchen_knife",
+  "displayName": "菜刀",
+  "category": "tableware",
+  "aliases": ["kitchen knife", "chef knife", "菜刀"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-kitchen-knife-tang-bolster-handle",
+      "title": "US11931912B2: Kitchen knife",
+      "url": "https://patents.google.com/patent/US11931912B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-knife-open-air-channels",
+      "title": "US20140317940A1: Anti-stick knife blade",
+      "url": "https://patents.google.com/patent/US20140317940A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-knife-centered-serration",
+      "title": "US4823467A: Serrated-edge knives",
+      "url": "https://patents.google.com/patent/US4823467A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "kitchen-knife-draft-001",
+      "topicId": "kitchen_knife",
+      "factText": "一体式菜刀的刀身会向后延伸成刀茎，再由铆钉固定在柄内；刀身和刀柄之间的护手可以延续刀柄截面，并在刀跟处留出供手指捏持的弧面。",
+      "sourceIds": ["src-kitchen-knife-tang-bolster-handle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-knife-draft-002",
+      "topicId": "kitchen_knife",
+      "factText": "防粘刀面的凹槽可以从刀背一直向下延伸、在刀刃前结束；因为槽顶始终与空气相通，切片贴上刀面时不容易在封闭凹坑里形成完整吸附面。",
+      "sourceIds": ["src-kitchen-knife-open-air-channels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-knife-draft-003",
+      "topicId": "kitchen_knife",
+      "factText": "一种细齿刀会在刀坯一面磨较宽的波谷，另一面磨密集锯齿；两组纹路在刃口相交，把细小锯齿布置在刀片厚度的中部。",
+      "sourceIds": ["src-kitchen-knife-centered-serration"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

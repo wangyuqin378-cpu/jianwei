@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-writing-tool-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.20",
+  "nextCatalogVersion": "2026-07-19-beta.21",
+  "drafts": [
+    "knowledge/drafts/pencil_extension_01.json",
+    "knowledge/drafts/eraser_extension_01.json",
+    "knowledge/drafts/safety_pin_extension_01.json"
+  ]
+}

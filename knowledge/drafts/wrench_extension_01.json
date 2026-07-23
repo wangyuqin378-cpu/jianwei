@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wrench",
+  "displayName": "扳手",
+  "category": "tool",
+  "aliases": ["wrench", "spanner", "扳手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-adjustable-wrench-patent",
+      "title": "US20060027052A1: Adjustable wrench",
+      "url": "https://patents.google.com/patent/US20060027052A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wrench-draft-002",
+      "topicId": "wrench",
+      "factText": "活动扳手有一片固定钳口和一片滑动钳口，滑动钳口底部做成齿条，由手指转动的蜗杆推动它直线移动。",
+      "sourceIds": ["src-adjustable-wrench-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wrench-draft-003",
+      "topicId": "wrench",
+      "factText": "蜗杆每转一小段，只让活动钳口移动很短距离，因此一把活动扳手可以连续适配多种螺母宽度。",
+      "sourceIds": ["src-adjustable-wrench-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wrench-draft-004",
+      "topicId": "wrench",
+      "factText": "有些快调扳手会暂时让棘爪或蜗杆脱离钳口齿条，使活动钳口能先快速滑到尺寸附近，再用蜗杆微调。",
+      "sourceIds": ["src-adjustable-wrench-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

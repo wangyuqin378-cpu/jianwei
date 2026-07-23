@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "helmet",
+  "displayName": "头盔",
+  "category": "transport",
+  "aliases": ["helmet", "头盔"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cpsc-bicycle-helmet-fit",
+      "title": "CPSC Reminds Bicyclists to Use Your Head by Wearing a Helmet",
+      "url": "https://www.cpsc.gov/Newsroom/News-Releases/2001/CPSC-Reminds-Bicyclists-to-Use-Your-Head-by-Wearing-a-Helmet",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-bike-helmet-safety",
+      "title": "Bike Helmet Safety",
+      "url": "https://www.cdc.gov/heads-up/media/pdfs/helmets/HeadsUp_HelmetFactSheet_Bike_508.pdf",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cpsc-bicycle-helmets-guidance",
+      "title": "Bicycle Helmets Business Guidance",
+      "url": "https://www.cpsc.gov/Business--Manufacturing/Business-Education/Business-Guidance/Bicycle-Helmets",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-bike-helmet-replacement",
+      "title": "MV PICCS Intervention: Bicycle Helmet Laws for Children",
+      "url": "https://www.cdc.gov/transportation-safety/calculator/bike-helmet.html",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "helmet-draft-002",
+      "topicId": "helmet",
+      "factText": "骑行头盔要水平、贴合地戴在头上，前沿约在眉毛上方一到两指宽处，并把下巴带系紧。",
+      "sourceIds": ["src-cpsc-bicycle-helmet-fit", "src-cdc-bike-helmet-safety"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "helmet-draft-003",
+      "topicId": "helmet",
+      "factText": "头盔经历碰撞后，即使外观没有裂痕也应更换，因为内部缓冲层可能已经受损并降低保护能力。",
+      "sourceIds": ["src-cpsc-bicycle-helmets-guidance", "src-cdc-bike-helmet-replacement"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

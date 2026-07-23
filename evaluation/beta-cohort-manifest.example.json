@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "beta_cohort_manifest",
+  "reportSetId": "REPLACE_WITH_REPORT_SET_ID",
+  "reportSetSha256": "REPLACE_WITH_GENERATED_REPORT_SET_SHA256",
+  "cohortOwner": "",
+  "appVersion": "",
+  "apkSha256": "",
+  "reportsEvidenceRef": "",
+  "manifestEvidenceRef": "",
+  "measuredAt": "",
+  "assignments": []
+}

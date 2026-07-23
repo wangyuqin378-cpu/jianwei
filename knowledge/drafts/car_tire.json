@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "car_tire",
+  "displayName": "汽车轮胎",
+  "category": "transport",
+  "aliases": ["car tire", "汽车轮胎"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-aaa-be-tire-smart",
+      "title": "How to Take Care of Your Tires",
+      "url": "https://exchange.aaa.com/wp-content/uploads/2012/06/BeTireSmart_English1.pdf",
+      "publisher": "AAA",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-ustma-tire-care-essentials",
+      "title": "Tire Care Essentials",
+      "url": "https://www.ustires.org/tire-care-safety/tire-care-essentials",
+      "publisher": "U.S. Tire Manufacturers Association",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "car-tire-draft-001",
+      "topicId": "car_tire",
+      "factText": "轮胎压力应至少每月检查一次，并在停车三小时以上的冷胎状态测量；备胎也要一起检查。",
+      "sourceIds": ["src-aaa-be-tire-smart", "src-ustma-tire-care-essentials"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-tire-draft-002",
+      "topicId": "car_tire",
+      "factText": "正确胎压应查驾驶员侧车门标签或车辆手册，并按车辆制造商给出的数值充气，不能只凭轮胎外观判断。",
+      "sourceIds": ["src-aaa-be-tire-smart", "src-ustma-tire-care-essentials"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-tire-draft-003",
+      "topicId": "car_tire",
+      "factText": "轮胎花纹磨到与内置磨耗标记齐平时应更换；每月还应查看是否有割伤、鼓包或异常磨损。",
+      "sourceIds": ["src-aaa-be-tire-smart", "src-ustma-tire-care-essentials"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

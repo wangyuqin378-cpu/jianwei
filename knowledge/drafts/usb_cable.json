@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "usb_cable",
+  "displayName": "USB 数据线",
+  "category": "digital",
+  "aliases": ["USB cable", "USB 数据线", "Type-C cable", "USB-C 线"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usb-if-type-c-guidelines",
+      "title": "USB Type-C Cable and Connector Language and Packaging Usage Guidelines",
+      "url": "https://www.usb.org/sites/default/files/usb_type-c_language_product_and_packaging_guidelines_20230320.pdf",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usb-if-type-c-specification",
+      "title": "USB Type-C Cable and Connector Specification",
+      "url": "https://usb.org/usb-type-cr-cable-and-connector-specification",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "usb-cable-draft-001",
+      "topicId": "usb_cable",
+      "factText": "USB Type-C 连接器专门支持插头正反插和线缆双向连接，因此不用先辨认插头朝向再插入设备。",
+      "sourceIds": ["src-usb-if-type-c-specification"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "usb-cable-draft-002",
+      "topicId": "usb_cable",
+      "factText": "外形同为 Type-C 的线材，数据速率和供电能力也可能不同；USB Type-C 并不是 USB 3.2、USB4 或 USB PD 的同义词。",
+      "sourceIds": ["src-usb-if-type-c-guidelines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "usb-cable-draft-003",
+      "topicId": "usb_cable",
+      "factText": "USB 2.0 Type-C 线最高只提供 480Mbps 的 USB 2.0 数据传输；它可以支持 PD，但不因此自动具备 USB 3.2、USB4 或 Alt Mode。",
+      "sourceIds": ["src-usb-if-type-c-guidelines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

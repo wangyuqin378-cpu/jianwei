@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-03",
+  "baseCatalogVersion": "2026-07-19-beta.29",
+  "nextCatalogVersion": "2026-07-19-beta.30",
+  "drafts": [
+    "knowledge/drafts/iron.json",
+    "knowledge/drafts/ironing_board.json",
+    "knowledge/drafts/laundry_basket.json"
+  ]
+}

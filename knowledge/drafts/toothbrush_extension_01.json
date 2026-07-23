@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "toothbrush",
+  "displayName": "牙刷",
+  "category": "cleaning",
+  "aliases": ["toothbrush", "manual toothbrush", "electric toothbrush", "牙刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ada-toothbrush",
+      "title": "Toothbrushes",
+      "url": "https://www.ada.org/resources/ada-library/oral-health-topics/toothbrushes",
+      "publisher": "American Dental Association",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-nhs-toothbrush",
+      "title": "How to keep your teeth clean",
+      "url": "https://www.nhs.uk/live-well/healthy-teeth-and-gums/how-to-keep-your-teeth-clean/",
+      "publisher": "NHS",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "toothbrush-draft-002",
+      "topicId": "toothbrush",
+      "factText": "美国牙科协会与 NHS 都建议每天用含氟牙膏刷牙两次、每次约两分钟；这是针对大多数人的一般口腔清洁建议。",
+      "sourceIds": ["src-ada-toothbrush", "src-nhs-toothbrush"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toothbrush-draft-003",
+      "topicId": "toothbrush",
+      "factText": "刷牙不能只刷看得见的外侧：牙齿的内侧、外侧和咀嚼面都要清洁；软毛牙刷和轻柔用力有助于减少牙龈受伤风险。",
+      "sourceIds": ["src-ada-toothbrush", "src-nhs-toothbrush"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toothbrush-draft-004",
+      "topicId": "toothbrush",
+      "factText": "手动牙刷和电动牙刷都可以有效清洁；比驱动方式更重要的是能否覆盖所有牙面，并配合含氟牙膏完成刷牙。",
+      "sourceIds": ["src-ada-toothbrush", "src-nhs-toothbrush"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    }
+  ]
+}

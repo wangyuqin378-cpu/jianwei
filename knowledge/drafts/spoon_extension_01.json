@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "spoon",
+  "displayName": "勺子",
+  "category": "tableware",
+  "aliases": ["spoon", "勺子", "汤匙"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-vam-sherbet-spoons",
+      "title": "A spoon full of care: conservation and packing for delicate sherbet spoons",
+      "url": "https://www.vam.ac.uk/blog/caring-for-our-collections/a-spoon-full-of-care-conservation-and-packing-for-delicate-sherbet-spoons",
+      "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-1900-measuring-spoon-patent",
+      "title": "US653466A: Measuring-spoon",
+      "url": "https://patents.google.com/patent/US653466A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "spoon-draft-002",
+      "topicId": "spoon",
+      "factText": "传统舍尔贝特勺会把长柄平衡在陶盆边、勺头浮在冷饮上；客人从勺中饮用后，再把勺放回盆里供下一位客人使用。",
+      "sourceIds": ["src-vam-sherbet-spoons"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "spoon-draft-003",
+      "topicId": "spoon",
+      "factText": "1900 年的一项量勺专利把一茶匙、二分之一茶匙和四分之一茶匙的多个勺碗用转轴连在一起，已经很像今天成组收纳的量勺。",
+      "sourceIds": ["src-1900-measuring-spoon-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

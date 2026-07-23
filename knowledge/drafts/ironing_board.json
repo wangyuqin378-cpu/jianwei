@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "ironing_board",
+  "displayName": "熨衣板",
+  "category": "cleaning",
+  "aliases": ["ironing board", "folding ironing board", "熨衣板", "烫衣板"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wall-adjustable-ironing-board",
+      "title": "US4480556A: Adjustable folding ironing board",
+      "url": "https://patents.google.com/patent/US4480556A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-leg-latch-ironing-board",
+      "title": "US5924226A: Foldable ironing board with leg latch",
+      "url": "https://patents.google.com/patent/US5924226A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-leveling-ironing-board",
+      "title": "US2485193A: Foldable ironing board",
+      "url": "https://patents.google.com/patent/US2485193A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "ironing-board-draft-001",
+      "topicId": "ironing_board",
+      "factText": "壁挂熨衣板可用连杆在水平工作位与贴墙竖直位之间折叠；一种机构还能切换两档高度，并绕转盘改变板面朝向。",
+      "sourceIds": ["src-wall-adjustable-ironing-board"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ironing-board-draft-002",
+      "topicId": "ironing_board",
+      "factText": "一种折叠板把高度调节机构和支腿锁联动：合拢时支腿自动锁住，展开时同一操纵杆释放并重新选高。",
+      "sourceIds": ["src-leg-latch-ironing-board"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ironing-board-draft-003",
+      "topicId": "ironing_board",
+      "factText": "可伸缩支腿不只调节熨衣板高度；左右支腿分别调整时，还能在不平地面上把板面找平并保持刚性支撑。",
+      "sourceIds": ["src-leveling-ironing-board"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

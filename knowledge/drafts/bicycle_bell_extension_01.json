@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "bicycle_bell",
+  "displayName": "自行车铃",
+  "category": "transport",
+  "aliases": ["bicycle bell", "bike bell", "自行车铃", "车铃"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rotating-striker-bell",
+      "title": "US5307756A: Rotating striker bell",
+      "url": "https://patents.google.com/patent/US5307756A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-inverted-dome-bell",
+      "title": "US6450115B1: Bicycle bell with inverted dome",
+      "url": "https://patents.google.com/patent/US6450115B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bicycle-bell-draft-002",
+      "topicId": "bicycle_bell",
+      "factText": "一种车铃把拨杆装在可绕中心转动的底座上，可在 360 度范围调整到顺手位置，也能避开刹把等车把部件。",
+      "sourceIds": ["src-rotating-striker-bell"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-bell-draft-003",
+      "topicId": "bicycle_bell",
+      "factText": "一种倒置钟罩车铃用齿轮让敲击机构转得比外盖更快；活动击锤碰撞后向内退让，减少对继续转动的阻碍。",
+      "sourceIds": ["src-inverted-dome-bell"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

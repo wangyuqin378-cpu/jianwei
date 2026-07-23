@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "seat_belt",
+  "displayName": "安全带",
+  "category": "transport",
+  "aliases": ["seat belt", "seatbelt", "安全带"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cdc-seat-belt-right-way",
+      "title": "Buckle Up: Every Person, Every Seat, Every Time",
+      "url": "https://stacks.cdc.gov/view/cdc/34102",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-iihs-seat-belts",
+      "title": "Seat Belts",
+      "url": "https://www.iihs.org/research-areas/seat-belts",
+      "publisher": "Insurance Institute for Highway Safety",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "seat-belt-draft-002",
+      "topicId": "seat_belt",
+      "factText": "腰带应贴着髋部或大腿上部，肩带应贴过胸部和肩部中央，不能压在腹部或绕到背后、腋下。",
+      "sourceIds": ["src-cdc-seat-belt-right-way", "src-iihs-seat-belts"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "seat-belt-draft-003",
+      "topicId": "seat_belt",
+      "factText": "安全气囊只能提供补充保护，不能代替安全带；前排安全带还会与气囊协同，把乘员保持在合适位置。",
+      "sourceIds": ["src-cdc-seat-belt-right-way", "src-iihs-seat-belts"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

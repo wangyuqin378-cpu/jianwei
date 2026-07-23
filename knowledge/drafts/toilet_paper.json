@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "toilet_paper",
+  "displayName": "卫生纸",
+  "category": "home",
+  "aliases": ["toilet paper", "toilet roll", "卫生纸"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-toilet-paper-perforation-strength",
+      "title": "JP2003061861A: Toilet paper roll with perforated line",
+      "url": "https://patents.google.com/patent/JP2003061861A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-toilet-paper-edge-emboss",
+      "title": "JP6454069B2: Toilet roll and toilet paper embossing method",
+      "url": "https://patents.google.com/patent/JP6454069B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-toilet-paper-emboss-laminate",
+      "title": "EP1772257A2: Embossing-laminating device, and multiply embossed product",
+      "url": "https://patents.google.com/patent/EP1772257A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "toilet-paper-draft-001",
+      "topicId": "toilet_paper",
+      "factText": "卫生纸虚线不能只追求容易撕。一种专利设计把虚线处纵向抗拉强度控制为原纸的 30%–50%，在可撕与避免提前断裂之间取平衡。",
+      "sourceIds": ["src-toilet-paper-perforation-strength"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toilet-paper-draft-002",
+      "topicId": "toilet_paper",
+      "factText": "多层卫生纸边缘常有一排细小压纹，它们叫边缘压花或接触压花；局部压合会把各层固定在一起，减少卷纸使用时分层。",
+      "sourceIds": ["src-toilet-paper-edge-emboss"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toilet-paper-draft-003",
+      "topicId": "toilet_paper",
+      "factText": "多层卷纸可先让每层分别经过带凸点的压花辊，再在部分凸点附近上胶并压合；朝内的凸起会在层间留下微小空间。",
+      "sourceIds": ["src-toilet-paper-emboss-laminate"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

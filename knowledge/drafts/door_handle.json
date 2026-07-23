@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "door_handle",
+  "displayName": "门把手",
+  "category": "home",
+  "aliases": ["door handle", "door lever", "门把手", "门执手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-door-handle-spindle-latch",
+      "title": "US20240328193A1: Rose and handle",
+      "url": "https://patents.google.com/patent/US20240328193A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-door-handle-spring-return",
+      "title": "US20180187450A1: Door handle adapter for sprung hub",
+      "url": "https://patents.google.com/patent/US20180187450A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-door-handle-concealed-rose",
+      "title": "US5236235A: Concealed screw rose mounting system",
+      "url": "https://patents.google.com/patent/US5236235A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "door-handle-draft-001",
+      "topicId": "door_handle",
+      "factText": "门两侧把手通常通过一根贯穿门体的方轴联动；转动把手会带动方轴旋转，锁体再把旋转运动转换成锁舌的直线收回。",
+      "sourceIds": ["src-door-handle-spindle-latch"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-handle-draft-002",
+      "topicId": "door_handle",
+      "factText": "横向门执手较重，久置时可能因重力下垂；回位机构会给方轴施加预紧力，松手后用弹簧储能把执手带回水平位置。",
+      "sourceIds": ["src-door-handle-spring-return"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-handle-draft-003",
+      "topicId": "door_handle",
+      "factText": "把手根部的圆形或方形饰盖叫作门把手玫瑰盖；它覆盖门板开孔和安装螺钉，真正承力的固定件藏在饰盖后方。",
+      "sourceIds": ["src-door-handle-concealed-rose"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

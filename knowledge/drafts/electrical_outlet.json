@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "electrical_outlet",
+  "displayName": "电源插座",
+  "category": "home",
+  "aliases": ["electrical outlet", "电源插座"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cpsc-gfci-fact-sheet",
+      "title": "GFCI Fact Sheet",
+      "url": "https://www.cpsc.gov/safety-education/safety-guides/electronics-and-electrical-home/gfci-fact-sheet",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cpsc-home-electrical-checklist",
+      "title": "Home Electrical Safety Checklist",
+      "url": "https://www.cpsc.gov/s3fs-public/513.pdf",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-esfi-gfci",
+      "title": "Ground Fault Circuit Interrupters",
+      "url": "https://www.esfi.org/ground-fault-circuit-interrupters-gfci/",
+      "publisher": "Electrical Safety Foundation International",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "electrical-outlet-draft-001",
+      "topicId": "electrical_outlet",
+      "factText": "带测试和复位按钮的 GFCI 插座会比较流入与返回电流，检测到漏电差值时迅速切断回路。",
+      "sourceIds": ["src-cpsc-gfci-fact-sheet", "src-esfi-gfci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "electrical-outlet-draft-002",
+      "topicId": "electrical_outlet",
+      "factText": "GFCI 常用于可能接触水的区域，但保护装置也需要每月测试，不能把按钮存在当作一直有效。",
+      "sourceIds": ["src-cpsc-home-electrical-checklist", "src-esfi-gfci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "electrical-outlet-draft-003",
+      "topicId": "electrical_outlet",
+      "factText": "测试时可接入小灯并按下测试键；若不断电，或按复位键后不能恢复，应停用并请专业人员处理。",
+      "sourceIds": ["src-cpsc-home-electrical-checklist", "src-esfi-gfci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-12",
+  "baseCatalogVersion": "2026-07-19-beta.41",
+  "nextCatalogVersion": "2026-07-19-beta.42",
+  "drafts": [
+    "knowledge/drafts/doormat.json",
+    "knowledge/drafts/drawer_slide.json",
+    "knowledge/drafts/duvet.json"
+  ]
+}

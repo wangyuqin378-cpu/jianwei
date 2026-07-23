@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "traffic_light",
+  "displayName": "交通信号灯",
+  "category": "transport",
+  "aliases": ["traffic light", "traffic signal", "红绿灯", "交通信号灯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-sun-phantom-traffic-signal",
+      "title": "US6731222B2: Sun phantom LED traffic signal",
+      "url": "https://patents.google.com/patent/US6731222B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-traffic-signal-lens",
+      "title": "US3798445A: Traffic signal lens",
+      "url": "https://patents.google.com/patent/US3798445A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "traffic-light-draft-002",
+      "topicId": "traffic_light",
+      "factText": "阳光进入灯体后可能造成“太阳幻象”，让未亮的灯看似点亮；一种 LED 灯罩把杂散反射朝地面引导来减弱它。",
+      "sourceIds": ["src-sun-phantom-traffic-signal"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "traffic-light-draft-003",
+      "topicId": "traffic_light",
+      "factText": "交通信号灯的透镜不只保护灯泡：内侧微小透镜单元会重分配光线，让远处驾驶者方向获得更强照明。",
+      "sourceIds": ["src-traffic-signal-lens"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

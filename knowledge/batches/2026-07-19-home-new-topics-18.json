@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-18",
+  "baseCatalogVersion": "2026-07-19-beta.47",
+  "nextCatalogVersion": "2026-07-19-beta.48",
+  "drafts": [
+    "knowledge/drafts/thread_spool.json",
+    "knowledge/drafts/tissue_box.json",
+    "knowledge/drafts/toilet_paper.json"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "soap_dispenser",
+  "displayName": "皂液器",
+  "category": "cleaning",
+  "aliases": ["soap dispenser", "pump bottle", "皂液器", "按压瓶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-one-way-liquid-soap-pump",
+      "title": "US3952924A: One-way liquid soap dispenser",
+      "url": "https://patents.google.com/patent/US3952924A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-foaming-soap-dispenser",
+      "title": "US11141026B2: Foaming soap dispenser",
+      "url": "https://patents.google.com/patent/US11141026B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "soap-dispenser-draft-002",
+      "topicId": "soap_dispenser",
+      "factText": "按压皂液泵会压缩泵腔，入口和出口的柔性单向阀让液体只能朝喷嘴前进；松手回弹时，泵腔再从瓶内吸液。",
+      "sourceIds": ["src-one-way-liquid-soap-pump"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "soap-dispenser-draft-003",
+      "topicId": "soap_dispenser",
+      "factText": "泡沫皂液器先把空气混入液体，再让含气皂液穿过发泡网；有些结构还能用阀门调节空气与皂液比例。",
+      "sourceIds": ["src-foaming-soap-dispenser"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

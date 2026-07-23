@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rearview_mirror",
+  "displayName": "后视镜",
+  "category": "transport",
+  "aliases": ["rearview mirror", "rear-view mirror", "后视镜", "汽车后视镜", "车内后视镜", "汽车反光镜"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-eurlex-un-r46-indirect-vision",
+      "title": "UN/ECE Regulation No 46: Devices for indirect vision",
+      "url": "https://eur-lex.europa.eu/eli/reg/2010/46%282%29/oj/eng",
+      "publisher": "EUR-Lex",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-eurlex-dir-71-127-rear-view-mirrors",
+      "title": "Directive 71/127/EEC: Rear-view mirrors of motor vehicles",
+      "url": "https://eur-lex.europa.eu/legal-content/en/TXT/?uri=CELEX%3A31971L0127",
+      "publisher": "EUR-Lex",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rearview-mirror-draft-001",
+      "topicId": "rearview_mirror",
+      "factText": "车内镜与主外后视镜被分成不同类别，法规分别从驾驶者眼点出发规定必须看见的后方路面区域。",
+      "sourceIds": ["src-eurlex-un-r46-indirect-vision", "src-eurlex-dir-71-127-rear-view-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rearview-mirror-draft-002",
+      "topicId": "rearview_mirror",
+      "factText": "车内后视镜应能由驾驶者在座位上调整；驾驶侧外后视镜通常也要能在车门关闭时从车内调整。",
+      "sourceIds": ["src-eurlex-un-r46-indirect-vision", "src-eurlex-dir-71-127-rear-view-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rearview-mirror-draft-003",
+      "topicId": "rearview_mirror",
+      "factText": "内外后视镜的反射面边缘需要保护壳包覆，法规还用圆角尺寸约束可能与人体接触的突出边缘。",
+      "sourceIds": ["src-eurlex-un-r46-indirect-vision", "src-eurlex-dir-71-127-rear-view-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "peeler",
+  "displayName": "削皮器",
+  "category": "tableware",
+  "aliases": ["peeler", "vegetable peeler", "削皮器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-peeler-pivot-blade",
+      "title": "US2232940A: Potato peeler",
+      "url": "https://patents.google.com/patent/US2232940A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-peeler-deflection-julienne",
+      "title": "EP1912540B1: Vegetable peeler",
+      "url": "https://patents.google.com/patent/EP1912540B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-peeler-double-sided-cover",
+      "title": "US20140075759A1: Double sided peeler",
+      "url": "https://patents.google.com/patent/US20140075759A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "peeler-draft-001",
+      "topicId": "peeler",
+      "factText": "削皮器常见的摆动刀片不是松动，而是让刀刃绕支点小幅转动，以便在移动时顺着果蔬表面的起伏改变角度。",
+      "sourceIds": ["src-peeler-pivot-blade"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "peeler-draft-002",
+      "topicId": "peeler",
+      "factText": "有些削皮器在刀口后方增加弯曲导流面，把刚切下的长皮向前偏转并从开口排出；同类刀口也能改成细齿切丝形态。",
+      "sourceIds": ["src-peeler-deflection-julienne"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "peeler-draft-003",
+      "topicId": "peeler",
+      "factText": "双面削皮器可以在两端装不同刀片，再用滑动护盖遮住暂时不用的一端；护盖的定位结构还能与去芽眼小工具共用。",
+      "sourceIds": ["src-peeler-double-sided-cover"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

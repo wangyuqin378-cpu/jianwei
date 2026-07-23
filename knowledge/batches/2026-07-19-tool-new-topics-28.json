@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tool-new-topics-28",
+  "baseCatalogVersion": "2026-07-19-beta.57",
+  "nextCatalogVersion": "2026-07-19-beta.58",
+  "drafts": [
+    "knowledge/drafts/rake.json",
+    "knowledge/drafts/ratchet_wrench.json",
+    "knowledge/drafts/sandpaper.json",
+    "knowledge/drafts/shovel.json",
+    "knowledge/drafts/socket_wrench.json",
+    "knowledge/drafts/soldering_iron.json"
+  ]
+}

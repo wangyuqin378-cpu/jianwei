@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "correctionId": "2026-07-19-cutting-board-source-01",
+  "baseCatalogVersion": "2026-07-19-beta.17",
+  "nextCatalogVersion": "2026-07-19-beta.18",
+  "expectedCatalogSha256": "53ae39875fb1ed80b8a95720b6cb626c3a0a0df07aa57b394eab78b5302961a6",
+  "drafts": [
+    "knowledge/drafts/cutting_board_correction_01.json"
+  ]
+}

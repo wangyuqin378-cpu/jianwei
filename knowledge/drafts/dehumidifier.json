@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dehumidifier",
+  "displayName": "除湿机",
+  "category": "cleaning",
+  "aliases": ["dehumidifier", "除湿机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-dehumidifiers",
+      "title": "Dehumidifiers",
+      "url": "https://www.energystar.gov/products/dehumidifiers",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dehumidifier-draft-001",
+      "topicId": "dehumidifier",
+      "factText": "除湿机的容量通常按二十四小时能移除多少品脱水来标示，所需容量还取决于空间大小和潮湿程度。",
+      "sourceIds": ["src-energy-star-dehumidifiers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dehumidifier-draft-002",
+      "topicId": "dehumidifier",
+      "factText": "内置湿度调节器可让用户设定目标相对湿度，达到目标后设备会自动启停以维持水平。",
+      "sourceIds": ["src-energy-star-dehumidifiers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dehumidifier-draft-003",
+      "topicId": "dehumidifier",
+      "factText": "除湿机能效可用每消耗一千瓦时电移除多少升水衡量；这个综合能效因数越高，通常越省电。",
+      "sourceIds": ["src-energy-star-dehumidifiers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

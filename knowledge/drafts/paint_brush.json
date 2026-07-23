@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "paint_brush",
+  "displayName": "油漆刷",
+  "category": "tool",
+  "aliases": ["paint brush", "油漆刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-paint-brush-ferrule-reservoir",
+      "title": "US7913348B2: Paint brush with increased ferrule paint reservoir",
+      "url": "https://patents.google.com/patent/US7913348B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-paint-brush-cleaning-passage",
+      "title": "US10736411B2: Paint brush and manufacturing method",
+      "url": "https://patents.google.com/patent/US10736411B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-paint-brush-adjustable-ferrule",
+      "title": "US20250127291A1: Paintbrush with adjustable ferrule",
+      "url": "https://patents.google.com/patent/US20250127291A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "paint-brush-draft-001",
+      "topicId": "paint_brush",
+      "factText": "油漆刷的金属箍把刷毛、填塞块和手柄端夹成一体；填塞块还能把刷毛向外撑开，并用凹面在刷毛根部形成小型储漆空间。",
+      "sourceIds": ["src-paint-brush-ferrule-reservoir"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paint-brush-draft-002",
+      "topicId": "paint_brush",
+      "factText": "刷毛中间的间隔件既能留出储漆腔，也能把贯穿开口当作清洗流道，让水从手柄连接端进入刷毛深处再向外带走残留。",
+      "sourceIds": ["src-paint-brush-cleaning-passage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paint-brush-draft-003",
+      "topicId": "paint_brush",
+      "factText": "可调刷箍把固定刷毛的内箍和能前后移动的外箍分开；外箍伸得越靠近刷尖，露在外面的有效刷毛长度就越短。",
+      "sourceIds": ["src-paint-brush-adjustable-ferrule"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

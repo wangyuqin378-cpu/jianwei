@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-digital-02",
+  "baseCatalogVersion": "2026-07-18-beta.5",
+  "nextCatalogVersion": "2026-07-18-beta.6",
+  "drafts": [
+    "knowledge/drafts/charger.json",
+    "knowledge/drafts/usb_cable.json",
+    "knowledge/drafts/solid_state_drive.json",
+    "knowledge/drafts/laptop.json",
+    "knowledge/drafts/monitor.json",
+    "knowledge/drafts/printer.json"
+  ]
+}

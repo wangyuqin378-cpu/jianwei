@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wok",
+  "displayName": "炒锅",
+  "category": "tableware",
+  "aliases": ["wok", "炒锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wok-ring-support",
+      "title": "US5158067A: Wok adapted portable food cooker",
+      "url": "https://patents.google.com/patent/US5158067A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wok-concave-induction",
+      "title": "US5687642A: Concave induction cooking surface for wok cooking",
+      "url": "https://patents.google.com/patent/US5687642A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wok-adjustable-steam-vent",
+      "title": "CN218355667U: Frying pan with controllable steam holes",
+      "url": "https://patents.google.com/patent/CN218355667U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wok-draft-001",
+      "topicId": "wok",
+      "factText": "圆底炒锅放在平面炉架上会摇晃，所以传统配套常加一个中空支撑环，让弧形锅底坐进环口并把锅身托住。",
+      "sourceIds": ["src-wok-ring-support"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wok-draft-002",
+      "topicId": "wok",
+      "factText": "圆底炒锅也能配凹面电磁加热盘：加热面按锅底曲率下凹，扩大两者贴近的面积，同时保留圆边锅铲沿锅壁扫动的空间。",
+      "sourceIds": ["src-wok-concave-induction"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wok-draft-003",
+      "topicId": "wok",
+      "factText": "炒锅盖上的蒸汽孔可以做成可调结构：转动带阻尼的孔盖改变开口面积；锅身则用一长一短两个把手分别操作和辅助稳定。",
+      "sourceIds": ["src-wok-adjustable-steam-vent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

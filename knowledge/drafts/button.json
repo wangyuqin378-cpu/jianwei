@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "button",
+  "displayName": "衣扣",
+  "category": "home",
+  "aliases": ["clothing button", "garment button", "衣扣", "纽扣"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-sew-through-button-thread",
+      "title": "US11072875B2: Multistrand button retention system",
+      "url": "https://patents.google.com/patent/US11072875B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shank-button-attachment",
+      "title": "US4316562A: Button attaching tool",
+      "url": "https://patents.google.com/patent/US4316562A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tack-button-hollow-shank",
+      "title": "CA1204583A: Button",
+      "url": "https://patents.google.com/patent/CA1204583A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "button-draft-001",
+      "topicId": "button",
+      "factText": "常见平面衣扣靠线穿过扣孔并反复穿过布料固定；多次成环不是装饰，而是用多股线分担拉力并降低单股断裂影响。",
+      "sourceIds": ["src-sew-through-button-thread"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "button-draft-002",
+      "topicId": "button",
+      "factText": "有脚纽扣的穿线孔藏在扣面背后的单个凸环里；缝线不穿过正面，因此正面可以保持完整图案或包覆面料。",
+      "sourceIds": ["src-shank-button-attachment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "button-draft-003",
+      "topicId": "button",
+      "factText": "牛仔裤式工字扣可由扣面和带尖钉的底件组成；尖钉穿过布料进入扣面空心柱后，末端被压胀变形来锁住两件。",
+      "sourceIds": ["src-tack-button-hollow-shank"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "handsaw",
+  "displayName": "手锯",
+  "category": "tool",
+  "aliases": ["handsaw", "hand saw", "手锯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-handsaw-replaceable-blade",
+      "title": "CA2708545A1: Hand saw having replaceable blades",
+      "url": "https://patents.google.com/patent/CA2708545A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-handsaw-angle-fold",
+      "title": "US7093367B1: Angular adjustment device in the handle of a handsaw",
+      "url": "https://patents.google.com/patent/US7093367B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-handsaw-tooth-geometry",
+      "title": "EP1671732A1: Hand saw blade",
+      "url": "https://patents.google.com/patent/EP1671732A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "handsaw-draft-001",
+      "topicId": "handsaw",
+      "factText": "可换刃手锯会把锯条尾部插入手柄槽，再用夹紧件锁住；解除夹紧后即可抽出旧锯条，而不必连手柄一起更换。",
+      "sourceIds": ["src-handsaw-replaceable-blade"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "handsaw-draft-002",
+      "topicId": "handsaw",
+      "factText": "折叠手锯的定位槽能把锯条锁在多个角度；转到约一百八十度时，锯条还能藏进手柄内的长形收纳空间。",
+      "sourceIds": ["src-handsaw-angle-fold"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "handsaw-draft-003",
+      "topicId": "handsaw",
+      "factText": "手锯的齿列可以把不同倾角的切削齿组合成重复齿组，使相邻齿在拉动锯条时承担不同方向的切削与清屑作用。",
+      "sourceIds": ["src-handsaw-tooth-geometry"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

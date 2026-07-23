@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rug",
+  "displayName": "地毯",
+  "category": "home",
+  "aliases": ["rug", "carpet", "地毯", "块毯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rug-tuft-primary-secondary-backing",
+      "title": "US3717524A: Method of adhering fibers in a tufted carpet",
+      "url": "https://patents.google.com/patent/US3717524A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rug-melt-bonded-tuft",
+      "title": "EP0568916A1: A tufted fabric",
+      "url": "https://patents.google.com/patent/EP0568916A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rug-edge-tuft-finish",
+      "title": "US2020892A: Method of sewing tufted rugs",
+      "url": "https://patents.google.com/patent/US2020892A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rug-draft-001",
+      "topicId": "rug",
+      "factText": "簇绒地毯用针把纱线穿过第一层底布，在背面留下短线圈、正面形成绒面；第二层底布再覆盖背面，把线圈和底层固定成夹层。",
+      "sourceIds": ["src-rug-tuft-primary-secondary-backing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rug-draft-002",
+      "topicId": "rug",
+      "factText": "地毯绒头可以是完整线圈，也可以把线圈切开形成割绒；有些聚酯结构通过加热让可熔底布软化，从背面锁住簇绒。",
+      "sourceIds": ["src-rug-melt-bonded-tuft"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rug-draft-003",
+      "topicId": "rug",
+      "factText": "块毯边缘容易露出底布，因此最外一排簇绒会用特殊针路向外挤开；绒毛尖端铺过底布切边后，就形成连续的绒面收口。",
+      "sourceIds": ["src-rug-edge-tuft-finish"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

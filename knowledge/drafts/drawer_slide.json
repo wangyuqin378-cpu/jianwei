@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "drawer_slide",
+  "displayName": "抽屉滑轨",
+  "category": "home",
+  "aliases": ["drawer slide", "drawer runner", "抽屉滑轨", "抽屉导轨"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-drawer-slide-ball-cage",
+      "title": "DE2307041C3: Ball-bearing telescopic slide for drawers",
+      "url": "https://patents.google.com/patent/DE2307041C3/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-drawer-slide-three-stage",
+      "title": "EP0973422A1: Telescopic drawer slide with soft sequencing latch",
+      "url": "https://patents.google.com/patent/EP0973422A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-drawer-slide-soft-close",
+      "title": "US8590989B2: Soft close mechanism in a drawer slide assembly",
+      "url": "https://patents.google.com/patent/US8590989B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "drawer-slide-draft-001",
+      "topicId": "drawer_slide",
+      "factText": "滚珠滑轨的内外轨各有相对的滚道，滚珠并非散放其中，而是装在带孔保持架里；保持架维持间距并让两轨低摩擦相对移动。",
+      "sourceIds": ["src-drawer-slide-ball-cage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "drawer-slide-draft-002",
+      "topicId": "drawer_slide",
+      "factText": "全拉出滑轨常有外轨、中轨和内轨三段，滚珠分别连接相邻轨道；顺序锁扣控制哪一组先滑动，让抽屉逐级伸展。",
+      "sourceIds": ["src-drawer-slide-three-stage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "drawer-slide-draft-003",
+      "topicId": "drawer_slide",
+      "factText": "缓闭滑轨把弹簧与阻尼器配合使用：接近关闭时锁扣抓住抽屉，弹簧向内拉，阻尼器限制速度，因此不会突然撞到底。",
+      "sourceIds": ["src-drawer-slide-soft-close"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

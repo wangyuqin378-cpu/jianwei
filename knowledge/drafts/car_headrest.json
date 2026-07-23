@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "car_headrest",
+  "displayName": "汽车头枕",
+  "category": "transport",
+  "aliases": ["car headrest", "head restraint", "汽车头枕", "头枕"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-iihs-whiplash-prevention",
+      "title": "IIHS: Whiplash prevention",
+      "url": "https://www.iihs.org/ratings/about-our-tests/whiplash-prevention",
+      "publisher": "Insurance Institute for Highway Safety",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-euroncap-aop-protocol",
+      "title": "Euro NCAP Assessment Protocol - Adult Occupant Protection v9.3",
+      "url": "https://cdn.euroncap.com/cars/assets/euro_ncap_assessment_protocol_aop_v93_f17b8fd21c.pdf",
+      "publisher": "Euro NCAP",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "car-headrest-draft-001",
+      "topicId": "car_headrest",
+      "factText": "汽车头枕与座椅靠背是一套后碰撞保护系统；它的任务是在追尾时尽早支撑头部和脊柱，限制颈部的相对运动。",
+      "sourceIds": ["src-iihs-whiplash-prevention", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-headrest-draft-002",
+      "topicId": "car_headrest",
+      "factText": "静态评估关注头枕高度与后脑到头枕的水平距离，也叫后间隙；位置太低或太远，会让头部支撑出现得更晚。",
+      "sourceIds": ["src-iihs-whiplash-prevention", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "car-headrest-draft-003",
+      "topicId": "car_headrest",
+      "factText": "专业机构还用后碰撞滑车动态测试，测量头部接触时间、头部相对骨盆运动和颈部载荷，而不只看头枕外形。",
+      "sourceIds": ["src-iihs-whiplash-prevention", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

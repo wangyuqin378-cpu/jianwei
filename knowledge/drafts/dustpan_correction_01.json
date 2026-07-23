@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dustpan",
+  "displayName": "簸箕",
+  "category": "cleaning",
+  "aliases": ["dustpan", "upright dustpan", "簸箕", "畚箕"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hands-free-upright-dustpan",
+      "title": "US20210068609A1: Upright dustpan",
+      "url": "https://patents.google.com/patent/US20210068609A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-retaining-pivot-dustpan",
+      "title": "US2899699A: Dustpan and handle",
+      "url": "https://patents.google.com/patent/US2899699A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dustpan-draft-001",
+      "topicId": "dustpan",
+      "factText": "一种立式簸箕在收集盒背面加铰接门；把门上的触发件抵住垃圾桶边缘，就能单手倾倒而不用扶住旋转盒体。",
+      "sourceIds": ["src-hands-free-upright-dustpan"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dustpan-draft-002",
+      "topicId": "dustpan",
+      "factText": "立式簸箕的收集盒可绕手柄转轴竖起，使开口朝上并把碎屑藏在更深处；这样既缩小占地，也降低意外洒出的机会。",
+      "sourceIds": ["src-hands-free-upright-dustpan"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dustpan-draft-003",
+      "topicId": "dustpan",
+      "factText": "立式簸箕的转轴位置会影响收纳：一种设计让手柄连接点位于盒体重心之前，提起后盒尾自然下沉并把垃圾留在后部。",
+      "sourceIds": ["src-retaining-pivot-dustpan"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

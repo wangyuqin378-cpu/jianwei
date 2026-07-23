@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "plunger",
+  "displayName": "皮搋子",
+  "category": "cleaning",
+  "aliases": ["plunger", "toilet plunger", "皮搋子", "马桶吸"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-reinforced-skirt-plunger",
+      "title": "US10590638B2: Toilet plunger",
+      "url": "https://patents.google.com/patent/US10590638B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-flex-angle-plunger",
+      "title": "US20130125298A1: Toilet plunger",
+      "url": "https://patents.google.com/patent/US20130125298A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-three-seal-plunger",
+      "title": "US7013499B2: Toilet and sink drain plunger",
+      "url": "https://patents.google.com/patent/US7013499B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "plunger-draft-001",
+      "topicId": "plunger",
+      "factText": "一种波纹皮搋子把裙边做成由厚到薄的渐变，并在波纹内侧和手柄座周围加入加强筋，避免受力时杯体向一侧塌折。",
+      "sourceIds": ["src-reinforced-skirt-plunger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "plunger-draft-002",
+      "topicId": "plunger",
+      "factText": "带褶皱的中段不只负责压缩空气，还能让一侧褶皱展开、另一侧收拢，使手柄改变角度时下端仍贴住排水口。",
+      "sourceIds": ["src-flex-angle-plunger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "plunger-draft-003",
+      "topicId": "plunger",
+      "factText": "有些皮搋子在波纹筒下方叠放三个直径逐级减小的环形密封面，让不同大小的马桶、洗手池排水口都能找到贴合位置。",
+      "sourceIds": ["src-three-seal-plunger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

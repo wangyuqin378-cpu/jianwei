@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "feather_duster",
+  "displayName": "鸡毛掸子",
+  "category": "cleaning",
+  "aliases": ["feather duster", "ostrich feather duster", "鸡毛掸子", "羽毛掸子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-retractable-feather-duster",
+      "title": "US4227278A: Retractable feather duster",
+      "url": "https://patents.google.com/patent/US4227278A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-directed-feather-duster",
+      "title": "US6254691B1: Feather duster and dusting method",
+      "url": "https://patents.google.com/patent/US6254691B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-layered-feather-duster",
+      "title": "US3162880A: Layered feather duster",
+      "url": "https://patents.google.com/patent/US3162880A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "feather-duster-draft-001",
+      "topicId": "feather_duster",
+      "factText": "一种羽毛掸子把羽轴分成等距同心环，并让插塞沿管状手柄滑动；不用时，整束羽毛可缩回外壳防止折损。",
+      "sourceIds": ["src-retractable-feather-duster"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "feather-duster-draft-002",
+      "topicId": "feather_duster",
+      "factText": "羽轴天然带弧度；一种掸子把弯曲方向统一，使羽毛以较长侧面接触桌面，并在越过边缘时把灰尘导向下方。",
+      "sourceIds": ["src-directed-feather-duster"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "feather-duster-draft-003",
+      "topicId": "feather_duster",
+      "factText": "一种复合掸子把较硬羽毛夹在两圈较软羽毛之间：硬层提供清理力，软层增加柔顺性并保护硬羽不易折断。",
+      "sourceIds": ["src-layered-feather-duster"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "correctionId": "2026-07-19-cast-iron-source-01",
+  "baseCatalogVersion": "2026-07-19-beta.32",
+  "nextCatalogVersion": "2026-07-19-beta.33",
+  "expectedCatalogSha256": "be58a47b60ef4e0e77823fd76a4beeeb720ce0b88779ccc1f2c0511dd7af43f3",
+  "drafts": [
+    "knowledge/drafts/cast_iron_pan_correction_01.json"
+  ]
+}

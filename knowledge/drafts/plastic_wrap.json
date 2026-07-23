@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "plastic_wrap",
+  "displayName": "保鲜膜",
+  "category": "tableware",
+  "aliases": ["plastic wrap", "cling film", "保鲜膜"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-plastic-wrap-textured-dispenser",
+      "title": "US5186376A: Plastic wrap dispenser",
+      "url": "https://patents.google.com/patent/US5186376A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-plastic-wrap-slide-cutter",
+      "title": "US5768968A: Plastic film food wrap dispenser",
+      "url": "https://patents.google.com/patent/US5768968A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-plastic-wrap-multilayer-extrusion",
+      "title": "US6265055B1: Multilayer stretch cling film",
+      "url": "https://patents.google.com/patent/US6265055B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "plastic-wrap-draft-001",
+      "topicId": "plastic_wrap",
+      "factText": "保鲜膜盒里的承托面有时故意做成肋条或粗糙纹理，减少薄膜与平面的连续接触，避免抽出的膜先黏回盒底。",
+      "sourceIds": ["src-plastic-wrap-textured-dispenser"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "plastic-wrap-draft-002",
+      "topicId": "plastic_wrap",
+      "factText": "滑刀式保鲜膜盒让小刀片沿整卷宽度横向移动；薄膜先铺在支撑面上，再由刀片走完一趟形成较整齐的切口。",
+      "sourceIds": ["src-plastic-wrap-slide-cutter"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "plastic-wrap-draft-003",
+      "topicId": "plastic_wrap",
+      "factText": "有些黏性包装薄膜不是单层片材，而是把外层与多层芯材一起吹膜或流延挤出；各层可分别承担黏附、强度和拉伸性能。",
+      "sourceIds": ["src-plastic-wrap-multilayer-extrusion"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

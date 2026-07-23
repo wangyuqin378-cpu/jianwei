@@ -1,0 +1,8 @@
+packages:
+  - "."
+
+# Windows managed sandboxes can block junction creation; a hoisted layout keeps local CI reproducible.
+nodeLinker: hoisted
+
+allowBuilds:
+  esbuild: true

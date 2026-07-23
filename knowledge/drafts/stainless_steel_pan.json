@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "stainless_steel_pan",
+  "displayName": "不锈钢锅",
+  "category": "tableware",
+  "aliases": ["stainless steel pan", "不锈钢锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-stainless-pan-impact-bonded-bottom",
+      "title": "US6082611A: Method of making multi-ply bottom of clad metal cookware",
+      "url": "https://patents.google.com/patent/US6082611A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-stainless-pan-three-layer-bottom",
+      "title": "CN201436943U: Stainless steel cookware",
+      "url": "https://patents.google.com/patent/CN201436943U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-stainless-pan-five-layer-sheet",
+      "title": "US7208231B2: Bonded metal components having uniform thermal conductivity characteristics",
+      "url": "https://patents.google.com/patent/US7208231B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "stainless-steel-pan-draft-001",
+      "topicId": "stainless_steel_pan",
+      "factText": "复合底不锈钢锅可以把铝板和外层不锈钢片叠在锅底，再用瞬时高压把它们压合到一起，压合范围还能延伸至锅底圆角。",
+      "sourceIds": ["src-stainless-pan-impact-bonded-bottom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "stainless-steel-pan-draft-002",
+      "topicId": "stainless_steel_pan",
+      "factText": "有些不锈钢锅只把锅底做成三层：内外两层是不锈钢，中间夹一层铝；这让外观和接触面仍是不锈钢，芯层承担横向导热。",
+      "sourceIds": ["src-stainless-pan-three-layer-bottom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "stainless-steel-pan-draft-003",
+      "topicId": "stainless_steel_pan",
+      "factText": "五层复合锅材还能在不锈钢芯两侧各轧合铝层，再覆内外不锈钢；外层若选铁磁性不锈钢，锅体便能与电磁感应加热配合。",
+      "sourceIds": ["src-stainless-pan-five-layer-sheet"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

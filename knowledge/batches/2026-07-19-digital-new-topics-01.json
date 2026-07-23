@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-digital-new-topics-01",
+  "baseCatalogVersion": "2026-07-19-beta.34",
+  "nextCatalogVersion": "2026-07-19-beta.35",
+  "drafts": [
+    "knowledge/drafts/camera_lens.json",
+    "knowledge/drafts/computer_fan.json",
+    "knowledge/drafts/e_reader.json"
+  ]
+}

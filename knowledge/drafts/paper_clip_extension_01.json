@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "paper_clip",
+  "displayName": "回形针",
+  "category": "tool",
+  "aliases": ["paper clip", "paperclip", "回形针"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-paperclip-patent",
+      "title": "US4949435A: Paper clip",
+      "url": "https://patents.google.com/patent/US4949435A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "paper-clip-draft-002",
+      "topicId": "paper_clip",
+      "factText": "一种回形针只用一根金属丝弯成：顶部直边连接两条侧边，末端再斜向折回并彼此交叠。",
+      "sourceIds": ["src-paperclip-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paper-clip-draft-003",
+      "topicId": "paper_clip",
+      "factText": "回形针看似没有弹簧零件，但顶部那段直钢丝可以充当扭转弹簧，为两侧夹持部分提供回弹力。",
+      "sourceIds": ["src-paperclip-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paper-clip-draft-004",
+      "topicId": "paper_clip",
+      "factText": "有些回形针把折回的自由端设计成平贴纸面，不伸出外框，目的是减少钢丝端头戳入纸张。",
+      "sourceIds": ["src-paperclip-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

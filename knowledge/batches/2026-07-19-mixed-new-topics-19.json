@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-mixed-new-topics-19",
+  "baseCatalogVersion": "2026-07-19-beta.48",
+  "nextCatalogVersion": "2026-07-19-beta.49",
+  "drafts": [
+    "knowledge/drafts/wall_clock.json",
+    "knowledge/drafts/wallet.json",
+    "knowledge/drafts/watering_can.json"
+  ]
+}

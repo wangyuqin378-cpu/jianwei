@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "iron",
+  "displayName": "熨斗",
+  "category": "cleaning",
+  "aliases": ["clothes iron", "steam iron", "熨斗", "蒸汽熨斗"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-dry-steam-iron",
+      "title": "US2387281A: Steam iron",
+      "url": "https://patents.google.com/patent/US2387281A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-multi-switch-iron-shutoff",
+      "title": "US5852279A: Clothes iron with multiple-switch automatic shutoff",
+      "url": "https://patents.google.com/patent/US5852279A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-progressive-valve-steam-iron",
+      "title": "US7395619B2: Steam iron",
+      "url": "https://patents.google.com/patent/US7395619B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "iron-draft-001",
+      "topicId": "iron",
+      "factText": "蒸汽熨斗把少量水送到靠近底板的蒸汽发生区，使水迅速汽化，再从底板孔口分布到织物；关闭供水后又能干熨。",
+      "sourceIds": ["src-dry-steam-iron"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "iron-draft-002",
+      "topicId": "iron",
+      "factText": "一种自动断电熨斗同时读取手柄和后跟开关，区分“正在握持”和“竖直放置”，并据此选择不同的计时周期。",
+      "sourceIds": ["src-multi-switch-iron-shutoff"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "iron-draft-003",
+      "topicId": "iron",
+      "factText": "一种蒸汽熨斗用可变开度的滑阀连续调节进水量，并由底板温度传感器参与控制，避免蒸汽量只靠固定档位。",
+      "sourceIds": ["src-progressive-valve-steam-iron"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

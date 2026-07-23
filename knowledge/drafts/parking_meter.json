@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "parking_meter",
+  "displayName": "停车计时器",
+  "category": "transport",
+  "aliases": ["parking meter", "停车计时器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-parking-meter-coin-clockwork",
+      "title": "US2070445A: Parking meter",
+      "url": "https://patents.google.com/patent/US2070445A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-parking-meter-solar-retrofit",
+      "title": "US20140289025A1: Parking meter and a device therefor",
+      "url": "https://patents.google.com/patent/US20140289025A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-parking-meter-multibay-control",
+      "title": "CA2588439C: Parking meter",
+      "url": "https://patents.google.com/patent/CA2588439C/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "parking-meter-draft-001",
+      "topicId": "parking_meter",
+      "factText": "1937 年的一种停车计时器会用投入的硬币给钟表机构上弦，在许可时段内显示指示标记，还能吐出一枚收据代币。",
+      "sourceIds": ["src-parking-meter-coin-clockwork"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "parking-meter-draft-002",
+      "topicId": "parking_meter",
+      "factText": "现代单车位计时器可同时收硬币、银行卡和电子钱包，用太阳能给电池充电并无线传输交易数据，还能装回旧表底座。",
+      "sourceIds": ["src-parking-meter-solar-retrofit"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "parking-meter-draft-003",
+      "topicId": "parking_meter",
+      "factText": "多车位停车计时器把车位选择键、显示屏、违规指示、支付单元和计时器接到微处理器，再通过无线链路交换数据。",
+      "sourceIds": ["src-parking-meter-multibay-control"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

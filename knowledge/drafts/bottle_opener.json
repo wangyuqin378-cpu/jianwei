@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bottle_opener",
+  "displayName": "开瓶器",
+  "category": "tableware",
+  "aliases": ["bottle opener", "cap opener", "开瓶器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bottle-opener-rolling-fulcrum",
+      "title": "US1490149A: Bottle opener",
+      "url": "https://patents.google.com/patent/US1490149A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bottle-opener-cap-retainer",
+      "title": "US2155947A: Bottle opener",
+      "url": "https://patents.google.com/patent/US2155947A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bottle-opener-ring-rocker",
+      "title": "US9114968B2: Grab opener for crown bottle caps",
+      "url": "https://patents.google.com/patent/US9114968B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bottle-opener-draft-001",
+      "topicId": "bottle_opener",
+      "factText": "经典皇冠盖开瓶器本质上是一根杠杆：前端卡住瓶盖下沿，邻近的凸面压在瓶盖顶面形成支点；抬动手柄时，卡口绕支点把卷边撬起。",
+      "sourceIds": ["src-bottle-opener-rolling-fulcrum"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bottle-opener-draft-002",
+      "topicId": "bottle_opener",
+      "factText": "有些开瓶器会在手柄内侧增加弹簧片：弹簧片与撬盖卡齿从两侧夹住瓶盖，因此瓶盖被撬离瓶口后仍留在工具上，不会立即掉落。",
+      "sourceIds": ["src-bottle-opener-cap-retainer"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bottle-opener-draft-003",
+      "topicId": "bottle_opener",
+      "factText": "指环式开瓶器把指环、指托、摇臂和反向钩做成一体；抓住瓶颈时，钩卡进瓶盖下沿，摇臂充当支点，手指动作就转成撬盖力矩。",
+      "sourceIds": ["src-bottle-opener-ring-rocker"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

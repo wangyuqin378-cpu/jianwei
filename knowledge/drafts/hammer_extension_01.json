@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "hammer",
+  "displayName": "锤子",
+  "category": "tool",
+  "aliases": ["hammer", "mallet", "锤子", "榔头"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-osha-hand-tools",
+      "title": "1926.301 Hand Tools",
+      "url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.301",
+      "publisher": "U.S. Occupational Safety and Health Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-osha-hand-power-tools",
+      "title": "Hand and Power Tools",
+      "url": "https://www.osha.gov/Publications/osha3080.pdf",
+      "publisher": "U.S. Occupational Safety and Health Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-ccohs-hammers",
+      "title": "Hand Tools - Hammers",
+      "url": "https://www.ccohs.ca/oshanswers/safety_haz/hand_tools/hammers.pdf",
+      "publisher": "Canadian Centre for Occupational Health and Safety",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hammer-draft-002",
+      "topicId": "hammer",
+      "factText": "使用前要检查锤柄是否松动、裂开或有木刺，锤头是否开裂、缺口或过度磨损；有这些问题应停用更换。",
+      "sourceIds": ["src-osha-hand-tools", "src-ccohs-hammers"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hammer-draft-003",
+      "topicId": "hammer",
+      "factText": "冲击工具的受击端出现蘑菇状卷边、裂口或缺口时，继续敲击可能飞出碎片，应先修整或停用并佩戴眼部防护。",
+      "sourceIds": ["src-osha-hand-power-tools", "src-ccohs-hammers"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

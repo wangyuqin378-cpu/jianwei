@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "subway_gate",
+  "displayName": "地铁闸机",
+  "category": "transport",
+  "aliases": ["subway gate", "地铁闸机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-subway-gate-ticket-validity",
+      "title": "US3579188A: Automatic ticket gate",
+      "url": "https://patents.google.com/patent/US3579188A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-subway-gate-contactless-card",
+      "title": "EP1913545A2: Method and system for using contactless payment cards in a transit system",
+      "url": "https://patents.google.com/patent/EP1913545A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-subway-gate-multimedia-hardware",
+      "title": "JP6545982B2: Automatic ticket gate",
+      "url": "https://patents.google.com/patent/JP6545982B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "subway-gate-draft-001",
+      "topicId": "subway_gate",
+      "factText": "早期自动闸机先暂存纸票并检查其中的信息，确认有效且乘客已从出口取回车票后，才联动机构允许通行。",
+      "sourceIds": ["src-subway-gate-ticket-validity"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "subway-gate-draft-002",
+      "topicId": "subway_gate",
+      "factText": "非接触式银行卡也能成为交通票证：符合通用近场标准的卡在闸机读卡器前轻触，由自动收费系统完成票款处理。",
+      "sourceIds": ["src-subway-gate-contactless-card"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "subway-gate-draft-003",
+      "topicId": "subway_gate",
+      "factText": "一组闸机通常由相对放置的两台机柜夹出通道，机内可同时容纳磁票处理器、IC 读卡区、显示屏、门翼和声音提示器。",
+      "sourceIds": ["src-subway-gate-multimedia-hardware"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

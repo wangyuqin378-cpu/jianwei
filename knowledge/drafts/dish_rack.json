@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dish_rack",
+  "displayName": "沥水架",
+  "category": "tableware",
+  "aliases": ["dish rack", "dish drainer", "碗碟架", "沥水架"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-dish-rack-sloped-expandable-tray",
+      "title": "US6179134B1: Expandable dish rack",
+      "url": "https://patents.google.com/patent/US6179134B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-dish-rack-two-shelf-stopper",
+      "title": "CA2551898C: Kitchen dish rack design improvement",
+      "url": "https://patents.google.com/patent/CA2551898C/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-dish-rack-diagonal-drainage",
+      "title": "US20110290747A1: Dish rack",
+      "url": "https://patents.google.com/patent/US20110290747A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dish-rack-draft-001",
+      "topicId": "dish_rack",
+      "factText": "有些碗碟架把底板做成连续斜面，让水只从前端狭缝流进下方抽拉托盘；托盘拉出后还能成为扩展沥水区，表面凸筋把餐具托离积水。",
+      "sourceIds": ["src-dish-rack-sloped-expandable-tray"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dish-rack-draft-002",
+      "topicId": "dish_rack",
+      "factText": "双层网格碗碟架可以让上层槽口比下层更长：盘子竖插进上层后，下层较窄的网格充当限位器，防止小直径器皿继续滑落。",
+      "sourceIds": ["src-dish-rack-two-shelf-stopper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dish-rack-draft-003",
+      "topicId": "dish_rack",
+      "factText": "紧凑型碗碟架会用平行隔板形成一排排放置槽，并把每个槽底的排水孔斜着布置；器皿由隔板分开，水则从各自槽道直接排走。",
+      "sourceIds": ["src-dish-rack-diagonal-drainage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

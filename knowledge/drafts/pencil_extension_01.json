@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "pencil",
+  "displayName": "铅笔",
+  "category": "tool",
+  "aliases": ["pencil", "铅笔"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-faber-pencil-production",
+      "title": "Pencil manufacturing through the ages",
+      "url": "https://www.faber-castell.com/corporate/history/production",
+      "publisher": "Faber-Castell",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-staedtler-pencil-guide",
+      "title": "Pencils and accessories for writing and drawing",
+      "url": "https://www.staedtler.com/us/en/products/pencils-and-accessories/",
+      "publisher": "STAEDTLER",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "pencil-draft-002",
+      "topicId": "pencil",
+      "factText": "常见木杆铅笔先把石墨、黏土和水制成笔芯并高温烧制，再把笔芯夹在两片开槽木板之间，粘合后切成单支铅笔。",
+      "sourceIds": ["src-faber-pencil-production", "src-staedtler-pencil-guide"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pencil-draft-003",
+      "topicId": "pencil",
+      "factText": "铅笔标号里的 H 表示硬、B 表示黑；H 前数字越大通常越硬，B 前数字越大通常越软、颜色越深，HB 位于中间。",
+      "sourceIds": ["src-staedtler-pencil-guide"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

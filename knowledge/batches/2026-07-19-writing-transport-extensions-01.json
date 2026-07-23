@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-writing-transport-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.23",
+  "nextCatalogVersion": "2026-07-19-beta.24",
+  "drafts": [
+    "knowledge/drafts/notebook_extension_01.json",
+    "knowledge/drafts/bicycle_bell_extension_01.json",
+    "knowledge/drafts/traffic_light_extension_01.json"
+  ]
+}

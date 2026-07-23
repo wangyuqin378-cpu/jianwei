@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-skeletons-04",
+  "baseCatalogVersion": "2026-07-18-beta.10",
+  "nextCatalogVersion": "2026-07-18-beta.11",
+  "drafts": [
+    "knowledge/drafts/scissors_extension_01.json",
+    "knowledge/drafts/screwdriver_extension_01.json",
+    "knowledge/drafts/tape_measure_extension_01.json",
+    "knowledge/drafts/spirit_level_extension_01.json",
+    "knowledge/drafts/pliers_extension_01.json",
+    "knowledge/drafts/wrench_extension_01.json",
+    "knowledge/drafts/stapler_extension_01.json"
+  ]
+}

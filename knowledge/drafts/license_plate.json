@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "license_plate",
+  "displayName": "车牌",
+  "category": "transport",
+  "aliases": ["license plate", "车牌"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-license-plate-retroreflective-security",
+      "title": "US6894615B2: Article with retroreflective and radio frequency-responsive features",
+      "url": "https://patents.google.com/patent/US6894615B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-license-plate-angle-security-mark",
+      "title": "EP2758813B1: Retroreflective articles including a security mark",
+      "url": "https://patents.google.com/patent/EP2758813B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-license-plate-laminated-manufacture",
+      "title": "US10365418B2: Retroreflective sheet, license plate, and manufacturing method thereof",
+      "url": "https://patents.google.com/patent/US10365418B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "license-plate-draft-001",
+      "topicId": "license_plate",
+      "factText": "许多车牌并非普通涂漆金属板，而是在基板上贴逆反射膜，让入射光大致沿原方向返回，并可同时嵌入方向性防伪图案。",
+      "sourceIds": ["src-license-plate-retroreflective-security"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "license-plate-draft-002",
+      "topicId": "license_plate",
+      "factText": "逆反射膜里的防伪标记可以随观察角度改变外观，同时把图案设计在不干扰可见光、红外或逆反射条件下读取字符的位置。",
+      "sourceIds": ["src-license-plate-angle-security-mark"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "license-plate-draft-003",
+      "topicId": "license_plate",
+      "factText": "车牌基板可用金属或树脂，贴上逆反射层后再压出凸字或凹字、着色，最后覆盖表面保护层形成完整牌面。",
+      "sourceIds": ["src-license-plate-laminated-manufacture"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".evaluation.AuthorizedImageEvaluationActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="见微授权图片评测（仅 Debug）" />
+    </application>
+</manifest>

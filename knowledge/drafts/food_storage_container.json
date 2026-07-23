@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "food_storage_container",
+  "displayName": "保鲜盒",
+  "category": "tableware",
+  "aliases": ["food storage container", "vacuum container", "保鲜盒"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-food-container-bellows-vacuum-lid",
+      "title": "US9725224B2: Vacuum sealing lid for food storage container",
+      "url": "https://patents.google.com/patent/US9725224B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-food-container-stacking-umbrella-valve",
+      "title": "US5405038A: Vacuum food container device",
+      "url": "https://patents.google.com/patent/US5405038A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-food-container-vacuum-indicator",
+      "title": "US11254479B2: Lid for a storage container",
+      "url": "https://patents.google.com/patent/US11254479B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "food-storage-container-draft-001",
+      "topicId": "food_storage_container",
+      "factText": "手压真空保鲜盒可以把波纹泵直接做在盒盖上：反复按压时，两只单向阀依次控制进气和排气，把盒内空气泵出；另一只释放阀负责恢复内外压力。",
+      "sourceIds": ["src-food-container-bellows-vacuum-lid"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "food-storage-container-draft-002",
+      "topicId": "food_storage_container",
+      "factText": "可堆叠真空盒会让盒底的环形凸起嵌入另一只盒盖的环形凹槽；盒盖中的伞形硅胶片只允许抽气方向弯起，反向则贴回阀座。",
+      "sourceIds": ["src-food-container-stacking-umbrella-valve"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "food-storage-container-draft-003",
+      "topicId": "food_storage_container",
+      "factText": "有些真空盒盖用一枚可变形的凸点显示内部压力：抽气后凸点被压低；当盒内真空明显减弱时，它会改变位置，让用户不用开盖就能观察状态。",
+      "sourceIds": ["src-food-container-vacuum-indicator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

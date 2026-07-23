@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "power_strip",
+  "displayName": "插线板",
+  "category": "digital",
+  "aliases": ["power strip", "extension socket", "插线板", "排插"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cpsc-extension-cords-power-strips",
+      "title": "Power Up With Safety: Extension Cords and Power Strips",
+      "url": "https://www.cpsc.gov/s3fs-public/ExtensionCordsPowerStrips.pdf",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-esfi-indoor-electrical-safety",
+      "title": "Indoor Electrical Safety Check",
+      "url": "https://www.esfi.org/wp-content/uploads/2021/08/Indoor-Electrical-Safety-Check-Booklet-3FB3.pdf",
+      "publisher": "Electrical Safety Foundation International",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-nfpa-educational-messages",
+      "title": "Educational Messages Desk Reference",
+      "url": "https://www.nfpa.org/-/media/project/storefront/catalog/files/home-fire-safety/emac/educationalmessagesdeskreference.pdf?rev=967564ad45c84627bb02b5baef0dc12c",
+      "publisher": "National Fire Protection Association",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "power-strip-draft-002",
+      "topicId": "power_strip",
+      "factText": "插线板只是把同一回路分成更多插孔，并不会增加回路容量；接入设备总功率仍不能超过插线板和回路额定值。",
+      "sourceIds": ["src-cpsc-extension-cords-power-strips", "src-esfi-indoor-electrical-safety"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "power-strip-draft-003",
+      "topicId": "power_strip",
+      "factText": "选购插线板时应看独立检测机构认证和内部过载保护；外壳、插头或电线发热、变色、破损时应立即停用。",
+      "sourceIds": ["src-cpsc-extension-cords-power-strips", "src-nfpa-educational-messages"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

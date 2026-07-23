@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hand_fan",
+  "displayName": "手扇",
+  "category": "home",
+  "aliases": ["hand fan", "folding fan", "手扇", "折扇"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hand-fan-pivot-rivet",
+      "title": "US2449701A: Folding hand fan",
+      "url": "https://patents.google.com/patent/US2449701A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hand-fan-guards-ribs-leaves",
+      "title": "US7128531B1: Automatic hand fans",
+      "url": "https://patents.google.com/patent/US7128531B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hand-fan-opening-stop",
+      "title": "US2435446A: Folding fan",
+      "url": "https://patents.google.com/patent/US2435446A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hand-fan-draft-001",
+      "topicId": "hand_fan",
+      "factText": "折扇能收成窄条，是因为多个扇片的小端叠在同一轴心，并由空心铆钉贯穿；展开时各片只需绕铆钉相对旋转。",
+      "sourceIds": ["src-hand-fan-pivot-rivet"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hand-fan-draft-002",
+      "topicId": "hand_fan",
+      "factText": "传统折扇的扇面不是独自受力：一排扇骨和细肋托住扇叶，最外侧两根较厚的护骨则在合拢后夹住并保护整叠扇面。",
+      "sourceIds": ["src-hand-fan-guards-ribs-leaves"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hand-fan-draft-003",
+      "topicId": "hand_fan",
+      "factText": "扇片并非可以无限旋开；轴心上方的限位铆钉或止挡件会约束相邻扇片的角度，让展开后的各片保持设计好的重叠量。",
+      "sourceIds": ["src-hand-fan-opening-stop"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

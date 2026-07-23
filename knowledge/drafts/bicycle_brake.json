@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bicycle_brake",
+  "displayName": "自行车刹车",
+  "category": "transport",
+  "aliases": ["bicycle brake", "bike brake", "自行车刹车", "自行车制动器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cpsc-bicycle-guidance",
+      "title": "CPSC: Bicycle Requirements Business Guidance",
+      "url": "https://www.cpsc.gov/content/bicycle-requirements-business-guidance",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cpsc-bicycle-standards-summary",
+      "title": "CPSC: Summary of Electric and Non-Powered Bicycle Standards",
+      "url": "https://www.cpsc.gov/s3fs-public/Electric-and-Non-Powered-Bicycle-Standards-Summary-Report.pdf",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bicycle-brake-draft-001",
+      "topicId": "bicycle_brake",
+      "factText": "美国 CPSC 把自行车制动分为手制动和脚踏或倒蹬制动，并分别规定强度与停车性能，因此“有刹车”不等于已经符合要求。",
+      "sourceIds": ["src-cpsc-bicycle-guidance", "src-cpsc-bicycle-standards-summary"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-brake-draft-002",
+      "topicId": "bicycle_brake",
+      "factText": "手刹测试不仅看能否产生制动力，还会施加载荷并检验规定速度下的停车表现，过程中部件不得断裂、失效或错位。",
+      "sourceIds": ["src-cpsc-bicycle-guidance", "src-cpsc-bicycle-standards-summary"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-brake-draft-003",
+      "topicId": "bicycle_brake",
+      "factText": "倒蹬刹车通过向骑行相反方向踩踏来制动；相关标准会检查制动力、传动强度和规定条件下的停车性能。",
+      "sourceIds": ["src-cpsc-bicycle-guidance", "src-cpsc-bicycle-standards-summary"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

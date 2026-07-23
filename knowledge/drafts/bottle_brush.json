@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bottle_brush",
+  "displayName": "瓶刷",
+  "category": "cleaning",
+  "aliases": ["bottle brush", "bottle cleaning brush", "瓶刷", "奶瓶刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-shaped-bottle-brush",
+      "title": "US3862461A: Brush for cleaning a bottle",
+      "url": "https://patents.google.com/patent/US3862461A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-flexible-finger-bottle-brush",
+      "title": "US20240341460A1: Bottle brush with flexible cleaning elements",
+      "url": "https://patents.google.com/patent/US20240341460A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-reservoir-bottle-brush",
+      "title": "US20070274762A1: Nonabrasive bottle brush",
+      "url": "https://patents.google.com/patent/US20070274762A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bottle-brush-draft-001",
+      "topicId": "bottle_brush",
+      "factText": "一种瓶刷把刷毛分成圆柱段、渐宽的锥台段和向下斜出的底刷，旋转时可同时触及瓶壁、瓶底与底角。",
+      "sourceIds": ["src-shaped-bottle-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bottle-brush-draft-002",
+      "topicId": "bottle_brush",
+      "factText": "有些瓶刷不用传统硬刷毛，而用大于瓶身半径的柔性指片；插入后指片弯曲贴住内壁，以较平滑表面减少刮伤。",
+      "sourceIds": ["src-flexible-finger-bottle-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bottle-brush-draft-003",
+      "topicId": "bottle_brush",
+      "factText": "一种奶瓶刷把清洁液储槽藏在手柄中，由导管送到刷头末端；尾塞的凹槽里还收纳了更细小的奶嘴刷。",
+      "sourceIds": ["src-reservoir-bottle-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

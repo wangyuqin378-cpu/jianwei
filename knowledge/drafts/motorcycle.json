@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "motorcycle",
+  "displayName": "摩托车",
+  "category": "transport",
+  "aliases": ["motorcycle", "摩托车"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-motorcycle-unit-swing-engine",
+      "title": "EP0581318A2: Frame structure for motorcycle",
+      "url": "https://patents.google.com/patent/EP0581318A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-motorcycle-frame-engine-structure",
+      "title": "US10710666B2: Motorcycle frame",
+      "url": "https://patents.google.com/patent/US10710666B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-motorcycle-wheel-suspension",
+      "title": "US7121570B2: Rear suspension for a motorcycle",
+      "url": "https://patents.google.com/patent/US7121570B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "motorcycle-draft-001",
+      "topicId": "motorcycle",
+      "factText": "踏板摩托车常把发动机与传动装置合成可摆动单元；若发动机侧支架独立可拆，同一发动机更容易适配不同车架型号。",
+      "sourceIds": ["src-motorcycle-unit-swing-engine"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "motorcycle-draft-002",
+      "topicId": "motorcycle",
+      "factText": "一种摩托车架让左右前主梁从车头管延伸到发动机固定点，再接续后主梁；发动机因此也参与连接车架前后结构。",
+      "sourceIds": ["src-motorcycle-frame-engine-structure"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "motorcycle-draft-003",
+      "topicId": "motorcycle",
+      "factText": "摩托车前后悬架让车轮相对车身上下移动，弹簧承担载荷，阻尼器控制振动，两者通常合称减震器。",
+      "sourceIds": ["src-motorcycle-wheel-suspension"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

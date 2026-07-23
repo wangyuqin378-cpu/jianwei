@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "camera",
+  "displayName": "相机",
+  "category": "digital",
+  "aliases": ["camera", "相机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-camera-nsmm-daguerreotype",
+      "title": "Faster photographs: Electroplate and the daguerreotype",
+      "url": "https://www.scienceandmediamuseum.org.uk/objects-and-stories/faster-photographs-electroplate-daguerrotype",
+      "publisher": "National Science and Media Museum",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "camera-draft-001",
+      "topicId": "camera",
+      "factText": "达盖尔银版是最早一批摄影工艺之一，由法国人路易·达盖尔在1839年公布。",
+      "sourceIds": ["src-camera-nsmm-daguerreotype"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "camera-draft-002",
+      "topicId": "camera",
+      "factText": "银版照片形成在高度抛光的金属板上，通常是在铜板表面覆银；银层的材料质量会直接影响成像效果。",
+      "sourceIds": ["src-camera-nsmm-daguerreotype"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "camera-draft-003",
+      "topicId": "camera",
+      "factText": "19世纪40年代，电镀逐步替代费工的银层包覆工艺，让银版材料更便宜，也改变了感光板的材料特性。",
+      "sourceIds": ["src-camera-nsmm-daguerreotype"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

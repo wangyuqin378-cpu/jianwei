@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-skeletons-02",
+  "baseCatalogVersion": "2026-07-18-beta.8",
+  "nextCatalogVersion": "2026-07-18-beta.9",
+  "drafts": [
+    "knowledge/drafts/zipper_extension_01.json",
+    "knowledge/drafts/thermos_extension_01.json",
+    "knowledge/drafts/paper_clip_extension_01.json",
+    "knowledge/drafts/ballpoint_pen_extension_01.json"
+  ]
+}

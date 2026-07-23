@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "screwdriver",
+  "displayName": "螺丝刀",
+  "category": "tool",
+  "aliases": ["screwdriver", "螺丝刀", "起子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ratchet-screwdriver-patent",
+      "title": "US4777852A: Ratcheting screwdriver",
+      "url": "https://patents.google.com/patent/US4777852A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "screwdriver-draft-002",
+      "topicId": "screwdriver",
+      "factText": "棘轮螺丝刀的轴连着带齿圆环，棘爪咬住齿面时可在一个方向传递扭矩，反向转手柄则越齿空回。",
+      "sourceIds": ["src-ratchet-screwdriver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "screwdriver-draft-003",
+      "topicId": "screwdriver",
+      "factText": "双向棘轮结构会在齿轮两侧放置两个棘爪；拨动选择器让其中一侧退出，就能改变允许空回的方向。",
+      "sourceIds": ["src-ratchet-screwdriver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "screwdriver-draft-004",
+      "topicId": "screwdriver",
+      "factText": "一些棘轮螺丝刀还有锁定档：让两侧棘爪都参与啮合后，手柄和刀轴会像普通螺丝刀一样双向同步转动。",
+      "sourceIds": ["src-ratchet-screwdriver-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

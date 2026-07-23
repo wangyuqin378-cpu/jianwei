@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "stapler",
+  "displayName": "订书机",
+  "category": "tool",
+  "aliases": ["stapler", "订书机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-stapler-patent",
+      "title": "US8297485B2: Stapler",
+      "url": "https://patents.google.com/patent/US8297485B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "stapler-draft-002",
+      "topicId": "stapler",
+      "factText": "桌面订书机其实有三层活动件：底部承砧臂、中间钉匣和上方压钉臂，三者在后端围绕横轴转动。",
+      "sourceIds": ["src-stapler-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "stapler-draft-003",
+      "topicId": "stapler",
+      "factText": "按下订书机时，上方驱动片先把最前端订书钉推过钉匣出口，钉脚穿过纸张后才接触底座承砧。",
+      "sourceIds": ["src-stapler-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "stapler-draft-004",
+      "topicId": "stapler",
+      "factText": "手持订书时会产生横向力；一种设计在底座与钉匣之间加入纵向导向件，限制两者侧向错位。",
+      "sourceIds": ["src-stapler-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

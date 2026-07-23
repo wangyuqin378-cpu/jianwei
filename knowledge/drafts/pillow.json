@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "pillow",
+  "displayName": "枕头",
+  "category": "home",
+  "aliases": ["pillow", "bed pillow", "枕头", "睡枕"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-pillow-gusset-sidewall",
+      "title": "US20170071373A1: Pillow with gusset and open cell construction",
+      "url": "https://patents.google.com/patent/US20170071373A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-pillow-adjustable-bladder",
+      "title": "US8205282B2: Pillow with air bladder insert",
+      "url": "https://patents.google.com/patent/US8205282B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-pillow-fill-production",
+      "title": "US20200131023A1: Pillow fill machine",
+      "url": "https://patents.google.com/patent/US20200131023A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "pillow-draft-001",
+      "topicId": "pillow",
+      "factText": "带侧围的枕头不是把两片布直接沿边缝合，而是在上下布片之间加入一圈窄条；这圈立体侧壁让枕体更容易保持矩形厚度。",
+      "sourceIds": ["src-pillow-gusset-sidewall"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pillow-draft-002",
+      "topicId": "pillow",
+      "factText": "可调枕芯可以在填充物旁加入含碎泡棉的气囊；打开阀门并按压会改变囊内空气量，关阀后则保持选定体积。",
+      "sourceIds": ["src-pillow-adjustable-bladder"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pillow-draft-003",
+      "topicId": "pillow",
+      "factText": "量产枕芯的填充会先把纤维开松或把泡棉切碎，再在称重仓定量；真空输送把松散材料送进枕套，减少填充物在车间飘散。",
+      "sourceIds": ["src-pillow-fill-production"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

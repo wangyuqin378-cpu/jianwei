@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "clamp",
+  "displayName": "夹钳",
+  "category": "tool",
+  "aliases": ["clamp", "夹钳"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-clamp-spring-quick-setup",
+      "title": "US6568667B1: Quick setup apparatus for bar clamp operated with one hand",
+      "url": "https://patents.google.com/patent/US6568667B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-clamp-wedge-reversible",
+      "title": "US6386530B1: Quick action clamp",
+      "url": "https://patents.google.com/patent/US6386530B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-clamp-lever-spindle",
+      "title": "DE19532573A1: Screw clamp for fast tensioning with one hand",
+      "url": "https://patents.google.com/patent/DE19532573A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "clamp-draft-001",
+      "topicId": "clamp",
+      "factText": "单手杆夹可在活动钳口后方放一根压缩弹簧和可调挡块：按下释放件时钳口先快速贴近工件，再用棘进机构施加夹紧力。",
+      "sourceIds": ["src-clamp-spring-quick-setup"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clamp-draft-002",
+      "topicId": "clamp",
+      "factText": "快速夹钳会让驱动楔片和锁定楔片以不同角度咬住导杆；部分结构把端部钳口反装后，还能从夹紧改成向外撑开。",
+      "sourceIds": ["src-clamp-wedge-reversible"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clamp-draft-003",
+      "topicId": "clamp",
+      "factText": "一种单手螺杆夹把快进扳杆布置在手柄周围，让手指先推动滑动钳口预夹，随后仍可旋转螺杆和压盘完成精细夹紧。",
+      "sourceIds": ["src-clamp-lever-spindle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

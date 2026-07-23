@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "lighter",
+  "displayName": "打火机",
+  "category": "home",
+  "aliases": ["lighter", "gas lighter", "打火机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-lighter-flint-wheel",
+      "title": "US3730671A: Cigarette-lighter flint wheel action",
+      "url": "https://patents.google.com/patent/US3730671A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-lighter-piezoelectric",
+      "title": "CA2765173C: Lighter with piezoelectric ignition",
+      "url": "https://patents.google.com/patent/CA2765173C/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-lighter-refill-valve",
+      "title": "US3217762A: Refill valve for gas lighter",
+      "url": "https://patents.google.com/patent/US3217762A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "lighter-draft-001",
+      "topicId": "lighter",
+      "factText": "砂轮打火机不是靠轮子自身发火：带纹齿的金属轮高速擦过被弹簧顶住的火石，刮下并点燃细小颗粒，形成一束火花。",
+      "sourceIds": ["src-lighter-flint-wheel"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "lighter-draft-002",
+      "topicId": "lighter",
+      "factText": "压电打火机的一次按压会联动两件事：杠杆开启燃气阀，压电发生器同时在喷嘴旁两电极之间产生短暂电弧。",
+      "sourceIds": ["src-lighter-piezoelectric"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "lighter-draft-003",
+      "topicId": "lighter",
+      "factText": "可充气打火机的加注口本质上是两道依次动作的阀门与密封圈；拔出气罐接头时，供气阀先关闭，随后才释放接口密封。",
+      "sourceIds": ["src-lighter-refill-valve"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hex_key",
+  "displayName": "内六角扳手",
+  "category": "tool",
+  "aliases": ["hex key", "Allen key", "内六角扳手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hex-key-ball-end-patterns",
+      "title": "US8640575B2: Ball end hex wrench",
+      "url": "https://patents.google.com/patent/US8640575B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hex-key-radial-foldout",
+      "title": "US20200353604A1: Hex key radial foldout hand tool",
+      "url": "https://patents.google.com/patent/US20200353604A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hex-key-magnetic-holder",
+      "title": "US20220379460A1: Magnetic hex key holder",
+      "url": "https://patents.google.com/patent/US20220379460A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hex-key-draft-001",
+      "topicId": "hex_key",
+      "factText": "球头内六角并不是简单磨圆：球面周围仍保留多段与螺钉孔接触的驱动面，并可在这些表面加入不同尺寸的咬合纹路。",
+      "sourceIds": ["src-hex-key-ball-end-patterns"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hex-key-draft-002",
+      "topicId": "hex_key",
+      "factText": "折叠式内六角组把多支不同尺寸的扳手装在共同转轴上；使用时某一支向外旋出，收纳时则沿手柄周围折回。",
+      "sourceIds": ["src-hex-key-radial-foldout"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hex-key-draft-003",
+      "topicId": "hex_key",
+      "factText": "磁性内六角收纳架会用弹性本体形成一排尺寸对应的槽位，再用磁体吸住钢制扳手，让单支工具能直接插拔而不易整组散落。",
+      "sourceIds": ["src-hex-key-magnetic-holder"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

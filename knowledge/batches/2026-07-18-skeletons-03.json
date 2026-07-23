@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-skeletons-03",
+  "baseCatalogVersion": "2026-07-18-beta.9",
+  "nextCatalogVersion": "2026-07-18-beta.10",
+  "drafts": [
+    "knowledge/drafts/computer_mouse_extension_01.json",
+    "knowledge/drafts/keyboard_extension_01.json",
+    "knowledge/drafts/door_hinge_extension_01.json",
+    "knowledge/drafts/flashlight_extension_01.json"
+  ]
+}

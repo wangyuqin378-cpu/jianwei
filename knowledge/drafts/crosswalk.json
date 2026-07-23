@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "crosswalk",
+  "displayName": "人行横道",
+  "category": "transport",
+  "aliases": ["crosswalk", "pedestrian crossing", "人行横道", "斑马线"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-mutcd-part-3",
+      "title": "FHWA: MUTCD 11th Edition Part 3",
+      "url": "https://mutcd.fhwa.dot.gov/pdfs/11th_Edition/part3.pdf",
+      "publisher": "Federal Highway Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-fhwa-crosswalk-report",
+      "title": "FHWA-HRT-04-100: Safety Effects of Marked Versus Unmarked Crosswalks",
+      "url": "https://www.fhwa.dot.gov/publications/research/safety/04100/04100.pdf",
+      "publisher": "Federal Highway Administration",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "crosswalk-draft-001",
+      "topicId": "crosswalk",
+      "factText": "人行横道标线用于界定行人穿越道路的路径，并提醒其他道路使用者注意交叉冲突，它不只是装饰性的白色条纹。",
+      "sourceIds": ["src-mutcd-part-3", "src-fhwa-crosswalk-report"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "crosswalk-draft-002",
+      "topicId": "crosswalk",
+      "factText": "人行横道既可用两条横向边界线，也可用沿车辆行进方向排列的高可见度纵向条纹；不同图案承担同一通行路径提示。",
+      "sourceIds": ["src-mutcd-part-3", "src-fhwa-crosswalk-report"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "crosswalk-draft-003",
+      "topicId": "crosswalk",
+      "factText": "美国现行 MUTCD 要求人行横道至少约 1.8 米宽，标线横跨需要行人通过的车道路面；高速路段还会要求更宽。",
+      "sourceIds": ["src-mutcd-part-3", "src-fhwa-crosswalk-report"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

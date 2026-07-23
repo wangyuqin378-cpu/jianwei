@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wall_clock",
+  "displayName": "挂钟",
+  "category": "home",
+  "aliases": ["wall clock", "quartz wall clock", "挂钟"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wall-clock-quartz-motor",
+      "title": "CN205750308U: Fastening type quartz wall clock",
+      "url": "https://patents.google.com/patent/CN205750308U/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wall-clock-decorative-pendulum",
+      "title": "US4720820A: Clock with analog time indicating devices",
+      "url": "https://patents.google.com/patent/US4720820A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wall-clock-calendar-cam",
+      "title": "US9323224B2: Wall clock with perpetual calendar mechanism",
+      "url": "https://patents.google.com/patent/US9323224B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wall-clock-draft-001",
+      "topicId": "wall_clock",
+      "factText": "石英挂钟先利用石英振荡器产生稳定频率，再由分频电路把节拍降下来，按固定间隔驱动小电机和齿轮，最后才带动指针。",
+      "sourceIds": ["src-wall-clock-quartz-motor"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wall-clock-draft-002",
+      "topicId": "wall_clock",
+      "factText": "有些现代“摆钟”的摆锤并不负责计时，只是装饰运动；真正的时基来自石英系统，摆锤另由脉冲和耦合机构维持摆动。",
+      "sourceIds": ["src-wall-clock-decorative-pendulum"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wall-clock-draft-003",
+      "topicId": "wall_clock",
+      "factText": "机械式万年历挂钟可用一只带 48 个深浅槽的凸轮记录四年月份长度；触针读到不同槽深，再触发月底日期修正和闰年调整。",
+      "sourceIds": ["src-wall-clock-calendar-cam"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

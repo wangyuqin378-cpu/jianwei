@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-04",
+  "baseCatalogVersion": "2026-07-19-beta.30",
+  "nextCatalogVersion": "2026-07-19-beta.31",
+  "drafts": [
+    "knowledge/drafts/lint_roller.json",
+    "knowledge/drafts/microfiber_cloth.json",
+    "knowledge/drafts/nail_brush.json"
+  ]
+}

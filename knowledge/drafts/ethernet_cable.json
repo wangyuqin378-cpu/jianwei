@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "ethernet_cable",
+  "displayName": "网线",
+  "category": "digital",
+  "aliases": ["Ethernet cable", "网线"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ethernet-ieee-navigator",
+      "title": "Ethernet",
+      "url": "https://technav.ieee.org/topic/ethernet/",
+      "publisher": "IEEE",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-ethernet-ieee-50-years",
+      "title": "Ethernet Through the Years: Celebrating the Technology's 50th Year of Innovation",
+      "url": "https://standards.ieee.org/beyond-standards/ethernet-50th-anniversary/",
+      "publisher": "IEEE Standards Association",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "ethernet-cable-draft-001",
+      "topicId": "ethernet_cable",
+      "factText": "以太网最早由Robert Metcalfe等人在施乐PARC于1973年开发，1983年被IEEE采纳为802.3标准。",
+      "sourceIds": ["src-ethernet-ieee-navigator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ethernet-cable-draft-002",
+      "topicId": "ethernet_cable",
+      "factText": "最初的IEEE 802.3对应10BASE-5：10表示10 Mbps，BASE表示基带传输，5表示单段最长约500米。",
+      "sourceIds": ["src-ethernet-ieee-navigator", "src-ethernet-ieee-50-years"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ethernet-cable-draft-003",
+      "topicId": "ethernet_cable",
+      "factText": "以太网并不等于某一种铜质网线，它是一系列局域网物理层和数据链路层规范，传输介质也可以是双绞线、多模或单模光纤。",
+      "sourceIds": ["src-ethernet-ieee-navigator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

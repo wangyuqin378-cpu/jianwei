@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "light_switch",
+  "displayName": "电灯开关",
+  "category": "home",
+  "aliases": ["light switch", "wall switch", "电灯开关", "墙壁开关"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-light-switch-toggle-actuator",
+      "title": "US10559438B2: Toggle switch actuating mechanism",
+      "url": "https://patents.google.com/patent/US10559438B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-light-switch-snap-action",
+      "title": "US2798127A: Toggle switch mechanism",
+      "url": "https://patents.google.com/patent/US2798127A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-light-switch-rocker-contacts",
+      "title": "US4148002A: Electric switches",
+      "url": "https://patents.google.com/patent/US4148002A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "light-switch-draft-001",
+      "topicId": "light_switch",
+      "factText": "拨动式开关的外部小杆绕轴转动，内部驱动针、弹簧和凸轮随之移动；它们把手指的长行程转换成触点机构的确定位置。",
+      "sourceIds": ["src-light-switch-toggle-actuator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "light-switch-draft-002",
+      "topicId": "light_switch",
+      "factText": "开关发出的清脆“咔哒”来自速动机构：弹簧越过临界点后会快速推走触点，避免触点因手指慢慢拨动而长时间悬在近接位置。",
+      "sourceIds": ["src-light-switch-snap-action"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "light-switch-draft-003",
+      "topicId": "light_switch",
+      "factText": "翘板开关内部有固定触点和装在弹片上的活动触点；按压翘板时，随动凸轮压弯弹片，让两触点接触或分离。",
+      "sourceIds": ["src-light-switch-rocker-contacts"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

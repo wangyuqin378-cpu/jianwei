@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "correctionId": "2026-07-19-safety-sources-01",
+  "baseCatalogVersion": "2026-07-19-beta.14",
+  "nextCatalogVersion": "2026-07-19-beta.15",
+  "expectedCatalogSha256": "b20645159e1bd012a709ae170815e5d3e75c0aa60f4f38ab31d933b13a02e2d7",
+  "drafts": [
+    "knowledge/drafts/power_bank.json",
+    "knowledge/drafts/car_tire.json"
+  ]
+}

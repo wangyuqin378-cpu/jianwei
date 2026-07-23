@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "measuring_spoon",
+  "displayName": "量勺",
+  "category": "tableware",
+  "aliases": ["measuring spoon", "量勺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-measuring-spoon-sliding-dam",
+      "title": "US9103708B2: Adjustable measuring device",
+      "url": "https://patents.google.com/patent/US9103708B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-measuring-spoon-flexible-hinge",
+      "title": "US7607348B2: Measuring device",
+      "url": "https://patents.google.com/patent/US7607348B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-measuring-spoon-pivot-gate",
+      "title": "US6125699A: Adjustable measuring spoon",
+      "url": "https://patents.google.com/patent/US6125699A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "measuring-spoon-draft-001",
+      "topicId": "measuring_spoon",
+      "factText": "可调量勺能让一块贴合勺壁的挡板沿勺身滑动；挡板对准手柄刻度时，前方留下的空间就是对应的近似计量容积。",
+      "sourceIds": ["src-measuring-spoon-sliding-dam"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "measuring-spoon-draft-002",
+      "topicId": "measuring_spoon",
+      "factText": "量勺也可以用柔性勺碗和一圈薄铰链来换挡：按压后勺碗翻成另一种形状，同一只勺便得到不同的固定容量。",
+      "sourceIds": ["src-measuring-spoon-flexible-hinge"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "measuring-spoon-draft-003",
+      "topicId": "measuring_spoon",
+      "factText": "还有一种量勺把隔板做成可绕轴转动的闸门；闸门停在不同刻度位置，就会截出不同大小的盛料空间。",
+      "sourceIds": ["src-measuring-spoon-pivot-gate"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

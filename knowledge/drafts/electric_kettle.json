@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "electric_kettle",
+  "displayName": "电热水壶",
+  "category": "tableware",
+  "aliases": ["electric kettle", "cordless kettle", "电热水壶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-electric-kettle-steam-bimetal-switch",
+      "title": "US6914514B2: Switch for water boiling appliance such as a kettle",
+      "url": "https://patents.google.com/patent/US6914514B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-electric-kettle-removable-base-control",
+      "title": "US7145105B2: Electric kettle",
+      "url": "https://patents.google.com/patent/US7145105B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-electric-kettle-360-connector",
+      "title": "GB2372159A: Cordless kettle connector with bimetallic overtemperature controls",
+      "url": "https://patents.google.com/patent/GB2372159A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "electric-kettle-draft-001",
+      "topicId": "electric_kettle",
+      "factText": "电热水壶的沸腾断电可以由蒸汽触发：蒸汽经通道吹到双金属片，金属片受热变形并推动密封推杆，推杆再让一对电触点分开。",
+      "sourceIds": ["src-electric-kettle-steam-bimetal-switch"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "electric-kettle-draft-002",
+      "topicId": "electric_kettle",
+      "factText": "分体式电热水壶把外部电源接在底座上，壶身带加热器和配对触点；壶放回底座后两组触点接合，提起壶身则同时完成机械分离和断电。",
+      "sourceIds": ["src-electric-kettle-removable-base-control"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "electric-kettle-draft-003",
+      "topicId": "electric_kettle",
+      "factText": "所谓“360 度底座”来自壶底和底座上的同心连接器：触点围绕中心轴配合，因此壶身不必对准固定朝向，也能落在底座上完成供电连接。",
+      "sourceIds": ["src-electric-kettle-360-connector"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

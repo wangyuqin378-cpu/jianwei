@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-transport-safety-new-topics-31",
+  "baseCatalogVersion": "2026-07-19-beta.60",
+  "nextCatalogVersion": "2026-07-19-beta.61",
+  "drafts": [
+    "knowledge/drafts/airbag.json",
+    "knowledge/drafts/bicycle_brake.json",
+    "knowledge/drafts/car_headrest.json",
+    "knowledge/drafts/crosswalk.json",
+    "knowledge/drafts/fuel_nozzle.json"
+  ]
+}

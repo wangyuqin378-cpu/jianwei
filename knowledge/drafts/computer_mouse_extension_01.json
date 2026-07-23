@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "computer_mouse",
+  "displayName": "鼠标",
+  "category": "digital",
+  "aliases": ["computer mouse", "mouse", "鼠标"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-mouse-engelbart-patent",
+      "title": "US3541541A: X-Y position indicator for a display system",
+      "url": "https://patents.google.com/patent/US3541541A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "computer-mouse-draft-002",
+      "topicId": "computer_mouse",
+      "factText": "早期机械鼠标底部有两只轴线互相垂直的滚轮：一只记录横向位移，另一只记录与它垂直的纵向位移。",
+      "sourceIds": ["src-mouse-engelbart-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "computer-mouse-draft-003",
+      "topicId": "computer_mouse",
+      "factText": "两只测量滚轮之外，原始鼠标还用一个不负责测量的滚珠轴承作为第三个支点，让外壳稳定贴在桌面。",
+      "sourceIds": ["src-mouse-engelbart-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "computer-mouse-draft-004",
+      "topicId": "computer_mouse",
+      "factText": "原始设计把滚轮旋转转换成电位器阻值变化，再由计算机读取横纵信号，让屏幕光标跟随桌面上的移动。",
+      "sourceIds": ["src-mouse-engelbart-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

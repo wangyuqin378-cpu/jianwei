@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "kitchen_tongs",
+  "displayName": "食物夹",
+  "category": "tableware",
+  "aliases": ["kitchen tongs", "food tongs", "食物夹"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-kitchen-tongs-intermediate-lock",
+      "title": "US8662547B2: Locking tongs",
+      "url": "https://patents.google.com/patent/US8662547B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-tongs-sleeve-closure",
+      "title": "US8979147B1: Kitchen tongs",
+      "url": "https://patents.google.com/patent/US8979147B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-kitchen-tongs-dual-edge-lock-plate",
+      "title": "US7448660B2: Tongs with encapsulated locking mechanism",
+      "url": "https://patents.google.com/patent/US7448660B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "kitchen-tongs-draft-001",
+      "topicId": "kitchen_tongs",
+      "factText": "食物夹的锁不一定只有“全开”和“全关”：弹簧偏置的锁块可以在第二位置限制两臂继续张开，让夹口停在介于收拢与完全展开之间的宽度。",
+      "sourceIds": ["src-kitchen-tongs-intermediate-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-tongs-draft-002",
+      "topicId": "kitchen_tongs",
+      "factText": "套筒锁食物夹会让锁套沿两臂靠近转轴处的内弯轮廓滑动，滑到末端就把两臂束拢；套筒通道尾部还可加杯形封口，挡住汁液继续流向转轴。",
+      "sourceIds": ["src-kitchen-tongs-sleeve-closure"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "kitchen-tongs-draft-003",
+      "topicId": "kitchen_tongs",
+      "factText": "同一只夹头可以一侧做较大的波浪缺口、另一侧做细密锯齿，分别接触宽大和细小食材；锁片则藏在包住转轴的柄体内部滑动。",
+      "sourceIds": ["src-kitchen-tongs-dual-edge-lock-plate"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

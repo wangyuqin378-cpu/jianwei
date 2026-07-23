@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "speaker",
+  "displayName": "扬声器",
+  "category": "digital",
+  "aliases": ["speaker", "loudspeaker", "扬声器", "音箱"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-dynamic-loudspeaker-driver",
+      "title": "US4297537A: Dynamic loudspeaker",
+      "url": "https://patents.google.com/patent/US4297537A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bass-reflex-port",
+      "title": "US6275597B1: Loudspeaker system having a bass-reflex port",
+      "url": "https://patents.google.com/patent/US6275597B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-loudspeaker-passive-radiator",
+      "title": "US11425489B2: Passive radiator and loudspeaker system",
+      "url": "https://patents.google.com/patent/US11425489B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "speaker-draft-001",
+      "topicId": "speaker",
+      "factText": "动圈扬声器把载流音圈放在环形磁隙中；交变电流使音圈来回运动，音圈再推动相连的振膜或纸盆振动空气。",
+      "sourceIds": ["src-dynamic-loudspeaker-driver"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "speaker-draft-002",
+      "topicId": "speaker",
+      "factText": "倒相孔本质上是一根连通箱体内外的管道；箱体容积、管长与截面积共同决定共振频率，用来增强低频输出。",
+      "sourceIds": ["src-bass-reflex-port"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "speaker-draft-003",
+      "topicId": "speaker",
+      "factText": "被动振膜有振盆和悬边，却没有音圈与磁体；主动单元改变密闭箱内气压时，它被带动振动并补充低频辐射。",
+      "sourceIds": ["src-loudspeaker-passive-radiator"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

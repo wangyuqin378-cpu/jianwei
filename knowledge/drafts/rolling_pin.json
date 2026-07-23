@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rolling_pin",
+  "displayName": "擀面杖",
+  "category": "tableware",
+  "aliases": ["rolling pin", "擀面杖"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rolling-pin-bearing-handles",
+      "title": "US724023A: Rolling-pin",
+      "url": "https://patents.google.com/patent/US724023A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rolling-pin-offset-discs",
+      "title": "US7854696B2: Rolling pin with adjustable offset",
+      "url": "https://patents.google.com/patent/US7854696B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rolling-pin-cold-core",
+      "title": "US7722516B2: Cold rolling pin system",
+      "url": "https://patents.google.com/patent/US7722516B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rolling-pin-draft-001",
+      "topicId": "rolling_pin",
+      "factText": "带手柄的擀面杖可以让圆筒绕中轴转动，而手柄相对不转；早期结构已用端部轴孔、手柄轴颈和贯穿整根圆筒的连杆组成这种轴承布局。",
+      "sourceIds": ["src-rolling-pin-bearing-handles"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rolling-pin-draft-002",
+      "topicId": "rolling_pin",
+      "factText": "定厚擀面杖在两端装同尺寸的偏置圆盘，让杖身与台面保持固定距离；更换不同圆盘，就能改变面团最终接近的厚度。",
+      "sourceIds": ["src-rolling-pin-offset-discs"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rolling-pin-draft-003",
+      "topicId": "rolling_pin",
+      "factText": "冷藏型擀面杖可在中空金属筒里装入可拆的冷冻凝胶芯，内侧再放隔热材料抑制结露，外面套硅胶筒与面团接触。",
+      "sourceIds": ["src-rolling-pin-cold-core"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

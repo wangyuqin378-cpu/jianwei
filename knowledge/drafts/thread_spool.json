@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "thread_spool",
+  "displayName": "线轴",
+  "category": "home",
+  "aliases": ["thread spool", "spool of thread", "线轴"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-thread-spool-flange-split",
+      "title": "US3358943A: Spool construction",
+      "url": "https://patents.google.com/patent/US3358943A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-thread-spool-lock-slide",
+      "title": "US3836059A: Anti-roll slide and thread lock for spools",
+      "url": "https://patents.google.com/patent/US3836059A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-thread-spool-cap",
+      "title": "US7438010B2: Thread spool and cap",
+      "url": "https://patents.google.com/patent/US7438010B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "thread-spool-draft-001",
+      "topicId": "thread_spool",
+      "factText": "线轴边缘的小缺口可以把线头导向轴体拼缝，再让细线夹在两片轴体之间；这样收纳时线不会自行散开或缠住旁边线轴。",
+      "sourceIds": ["src-thread-spool-flange-split"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "thread-spool-draft-002",
+      "topicId": "thread_spool",
+      "factText": "有的线轴把一枚滑片藏在圆形端盘里：拉出时可用缺口夹线和切线，继续伸出后还会破坏圆盘的滚动轮廓，防止线轴滚走。",
+      "sourceIds": ["src-thread-spool-lock-slide"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "thread-spool-draft-003",
+      "topicId": "thread_spool",
+      "factText": "线轴外罩不只是防尘壳：罩体可包住整卷线，只留一个出线孔；孔内塞子同时压住线头，收纳时便不容易松卷。",
+      "sourceIds": ["src-thread-spool-cap"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

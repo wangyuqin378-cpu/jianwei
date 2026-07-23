@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "trash_can",
+  "displayName": "垃圾桶",
+  "category": "cleaning",
+  "aliases": ["trash can", "waste bin", "垃圾桶", "脚踏垃圾桶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rotating-bar-trash-container",
+      "title": "US8146767B1: Trash container",
+      "url": "https://patents.google.com/patent/US8146767B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-damped-step-trash-can",
+      "title": "US9434538B2: Trash can",
+      "url": "https://patents.google.com/patent/US9434538B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-auto-lock-trash-can",
+      "title": "US20200290801A1: Trash can with auto lid locking mechanism",
+      "url": "https://patents.google.com/patent/US20200290801A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "trash-can-draft-001",
+      "topicId": "trash_can",
+      "factText": "大型垃圾桶的侧置脚踏板可带动壳体内的旋转杆，杆的另一端再抬升竖直连杆，把脚向下的动作转换为桶盖向上。",
+      "sourceIds": ["src-rotating-bar-trash-container"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "trash-can-draft-002",
+      "topicId": "trash_can",
+      "factText": "缓降脚踏桶在踏板连杆旁加入活塞杆和缸体，松脚后阻尼机构限制提升杆下落速度，因此桶盖不会只靠重力自由砸下。",
+      "sourceIds": ["src-damped-step-trash-can"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "trash-can-draft-003",
+      "topicId": "trash_can",
+      "factText": "自动锁盖垃圾桶把弹簧锁钩、拉线和脚踏连杆联动：踩下时先拉开锁钩再抬盖，松开后弹簧让锁钩重新扣住桶沿。",
+      "sourceIds": ["src-auto-lock-trash-can"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

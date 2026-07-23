@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "charger",
+  "displayName": "充电器",
+  "category": "digital",
+  "aliases": ["charger", "充电器", "USB charger", "充电头"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usb-if-type-c-guidelines",
+      "title": "USB Type-C Cable and Connector Language and Packaging Usage Guidelines",
+      "url": "https://www.usb.org/sites/default/files/usb_type-c_language_product_and_packaging_guidelines_20230320.pdf",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usb-if-type-c-specification",
+      "title": "USB Type-C Cable and Connector Specification",
+      "url": "https://usb.org/usb-type-cr-cable-and-connector-specification",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "charger-draft-001",
+      "topicId": "charger",
+      "factText": "USB-C 只描述连接器体系，不等于设备一定支持 USB Power Delivery、USB4 或 USB 3.2；这些能力都可以由厂商分别选择。",
+      "sourceIds": ["src-usb-if-type-c-guidelines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "charger-draft-002",
+      "topicId": "charger",
+      "factText": "USB Power Delivery 能把 USB 供电能力提高到最高 240W，但 USB-IF 要求厂商分别说明产品支持的功率和数据能力。",
+      "sourceIds": ["src-usb-if-type-c-guidelines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "charger-draft-003",
+      "topicId": "charger",
+      "factText": "USB Type-C 的插头支持正反插，线缆方向也可反向；这种便利性属于连接器设计，与是否支持高功率充电并不是同一件事。",
+      "sourceIds": ["src-usb-if-type-c-specification", "src-usb-if-type-c-guidelines"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

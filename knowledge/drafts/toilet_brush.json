@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "toilet_brush",
+  "displayName": "马桶刷",
+  "category": "cleaning",
+  "aliases": ["toilet brush", "lavatory brush", "马桶刷", "厕刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-changeable-toilet-brush-head",
+      "title": "EP3656266B1: Toilet brush with changeable brush head",
+      "url": "https://patents.google.com/patent/EP3656266B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-vented-toilet-brush-holder",
+      "title": "US3085678A: Toilet brush holder",
+      "url": "https://patents.google.com/patent/US3085678A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-flexible-edge-toilet-brush",
+      "title": "US20180110381A1: Brush head for a toilet brush",
+      "url": "https://patents.google.com/patent/US20180110381A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "toilet-brush-draft-001",
+      "topicId": "toilet_brush",
+      "factText": "可换头马桶刷用导向结构让刷头沿手柄轴线接入并锁定，再由手柄上的释放机构脱开刷头，使手柄可以重复使用。",
+      "sourceIds": ["src-changeable-toilet-brush-head"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toilet-brush-draft-002",
+      "topicId": "toilet_brush",
+      "factText": "封闭式刷座可让刷头滴水落入底部储液槽，同时用侧缝和背部通风孔形成空气通路，在遮住刷头时仍保留流动空间。",
+      "sourceIds": ["src-vented-toilet-brush-holder"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "toilet-brush-draft-003",
+      "topicId": "toilet_brush",
+      "factText": "无传统刷毛的马桶刷头可以改用热塑性弹性体成型，把横向头部做成多道柔性凸缘，由凸缘边缘接触弧形表面。",
+      "sourceIds": ["src-flexible-edge-toilet-brush"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

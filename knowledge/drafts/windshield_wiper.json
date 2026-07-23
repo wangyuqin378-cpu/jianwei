@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "windshield_wiper",
+  "displayName": "雨刮器",
+  "category": "transport",
+  "aliases": ["windshield wiper", "windscreen wiper", "雨刮器", "挡风玻璃雨刷", "雨刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-govinfo-fmvss-104",
+      "title": "49 CFR 571.104: Windshield wiping and washing systems",
+      "url": "https://www.govinfo.gov/link/cfr/49/571?link-type=pdf&sectionnum=104&year=mostrecent",
+      "publisher": "U.S. Government Publishing Office",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-eurlex-wiper-regulation-1008-2010",
+      "title": "Commission Regulation (EU) No 1008/2010: Windscreen wiper and washer systems",
+      "url": "https://eur-lex.europa.eu/eli/reg/2010/1008/oj/eng/pdf",
+      "publisher": "EUR-Lex",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "windshield-wiper-draft-001",
+      "topicId": "windshield_wiper",
+      "factText": "雨刷型式认证按驾驶视野划分规定刮净区域和覆盖比例，考核目标并不是让雨刷扫过整块挡风玻璃。",
+      "sourceIds": ["src-govinfo-fmvss-104", "src-eurlex-wiper-regulation-1008-2010"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "windshield-wiper-draft-002",
+      "topicId": "windshield_wiper",
+      "factText": "美国与欧盟法规都要求挡风玻璃雨刷具备至少两个刮刷频率，并对较高、较低频率及两者差值设置性能条件。",
+      "sourceIds": ["src-govinfo-fmvss-104", "src-eurlex-wiper-regulation-1008-2010"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "windshield-wiper-draft-003",
+      "topicId": "windshield_wiper",
+      "factText": "洗涤器不是独立喷水附件；法规把储液、输送、喷射以及目标刮刷区域的清洁能力一起作为系统性能要求。",
+      "sourceIds": ["src-govinfo-fmvss-104", "src-eurlex-wiper-regulation-1008-2010"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

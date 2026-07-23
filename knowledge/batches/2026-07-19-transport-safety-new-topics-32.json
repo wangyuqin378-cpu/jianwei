@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-transport-safety-new-topics-32",
+  "baseCatalogVersion": "2026-07-19-beta.61",
+  "nextCatalogVersion": "2026-07-19-beta.62",
+  "drafts": [
+    "knowledge/drafts/motorcycle_mirror.json",
+    "knowledge/drafts/rearview_mirror.json",
+    "knowledge/drafts/road_sign.json",
+    "knowledge/drafts/speed_bump.json",
+    "knowledge/drafts/windshield_wiper.json"
+  ]
+}

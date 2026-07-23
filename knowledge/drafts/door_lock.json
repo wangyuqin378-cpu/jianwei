@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "door_lock",
+  "displayName": "门锁",
+  "category": "home",
+  "aliases": ["door lock", "cylinder lock", "门锁", "锁芯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-door-lock-pin-shear-line",
+      "title": "US8438889B2: Shaped top pin for bump resistant cylinder",
+      "url": "https://patents.google.com/patent/US8438889B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-door-lock-spring-latchbolt",
+      "title": "US3129579A: Latchbolt holdback for doorlocks",
+      "url": "https://patents.google.com/patent/US3129579A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-door-lock-cam-latch",
+      "title": "US11821237B2: Cylindrical lever locking system",
+      "url": "https://patents.google.com/patent/US11821237B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "door-lock-draft-001",
+      "topicId": "door_lock",
+      "factText": "弹子锁芯的外壳与可旋转锁胆交界处叫剪切线；无钥匙时上弹子跨过这条线阻止转动，正确钥匙会把各组分界推到同一条线上。",
+      "sourceIds": ["src-door-lock-pin-shear-line"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-lock-draft-002",
+      "topicId": "door_lock",
+      "factText": "普通门锁的碰锁舌由弹簧推向伸出位置，关门后会进入门框上的扣盒并保持闭合；转动把手时机构再把锁舌拉回锁体。",
+      "sourceIds": ["src-door-lock-spring-latchbolt"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-lock-draft-003",
+      "topicId": "door_lock",
+      "factText": "圆柱门锁内部常用凸轮组件传递动作：把手或锁芯带动输入件，凸轮再推动锁舌在伸出与收回两个位置之间移动。",
+      "sourceIds": ["src-door-lock-cam-latch"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

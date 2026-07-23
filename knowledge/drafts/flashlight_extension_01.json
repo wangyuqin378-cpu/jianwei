@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "flashlight",
+  "displayName": "手电筒",
+  "category": "tool",
+  "aliases": ["flashlight", "torch", "手电筒"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-flashlight-patent",
+      "title": "US4527223A: Flashlight",
+      "url": "https://patents.google.com/patent/US4527223A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "flashlight-draft-002",
+      "topicId": "flashlight",
+      "factText": "经典手电筒的基本电路很直接：外壳固定电池，开关接通光源，前方反光杯再把向四周发出的光集中成光束。",
+      "sourceIds": ["src-flashlight-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "flashlight-draft-003",
+      "topicId": "flashlight",
+      "factText": "有些可调焦手电筒不是改变灯泡亮度，而是旋转灯头，通过凸轮让灯泡相对反光杯前后移动，切换宽窄光束。",
+      "sourceIds": ["src-flashlight-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "flashlight-draft-004",
+      "topicId": "flashlight",
+      "factText": "一种旋转式手电筒开关会在操作时让接点彼此擦过；这种机械擦拭同时能清理接触面，帮助保持导电。",
+      "sourceIds": ["src-flashlight-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

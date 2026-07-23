@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "laundry_basket",
+  "displayName": "洗衣篮",
+  "category": "cleaning",
+  "aliases": ["laundry basket", "clothes basket", "洗衣篮", "脏衣篮"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-woven-collapsible-laundry-basket",
+      "title": "US20130270131A1: Collapsible laundry basket",
+      "url": "https://patents.google.com/patent/US20130270131A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tiered-collapsible-laundry-basket",
+      "title": "US9926105B2: Collapsible household container",
+      "url": "https://patents.google.com/patent/US9926105B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hip-hugging-laundry-basket",
+      "title": "US7677408B2: Laundry basket with hip-hugging feature",
+      "url": "https://patents.google.com/patent/US7677408B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "laundry-basket-draft-001",
+      "topicId": "laundry_basket",
+      "factText": "一种折叠洗衣篮用交叉编织带形成侧壁，网孔负责通风，上下加固边维持展开后的刚性；不用时可压成小体积。",
+      "sourceIds": ["src-woven-collapsible-laundry-basket"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "laundry-basket-draft-002",
+      "topicId": "laundry_basket",
+      "factText": "分层折叠篮把柔性圈层设计成展开与折叠两个稳定位置，逐层压下即可收纳，同时刚性顶圈保留提手结构。",
+      "sourceIds": ["src-tiered-collapsible-laundry-basket"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "laundry-basket-draft-003",
+      "topicId": "laundry_basket",
+      "factText": "“贴髋”洗衣篮在一侧做向内凹的弧面，并覆盖更柔软、摩擦更高的垫层，让篮体靠在身体侧面时更稳。",
+      "sourceIds": ["src-hip-hugging-laundry-basket"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tool-new-topics-27",
+  "baseCatalogVersion": "2026-07-19-beta.56",
+  "nextCatalogVersion": "2026-07-19-beta.57",
+  "drafts": [
+    "knowledge/drafts/hot_glue_gun.json",
+    "knowledge/drafts/multimeter.json",
+    "knowledge/drafts/paint_brush.json",
+    "knowledge/drafts/paint_roller.json",
+    "knowledge/drafts/power_drill.json",
+    "knowledge/drafts/pruning_shears.json"
+  ]
+}

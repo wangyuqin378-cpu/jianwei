@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.21",
+  "nextCatalogVersion": "2026-07-19-beta.22",
+  "drafts": [
+    "knowledge/drafts/mug_extension_01.json",
+    "knowledge/drafts/spoon_extension_01.json",
+    "knowledge/drafts/fork_extension_01.json"
+  ]
+}

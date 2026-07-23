@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "clothespin",
+  "displayName": "晾衣夹",
+  "category": "home",
+  "aliases": ["clothespin", "clothes peg", "晾衣夹", "衣夹"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-guided-clothespin-jaws",
+      "title": "US2748437A: Clothespin with guided jaws",
+      "url": "https://patents.google.com/patent/US2748437A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-line-retained-clothespin",
+      "title": "US3058186A: Line-retained clothespin",
+      "url": "https://patents.google.com/patent/US3058186A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "clothespin-draft-002",
+      "topicId": "clothespin",
+      "factText": "弹簧衣夹按拢后端手柄会张开前端夹口；一种设计还用同心弧形凸棱和凹槽导向，减少两片夹体横向错位。",
+      "sourceIds": ["src-guided-clothespin-jaws"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clothespin-draft-003",
+      "topicId": "clothespin",
+      "factText": "有些衣夹把固定晾衣绳与夹衣服分成两套结构：绳子进入侧槽后弹片复位，衣夹可留在线上且不易横向滑动。",
+      "sourceIds": ["src-line-retained-clothespin"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

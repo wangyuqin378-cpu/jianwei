@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "pliers",
+  "displayName": "钳子",
+  "category": "tool",
+  "aliases": ["pliers", "钳子", "老虎钳"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-slip-joint-pliers-patent",
+      "title": "US4603607A: Pivot connection for slip joint pliers",
+      "url": "https://patents.google.com/patent/US4603607A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "pliers-draft-002",
+      "topicId": "pliers",
+      "factText": "滑节钳的名字来自可移动支点：两半钳体能在多个支点位置间滑动，从而改变钳口的最大张开宽度。",
+      "sourceIds": ["src-slip-joint-pliers-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pliers-draft-003",
+      "topicId": "pliers",
+      "factText": "调整滑节钳并不是把钳口单独拉长，而是把整个转轴换到另一档；手柄和钳口的杠杆关系也会随之改变。",
+      "sourceIds": ["src-slip-joint-pliers-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pliers-draft-004",
+      "topicId": "pliers",
+      "factText": "一种高强度滑节钳用铆钉连接两半钳体，并让铆钉末端在锥形孔内扩张，以锁紧转轴又保留开合转动。",
+      "sourceIds": ["src-slip-joint-pliers-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

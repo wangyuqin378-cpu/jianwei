@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "image_pipeline_results",
+  "datasetId": "REPLACE_WITH_DATASET_ID",
+  "runId": "REPLACE_WITH_RUN_ID",
+  "evidenceRef": "",
+  "appVersion": "",
+  "evaluationApkSha256": "",
+  "modelVersion": "",
+  "catalogVersion": "2026-07-19-beta.62",
+  "evaluatedAt": "",
+  "runnerProvenance": {
+    "evidenceKind": "android_authorized_image_runner",
+    "reviewerId": "",
+    "approvedAt": "",
+    "appVersion": "",
+    "evaluationApkSha256": "",
+    "manufacturer": "",
+    "model": "",
+    "buildFingerprint": "",
+    "apiLevel": 0,
+    "endpointOrigin": ""
+  },
+  "samples": []
+}

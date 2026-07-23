@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "tape_measure",
+  "displayName": "卷尺",
+  "category": "tool",
+  "aliases": ["tape measure", "measuring tape", "卷尺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-tape-measure-patent",
+      "title": "US20070056182A1: Tape measure with temporary braking mechanism",
+      "url": "https://patents.google.com/patent/US20070056182A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "tape-measure-draft-002",
+      "topicId": "tape_measure",
+      "factText": "自动回卷尺的金属尺带连接卷簧，拉出时给弹簧储能，松开后弹簧再把尺带卷回外壳。",
+      "sourceIds": ["src-tape-measure-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tape-measure-draft-003",
+      "topicId": "tape_measure",
+      "factText": "尺带末端的小钩不只方便抓住工件边缘；尺带完全收回时，小钩仍留在壳外，成为下次拉出的抓点。",
+      "sourceIds": ["src-tape-measure-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tape-measure-draft-004",
+      "topicId": "tape_measure",
+      "factText": "卷尺的锁止键用于固定测量长度，另一些设计还增加临时刹车，让手指按压时降低尺带自动回卷的速度。",
+      "sourceIds": ["src-tape-measure-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

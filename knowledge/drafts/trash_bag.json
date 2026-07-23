@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "trash_bag",
+  "displayName": "垃圾袋",
+  "category": "cleaning",
+  "aliases": ["trash bag", "garbage bag", "垃圾袋", "抽绳垃圾袋"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-h-seal-drawstring-bag",
+      "title": "US11021301B2: Drawstring trash bag",
+      "url": "https://patents.google.com/patent/US11021301B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hem-seal-drawtape-bag",
+      "title": "US4558463A: Hem seal for draw tape trash bag",
+      "url": "https://patents.google.com/patent/US4558463A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-elastic-strand-trash-bag",
+      "title": "US6921202B2: Elastic trash bag",
+      "url": "https://patents.google.com/patent/US6921202B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "trash-bag-draft-001",
+      "topicId": "trash_bag",
+      "factText": "抽绳垃圾袋把绳带藏在袋口折成的双层边里，并在中部开口供手拉出；角部短焊缝负责把两片袋膜和两根抽绳一起固定。",
+      "sourceIds": ["src-h-seal-drawstring-bag"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "trash-bag-draft-002",
+      "topicId": "trash_bag",
+      "factText": "抽绳袋口的热封不能随意穿过绳带：一种工艺让袋膜边缘彼此熔接，却控制温度与材料组合，避免把可滑动的抽带同时焊死。",
+      "sourceIds": ["src-hem-seal-drawtape-bag"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "trash-bag-draft-003",
+      "topicId": "trash_bag",
+      "factText": "弹性袋口可在塑料膜上粘接多段预先拉长的弹性丝；弹性丝回缩后会把袋膜聚拢，拉开时又形成可伸展的袋口区域。",
+      "sourceIds": ["src-elastic-strand-trash-bag"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

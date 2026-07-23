@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-safety-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.19",
+  "nextCatalogVersion": "2026-07-19-beta.20",
+  "drafts": [
+    "knowledge/drafts/spray_bottle_extension_01.json",
+    "knowledge/drafts/sponge_extension_01.json",
+    "knowledge/drafts/cast_iron_pan_extension_01.json"
+  ]
+}

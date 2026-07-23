@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "smartwatch",
+  "displayName": "智能手表",
+  "category": "digital",
+  "aliases": ["smartwatch", "smart watch", "智能手表", "电子手表"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-watch-rotary-crown",
+      "title": "US9753436B2: Rotary input mechanism for an electronic device",
+      "url": "https://patents.google.com/patent/US9753436B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-watch-optical-sensor",
+      "title": "US20210290120A1: Wearable device with physiological parameters monitoring",
+      "url": "https://patents.google.com/patent/US20210290120A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-watchband-attachment",
+      "title": "US20210177108A1: Attachment system for watchband",
+      "url": "https://patents.google.com/patent/US20210177108A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "smartwatch-draft-001",
+      "topicId": "smartwatch",
+      "factText": "智能手表的表冠可同时接收旋转和按压：旋转编码器追踪转动，另一传感器识别按压，轴杆周围还可用密封圈挡水。",
+      "sourceIds": ["src-watch-rotary-crown"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "smartwatch-draft-002",
+      "topicId": "smartwatch",
+      "factText": "手表背面的光学传感器可用多种波长的 LED 发光，再由光电二极管接收返回光；内部遮光壁会减少光线直接串扰。",
+      "sourceIds": ["src-watch-optical-sensor"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "smartwatch-draft-003",
+      "topicId": "smartwatch",
+      "factText": "快拆表带可沿表壳通道滑入，并由带弹力的按钮锁住；按下按钮让锁扣退出通道后，表带才能被滑出。",
+      "sourceIds": ["src-watchband-attachment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

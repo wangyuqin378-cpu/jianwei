@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "door_hinge",
+  "displayName": "门铰链",
+  "category": "home",
+  "aliases": ["door hinge", "hinge", "门铰链", "合页"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-door-hinge-adjustable-patent",
+      "title": "US9145721B2: Door hinge",
+      "url": "https://patents.google.com/patent/US9145721B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-door-hinge-pin-patent",
+      "title": "US3210798A: Door hinge",
+      "url": "https://patents.google.com/patent/US3210798A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "door-hinge-draft-002",
+      "topicId": "door_hinge",
+      "factText": "常见门铰链由两片合页组成，边缘卷成相互交错的管节；铰链销穿过对齐孔，把两片合页连成转轴。",
+      "sourceIds": ["src-door-hinge-pin-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-hinge-draft-003",
+      "topicId": "door_hinge",
+      "factText": "可拆销铰链能先把两片合页分别拧在门框和门扇上，等管节孔对齐后再插入铰链销完成安装。",
+      "sourceIds": ["src-door-hinge-pin-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "door-hinge-draft-004",
+      "topicId": "door_hinge",
+      "factText": "可调门铰链会把调节螺杆藏进外壳；转动螺杆可让一片合页垂直于转轴微移，用于安装后的对位。",
+      "sourceIds": ["src-door-hinge-adjustable-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

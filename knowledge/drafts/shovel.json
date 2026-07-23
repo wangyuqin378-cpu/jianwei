@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "shovel",
+  "displayName": "铁锹",
+  "category": "tool",
+  "aliases": ["shovel", "铁锹"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-shovel-ergonomic-step",
+      "title": "US5558379A: Implement having an ergonomic step",
+      "url": "https://patents.google.com/patent/US5558379A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shovel-handle-socket",
+      "title": "US3198565A: Shovels",
+      "url": "https://patents.google.com/patent/US3198565A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shovel-dual-blade-faces",
+      "title": "US8100447B2: Shovel with multiple blade faces",
+      "url": "https://patents.google.com/patent/US8100447B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "shovel-draft-001",
+      "topicId": "shovel",
+      "factText": "铁锹刃口上方的折边不只是加强筋，也可作为脚踏面；一种设计让脚踏平面与柄轴中心线近似垂直，使鞋底能更完整地压在平面上。",
+      "sourceIds": ["src-shovel-ergonomic-step"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shovel-draft-002",
+      "topicId": "shovel",
+      "factText": "铁锹柄可插进锹面背后的槽形套筒；柄端预先开缝，插入时夹住套筒内的横向脊条，借压紧配合减少柄与锹面之间的晃动。",
+      "sourceIds": ["src-shovel-handle-socket"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shovel-draft-003",
+      "topicId": "shovel",
+      "factText": "双面锹头能在同一横截面上做出两个不同朝向的工作面；把手柄旋转一百八十度，就能在铲起与推移两种锹面之间切换。",
+      "sourceIds": ["src-shovel-dual-blade-faces"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

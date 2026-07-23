@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "trusted_deployment_receipt",
+  "policyId": "jianwei-beta-release-2026",
+  "policySha256": "REPLACE_WITH_EXACT_TRUST_POLICY_SHA256",
+  "issuerId": "replace-with-deployment-pipeline-id",
+  "keyId": "replace-with-deployment-attestor-key-id",
+  "role": "beta_deployment_attestor",
+  "endpointOrigin": "https://beta.example.cn",
+  "deploymentRevision": "REPLACE_WITH_FUNCTION_COMPUTE_REVISION",
+  "containerImageDigest": "sha256:REPLACE_WITH_ACR_MANIFEST_DIGEST",
+  "backendReleaseSha256": "REPLACE_WITH_BACKEND_RELEASE_SHA256",
+  "deployedAt": "REPLACE_WITH_STRICT_ISO_TIME",
+  "issuedAt": "REPLACE_WITH_STRICT_ISO_TIME",
+  "signatureBase64": "REPLACE_WITH_DEPLOYMENT_ATTESTOR_SIGNATURE"
+}

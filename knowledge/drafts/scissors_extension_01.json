@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "scissors",
+  "displayName": "剪刀",
+  "category": "tool",
+  "aliases": ["scissors", "shears", "剪刀"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-scissors-patent",
+      "title": "US20150128427A1: Scissors with replacement blades and ball bearings",
+      "url": "https://patents.google.com/patent/US20150128427A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "scissors-draft-002",
+      "topicId": "scissors",
+      "factText": "每条剪刀臂都跨过同一个转轴，一端是手柄、另一端是刀片；手柄的开合会变成两片刀刃绕轴的相对转动。",
+      "sourceIds": ["src-scissors-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "scissors-draft-003",
+      "topicId": "scissors",
+      "factText": "剪刀闭合时，两条刃口不是正面相撞，而是从彼此旁边交错掠过，用剪切作用逐段分开材料。",
+      "sourceIds": ["src-scissors-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "scissors-draft-004",
+      "topicId": "scissors",
+      "factText": "一种可换刀片剪刀会把原本笔直的刀片压入略弯的安装槽，让刀片产生轻微弓形后固定在剪刀臂上。",
+      "sourceIds": ["src-scissors-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

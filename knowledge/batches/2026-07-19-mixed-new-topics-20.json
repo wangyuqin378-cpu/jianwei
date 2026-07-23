@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-mixed-new-topics-20",
+  "baseCatalogVersion": "2026-07-19-beta.49",
+  "nextCatalogVersion": "2026-07-19-beta.50",
+  "drafts": [
+    "knowledge/drafts/window_screen.json",
+    "knowledge/drafts/bottle_opener.json",
+    "knowledge/drafts/can_opener.json"
+  ]
+}

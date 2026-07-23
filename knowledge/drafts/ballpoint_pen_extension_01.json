@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "ballpoint_pen",
+  "displayName": "圆珠笔",
+  "category": "tool",
+  "aliases": ["ballpoint pen", "biro", "圆珠笔"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ballpoint-socket-patent",
+      "title": "US3048148A: Ball point pen",
+      "url": "https://patents.google.com/patent/US3048148A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-ballpoint-angle-patent",
+      "title": "EP0951398A1: Ball point pen",
+      "url": "https://patents.google.com/patent/EP0951398A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "ballpoint-pen-draft-002",
+      "topicId": "ballpoint_pen",
+      "factText": "笔尖小球被半球形凹座托住，只有一部分露在笔尖外；结构既要防止小球脱落，也要允许它绕中心转动。",
+      "sourceIds": ["src-ballpoint-socket-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ballpoint-pen-draft-003",
+      "topicId": "ballpoint_pen",
+      "factText": "圆珠笔尖要同时解决两个相反要求：凹座需有足够支撑面积承受书写压力，又要尽量降低小球转动摩擦。",
+      "sourceIds": ["src-ballpoint-socket-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ballpoint-pen-draft-004",
+      "topicId": "ballpoint_pen",
+      "factText": "普通轴向笔尖在笔身垂直纸面时效率更高，但人们常倾斜握笔；一种专利因此把小球笔尖偏离笔身轴线。",
+      "sourceIds": ["src-ballpoint-angle-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

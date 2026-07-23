@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "fork",
+  "displayName": "餐叉",
+  "category": "tableware",
+  "aliases": ["fork", "餐叉", "叉子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-vam-fork-novelty",
+      "title": "An A-Z of metalwork",
+      "url": "https://www.vam.ac.uk/articles/an-az-of-metalwork",
+      "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-vam-personal-place-setting",
+      "title": "Inside the Baroque palace",
+      "url": "https://www.vam.ac.uk/articles/inside-the-baroque-palace",
+      "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "fork-draft-002",
+      "topicId": "fork",
+      "factText": "英国旅行家 Thomas Coryate 1611 年从意大利带回用餐叉的习惯时，还曾被朋友嘲笑；V&A 收藏的 1632–33 年餐叉是现存最早带英国银匠印记的银叉。",
+      "sourceIds": ["src-vam-fork-novelty"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "fork-draft-003",
+      "topicId": "fork",
+      "factText": "个人专用的盘子、刀、叉和勺并非一直是餐桌标配；V&A 记载，法国礼仪作者 1672 年提出这种配置后，它才逐渐成为常规。",
+      "sourceIds": ["src-vam-personal-place-setting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

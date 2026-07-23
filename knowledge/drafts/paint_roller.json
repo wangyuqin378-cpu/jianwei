@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "paint_roller",
+  "displayName": "滚筒刷",
+  "category": "tool",
+  "aliases": ["paint roller", "滚筒刷"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-paint-roller-resilient-cage",
+      "title": "GB2443919A: Paint roller and paint roller sleeve support",
+      "url": "https://patents.google.com/patent/GB2443919A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-paint-roller-internal-reservoir",
+      "title": "US4735522A: Paint roller with internal reservoir",
+      "url": "https://patents.google.com/patent/US4735522A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-paint-roller-sleeve-container",
+      "title": "US8333277B2: Paint roller sleeve storage container",
+      "url": "https://patents.google.com/patent/US8333277B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "paint-roller-draft-001",
+      "topicId": "paint_roller",
+      "factText": "常见滚筒刷把可拆的筒套套在能弹性收缩的支撑笼上；推入时支撑笼径向压缩，回弹力则贴住筒套内壁并随轴转动。",
+      "sourceIds": ["src-paint-roller-resilient-cage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paint-roller-draft-002",
+      "topicId": "paint_roller",
+      "factText": "储漆滚筒把中空圆筒作为颜料仓，筒壁小孔把漆送到外层多孔刷套；端部填充孔则由弹簧推动的挡片自动关闭。",
+      "sourceIds": ["src-paint-roller-internal-reservoir"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "paint-roller-draft-003",
+      "topicId": "paint_roller",
+      "factText": "滚筒套收纳筒的盖子可开中心孔和径向缝，让支架不拆也能穿出；筒底另留接滴空间，避免刷套直接泡在流下的漆里。",
+      "sourceIds": ["src-paint-roller-sleeve-container"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-new-topics-22",
+  "baseCatalogVersion": "2026-07-19-beta.51",
+  "nextCatalogVersion": "2026-07-19-beta.52",
+  "drafts": [
+    "knowledge/drafts/electric_kettle.json",
+    "knowledge/drafts/food_storage_container.json",
+    "knowledge/drafts/grater.json"
+  ]
+}

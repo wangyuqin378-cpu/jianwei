@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "window_screen",
+  "displayName": "纱窗",
+  "category": "home",
+  "aliases": ["window screen", "insect screen", "纱窗"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-window-screen-spline",
+      "title": "US6470562B1: Automatic screening machine for continuously applying spline to a window screen frame",
+      "url": "https://patents.google.com/patent/US6470562B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-window-screen-magnetic-frame",
+      "title": "US20090183844A1: Magnetically attachable window screen system",
+      "url": "https://patents.google.com/patent/US20090183844A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-window-screen-retractable-guide",
+      "title": "US2065813A: Retractable roller screen",
+      "url": "https://patents.google.com/patent/US2065813A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "window-screen-draft-001",
+      "topicId": "window_screen",
+      "factText": "常见框式纱窗不是把网面粘在边框上，而是把网面与一根柔性压条一起压入四周沟槽；连续压条沿四边和转角落槽，就能把网面固定并保持张力。",
+      "sourceIds": ["src-window-screen-spline"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "window-screen-draft-002",
+      "topicId": "window_screen",
+      "factText": "磁吸纱窗会在窗框和纱窗框内分别布置相互对应的磁体；两组磁体隔着框材配合，使整扇纱窗可以定位在窗洞上，也便于拆下。",
+      "sourceIds": ["src-window-screen-magnetic-frame"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "window-screen-draft-003",
+      "topicId": "window_screen",
+      "factText": "卷轴式纱窗用弹簧给网面持续施加回卷力，再用导向与自锁结构夹住拉杆；这样网面可以停在需要的位置，解除锁定后再卷回壳体。",
+      "sourceIds": ["src-window-screen-retractable-guide"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

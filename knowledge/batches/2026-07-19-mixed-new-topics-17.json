@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-mixed-new-topics-17",
+  "baseCatalogVersion": "2026-07-19-beta.46",
+  "nextCatalogVersion": "2026-07-19-beta.47",
+  "drafts": [
+    "knowledge/drafts/dental_floss.json",
+    "knowledge/drafts/lighter.json",
+    "knowledge/drafts/mosquito_coil.json"
+  ]
+}

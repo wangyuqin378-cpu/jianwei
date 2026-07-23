@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "solid_state_drive",
+  "displayName": "固态硬盘",
+  "category": "digital",
+  "aliases": ["solid state drive", "固态硬盘", "SSD", "NVMe SSD"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-nvme-about",
+      "title": "About NVM Express",
+      "url": "https://nvmexpress.org/about/",
+      "publisher": "NVM Express",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-nvme-ssd-health",
+      "title": "How SSDs Fail – NVMe SSD Management, Error Reporting, and Logging Capabilities",
+      "url": "https://nvmexpress.org/how-ssds-fail-nvme-ssd-management-error-reporting-and-logging-capabilities/",
+      "publisher": "NVM Express",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "solid-state-drive-draft-001",
+      "topicId": "solid_state_drive",
+      "factText": "NVMe 规范定义主机软件如何通过 PCIe、RDMA、TCP 等不同传输方式与非易失性存储设备通信。",
+      "sourceIds": ["src-nvme-about"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "solid-state-drive-draft-002",
+      "topicId": "solid_state_drive",
+      "factText": "NVMe 不等于某一种硬盘外形：同一套标准可用于 M.2、U.2、扩展卡和 EDSFF 等多种 SSD 形态。",
+      "sourceIds": ["src-nvme-about"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "solid-state-drive-draft-003",
+      "topicId": "solid_state_drive",
+      "factText": "NVMe 从最初规范起就包含标准化的 SMART 日志，用来报告错误、设备健康状态和耐久度信息，便于工具持续监控 SSD。",
+      "sourceIds": ["src-nvme-ssd-health"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

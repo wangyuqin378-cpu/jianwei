@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-safety-extensions-02",
+  "baseCatalogVersion": "2026-07-19-beta.16",
+  "nextCatalogVersion": "2026-07-19-beta.17",
+  "drafts": [
+    "knowledge/drafts/cutting_board_extension_01.json",
+    "knowledge/drafts/bicycle_extension_01.json",
+    "knowledge/drafts/helmet_extension_01.json"
+  ]
+}

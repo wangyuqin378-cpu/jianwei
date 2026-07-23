@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "zipper",
+  "displayName": "拉链",
+  "category": "home",
+  "aliases": ["zipper", "zip", "拉链"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-zipper",
+      "title": "Zipper slider with Y-shaped guide channel",
+      "url": "https://patents.google.com/patent/US9622550B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "zipper-draft-002",
+      "topicId": "zipper",
+      "factText": "拉链由左右两条带齿布带组成；滑块沿布带移动时，才把两半逐步连接成一条连续的闭合结构。",
+      "sourceIds": ["src-zipper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "zipper-draft-003",
+      "topicId": "zipper",
+      "factText": "外形相近的拉链，齿的制造路线可能完全不同：常见方案包括金属齿、模塑塑料齿和塑料线圈齿。",
+      "sourceIds": ["src-zipper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "zipper-draft-004",
+      "topicId": "zipper",
+      "factText": "一种自动拉链用两组相位错开的齿轮咬住交替排列的拉链齿，把电机旋转转成沿布带的直线移动。",
+      "sourceIds": ["src-zipper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

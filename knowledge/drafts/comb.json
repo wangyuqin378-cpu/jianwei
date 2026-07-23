@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "comb",
+  "displayName": "梳子",
+  "category": "home",
+  "aliases": ["comb", "hair comb", "梳子", "发梳"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-comb-tooth-geometry",
+      "title": "US4206771A: Styling comb",
+      "url": "https://patents.google.com/patent/US4206771A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-comb-molded-tooth-finish",
+      "title": "US5078928A: Coating process for manufacturing enlarged smooth teeth ends on a comb",
+      "url": "https://patents.google.com/patent/US5078928A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-comb-adjustable-spacing",
+      "title": "EP1534097A2: Comb having teeth with adjustable spacing",
+      "url": "https://patents.google.com/patent/EP1534097A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "comb-draft-001",
+      "topicId": "comb",
+      "factText": "梳齿的间距与截面会改变梳理效果；一种造型梳让齿身由宽底逐渐收窄，并把齿尖排列在贴近头部曲线的弧面上。",
+      "sourceIds": ["src-comb-tooth-geometry"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "comb-draft-002",
+      "topicId": "comb",
+      "factText": "塑料梳常用两半模具注塑，合模边界可能在细小齿尖留下锐利分模线；后处理可先粗化齿尖，再蘸涂并干燥成圆滑端点。",
+      "sourceIds": ["src-comb-molded-tooth-finish"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "comb-draft-003",
+      "topicId": "comb",
+      "factText": "可调齿距梳可以叠放两排梳齿并让它们相对移动；两排错开的程度变化后，头发实际通过的有效间隙也随之改变。",
+      "sourceIds": ["src-comb-adjustable-spacing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

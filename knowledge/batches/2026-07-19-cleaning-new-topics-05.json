@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-05",
+  "baseCatalogVersion": "2026-07-19-beta.31",
+  "nextCatalogVersion": "2026-07-19-beta.32",
+  "drafts": [
+    "knowledge/drafts/plunger.json",
+    "knowledge/drafts/rubber_gloves.json",
+    "knowledge/drafts/squeegee.json"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-skeletons-01",
+  "baseCatalogVersion": "2026-07-18-beta.6",
+  "nextCatalogVersion": "2026-07-18-beta.7",
+  "drafts": [
+    "knowledge/drafts/broom_extension_01.json",
+    "knowledge/drafts/washing_machine_extension_01.json",
+    "knowledge/drafts/usb_flash_drive_extension_01.json"
+  ]
+}

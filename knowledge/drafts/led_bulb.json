@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "led_bulb",
+  "displayName": "LED 灯泡",
+  "category": "home",
+  "aliases": ["LED bulb", "LED 灯泡"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-led-lighting",
+      "title": "Learn About LED Lighting",
+      "url": "https://www.energystar.gov/products/learn-about-led-lighting",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "led-bulb-draft-001",
+      "topicId": "led_bulb",
+      "factText": "LED 发光时，电流先通过微型芯片并点亮微小发光二极管，最终形成肉眼可见的光。",
+      "sourceIds": ["src-energy-star-led-lighting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "led-bulb-draft-002",
+      "topicId": "led_bulb",
+      "factText": "LED 依靠散热器把热量传向周围环境；工作温度越高，亮度衰减通常越快，可用寿命也越短。",
+      "sourceIds": ["src-energy-star-led-lighting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "led-bulb-draft-003",
+      "topicId": "led_bulb",
+      "factText": "LED 本身是定向光源，不像白炽灯那样向各方向发光，因此全向灯泡需要额外的光学与结构设计。",
+      "sourceIds": ["src-energy-star-led-lighting"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

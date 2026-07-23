@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "camera_lens",
+  "displayName": "相机镜头",
+  "category": "digital",
+  "aliases": ["camera lens", "photographic lens", "相机镜头", "摄影镜头"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-fixed-focus-photographic-lens",
+      "title": "EP1508828B1: Photographic lens",
+      "url": "https://patents.google.com/patent/EP1508828B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-camera-lens-diaphragm",
+      "title": "US3997906A: Diaphragm device in a camera lens",
+      "url": "https://patents.google.com/patent/US3997906A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-three-group-zoom-lens",
+      "title": "US4306776A: Zoom lens having three movable lens groups",
+      "url": "https://patents.google.com/patent/US4306776A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "camera-lens-draft-001",
+      "topicId": "camera_lens",
+      "factText": "固定焦点相机常用较广的视角并把有效光圈限制得较小，以换取更大的景深，因此可以省去移动镜片的对焦机构。",
+      "sourceIds": ["src-fixed-focus-photographic-lens"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "camera-lens-draft-002",
+      "topicId": "camera_lens",
+      "factText": "机械光圈由多片叶片围出近似圆孔；转动镜筒内的设定环时，销钉沿凸轮槽移动，带动叶片同步改变开口直径。",
+      "sourceIds": ["src-camera-lens-diaphragm"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "camera-lens-draft-003",
+      "topicId": "camera_lens",
+      "factText": "机械补偿变焦镜头会让多组镜片沿同一光轴移动，但各组移动量和方向并不相同；其中一组还可单独承担对焦。",
+      "sourceIds": ["src-three-group-zoom-lens"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

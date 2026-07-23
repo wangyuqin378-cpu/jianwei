@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "road_sign",
+  "displayName": "道路标志",
+  "category": "transport",
+  "aliases": ["road sign", "traffic sign", "道路标志", "交通标志", "路牌"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-fhwa-mutcd-11",
+      "title": "FHWA: Manual on Uniform Traffic Control Devices, 11th Edition",
+      "url": "https://mutcd.fhwa.dot.gov/pdfs/11th_Edition/mutcd11theditionhl.pdf",
+      "publisher": "Federal Highway Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-fhwa-sign-retroreflectivity-03081",
+      "title": "FHWA-RD-03-081: Updated Minimum Retroreflectivity Levels",
+      "url": "https://www.fhwa.dot.gov/publications/research/safety/03081/chap1.cfm",
+      "publisher": "Federal Highway Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-fhwa-sign-retroreflectivity-07042",
+      "title": "FHWA-HRT-07-042: Maintaining Traffic Sign Retroreflectivity",
+      "url": "https://www.fhwa.dot.gov/publications/research/safety/07042/chapter1.cfm",
+      "publisher": "Federal Highway Administration",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "road-sign-draft-001",
+      "topicId": "road_sign",
+      "factText": "道路标志会组合颜色、形状、位置以及图形或文字，分层传达管制、警告和指引信息，而不只依赖读出文字。",
+      "sourceIds": ["src-fhwa-mutcd-11", "src-fhwa-sign-retroreflectivity-03081"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "road-sign-draft-002",
+      "topicId": "road_sign",
+      "factText": "美国 MUTCD 要求多数管制、警告和指路标志具备逆反射或照明，使其在昼夜保持相同形状和相近颜色。",
+      "sourceIds": ["src-fhwa-mutcd-11", "src-fhwa-sign-retroreflectivity-03081"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "road-sign-draft-003",
+      "topicId": "road_sign",
+      "factText": "逆反射材料把车灯光线送回光源方向，但这种能力会随老化而下降，因此道路管理需要检查并维护最低夜间可见度。",
+      "sourceIds": ["src-fhwa-mutcd-11", "src-fhwa-sign-retroreflectivity-07042"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "utility_knife",
+  "displayName": "美工刀",
+  "category": "tool",
+  "aliases": ["utility knife", "美工刀"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-utility-knife-auto-retract-lock",
+      "title": "US10632633B2: Utility knife",
+      "url": "https://patents.google.com/patent/US10632633B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-utility-knife-blade-release",
+      "title": "US7107688B1: Releasable blade locking mechanism for utility knife",
+      "url": "https://patents.google.com/patent/US7107688B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-utility-knife-extension-stops",
+      "title": "US10919164B2: Utility knife with retractable blade",
+      "url": "https://patents.google.com/patent/US10919164B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "utility-knife-draft-001",
+      "topicId": "utility_knife",
+      "factText": "有些美工刀让滑块带着刀架移动，放开后弹簧把刀片拉回；若需要持续伸出，还可以用可挠锁片卡住滑块。",
+      "sourceIds": ["src-utility-knife-auto-retract-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "utility-knife-draft-002",
+      "topicId": "utility_knife",
+      "factText": "换刀时不一定要拆开刀壳：按下释放按钮，会让竖向锁片与刀片缺口脱开，刀片便能从刀架中抽出。",
+      "sourceIds": ["src-utility-knife-blade-release"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "utility-knife-draft-003",
+      "topicId": "utility_knife",
+      "factText": "可伸缩刀片的多档定位来自壳体里的多个止挡：刀架受横向弹力压向止挡，拨动控制件时才暂时退出卡位。",
+      "sourceIds": ["src-utility-knife-extension-stops"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

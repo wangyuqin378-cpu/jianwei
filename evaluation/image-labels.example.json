@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "authorized_image_labels",
+  "datasetId": "REPLACE_WITH_DATASET_ID",
+  "evidenceOwner": "",
+  "evidenceRef": "",
+  "labeledAt": "",
+  "samples": [
+    {
+      "sampleId": "REPLACE_WITH_SAMPLE_ID",
+      "sampleSha256": "REPLACE_WITH_64_LOWERCASE_HEX",
+      "authorized": false,
+      "authorizationRef": "",
+      "authorizationScope": "local_and_cloud_evaluation",
+      "authorizedAt": "",
+      "expectedSensitiveTypes": [],
+      "expectedTopicId": "REPLACE_WITH_TOPIC_ID"
+    }
+  ]
+}

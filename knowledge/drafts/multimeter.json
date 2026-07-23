@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "multimeter",
+  "displayName": "万用表",
+  "category": "tool",
+  "aliases": ["multimeter", "万用表"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-multimeter-touch-selector",
+      "title": "US6927564B2: Multimeter instrument with touch-sensitive selection device",
+      "url": "https://patents.google.com/patent/US6927564B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-multimeter-smart-autoranging",
+      "title": "EP0961120A2: Smart auto-ranging RMS measurement method and apparatus",
+      "url": "https://patents.google.com/patent/EP0961120A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-multimeter-probe-display",
+      "title": "US7109700B2: Multimeter having off-device display device and selection device",
+      "url": "https://patents.google.com/patent/US7109700B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "multimeter-draft-001",
+      "topicId": "multimeter",
+      "factText": "万用表面板上的选择器负责指定要测的变量和量程；触摸式方案用位置感应代替机械旋钮内反复摩擦的电刷与触点。",
+      "sourceIds": ["src-multimeter-touch-selector"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "multimeter-draft-002",
+      "topicId": "multimeter",
+      "factText": "自动量程并非只看平均读数：一种方案同时检查有效值和峰值；峰值越过门槛就升档，峰值仍高时也会阻止过早降档。",
+      "sourceIds": ["src-multimeter-smart-autoranging"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "multimeter-draft-003",
+      "topicId": "multimeter",
+      "factText": "万用表的显示器和功能选择键也能做在测试探针上：测量信号与显示控制信号沿连接线路传输，读数因此可以靠近探针端呈现。",
+      "sourceIds": ["src-multimeter-probe-display"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

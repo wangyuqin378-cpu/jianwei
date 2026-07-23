@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "tablet",
+  "displayName": "平板电脑",
+  "category": "digital",
+  "aliases": ["tablet computer", "tablet", "平板电脑", "平板"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-tablet-palm-rejection",
+      "title": "US9594457B2: Unintentional touch rejection",
+      "url": "https://patents.google.com/patent/US9594457B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tablet-cover-glass-strengthening",
+      "title": "US9840435B2: Display cover glass and fabrication method",
+      "url": "https://patents.google.com/patent/US9840435B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tablet-cover-hall-sensor",
+      "title": "CA2854645A1: Cover for tablet computer",
+      "url": "https://patents.google.com/patent/CA2854645A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "tablet-draft-001",
+      "topicId": "tablet",
+      "factText": "平板的防误触会从触点形状、大小及其随时间的变化生成可靠度，再结合书写等当前场景判断这次接触是否应被丢弃。",
+      "sourceIds": ["src-tablet-palm-rejection"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tablet-draft-002",
+      "topicId": "tablet",
+      "factText": "平板盖板玻璃可在熔盐中进行离子交换，让较大的碱金属离子进入表层，形成压应力层以增强薄玻璃。",
+      "sourceIds": ["src-tablet-cover-glass-strengthening"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tablet-draft-003",
+      "topicId": "tablet",
+      "factText": "部分平板保护盖靠磁铁触发机身内的霍尔传感器：合盖时磁场进入检测范围便休眠，开盖远离后再唤醒。",
+      "sourceIds": ["src-tablet-cover-hall-sensor"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

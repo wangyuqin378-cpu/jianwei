@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rubber_gloves",
+  "displayName": "清洁手套",
+  "category": "cleaning",
+  "aliases": ["rubber gloves", "cleaning gloves", "清洁手套", "洗碗手套"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-zoned-dishwashing-glove",
+      "title": "WO2015109546A1: Dishwashing gloves",
+      "url": "https://patents.google.com/patent/WO2015109546A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mold-textured-glove",
+      "title": "US10058137B2: Textured gloves",
+      "url": "https://patents.google.com/patent/US10058137B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-flock-lined-rubber-glove",
+      "title": "US2867849A: Method of making slip-finish flock coated rubber article",
+      "url": "https://patents.google.com/patent/US2867849A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rubber-gloves-draft-001",
+      "topicId": "rubber_gloves",
+      "factText": "分区洗碗手套可在手指和上半掌增加清洁层，下半掌保持光滑，并把拇指与食指之间做成高摩擦区，各区域承担不同动作。",
+      "sourceIds": ["src-zoned-dishwashing-glove"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rubber-gloves-draft-002",
+      "topicId": "rubber_gloves",
+      "factText": "乳胶手套的指尖纹理可以直接来自表面粗糙的手形模具：凝固剂和弹性体依次浸涂固化后，模具纹理就转印到手套上。",
+      "sourceIds": ["src-mold-textured-glove"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rubber-gloves-draft-003",
+      "topicId": "rubber_gloves",
+      "factText": "植绒内衬并非简单撒在手套里；短纤维先与乳胶形成结合层，再经处理露出纤维端并降低表面黏性，方便手掌进出。",
+      "sourceIds": ["src-flock-lined-rubber-glove"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

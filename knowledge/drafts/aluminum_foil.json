@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "aluminum_foil",
+  "displayName": "铝箔",
+  "category": "tableware",
+  "aliases": ["aluminum foil", "aluminium foil", "铝箔"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-aluminum-foil-paired-rolling",
+      "title": "CN102284483A: Production process for rolling light gauge aluminum foil",
+      "url": "https://patents.google.com/patent/CN102284483A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-aluminum-foil-embossed-channels",
+      "title": "US8911877B2: Embossed metal foil",
+      "url": "https://patents.google.com/patent/US8911877B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-aluminum-foil-pinhole-light-test",
+      "title": "US3700909A: Method for detecting pinhole defects in foil material",
+      "url": "https://patents.google.com/patent/US3700909A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "aluminum-foil-draft-001",
+      "topicId": "aluminum_foil",
+      "factText": "制造极薄铝箔时，可以先把两卷箔合在一起送入精轧机，轧到目标厚度后再分卷；这种“合卷、叠轧、分卷”是轻规格铝箔的一种生产工序。",
+      "sourceIds": ["src-aluminum-foil-paired-rolling"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "aluminum-foil-draft-002",
+      "topicId": "aluminum_foil",
+      "factText": "铝箔上的压纹不一定只是装饰：离散的 S 形凸筋之间会形成彼此交叉的沟道，让液体经过时走更曲折的路径；这种结构也可用于烹饪箔和托盘。",
+      "sourceIds": ["src-aluminum-foil-embossed-channels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "aluminum-foil-draft-003",
+      "topicId": "aluminum_foil",
+      "factText": "铝箔上的针孔可以用光来找：让连续移动的箔材经过光源，只有裂缝或微孔会透光；光电元件把透过的光变成信号，再对缺陷计数和分类。",
+      "sourceIds": ["src-aluminum-foil-pinhole-light-test"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

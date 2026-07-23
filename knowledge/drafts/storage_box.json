@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "storage_box",
+  "displayName": "收纳箱",
+  "category": "home",
+  "aliases": ["storage box", "storage bin", "收纳箱"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-storage-box-nesting-taper",
+      "title": "US4688675A: Nesting box with reduced lid flares",
+      "url": "https://patents.google.com/patent/US4688675A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-storage-box-folding-panels",
+      "title": "US7143932B2: Folding collapsible storage box",
+      "url": "https://patents.google.com/patent/US7143932B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-storage-box-lid-bracing",
+      "title": "US7175040B2: Collapsible container for transport and storage of goods",
+      "url": "https://patents.google.com/patent/US7175040B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "storage-box-draft-001",
+      "topicId": "storage_box",
+      "factText": "许多塑料收纳箱的侧壁会向箱底略微收窄。这不是造型偶然：空箱能一个套进另一个，带铰链的箱盖则可向外翻开后交错叠放。",
+      "sourceIds": ["src-storage-box-nesting-taper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "storage-box-draft-002",
+      "topicId": "storage_box",
+      "factText": "布艺折叠收纳箱并非只有软布：前后片可藏整块硬板，左右片各藏两块硬板，中间折线让侧壁对折，展开时又能撑成方形。",
+      "sourceIds": ["src-storage-box-folding-panels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "storage-box-draft-003",
+      "topicId": "storage_box",
+      "factText": "折叠箱的盖子有时也是结构件：盖内圈压住上框和侧壁锁片，可同时限制两侧向内或向外摆动，让展开后的箱体更稳定。",
+      "sourceIds": ["src-storage-box-lid-bracing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "grater",
+  "displayName": "刨丝器",
+  "category": "tableware",
+  "aliases": ["grater", "food grater", "刨丝器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-grater-rotary-drum",
+      "title": "US2502867A: Kitchen grater with grating drum",
+      "url": "https://patents.google.com/patent/US2502867A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-grater-polygon-cavity",
+      "title": "US7461803B2: Multi grater",
+      "url": "https://patents.google.com/patent/US7461803B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-grater-folding-collector",
+      "title": "US5312054A: Food grater",
+      "url": "https://patents.google.com/patent/US5312054A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "grater-draft-001",
+      "topicId": "grater",
+      "factText": "旋转鼓式刨丝器把圆筒刀鼓悬在进料斗下方，摇柄直接带动刀鼓转动；上方压臂把食材推向鼓面，刨下的碎屑从圆筒周围落出。",
+      "sourceIds": ["src-grater-rotary-drum"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "grater-draft-002",
+      "topicId": "grater",
+      "factText": "方盒刨丝器把三面或更多不同刀纹沿边缘连接成多边形外壳；每一面负责一种粗细或切法，刨下的食材会落进中央空腔。",
+      "sourceIds": ["src-grater-polygon-cavity"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "grater-draft-003",
+      "topicId": "grater",
+      "factText": "折叠式刨丝器可由两块顶部铰接的刀板组成，展开后形成能自立的倒 V 形；透明刻度盒贴在刀板内侧，既接住碎屑，也直接显示收集量。",
+      "sourceIds": ["src-grater-folding-collector"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

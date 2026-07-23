@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-18-toothbrush-01",
+  "baseCatalogVersion": "2026-07-18-beta.7",
+  "nextCatalogVersion": "2026-07-18-beta.8",
+  "drafts": [
+    "knowledge/drafts/toothbrush_extension_01.json"
+  ]
+}

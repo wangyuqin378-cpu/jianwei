@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-new-topics-24",
+  "baseCatalogVersion": "2026-07-19-beta.53",
+  "nextCatalogVersion": "2026-07-19-beta.54",
+  "drafts": [
+    "knowledge/drafts/measuring_spoon.json",
+    "knowledge/drafts/nonstick_pan.json",
+    "knowledge/drafts/peeler.json",
+    "knowledge/drafts/plastic_wrap.json",
+    "knowledge/drafts/rice_cooker.json",
+    "knowledge/drafts/rice_paddle.json"
+  ]
+}

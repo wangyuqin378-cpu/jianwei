@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "remote_control",
+  "displayName": "遥控器",
+  "category": "digital",
+  "aliases": ["remote control", "remote", "遥控器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-remote-control-patent",
+      "title": "US4377006A: IR remote control system",
+      "url": "https://patents.google.com/patent/US4377006A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "remote-control-draft-002",
+      "topicId": "remote_control",
+      "factText": "按下不同按键时，编码器会生成标识对应功能的多位代码，再由红外二极管依次发出。",
+      "sourceIds": ["src-remote-control-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "remote-control-draft-003",
+      "topicId": "remote_control",
+      "factText": "一种遥控编码用单个脉冲和一组相邻脉冲表示两种逻辑状态，接收端再还原成二进制信号。",
+      "sourceIds": ["src-remote-control-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "remote-control-draft-004",
+      "topicId": "remote_control",
+      "factText": "设备端通常依次经过光电二极管、放大器、检测器和解码器，最后才触发音量或电源等功能。",
+      "sourceIds": ["src-remote-control-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "monitor",
+  "displayName": "显示器",
+  "category": "digital",
+  "aliases": ["computer monitor", "显示器", "monitor", "电脑屏幕"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-monitors",
+      "title": "Monitors",
+      "url": "https://www.energystar.gov/products/monitors",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "monitor-draft-001",
+      "topicId": "monitor",
+      "factText": "显示器刷新率以赫兹计算，表示每秒能更新画面的次数；更高刷新率通常会让滚动和运动画面看起来更流畅。",
+      "sourceIds": ["src-energy-star-monitors"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "monitor-draft-002",
+      "topicId": "monitor",
+      "factText": "不同厂商测量对比度的方法并不统一，因此包装上的对比度数字未必可以直接横向比较，不能只凭一个数判断画质。",
+      "sourceIds": ["src-energy-star-monitors"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "monitor-draft-003",
+      "topicId": "monitor",
+      "factText": "部分带 USB-C 或 Thunderbolt 的显示器能用一根线同时传画面并给电脑供电，但购买前仍要核对电脑输出口与显示器输入能力。",
+      "sourceIds": ["src-energy-star-monitors"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

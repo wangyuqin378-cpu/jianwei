@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "can_opener",
+  "displayName": "开罐器",
+  "category": "tableware",
+  "aliases": ["can opener", "tin opener", "开罐器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-can-opener-cut-feed-wheels",
+      "title": "US2879589A: Can opener",
+      "url": "https://patents.google.com/patent/US2879589A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-can-opener-auto-thrust-pawl",
+      "title": "US3165830A: Can opener",
+      "url": "https://patents.google.com/patent/US3165830A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-can-opener-side-cut",
+      "title": "US7121009B2: Can opener",
+      "url": "https://patents.google.com/patent/US7121009B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "can-opener-draft-001",
+      "topicId": "can_opener",
+      "factText": "旋轮开罐器通常让切割轮和进给轮夹住罐口：进给轮沿卷边滚动并带着罐体前进，切割轮随之连续切开盖缘，而不是靠刀尖一次划完整圈。",
+      "sourceIds": ["src-can-opener-cut-feed-wheels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "can-opener-draft-002",
+      "topicId": "can_opener",
+      "factText": "有些电动开罐器把棘爪接入进给轮传动：正向启动时先把进给轮推向刀轮并刺入罐盖，继续转动后解除推送；反转时再把两轮分开。",
+      "sourceIds": ["src-can-opener-auto-thrust-pawl"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "can-opener-draft-003",
+      "topicId": "can_opener",
+      "factText": "侧切式开罐器的刀轮绕竖直轴转动，并从侧面切入罐口卷边；夹拢两根手柄会用凸轮把刀轮推向卷边，旋钮则驱动另一只轮沿罐口行进。",
+      "sourceIds": ["src-can-opener-side-cut"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

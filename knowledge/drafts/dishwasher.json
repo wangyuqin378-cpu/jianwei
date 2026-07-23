@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dishwasher",
+  "displayName": "洗碗机",
+  "category": "cleaning",
+  "aliases": ["dishwasher", "洗碗机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-dishwasher-criteria",
+      "title": "Dishwashers Key Product Criteria",
+      "url": "https://www.energystar.gov/products/dishwashers/key_product_criteria",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dishwasher-draft-001",
+      "topicId": "dishwasher",
+      "factText": "洗碗机的耗电不只来自水泵和控制系统，还包括加热洗涤用水以及烘干餐具所需的能量。",
+      "sourceIds": ["src-energy-star-dishwasher-criteria"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dishwasher-draft-002",
+      "topicId": "dishwasher",
+      "factText": "ENERGY STAR 的洗碗机标准同时约束年耗电量和每个周期耗水量，评价时不会只看其中一项。",
+      "sourceIds": ["src-energy-star-dishwasher-criteria"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dishwasher-draft-003",
+      "topicId": "dishwasher",
+      "factText": "美国能源部测试会对带污渍感应的机型单独测试，估算年耗能时采用每年二百一十五个周期。",
+      "sourceIds": ["src-energy-star-dishwasher-criteria"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

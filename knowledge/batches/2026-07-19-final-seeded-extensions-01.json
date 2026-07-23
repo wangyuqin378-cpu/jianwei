@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-final-seeded-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.25",
+  "nextCatalogVersion": "2026-07-19-beta.26",
+  "drafts": [
+    "knowledge/drafts/umbrella_extension_01.json",
+    "knowledge/drafts/soap_dispenser_extension_01.json"
+  ]
+}

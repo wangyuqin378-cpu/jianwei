@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "notebook",
+  "displayName": "笔记本",
+  "category": "home",
+  "aliases": ["notebook", "notepad", "笔记本", "记事本"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-lay-flat-book-binding",
+      "title": "US5456496A: Lay-flat book binding",
+      "url": "https://patents.google.com/patent/US5456496A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-refillable-notebook",
+      "title": "US8876423B2: Refillable notebook with release mechanism",
+      "url": "https://patents.google.com/patent/US8876423B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "notebook-draft-002",
+      "topicId": "notebook",
+      "factText": "一种平摊装订让书芯背部独立于封面书脊弯曲，因此打开时纸页更容易平放，同时仍用织带和胶合结构保持连接。",
+      "sourceIds": ["src-lay-flat-book-binding"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "notebook-draft-003",
+      "topicId": "notebook",
+      "factText": "线圈装订的纸页可以绕装订边翻转接近一整圈，让已翻过的页面叠到下方；可开合结构还允许增减内页。",
+      "sourceIds": ["src-refillable-notebook"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

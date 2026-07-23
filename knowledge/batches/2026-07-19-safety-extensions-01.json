@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-safety-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.15",
+  "nextCatalogVersion": "2026-07-19-beta.16",
+  "drafts": [
+    "knowledge/drafts/power_strip_extension_01.json",
+    "knowledge/drafts/seat_belt_extension_01.json",
+    "knowledge/drafts/hammer_extension_01.json"
+  ]
+}

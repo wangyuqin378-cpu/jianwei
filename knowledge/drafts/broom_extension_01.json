@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "broom",
+  "displayName": "扫帚",
+  "category": "cleaning",
+  "aliases": ["broom", "扫把", "笤帚", "扫帚"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-broom",
+      "title": "US4756039A: angled-cut bristle broom",
+      "url": "https://patents.google.com/patent/US4756039A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "broom-draft-002",
+      "topicId": "broom",
+      "factText": "斜切扫帚的毛端会形成与手柄斜交的平面，使用时整条扫面更容易均匀贴地，也能让刷毛磨损得更均匀。",
+      "sourceIds": ["src-broom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "broom-draft-003",
+      "topicId": "broom",
+      "factText": "一种扫帚设计让大部分柔软刷毛负责普通地面，再在一端加入少量硬刷毛，用来处理墙角、边缘和较顽固的污物。",
+      "sourceIds": ["src-broom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "broom-draft-004",
+      "topicId": "broom",
+      "factText": "刷毛的硬度不只取决于材料；该专利通过增大扫面前端部分刷毛的直径，让这一区域比其余刷毛更硬。",
+      "sourceIds": ["src-broom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

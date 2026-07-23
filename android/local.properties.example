@@ -1,0 +1,3 @@
+sdk.dir=C\:\\path\\to\\Android\\Sdk
+jianwei.apiUrl=http://10.0.2.2:8787/
+jianwei.releaseApiUrl=https://api.example.com/

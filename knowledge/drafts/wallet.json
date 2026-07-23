@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wallet",
+  "displayName": "钱包",
+  "category": "home",
+  "aliases": ["wallet", "billfold", "钱包"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wallet-nested-pockets",
+      "title": "US6050311A: Credit card wallet",
+      "url": "https://patents.google.com/patent/US6050311A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wallet-gusset-coin-purse",
+      "title": "US2578390A: Combination billfold and coin purse",
+      "url": "https://patents.google.com/patent/US2578390A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wallet-rfid-shield",
+      "title": "US9055798B2: RFID-shielded articles and methods thereof",
+      "url": "https://patents.google.com/patent/US9055798B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wallet-draft-001",
+      "topicId": "wallet",
+      "factText": "钱包越多卡不一定越要叠得厚：把卡袋分成左右并排的小组、把两个纸币袋一深一浅地嵌套，可减少所有内容都堆在同一位置。",
+      "sourceIds": ["src-wallet-nested-pockets"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wallet-draft-002",
+      "topicId": "wallet",
+      "factText": "零钱袋侧边常做成可展开的褶片，也叫风琴折或 gusset；装入硬币时侧壁张开增加容积，钱包合拢时又能沿折线压平。",
+      "sourceIds": ["src-wallet-gusset-coin-purse"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wallet-draft-003",
+      "topicId": "wallet",
+      "factText": "防 RFID 钱包可把含铜、镍等导电材料的薄层夹在外皮和内衬之间；钱包合上后，外层屏蔽材料围住卡片以衰减无线电信号。",
+      "sourceIds": ["src-wallet-rfid-shield"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "topicId": "fuel_nozzle",
+  "displayName": "加油枪",
+  "category": "transport",
+  "aliases": ["fuel nozzle", "gas pump nozzle", "加油枪", "油枪"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-epa-stage-ii-nozzle-guidance",
+      "title": "EPA-450/3-91-022a: Stage II Vapor Recovery Technical Guidance",
+      "url": "https://www3.epa.gov/airquality/ctg_act/199111_voc_epa450_3-91-022a_stage2_gasoline_dispensing%28v1%29.pdf",
+      "publisher": "U.S. Environmental Protection Agency",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-opw-automatic-nozzle",
+      "title": "OPW 1291C Automatic Shut-Off Nozzles",
+      "url": "https://www.opwglobal.com/products/us/retail-fueling-products/standard-dispensing-equipment/automatic-nozzles-bulk-fueling/opw-1290-automatic-shut-off-nozzles",
+      "publisher": "OPW Retail Fueling",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-opw-12vw-vapor-nozzle",
+      "title": "OPW 12VW Vacuum-Assist Nozzles",
+      "url": "https://www.opwglobal.com/products/us/retail-fueling-products/standard-dispensing-equipment/automatic-nozzles-gas-station/12vw-vacuum-assist-nozzles-1",
+      "publisher": "OPW Retail Fueling",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-opw-cvs2-vapor-system",
+      "title": "OPW CVS2 Central Vacuum Stage II Vapor Recovery System",
+      "url": "https://www.opwglobal.com/docs/libraries/retail-fueling/images/retail-fueling/above-ground/literature/opw-cvs2-data-sheet.pdf",
+      "publisher": "OPW Retail Fueling",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "fuel-nozzle-draft-001",
+      "topicId": "fuel_nozzle",
+      "factText": "自动跳枪依靠枪口附近的感应孔和文丘里负压工作；当油面封住感应气路，压力变化会触发机构关闭主阀。",
+      "sourceIds": ["src-epa-stage-ii-nozzle-guidance", "src-opw-automatic-nozzle"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "fuel-nozzle-draft-002",
+      "topicId": "fuel_nozzle",
+      "factText": "真空辅助加油枪把油气通道和油液通道集成在枪体内，油液流动时联动油气阀，让逸出的汽油蒸气被系统抽回。",
+      "sourceIds": ["src-epa-stage-ii-nozzle-guidance", "src-opw-12vw-vapor-nozzle"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "fuel-nozzle-draft-003",
+      "topicId": "fuel_nozzle",
+      "factText": "第二阶段油气回收系统会把加油时收集的汽油蒸气，经独立油气管路送回加油站储罐，减少蒸气直接逸散。",
+      "sourceIds": ["src-epa-stage-ii-nozzle-guidance", "src-opw-cvs2-vapor-system"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

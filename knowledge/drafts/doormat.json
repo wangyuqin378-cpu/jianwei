@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "doormat",
+  "displayName": "门垫",
+  "category": "home",
+  "aliases": ["doormat", "entrance mat", "门垫", "入户地垫"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-doormat-scraper-drain",
+      "title": "US2436315A: Door mat with scraper and removable brush",
+      "url": "https://patents.google.com/patent/US2436315A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-doormat-modular-water-control",
+      "title": "EP0138654A2: Tile for an entrance mat",
+      "url": "https://patents.google.com/patent/EP0138654A2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-doormat-layered-absorption",
+      "title": "US5962350A: Floor mat",
+      "url": "https://patents.google.com/patent/US5962350A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "doormat-draft-001",
+      "topicId": "doormat",
+      "factText": "刮泥门垫的凸肋负责从鞋底刮下泥水，肋条两侧的凹槽把水导开；槽内再设置穿孔，就能让水继续排到垫体下方。",
+      "sourceIds": ["src-doormat-scraper-drain"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "doormat-draft-002",
+      "topicId": "doormat",
+      "factText": "大型入口垫可由许多小块拼接：每块低边先暂存鞋底带来的水，刮片清理鞋底，侧壁开口在水位升高时再定向排出。",
+      "sourceIds": ["src-doormat-modular-water-control"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "doormat-draft-003",
+      "topicId": "doormat",
+      "factText": "吸水门垫可以分成多层：表层把水向下导走，中间层吸收并暂存，防水层阻止渗到地面，最底层再提供防滑接触。",
+      "sourceIds": ["src-doormat-layered-absorption"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

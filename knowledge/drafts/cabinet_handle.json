@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "cabinet_handle",
+  "displayName": "柜门把手",
+  "category": "home",
+  "aliases": ["cabinet handle", "drawer pull", "柜门把手", "抽屉拉手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cabinet-handle-adjustable-spacing",
+      "title": "US9909338B1: Adjustable cabinet handle",
+      "url": "https://patents.google.com/patent/US9909338B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-cabinet-handle-recessed-cup",
+      "title": "US1437509A: Drawer pull",
+      "url": "https://patents.google.com/patent/US1437509A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-cabinet-handle-single-screw",
+      "title": "US3311943A: Drawer pull",
+      "url": "https://patents.google.com/patent/US3311943A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "cabinet-handle-draft-001",
+      "topicId": "cabinet_handle",
+      "factText": "双孔柜门把手最关键的尺寸是两安装点的中心距；可调式结构能改变两端间距，让新把手继续利用门板上已有的孔。",
+      "sourceIds": ["src-cabinet-handle-adjustable-spacing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cabinet-handle-draft-002",
+      "topicId": "cabinet_handle",
+      "factText": "嵌入式杯形拉手会把金属主体放进门板凹槽，外沿遮住切口，伸出的唇边则给手指留下向外拉动的位置。",
+      "sourceIds": ["src-cabinet-handle-recessed-cup"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cabinet-handle-draft-003",
+      "topicId": "cabinet_handle",
+      "factText": "有些双脚拉手并非两端都用螺钉：一端的圆柱凸起紧贴孔壁防止转动，另一端只需一颗螺钉完成锁紧。",
+      "sourceIds": ["src-cabinet-handle-single-screw"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

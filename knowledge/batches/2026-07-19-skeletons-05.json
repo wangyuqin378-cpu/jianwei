@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-skeletons-05",
+  "baseCatalogVersion": "2026-07-18-beta.11",
+  "nextCatalogVersion": "2026-07-19-beta.12",
+  "drafts": [
+    "knowledge/drafts/remote_control_extension_01.json",
+    "knowledge/drafts/headphones_extension_01.json",
+    "knowledge/drafts/vacuum_cleaner_extension_01.json",
+    "knowledge/drafts/padlock_extension_01.json",
+    "knowledge/drafts/key_extension_01.json"
+  ]
+}

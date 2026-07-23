@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-transport-general-new-topics-30",
+  "baseCatalogVersion": "2026-07-19-beta.59",
+  "nextCatalogVersion": "2026-07-19-beta.60",
+  "drafts": [
+    "knowledge/drafts/license_plate.json",
+    "knowledge/drafts/motorcycle.json",
+    "knowledge/drafts/parking_meter.json",
+    "knowledge/drafts/subway_gate.json",
+    "knowledge/drafts/train_ticket.json"
+  ]
+}

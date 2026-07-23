@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bus_stop_sign",
+  "displayName": "公交站牌",
+  "category": "transport",
+  "aliases": ["bus stop sign", "公交站牌"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bus-stop-sign-solar-display",
+      "title": "GB2453723A: Bus shelter with solar power unit",
+      "url": "https://patents.google.com/patent/GB2453723A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bus-stop-sign-live-position",
+      "title": "CN114120694A: Bus stop board with stop display function",
+      "url": "https://patents.google.com/patent/CN114120694A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bus-stop-sign-route-request",
+      "title": "US20080062012A1: Passenger pick-up bus stop notification system",
+      "url": "https://patents.google.com/patent/US20080062012A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bus-stop-sign-draft-001",
+      "topicId": "bus_stop_sign",
+      "factText": "无市电的公交站牌也能提供电子信息：光伏板给电池充电，低功耗电子纸显示线路时刻，触摸区还能触发语音播报。",
+      "sourceIds": ["src-bus-stop-sign-solar-display"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bus-stop-sign-draft-002",
+      "topicId": "bus_stop_sign",
+      "factText": "有些智能站牌通过无线信号接收公交车上传的位置与车内信息，再把车辆位置和空余座位数显示给候车人。",
+      "sourceIds": ["src-bus-stop-sign-live-position"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bus-stop-sign-draft-003",
+      "topicId": "bus_stop_sign",
+      "factText": "乘客候车也可以变成一种信号：站牌点亮所选线路号码，让驶来的司机看见哪条线路有人等候，减少无效停车。",
+      "sourceIds": ["src-bus-stop-sign-route-request"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

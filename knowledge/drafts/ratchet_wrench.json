@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "ratchet_wrench",
+  "displayName": "棘轮扳手",
+  "category": "tool",
+  "aliases": ["ratchet wrench", "棘轮扳手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ratchet-wrench-limited-swing",
+      "title": "US4520697A: Ratchet wrench",
+      "url": "https://patents.google.com/patent/US4520697A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-ratchet-wrench-push-reverse",
+      "title": "US4336728A: Push-button reversible ratchet and pawl socket wrench handle",
+      "url": "https://patents.google.com/patent/US4336728A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-ratchet-wrench-fine-tooth",
+      "title": "US3467231A: Pawl reversing mechanism for ratchet wrenches",
+      "url": "https://patents.google.com/patent/US3467231A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "ratchet-wrench-draft-001",
+      "topicId": "ratchet_wrench",
+      "factText": "棘轮扳手在狭窄空间里不必每次都离开紧固件：工作方向带动套筒转动，回摆方向让棘爪越过齿面，手柄即可复位。",
+      "sourceIds": ["src-ratchet-wrench-limited-swing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ratchet-wrench-draft-002",
+      "topicId": "ratchet_wrench",
+      "factText": "按钮换向结构用滑动凸轮杆推动执行件转动，让月牙形棘爪的另一端改为咬合棘轮，从而交换允许空转的方向。",
+      "sourceIds": ["src-ratchet-wrench-push-reverse"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ratchet-wrench-draft-003",
+      "topicId": "ratchet_wrench",
+      "factText": "细齿棘轮可以在头部布置一对双端齿棘爪；换向件让对应齿端与内齿圈接触，使手柄只需较小回摆角就能进入下一齿。",
+      "sourceIds": ["src-ratchet-wrench-fine-tooth"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "wire_stripper",
+  "displayName": "剥线钳",
+  "category": "tool",
+  "aliases": ["wire stripper", "剥线钳"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-wire-stripper-self-aligning-blades",
+      "title": "US7017448B2: Precision hand-held wire stripper",
+      "url": "https://patents.google.com/patent/US7017448B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wire-stripper-automatic-jaws",
+      "title": "US20080229884A1: Wire stripper which can be automatically adapted to different conductor cross sections",
+      "url": "https://patents.google.com/patent/US20080229884A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-wire-stripper-centered-adjustment",
+      "title": "US3537339A: Wire stripper",
+      "url": "https://patents.google.com/patent/US3537339A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "wire-stripper-draft-001",
+      "topicId": "wire_stripper",
+      "factText": "精密剥线钳的两片刀可以做成可浮动结构；钳口闭合时，量规面彼此接触，再由压簧把刀片推回对齐位置。",
+      "sourceIds": ["src-wire-stripper-self-aligning-blades"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wire-stripper-draft-002",
+      "topicId": "wire_stripper",
+      "factText": "自动剥线钳常把外侧钳口用于夹线、内侧钳口用于切入绝缘层，再由纵向拉杆带动切刀完成剥离动作。",
+      "sourceIds": ["src-wire-stripper-automatic-jaws"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "wire-stripper-draft-003",
+      "topicId": "wire_stripper",
+      "factText": "旋转式剥线器可以同时调节相对的两片刀，并先用居中量规校准中心，让刀刃间距适配不同直径的导线。",
+      "sourceIds": ["src-wire-stripper-centered-adjustment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

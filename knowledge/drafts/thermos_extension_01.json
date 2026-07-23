@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "thermos",
+  "displayName": "保温杯",
+  "category": "tableware",
+  "aliases": ["thermos", "vacuum flask", "保温杯", "暖水瓶"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-thermos-vacuum-patent",
+      "title": "US4399919A: Vacuum flask",
+      "url": "https://patents.google.com/patent/US4399919A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "thermos-draft-002",
+      "topicId": "thermos",
+      "factText": "传统真空瓶的玻璃内胆是双层结构，外面还会套保护壳；保护壳的任务之一，是减少脆弱内胆受机械碰撞。",
+      "sourceIds": ["src-thermos-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "thermos-draft-003",
+      "topicId": "thermos",
+      "factText": "双层内胆的夹层会先通过底部抽气口排出空气，再把抽气口封住；有些设计还会放入吸气剂改善真空。",
+      "sourceIds": ["src-thermos-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "thermos-draft-004",
+      "topicId": "thermos",
+      "factText": "真空隔热并不只服务热饮：它对由外向内和由内向外的热交换都起作用，因此也能帮助冷饮保持低温。",
+      "sourceIds": ["src-thermos-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

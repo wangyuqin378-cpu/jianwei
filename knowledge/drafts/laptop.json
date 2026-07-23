@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "laptop",
+  "displayName": "笔记本电脑",
+  "category": "digital",
+  "aliases": ["laptop", "笔记本电脑", "notebook computer", "笔记本"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-computers",
+      "title": "Computers",
+      "url": "https://www.energystar.gov/products/computers",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "laptop-draft-001",
+      "topicId": "laptop",
+      "factText": "ENERGY STAR 的电脑标准不只看开机耗电，还同时约束关机、睡眠和空闲等多种状态，并要求使用电源管理功能。",
+      "sourceIds": ["src-energy-star-computers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "laptop-draft-002",
+      "topicId": "laptop",
+      "factText": "当前 ENERGY STAR 电脑标准要求默认设置在无操作 15 分钟内让显示器休眠，并在 30 分钟内让电脑系统进入睡眠。",
+      "sourceIds": ["src-energy-star-computers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "laptop-draft-003",
+      "topicId": "laptop",
+      "factText": "屏幕保护程序本身并不节能；有些屏保还会让显示器持续耗电，甚至阻止处理器进入低功耗状态。",
+      "sourceIds": ["src-energy-star-computers"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

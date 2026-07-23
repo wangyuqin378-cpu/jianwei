@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">见微</string>
+    <string name="widget_description">从你的照片里发现日常冷知识</string>
+    <string name="widget_loading">见微\n正在准备今天的卡片</string>
+</resources>

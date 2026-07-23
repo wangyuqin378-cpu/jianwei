@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "measuring_cup",
+  "displayName": "量杯",
+  "category": "tableware",
+  "aliases": ["measuring cup", "measuring jug", "量杯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-measuring-cup-movable-bottom",
+      "title": "US4073192A: Adjustable volume measuring cup",
+      "url": "https://patents.google.com/patent/US4073192A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-measuring-cup-interior-ramps",
+      "title": "US6263732B1: Measuring cup",
+      "url": "https://patents.google.com/patent/US6263732B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-measuring-cup-offset-indicia",
+      "title": "US6769302B1: Measuring cup with reversed indicia",
+      "url": "https://patents.google.com/patent/US6769302B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "measuring-cup-draft-001",
+      "topicId": "measuring_cup",
+      "factText": "可调容量量杯在透明圆筒里放一块能上下滑动的密合底板；把底板对准外壁刻度，就能先改变杯内有效容积，再装入需要计量的材料。",
+      "sourceIds": ["src-measuring-cup-movable-bottom"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "measuring-cup-draft-002",
+      "topicId": "measuring_cup",
+      "factText": "俯视量杯可以在内壁做两道从杯底连续升到杯口的斜坡，把公制和英制刻度印在朝上的坡面；加水时从上方就能同时看到液面和读数。",
+      "sourceIds": ["src-measuring-cup-interior-ramps"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "measuring-cup-draft-003",
+      "topicId": "measuring_cup",
+      "factText": "透明量杯若从斜上方读外壁刻度，杯壁厚度会让液面位置产生视差；一种做法是把刻度预先偏移到该视角下液面看起来所在的位置。",
+      "sourceIds": ["src-measuring-cup-offset-indicia"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

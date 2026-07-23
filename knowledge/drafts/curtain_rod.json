@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "curtain_rod",
+  "displayName": "窗帘杆",
+  "category": "home",
+  "aliases": ["curtain rod", "drapery rod", "窗帘杆", "伸缩杆"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-curtain-rod-telescoping",
+      "title": "US20190082875A1: Telescoping curtain rod finial assemblies",
+      "url": "https://patents.google.com/patent/US20190082875A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-curtain-rod-adjustable-bracket",
+      "title": "US2460193A: Curtain rod bracket",
+      "url": "https://patents.google.com/patent/US2460193A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-curtain-rod-finial-lock",
+      "title": "US10531758B2: Curtain rod assembly",
+      "url": "https://patents.google.com/patent/US10531758B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "curtain-rod-draft-001",
+      "topicId": "curtain_rod",
+      "factText": "伸缩窗帘杆由粗细两段套接来改变长度，旋转后可锁住轴向位置；端部接触垫独立转动，调节时仍能贴着墙面不跟转。",
+      "sourceIds": ["src-curtain-rod-telescoping"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "curtain-rod-draft-002",
+      "topicId": "curtain_rod",
+      "factText": "窗帘杆支架不只承担重量；可调支撑板通过不同高度的孔位固定，前方凸柱再插入空心杆端，从而同时控制高度与端部位置。",
+      "sourceIds": ["src-curtain-rod-adjustable-bracket"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "curtain-rod-draft-003",
+      "topicId": "curtain_rod",
+      "factText": "杆端装饰头可以兼作连接件：端盖滑到杆端后，互相配合的定位件藏在装饰头与杆体重叠处，限制装饰头意外脱落。",
+      "sourceIds": ["src-curtain-rod-finial-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

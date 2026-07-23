@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "motorcycle_mirror",
+  "displayName": "摩托车后视镜",
+  "category": "transport",
+  "aliases": ["motorcycle mirror", "motorbike mirror", "摩托车后视镜", "摩托车反光镜"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-eurlex-un-r81-motorcycle-mirrors",
+      "title": "UN/ECE Regulation No 81: Rear-view mirrors for two-wheeled vehicles",
+      "url": "https://eur-lex.europa.eu/eli/reg/2012/81/oj/eng",
+      "publisher": "EUR-Lex",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-eurlex-dir-97-24-motorcycle-mirrors",
+      "title": "Directive 97/24/EC: Rear-view mirrors for two or three-wheel motor vehicles",
+      "url": "https://eur-lex.europa.eu/eli/dir/1997/24/2006-11-28/eng",
+      "publisher": "EUR-Lex",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "motorcycle-mirror-draft-001",
+      "topicId": "motorcycle_mirror",
+      "factText": "摩托车后视镜必须可调，装车后在正常使用中保持稳定，并让驾驶者能够在正常骑姿下调整镜面方向。",
+      "sourceIds": ["src-eurlex-un-r81-motorcycle-mirrors", "src-eurlex-dir-97-24-motorcycle-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "motorcycle-mirror-draft-002",
+      "topicId": "motorcycle_mirror",
+      "factText": "UNECE R81 对摩托车后视镜设有最小反射面积和可容纳圆直径要求，镜面不能只靠外形好看而任意缩小。",
+      "sourceIds": ["src-eurlex-un-r81-motorcycle-mirrors", "src-eurlex-dir-97-24-motorcycle-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "motorcycle-mirror-draft-003",
+      "topicId": "motorcycle_mirror",
+      "factText": "在 UNECE R81 规则下，设计时速超过 50 公里的两轮车需左右各装一面镜；较低时速车型至少装一面。",
+      "sourceIds": ["src-eurlex-un-r81-motorcycle-mirrors", "src-eurlex-dir-97-24-motorcycle-mirrors"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

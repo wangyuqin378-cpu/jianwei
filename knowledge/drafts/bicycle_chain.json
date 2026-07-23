@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bicycle_chain",
+  "displayName": "自行车链条",
+  "category": "transport",
+  "aliases": ["bicycle chain", "自行车链条"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bicycle-chain-link-structure",
+      "title": "US6110064A: Transmission chain",
+      "url": "https://patents.google.com/patent/US6110064A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bicycle-chain-master-link-profile",
+      "title": "US20120322599A1: Inner link plate for bicycle chain",
+      "url": "https://patents.google.com/patent/US20120322599A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bicycle-chain-shifting-protrusion",
+      "title": "US20210102603A1: Bicycle chain",
+      "url": "https://patents.google.com/patent/US20210102603A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bicycle-chain-draft-001",
+      "topicId": "bicycle_chain",
+      "factText": "自行车链条由内链板与外链板交替组成，销轴把相邻链节连接起来，滚子套在内链节的圆筒或套管外侧。",
+      "sourceIds": ["src-bicycle-chain-link-structure"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-chain-draft-002",
+      "topicId": "bicycle_chain",
+      "factText": "有的链条用可拆主链节连接两端；内链板外表面的轮廓和间距还会针对换挡时与飞轮齿片的接触进行设计。",
+      "sourceIds": ["src-bicycle-chain-master-link-profile"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-chain-draft-003",
+      "topicId": "bicycle_chain",
+      "factText": "为了让链条更顺利地从大齿片移向小齿片，内链板靠滚子一侧的凸出量可以减小，给相邻链节留下更多偏转空间。",
+      "sourceIds": ["src-bicycle-chain-shifting-protrusion"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

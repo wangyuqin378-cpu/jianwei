@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "mirror",
+  "displayName": "镜子",
+  "category": "home",
+  "aliases": ["mirror", "household mirror", "镜子", "玻璃镜"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-mirror-silvered-glass-stack",
+      "title": "US6749307B2: Silver coated mirror",
+      "url": "https://patents.google.com/patent/US6749307B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mirror-antifog-film-stack",
+      "title": "US5402265A: Fog-free mirror device",
+      "url": "https://patents.google.com/patent/US5402265A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mirror-protective-backing",
+      "title": "US2856818A: Protective mirror coating",
+      "url": "https://patents.google.com/patent/US2856818A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "mirror-draft-001",
+      "topicId": "mirror",
+      "factText": "常见家用银镜并不是整块金属：透明玻璃背面先形成很薄的银反射层，银层后方再覆盖油漆，所以日常触摸的是玻璃正面。",
+      "sourceIds": ["src-mirror-silvered-glass-stack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mirror-draft-002",
+      "topicId": "mirror",
+      "factText": "防雾镜也可以做成薄膜叠层：朝外一面涂亲水防雾材料，中间薄膜背面沉积反射金属，最下方再用贴附层固定到平面。",
+      "sourceIds": ["src-mirror-antifog-film-stack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mirror-draft-003",
+      "topicId": "mirror",
+      "factText": "镜背涂层不只是遮住银色表面；薄金属反射膜本身容易在潮气和污染物作用下劣化，背面保护层用来隔离环境并保持反射质量。",
+      "sourceIds": ["src-mirror-protective-backing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "mug",
+  "displayName": "马克杯",
+  "category": "tableware",
+  "aliases": ["mug", "coffee cup", "马克杯", "杯子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-vam-popular-pottery-mugs",
+      "title": "Popular pottery",
+      "url": "https://www.vam.ac.uk/articles/popular-pottery",
+      "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-double-wall-ceramic-mug-patent",
+      "title": "WO2006126197A1: Mug",
+      "url": "https://patents.google.com/patent/WO2006126197A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "mug-draft-002",
+      "topicId": "mug",
+      "factText": "马克杯也曾是公开表达立场的媒介：1660 年英国王政复辟后，许多普通啤酒杯印上查理二世肖像，人们用它为复位的国王祝酒。",
+      "sourceIds": ["src-vam-popular-pottery-mugs"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mug-draft-003",
+      "topicId": "mug",
+      "factText": "双层马克杯并不是单纯把杯壁做厚：内外两层之间保留空腔来降低热量传递，有些设计还会在空腔中加入绝热材料。",
+      "sourceIds": ["src-double-wall-ceramic-mug-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

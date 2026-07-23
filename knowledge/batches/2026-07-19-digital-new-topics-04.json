@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-digital-new-topics-04",
+  "baseCatalogVersion": "2026-07-19-beta.37",
+  "nextCatalogVersion": "2026-07-19-beta.38",
+  "drafts": [
+    "knowledge/drafts/tripod.json",
+    "knowledge/drafts/webcam.json",
+    "knowledge/drafts/wifi_router.json"
+  ]
+}

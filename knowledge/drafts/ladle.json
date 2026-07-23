@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "ladle",
+  "displayName": "汤勺",
+  "category": "tableware",
+  "aliases": ["ladle", "soup ladle", "汤勺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ladle-adjustable-rim-hook",
+      "title": "US1836014A: Ladle",
+      "url": "https://patents.google.com/patent/US1836014A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-ladle-inner-pouring-passage",
+      "title": "US4040185A: Ladle for serving soup",
+      "url": "https://patents.google.com/patent/US4040185A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-ladle-movable-strainer",
+      "title": "US3822020A: Adjustable soup ladle",
+      "url": "https://patents.google.com/patent/US3822020A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "ladle-draft-001",
+      "topicId": "ladle",
+      "factText": "有些汤勺在手柄上开纵向槽，再装一只可滑动挂钩；按锅内液面高度移动挂钩后，汤勺挂在锅沿时，勺碗可以停在接近液面的深度。",
+      "sourceIds": ["src-ladle-adjustable-rim-hook"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ladle-draft-002",
+      "topicId": "ladle",
+      "factText": "分离式汤勺会在半球勺碗里倒扣一只 V 形内槽，内槽与勺壁之间形成从进液口到出液口的狭长通道；进液口加筛网后还能拦住固体。",
+      "sourceIds": ["src-ladle-inner-pouring-passage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "ladle-draft-003",
+      "topicId": "ladle",
+      "factText": "可调汤勺把一片活动滤网装在勺碗内部：滤网浸入混合汤料时让液体进入下层、把固体留在上方；改变滤网高度就会改变一勺中的固液比例。",
+      "sourceIds": ["src-ladle-movable-strainer"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hot_glue_gun",
+  "displayName": "热熔胶枪",
+  "category": "tool",
+  "aliases": ["hot glue gun", "热熔胶枪"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hot-glue-gun-melt-chamber",
+      "title": "US3744921A: Glue gun construction",
+      "url": "https://patents.google.com/patent/US3744921A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hot-glue-gun-siphon-chamber",
+      "title": "US10486186B2: No-drip hot melt glue gun",
+      "url": "https://patents.google.com/patent/US10486186B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-hot-glue-gun-needle-delay",
+      "title": "US11154899B2: Hot melt glue gun having needle valve",
+      "url": "https://patents.google.com/patent/US11154899B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hot-glue-gun-draft-001",
+      "topicId": "hot_glue_gun",
+      "factText": "热熔胶枪把固体胶棒送进电加热的长形熔胶腔，熔化后再由柱塞施压流向细喷嘴；早期结构还用顶针触碰工件来打开喷嘴阀。",
+      "sourceIds": ["src-hot-glue-gun-melt-chamber"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hot-glue-gun-draft-002",
+      "topicId": "hot_glue_gun",
+      "factText": "一种防滴结构在熔胶腔旁增加小型辅助腔；停止出胶时活塞把少量熔胶吸入辅助腔，降低喷嘴端压力，下次出胶再送回。",
+      "sourceIds": ["src-hot-glue-gun-siphon-chamber"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hot-glue-gun-draft-003",
+      "topicId": "hot_glue_gun",
+      "factText": "针阀式胶枪让喷嘴相对固定针芯移动来开闭出口，并把扳机动作分成先开阀、后推进胶棒，减少阀未打开时腔内先升压。",
+      "sourceIds": ["src-hot-glue-gun-needle-delay"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "candle",
+  "displayName": "蜡烛",
+  "category": "home",
+  "aliases": ["candle", "蜡烛"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usfa-candle-fire-safety",
+      "title": "Candle Fire Safety",
+      "url": "https://www.usfa.fema.gov/prevention/home-fires/prevent-fires/candle/",
+      "publisher": "U.S. Fire Administration",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-nfpa-educational-messages",
+      "title": "Educational Messages Desk Reference",
+      "url": "https://www.nfpa.org/-/media/project/storefront/catalog/files/home-fire-safety/emac/educationalmessagesdeskreference.pdf?rev=967564ad45c84627bb02b5baef0dc12c",
+      "publisher": "National Fire Protection Association",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "candle-draft-001",
+      "topicId": "candle",
+      "factText": "点燃的蜡烛应与窗帘、纸张和装饰物等可燃物至少保持约三十厘米距离，避免火焰或热量引燃周围物品。",
+      "sourceIds": ["src-usfa-candle-fire-safety", "src-nfpa-educational-messages"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "candle-draft-002",
+      "topicId": "candle",
+      "factText": "蜡烛应放在不燃、稳固且不易倾倒的烛台上；玻璃罩或容器还能帮助隔离裸露火焰。",
+      "sourceIds": ["src-usfa-candle-fire-safety", "src-nfpa-educational-messages"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "candle-draft-003",
+      "topicId": "candle",
+      "factText": "离开房间或准备睡觉前应完全熄灭蜡烛，不能把仍在燃烧的蜡烛留给无人看管。",
+      "sourceIds": ["src-usfa-candle-fire-safety", "src-nfpa-educational-messages"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

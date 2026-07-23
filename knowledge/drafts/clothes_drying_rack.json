@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "clothes_drying_rack",
+  "displayName": "晾衣架",
+  "category": "cleaning",
+  "aliases": ["clothes drying rack", "drying rack", "晾衣架", "晾衣杆"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-aerated-drying-rack",
+      "title": "WO2012168505A1: Clothes drying rack with aeration",
+      "url": "https://patents.google.com/patent/WO2012168505A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-lazy-tong-drying-rack",
+      "title": "US4828123A: Collapsible clothes drying rack",
+      "url": "https://patents.google.com/patent/US4828123A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-vortex-portable-dryer",
+      "title": "US10273626B2: Portable collapsible clothes dryer",
+      "url": "https://patents.google.com/patent/US10273626B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "clothes-drying-rack-draft-001",
+      "topicId": "clothes_drying_rack",
+      "factText": "一种主动送风晾衣架把横杆做成中空管，风机把冷风或热风压入框架，再从挂衣管下方的小孔吹向衣物。",
+      "sourceIds": ["src-aerated-drying-rack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clothes-drying-rack-draft-002",
+      "topicId": "clothes_drying_rack",
+      "factText": "剪叉式晾衣架用连续的 X 形连杆折叠和伸展；一种设计把顶部横杆拉开，并加网面来平放毛衣。",
+      "sourceIds": ["src-lazy-tong-drying-rack"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clothes-drying-rack-draft-003",
+      "topicId": "clothes_drying_rack",
+      "factText": "一种旅行烘衣架接入便携吹风机，让热风在圆筒罩内形成上升涡流并带动衣架旋转，收起后可压成扁平圆盘。",
+      "sourceIds": ["src-vortex-portable-dryer"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

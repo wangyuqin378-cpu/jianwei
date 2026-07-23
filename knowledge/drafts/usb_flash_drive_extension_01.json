@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "usb_flash_drive",
+  "displayName": "U 盘",
+  "category": "digital",
+  "aliases": ["usb flash drive", "flash drive", "U盘", "优盘", "U 盘"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usb-if-defined-class-codes",
+      "title": "Defined Class Codes",
+      "url": "https://www.usb.org/defined-class-codes",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usb-if-mass-storage-boot",
+      "title": "USB Mass Storage Specification for Bootability 1.0",
+      "url": "https://www.usb.org/sites/default/files/usb_msc_boot_1.0.pdf",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-nist-portable-storage",
+      "title": "NIST SP 1334: Reducing the Cybersecurity Risks of Portable Storage Media in OT Environments",
+      "url": "https://csrc.nist.gov/pubs/sp/1334/final",
+      "publisher": "National Institute of Standards and Technology",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "usb-flash-drive-draft-002",
+      "topicId": "usb_flash_drive",
+      "factText": "USB 设备用类别代码标识功能，其中 08h 代表大容量存储；这类代码写在接口描述符中，帮助主机选择相应驱动。",
+      "sourceIds": ["src-usb-if-defined-class-codes"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "usb-flash-drive-draft-003",
+      "topicId": "usb_flash_drive",
+      "factText": "USB-IF 还定义了大容量存储设备的可启动规范，规定主机从这类设备加载操作系统时所需的最小命令和数据集合。",
+      "sourceIds": ["src-usb-if-mass-storage-boot"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "usb-flash-drive-draft-004",
+      "topicId": "usb_flash_drive",
+      "factText": "便携存储介质很适合在设备间物理传递数据，但也可能携带恶意软件；NIST 因此建议同时采用流程、物理和技术控制。",
+      "sourceIds": ["src-nist-portable-storage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

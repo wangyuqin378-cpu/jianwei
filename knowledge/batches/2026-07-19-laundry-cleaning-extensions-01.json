@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-laundry-cleaning-extensions-01",
+  "baseCatalogVersion": "2026-07-19-beta.24",
+  "nextCatalogVersion": "2026-07-19-beta.25",
+  "drafts": [
+    "knowledge/drafts/clothes_hanger_extension_01.json",
+    "knowledge/drafts/clothespin_extension_01.json",
+    "knowledge/drafts/mop_extension_01.json"
+  ]
+}

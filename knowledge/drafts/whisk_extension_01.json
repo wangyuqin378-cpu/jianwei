@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "whisk",
+  "displayName": "打蛋器",
+  "category": "tableware",
+  "aliases": ["whisk", "打蛋器", "蛋抽"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-conical-wire-whisk-patent",
+      "title": "US5788368A: Wire whisk",
+      "url": "https://patents.google.com/patent/US5788368A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rotary-wire-whisk-patent",
+      "title": "US1826200A: Rotary wire whisk",
+      "url": "https://patents.google.com/patent/US1826200A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "whisk-draft-002",
+      "topicId": "whisk",
+      "factText": "打蛋器不全是球形：锥形线笼更容易贴近烤盘、酱锅或锥形滤网的底部和侧壁，可刮起锅底焦香物并减少酱汁残留。",
+      "sourceIds": ["src-conical-wire-whisk-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "whisk-draft-003",
+      "topicId": "whisk",
+      "factText": "1931 年的一项旋转打蛋器专利专门强调蛋白：目标是快速得到均匀细腻的体积和质地，供天使蛋糕等烘焙使用。",
+      "sourceIds": ["src-rotary-wire-whisk-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

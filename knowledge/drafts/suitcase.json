@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "suitcase",
+  "displayName": "行李箱",
+  "category": "home",
+  "aliases": ["suitcase", "luggage", "行李箱"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-suitcase-telescopic-handle",
+      "title": "US10912358B2: Telescopic suitcase handle",
+      "url": "https://patents.google.com/patent/US10912358B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-suitcase-spinner-wheels",
+      "title": "US20140110204A1: Luggage with spinner wheels",
+      "url": "https://patents.google.com/patent/US20140110204A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-suitcase-shell-zipper",
+      "title": "WO2019199224A1: Hard shell case with zipper",
+      "url": "https://patents.google.com/patent/WO2019199224A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "suitcase-draft-001",
+      "topicId": "suitcase",
+      "factText": "行李箱拉杆常用两组平行套管逐级伸缩。顶部按钮可通过拉索收回管内的弹簧锁销，锁销离开孔位后，内管才可以上下移动。",
+      "sourceIds": ["src-suitcase-telescopic-handle"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "suitcase-draft-002",
+      "topicId": "suitcase",
+      "factText": "万向轮有两套转动：轮子绕横向车轴滚动，轮叉又能相对轮座水平旋转。两条转轴配合，箱子才可在直立时随推力改变方向。",
+      "sourceIds": ["src-suitcase-spinner-wheels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "suitcase-draft-003",
+      "topicId": "suitcase",
+      "factText": "硬壳箱的拉链布带可以嵌进壳体边缘的凹槽，再用穿过壳体和布带的缝线固定；外侧沉孔把缝线藏低，减少搬运时被刮碰。",
+      "sourceIds": ["src-suitcase-shell-zipper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

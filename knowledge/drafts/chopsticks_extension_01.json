@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "chopsticks",
+  "displayName": "筷子",
+  "category": "tableware",
+  "aliases": ["chopsticks", "筷子", "箸"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-vam-chopsticks-design",
+      "title": "Chopsticks",
+      "url": "https://www.vam.ac.uk/blog/museum-life/chopsticks",
+      "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-training-chopsticks-patent",
+      "title": "US11246436B2: Training chopsticks",
+      "url": "https://patents.google.com/patent/US11246436B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "chopsticks-draft-002",
+      "topicId": "chopsticks",
+      "factText": "筷子的材料也反映文化偏好：V&A 的设计记录把英国餐具常见的亮面金属，与中国长期偏爱的竹木等天然材料作了对照。",
+      "sourceIds": ["src-vam-chopsticks-design"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "chopsticks-draft-003",
+      "topicId": "chopsticks",
+      "factText": "一种训练筷用 C 形钩和环形导槽引导上方筷子转动，同时固定下方筷子；这样更容易学习，但会牺牲一部分张开范围。",
+      "sourceIds": ["src-training-chopsticks-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

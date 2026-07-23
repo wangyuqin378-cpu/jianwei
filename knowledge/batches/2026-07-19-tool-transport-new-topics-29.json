@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tool-transport-new-topics-29",
+  "baseCatalogVersion": "2026-07-19-beta.58",
+  "nextCatalogVersion": "2026-07-19-beta.59",
+  "drafts": [
+    "knowledge/drafts/utility_knife.json",
+    "knowledge/drafts/wire_stripper.json",
+    "knowledge/drafts/bicycle_chain.json",
+    "knowledge/drafts/bicycle_pedal.json",
+    "knowledge/drafts/bus_stop_sign.json",
+    "knowledge/drafts/car_key_fob.json"
+  ]
+}

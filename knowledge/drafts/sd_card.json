@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "sd_card",
+  "displayName": "SD 卡",
+  "category": "digital",
+  "aliases": ["SD card", "SD 卡"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-sd-capacity-standards",
+      "title": "Capacity (SD/SDHC/SDXC/SDUC)",
+      "url": "https://www.sdcard.org/developers/sd-standard-overview/capacity-sd-sdhc-sdxc-sduc/",
+      "publisher": "SD Association",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-sd-compatibility",
+      "title": "SD, SDHC, SDXC and SDUC Card Capacity Choices",
+      "url": "https://www.sdcard.org/consumers/about-sd-memory-card-choices/sd-sdhc-sdxc-and-sduc-card-capacity-choices/",
+      "publisher": "SD Association",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "sd-card-draft-001",
+      "topicId": "sd_card",
+      "factText": "SD、SDHC、SDXC和SDUC并不只是营销名称，它们对应不同容量区间：上限依次为2 GB、32 GB、2 TB和128 TB。",
+      "sourceIds": ["src-sd-capacity-standards"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sd-card-draft-002",
+      "topicId": "sd_card",
+      "factText": "这些容量标准还规定默认文件系统：SD使用FAT12或FAT16，SDHC使用FAT32，而SDXC和SDUC使用exFAT。",
+      "sourceIds": ["src-sd-capacity-standards"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "sd-card-draft-003",
+      "topicId": "sd_card",
+      "factText": "SD卡兼容性通常由主机代际决定：较新的SDUC主机可使用更早的SD、SDHC和SDXC卡，但旧SD主机不能反向识别SDHC、SDXC或SDUC卡。",
+      "sourceIds": ["src-sd-compatibility"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

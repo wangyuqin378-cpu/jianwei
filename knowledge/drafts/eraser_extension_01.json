@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "eraser",
+  "displayName": "橡皮擦",
+  "category": "tool",
+  "aliases": ["eraser", "rubber", "橡皮擦", "橡皮"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-lipman-pencil-eraser-patent",
+      "title": "US19783A: Combination of lead-pencil and eraser",
+      "url": "https://patents.google.com/patent/US19783A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-reckendorfer-faber-opinion",
+      "title": "U.S. Reports: Reckendorfer v. Faber, 92 U.S. 347",
+      "url": "https://www.govinfo.gov/content/pkg/USREPORTS-92/pdf/USREPORTS-92-347.pdf",
+      "publisher": "U.S. Government Publishing Office",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "eraser-draft-002",
+      "topicId": "eraser",
+      "factText": "1858 年的铅笔橡皮专利把橡皮嵌进木杆另一端，使用者可以像削笔芯一样把橡皮削尖，用来擦除相邻细线之间的小范围痕迹。",
+      "sourceIds": ["src-lipman-pencil-eraser-patent", "src-reckendorfer-faber-opinion"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "eraser-draft-003",
+      "topicId": "eraser",
+      "factText": "这项铅笔加橡皮的专利后来被美国最高法院判定无效：两种部件组合后仍各自完成原来的功能，没有产生新的共同结果。",
+      "sourceIds": ["src-reckendorfer-faber-opinion"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

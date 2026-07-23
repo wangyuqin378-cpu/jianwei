@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "tissue_box",
+  "displayName": "纸巾盒",
+  "category": "home",
+  "aliases": ["tissue box", "facial tissue box", "纸巾盒"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-tissue-box-interfold",
+      "title": "EP1336576A1: A container for a stack of interfolded tissue sheets",
+      "url": "https://patents.google.com/patent/EP1336576A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tissue-box-resilient-insert",
+      "title": "US6419114B1: Tissue box",
+      "url": "https://patents.google.com/patent/US6419114B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tissue-box-paper-flaps",
+      "title": "US20230309761A1: Tissue box dispensing feature",
+      "url": "https://patents.google.com/patent/US20230309761A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "tissue-box-draft-001",
+      "topicId": "tissue_box",
+      "factText": "抽纸能“一张带出下一张”，关键是相邻纸巾互相折入，形成连续折叠链；前一张离盒时，会把后一张的一部分拖到开口外。",
+      "sourceIds": ["src-tissue-box-interfold"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tissue-box-draft-002",
+      "topicId": "tissue_box",
+      "factText": "盒口薄膜要同时有摩擦力和回弹性：它既要分开相邻纸巾，避免一次连出多张，又要托住下一张，防止纸巾掉回盒内。",
+      "sourceIds": ["src-tissue-box-resilient-insert"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tissue-box-draft-003",
+      "topicId": "tissue_box",
+      "factText": "纸巾盒也能不用塑料出纸膜：在纸板上切波浪口并压出两条弧形折痕，翻起的纸质翼片就能导向、分离并托住抽纸。",
+      "sourceIds": ["src-tissue-box-paper-flaps"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

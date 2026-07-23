@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "printer",
+  "displayName": "打印机",
+  "category": "digital",
+  "aliases": ["printer", "打印机", "inkjet printer", "laser printer"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-imaging-equipment",
+      "title": "Imaging Equipment",
+      "url": "https://www.energystar.gov/products/imaging_equipment",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "printer-draft-001",
+      "topicId": "printer",
+      "factText": "ENERGY STAR 的打印设备标准不仅约束工作时耗电，还包含电源管理要求，并按设备类型设置自动双面打印能力。",
+      "sourceIds": ["src-energy-star-imaging-equipment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "printer-draft-002",
+      "topicId": "printer",
+      "factText": "通过认证的打印机通常在出厂时就默认双面打印；图像组合模式还能把最多八个页面图像排到一张纸上。",
+      "sourceIds": ["src-energy-star-imaging-equipment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "printer-draft-003",
+      "topicId": "printer",
+      "factText": "打印内部草稿时选择较低质量或草稿模式，可以减少墨水或碳粉消耗，不必把所有文件都按最高质量输出。",
+      "sourceIds": ["src-energy-star-imaging-equipment"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "caulking_gun",
+  "displayName": "胶枪",
+  "category": "tool",
+  "aliases": ["caulking gun", "胶枪"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-caulking-gun-trigger-pusher",
+      "title": "US7073691B2: Caulking gun",
+      "url": "https://patents.google.com/patent/US7073691B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-caulking-gun-vacuum-release",
+      "title": "US5553754A: Caulk gun",
+      "url": "https://patents.google.com/patent/US5553754A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-caulking-gun-mode-selector",
+      "title": "US7757904B2: Caulking gun",
+      "url": "https://patents.google.com/patent/US7757904B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "caulking-gun-draft-001",
+      "topicId": "caulking_gun",
+      "factText": "手动胶枪每握一次扳机，驱动机构就让推杆前进一步；推盘把力分散到胶筒尾板上，持续把密封胶从前端喷嘴挤出。",
+      "sourceIds": ["src-caulking-gun-trigger-pusher"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "caulking-gun-draft-002",
+      "topicId": "caulking_gun",
+      "factText": "有些防滴胶枪在推盘边缘加柔性密封圈；松开扳机后推杆稍微回退，局部真空把胶筒尾板向后带，释放筒内余压。",
+      "sourceIds": ["src-caulking-gun-vacuum-release"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "caulking-gun-draft-003",
+      "topicId": "caulking_gun",
+      "factText": "可切换胶枪用凸轮选择保持压力或自动泄压两种状态；筒架还能与扳机座拆开，缩短收纳时占用的工具箱空间。",
+      "sourceIds": ["src-caulking-gun-mode-selector"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

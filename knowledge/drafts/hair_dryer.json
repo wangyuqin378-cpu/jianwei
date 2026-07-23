@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hair_dryer",
+  "displayName": "吹风机",
+  "category": "home",
+  "aliases": ["hair dryer", "吹风机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cpsc-hair-dryer-faq",
+      "title": "Hand Supported Hair Dryers",
+      "url": "https://www.cpsc.gov/FAQ/Hand-Supported-Hair-Dryers",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cpsc-hair-dryer-safety",
+      "title": "CPSC Cautions Hair Dryer Owners",
+      "url": "https://www.cpsc.gov/Newsroom/News-Releases/1982/CPSC-Cautions-Hair-Dryer-Owners",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-ul-hair-dryer-alci",
+      "title": "What the Reset Button on Your Hair Dryer Is For and When to Use It",
+      "url": "https://www.ul.com/insights/what-reset-button-your-hair-dryer-and-when-use-it",
+      "publisher": "UL Solutions",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hair-dryer-draft-001",
+      "topicId": "hair_dryer",
+      "factText": "吹风机插头上的测试和复位按钮属于漏电保护装置；检测到异常漏电时会在极短时间内切断电源。",
+      "sourceIds": ["src-cpsc-hair-dryer-faq", "src-ul-hair-dryer-alci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hair-dryer-draft-002",
+      "topicId": "hair_dryer",
+      "factText": "即使开关处于关闭位置，插着电的吹风机落入水中仍可能使水带电，因此不应在浴缸或水槽旁使用。",
+      "sourceIds": ["src-cpsc-hair-dryer-safety", "src-ul-hair-dryer-alci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hair-dryer-draft-003",
+      "topicId": "hair_dryer",
+      "factText": "吹风机若落入水中，不要先伸手拿取，应先拔掉插头再移开；停用时也应拔下电源并远离水槽、浴缸。",
+      "sourceIds": ["src-cpsc-hair-dryer-safety", "src-ul-hair-dryer-alci"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "smartphone",
+  "displayName": "智能手机",
+  "category": "digital",
+  "aliases": ["smartphone", "mobile phone", "智能手机", "手机"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-portable-multitouch",
+      "title": "US9569089B2: Portable electronic device with multi-touch input",
+      "url": "https://patents.google.com/patent/US9569089B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-housing-integrated-antenna",
+      "title": "US10705570B2: Electronic device housing with integrated antenna",
+      "url": "https://patents.google.com/patent/US10705570B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-smartphone-folded-optics",
+      "title": "US20210088877A1: Camera with folded optics",
+      "url": "https://patents.google.com/patent/US20210088877A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "smartphone-draft-001",
+      "topicId": "smartphone",
+      "factText": "多点触控不只记录一个落点：系统会同时检测两个或更多手指的接触与移动，再把组合动作映射为缩放等界面操作。",
+      "sourceIds": ["src-portable-multitouch"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "smartphone-draft-002",
+      "topicId": "smartphone",
+      "factText": "手机金属边框不一定只是外壳；部分导电边框会被分段并直接充当天线，不同天线则用来覆盖不同的无线频段。",
+      "sourceIds": ["src-housing-integrated-antenna"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "smartphone-draft-003",
+      "topicId": "smartphone",
+      "factText": "潜望式手机镜头用棱镜折转光路，让镜片组和图像传感器横向排布，从而把较长的焦距塞进较薄的机身。",
+      "sourceIds": ["src-smartphone-folded-optics"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

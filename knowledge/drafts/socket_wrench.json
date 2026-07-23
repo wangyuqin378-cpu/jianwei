@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "socket_wrench",
+  "displayName": "套筒扳手",
+  "category": "tool",
+  "aliases": ["socket wrench", "套筒扳手"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-socket-wrench-ball-detent",
+      "title": "US4420995A: Quick-release and positive locking mechanism for use on socket wrenches and on power and impact tools",
+      "url": "https://patents.google.com/patent/US4420995A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-socket-wrench-telescoping-extension",
+      "title": "US5690006A: Infinitely slide-adjustable socket extender for socket wrenches",
+      "url": "https://patents.google.com/patent/US5690006A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-socket-wrench-universal-joint",
+      "title": "US3522713A: Universal joint for wrenches",
+      "url": "https://patents.google.com/patent/US3522713A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "socket-wrench-draft-001",
+      "topicId": "socket_wrench",
+      "factText": "套筒套在方形驱动头上时，侧面的钢珠会弹进套筒凹槽阻止脱落；内部推杆改变钢珠位置，就能在快速释放与正向锁定之间切换。",
+      "sourceIds": ["src-socket-wrench-ball-detent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "socket-wrench-draft-002",
+      "topicId": "socket_wrench",
+      "factText": "伸缩延长杆把实心驱动轴滑入中空套管，并用长槽和横销限制轴向行程；内部弹簧还能让长度在狭窄通道中连续自适应。",
+      "sourceIds": ["src-socket-wrench-telescoping-extension"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "socket-wrench-draft-003",
+      "topicId": "socket_wrench",
+      "factText": "万向接头让套筒轴线不必和延长杆完全重合；接头内的弹性回正件在空载时保持大致笔直，套上紧固件后仍可偏转传递扭矩。",
+      "sourceIds": ["src-socket-wrench-universal-joint"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

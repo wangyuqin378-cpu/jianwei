@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "key",
+  "displayName": "钥匙",
+  "category": "home",
+  "aliases": ["key", "door key", "钥匙"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-pin-tumbler-lock-patent",
+      "title": "US10280646B2: Pick-resistant pin tumbler lock",
+      "url": "https://patents.google.com/patent/US10280646B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "key-draft-002",
+      "topicId": "key",
+      "factText": "弹子锁的锁芯塞在外壳中旋转，转动会带动内部凸轮或锁舌，从而完成开锁动作。",
+      "sourceIds": ["src-pin-tumbler-lock-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "key-draft-003",
+      "topicId": "key",
+      "factText": "每组弹子通常分为上方驱动弹子和下方钥匙弹子，并由弹簧把它们压向钥匙槽。",
+      "sourceIds": ["src-pin-tumbler-lock-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "key-draft-004",
+      "topicId": "key",
+      "factText": "正确钥匙把每组弹子的接缝同时托到剪切线；若有弹子跨过剪切线，锁芯就不能转动。",
+      "sourceIds": ["src-pin-tumbler-lock-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "bicycle",
+  "displayName": "自行车",
+  "category": "transport",
+  "aliases": ["bicycle", "bike", "自行车", "单车"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bikeleague-basic-bike-check",
+      "title": "Basic Bike Check",
+      "url": "https://bikeleague.org/videos/basic-bike-check/",
+      "publisher": "League of American Bicyclists",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-cdc-niosh-bicycle-delivery-checklist",
+      "title": "Bicycle Delivery Driver Dies after Colliding with Car",
+      "url": "https://stacks.cdc.gov/view/cdc/224609/cdc_224609_DS1.pdf",
+      "publisher": "CDC National Institute for Occupational Safety and Health",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cpsc-bicyclist-helmet-tips",
+      "title": "CPSC Urges Bicyclists to Wear Helmets",
+      "url": "https://www.cpsc.gov/s3fs-public/5002_0.pdf",
+      "publisher": "U.S. Consumer Product Safety Commission",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-cdc-walking-rolling-safer",
+      "title": "Making Walking and Rolling Safer",
+      "url": "https://www.cdc.gov/physical-activity/features/make-walking-rolling-safer.html",
+      "publisher": "U.S. Centers for Disease Control and Prevention",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bicycle-draft-002",
+      "topicId": "bicycle",
+      "factText": "骑车前检查胎压、刹车、链条和车轮固定装置；发现损坏或松动时，先维修再上路。",
+      "sourceIds": ["src-bikeleague-basic-bike-check", "src-cdc-niosh-bicycle-delivery-checklist"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-draft-003",
+      "topicId": "bicycle",
+      "factText": "夜间或能见度低时要开启前后车灯、保留车身反光装置，并穿明亮或反光衣物提高可见性。",
+      "sourceIds": ["src-cpsc-bicyclist-helmet-tips", "src-cdc-walking-rolling-safer"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

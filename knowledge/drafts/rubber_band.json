@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rubber_band",
+  "displayName": "橡皮筋",
+  "category": "home",
+  "aliases": ["rubber band", "elastic band", "橡皮筋", "胶圈"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rubber-band-vulcanized-tube",
+      "title": "US1155325A: Manufacture of rubber bands",
+      "url": "https://patents.google.com/patent/US1155325A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rubber-band-latex-tubing",
+      "title": "US4133623A: Production of rubber tubing from latex",
+      "url": "https://patents.google.com/patent/US4133623A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rubber-band-print-cut-registration",
+      "title": "US5165336A: Method and apparatus for making printed elastic bands",
+      "url": "https://patents.google.com/patent/US5165336A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rubber-band-draft-001",
+      "topicId": "rubber_band",
+      "factText": "橡皮筋通常不是逐个模压出来的：橡胶先被制成并硫化为长管，再像切面包一样横向切成许多窄环，每一刀就得到一个圈。",
+      "sourceIds": ["src-rubber-band-vulcanized-tube"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rubber-band-draft-002",
+      "topicId": "rubber_band",
+      "factText": "乳胶管也能作为橡皮筋的坯料；挤出头内装有精密内外径管件，更换不同尺寸的管件，就能改变后续切环的直径和壁厚。",
+      "sourceIds": ["src-rubber-band-latex-tubing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rubber-band-draft-003",
+      "topicId": "rubber_band",
+      "factText": "带文字的宽橡胶圈会先把弹性管抽气压扁，清洗并印刷平面，再固化油墨；传感器对准图案后，旋转刀在图案之间切开。",
+      "sourceIds": ["src-rubber-band-print-cut-registration"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "tea_strainer",
+  "displayName": "茶滤",
+  "category": "tableware",
+  "aliases": ["tea strainer", "tea infuser", "茶滤"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-tea-strainer-spout-clip",
+      "title": "US1192332A: Tea-strainer",
+      "url": "https://patents.google.com/patent/US1192332A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tea-strainer-pivot-cover",
+      "title": "US7077054B1: Tea strainer",
+      "url": "https://patents.google.com/patent/US7077054B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tea-strainer-drip-cup",
+      "title": "US950888A: Tea or coffee strainer",
+      "url": "https://patents.google.com/patent/US950888A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "tea-strainer-draft-001",
+      "topicId": "tea_strainer",
+      "factText": "早期壶嘴茶滤用一对带弹力的夹爪扣在壶嘴上，再以可转动吊架悬住滤篮；倒茶时滤篮便能保持在出水路径下方。",
+      "sourceIds": ["src-tea-strainer-spout-clip"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tea-strainer-draft-002",
+      "topicId": "tea_strainer",
+      "factText": "带盖茶滤可把多孔滤碗连接长柄，再让盖子绕柄端支点开合；盖子尺寸略小于滤碗，合上后还能继续压入碗内。",
+      "sourceIds": ["src-tea-strainer-pivot-cover"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tea-strainer-draft-003",
+      "topicId": "tea_strainer",
+      "factText": "有些茶滤把接滴小杯直接做进结构：滤篮从杯沿的支点翻起时，残液会顺着导流位置落回小杯，而不是滴到桌面。",
+      "sourceIds": ["src-tea-strainer-drip-cup"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

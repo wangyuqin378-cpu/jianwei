@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "computer_fan",
+  "displayName": "电脑风扇",
+  "category": "digital",
+  "aliases": ["computer fan", "cooling fan", "电脑风扇", "散热风扇"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-oil-sealed-cooling-fan",
+      "title": "US8142136B2: Oil-sealing arrangement for cooling fan",
+      "url": "https://patents.google.com/patent/US8142136B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-temperature-pwm-fan-control",
+      "title": "US7483270B2: Fan speed control system",
+      "url": "https://patents.google.com/patent/US7483270B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-fan-control-fault-detection",
+      "title": "US6747424B1: Integrated fan speed control and fault detection circuitry",
+      "url": "https://patents.google.com/patent/US6747424B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "computer-fan-draft-001",
+      "topicId": "computer_fan",
+      "factText": "含油轴承风扇可在轴承与叶轮座之间做相向的锥形结构，缩小轴向间隙，并把沿转轴渗出的润滑油引回轴承。",
+      "sourceIds": ["src-oil-sealed-cooling-fan"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "computer-fan-draft-002",
+      "topicId": "computer_fan",
+      "factText": "PWM 风扇控制器不是简单开关电源；它在设定的最低与最高温度之间逐级改变脉冲占空比，使转速随温度连续变化。",
+      "sourceIds": ["src-temperature-pwm-fan-control"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "computer-fan-draft-003",
+      "topicId": "computer_fan",
+      "factText": "风扇接口还能回传转速脉冲；控制电路一边调速，一边用缺脉冲检测判断风扇是否停转，而不只观察供电是否存在。",
+      "sourceIds": ["src-fan-control-fault-detection"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

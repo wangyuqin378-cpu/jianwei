@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "padlock",
+  "displayName": "挂锁",
+  "category": "home",
+  "aliases": ["padlock", "挂锁"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-padlock-structure-patent",
+      "title": "US5678431A: Structure of padlock",
+      "url": "https://patents.google.com/patent/US5678431A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-padlock-shell-patent",
+      "title": "US6305198B1: Padlock",
+      "url": "https://patents.google.com/patent/US6305198B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "padlock-draft-002",
+      "topicId": "padlock",
+      "factText": "一种挂锁结构让锁梁一端固定并可转动，另一端带缺口，闭合时插入锁体的锁孔。",
+      "sourceIds": ["src-padlock-structure-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "padlock-draft-003",
+      "topicId": "padlock",
+      "factText": "钥匙转动锁芯时，可带动锁片径向转入锁梁缺口，以限制锁梁自由端退出锁体。",
+      "sourceIds": ["src-padlock-structure-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "padlock-draft-004",
+      "topicId": "padlock",
+      "factText": "挂锁打开时让被锁物穿过锁体与锁梁之间的开口，闭合后两者形成封闭空间来限制脱离。",
+      "sourceIds": ["src-padlock-shell-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

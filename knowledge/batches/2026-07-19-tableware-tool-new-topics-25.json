@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-tool-new-topics-25",
+  "baseCatalogVersion": "2026-07-19-beta.54",
+  "nextCatalogVersion": "2026-07-19-beta.55",
+  "drafts": [
+    "knowledge/drafts/rolling_pin.json",
+    "knowledge/drafts/stainless_steel_pan.json",
+    "knowledge/drafts/steamer_basket.json",
+    "knowledge/drafts/tea_strainer.json",
+    "knowledge/drafts/wok.json",
+    "knowledge/drafts/bench_vise.json"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "bicycle_pedal",
+  "displayName": "自行车脚踏",
+  "category": "transport",
+  "aliases": ["bicycle pedal", "自行车脚踏"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-bicycle-pedal-spindle-bearing",
+      "title": "US8714052B2: Bicycle pedal",
+      "url": "https://patents.google.com/patent/US8714052B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bicycle-pedal-reflector",
+      "title": "US2478735A: Bicycle reflector pedal",
+      "url": "https://patents.google.com/patent/US2478735A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-bicycle-pedal-folding-lock",
+      "title": "US3303720A: Folding pedal for bicycles and the like",
+      "url": "https://patents.google.com/patent/US3303720A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "bicycle-pedal-draft-001",
+      "topicId": "bicycle_pedal",
+      "factText": "自行车脚踏并不是整块跟着曲柄固定不动：轴心拧入曲柄，脚踏本体通过轴承绕轴心旋转，以减少两者间摩擦。",
+      "sourceIds": ["src-bicycle-pedal-spindle-bearing"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-pedal-draft-002",
+      "topicId": "bicycle_pedal",
+      "factText": "早期反光脚踏把反光片嵌进踏面胶块的纵向凹槽，再用带窗口的槽形盖固定，使前后或侧向车灯更容易照到它。",
+      "sourceIds": ["src-bicycle-pedal-reflector"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "bicycle-pedal-draft-003",
+      "topicId": "bicycle_pedal",
+      "factText": "折叠脚踏可把左右踏面绕垂直于主轴的两条轴线向曲柄方向收拢，并用可释放锁止机构固定展开后的工作位置。",
+      "sourceIds": ["src-bicycle-pedal-folding-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

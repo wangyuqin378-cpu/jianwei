@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "drill_bit",
+  "displayName": "钻头",
+  "category": "tool",
+  "aliases": ["drill bit", "钻头"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-drill-bit-twist-flutes",
+      "title": "US4556347A: Split-point twist drill",
+      "url": "https://patents.google.com/patent/US4556347A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-drill-bit-spiral-steps",
+      "title": "US11839921B2: Spiral step twist drill bit",
+      "url": "https://patents.google.com/patent/US11839921B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-drill-bit-progressive-diameters",
+      "title": "US20190143422A1: Step drill bit",
+      "url": "https://patents.google.com/patent/US20190143422A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "drill-bit-draft-001",
+      "topicId": "drill_bit",
+      "factText": "麻花钻表面的螺旋槽不只是花纹：槽边形成切削刃，槽内还给切屑排出和切削液流动留下通道。",
+      "sourceIds": ["src-drill-bit-twist-flutes"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "drill-bit-draft-002",
+      "topicId": "drill_bit",
+      "factText": "螺旋阶梯钻把不同直径的切削段沿轴向依次排开，并让螺旋排屑槽穿过各级台阶，使逐级扩孔时的切屑仍有出口。",
+      "sourceIds": ["src-drill-bit-spiral-steps"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "drill-bit-draft-003",
+      "topicId": "drill_bit",
+      "factText": "阶梯钻像一串直径递增的短钻头：钻到哪一级，孔径就扩大到对应尺寸，因此一支钻头可以覆盖多个连续规格。",
+      "sourceIds": ["src-drill-bit-progressive-diameters"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

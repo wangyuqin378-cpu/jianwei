@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "pruning_shears",
+  "displayName": "修枝剪",
+  "category": "tool",
+  "aliases": ["pruning shears", "修枝剪"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-pruning-shears-spring-lock",
+      "title": "US6418626B1: Pruning shears with a lock device",
+      "url": "https://patents.google.com/patent/US6418626B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-pruning-shears-separate-blade",
+      "title": "US2807087A: Pruning shears",
+      "url": "https://patents.google.com/patent/US2807087A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-pruning-shears-compound-leverage",
+      "title": "US5020222A: Variable force compound action leverage tool",
+      "url": "https://patents.google.com/patent/US5020222A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "pruning-shears-draft-001",
+      "topicId": "pruning_shears",
+      "factText": "修枝剪两柄之间的弹簧负责在松手后把剪口重新撑开；靠近转轴的旋钮则推动锁销进入另一剪体的锁孔，把闭合状态固定住。",
+      "sourceIds": ["src-pruning-shears-spring-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pruning-shears-draft-002",
+      "topicId": "pruning_shears",
+      "factText": "修枝剪的活动刀刃可以和手柄分开制造：刀片后角嵌入手柄冲压出的定位槽，再用紧固件固定，不必把刀刃与整支手柄做成一体。",
+      "sourceIds": ["src-pruning-shears-separate-blade"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "pruning-shears-draft-003",
+      "topicId": "pruning_shears",
+      "factText": "复合杠杆修枝剪在剪刃之外再加入一根杠杆和滑动连接，让切程中的机械优势变化，并把更大的杠杆作用留给阻力较大的阶段。",
+      "sourceIds": ["src-pruning-shears-compound-leverage"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

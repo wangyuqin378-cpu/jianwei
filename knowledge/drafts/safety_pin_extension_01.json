@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "safety_pin",
+  "displayName": "安全别针",
+  "category": "home",
+  "aliases": ["safety pin", "安全别针"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hunt-safety-pin-patent",
+      "title": "US6281A: Dress-pin",
+      "url": "https://patents.google.com/patent/US6281A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-nihf-hunt-safety-pin",
+      "title": "Walter Hunt: Safety Pin",
+      "url": "https://www.invent.org/inductees/walter-hunt",
+      "publisher": "National Inventors Hall of Fame",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "safety-pin-draft-002",
+      "topicId": "safety_pin",
+      "factText": "现代安全别针的基本样式由 Walter Hunt 在 1849 年取得美国第 6,281 号专利，专利名称当时写的是“衣用别针”。",
+      "sourceIds": ["src-hunt-safety-pin-patent", "src-nihf-hunt-safety-pin"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "safety-pin-draft-003",
+      "topicId": "safety_pin",
+      "factText": "Hunt 的方案用一整根金属丝同时形成针体、盘簧和卡扣；盘簧提供回弹力，卡扣包住针尖并帮助它保持闭合。",
+      "sourceIds": ["src-hunt-safety-pin-patent", "src-nihf-hunt-safety-pin"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

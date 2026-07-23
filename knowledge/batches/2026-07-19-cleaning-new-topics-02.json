@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-02",
+  "baseCatalogVersion": "2026-07-19-beta.27",
+  "nextCatalogVersion": "2026-07-19-beta.28",
+  "drafts": [
+    "knowledge/drafts/dish_brush.json",
+    "knowledge/drafts/dustpan.json",
+    "knowledge/drafts/feather_duster.json"
+  ]
+}

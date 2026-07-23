@@ -1,0 +1,41 @@
+{
+  "name": "@jianwei/backend",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "migrate": "tsx src/migrate.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "e2e": "node ../scripts/run-backend-e2e.mjs",
+    "e2e:self-test": "node ../scripts/run-backend-e2e.mjs --self-test",
+    "export:card-audit": "tsx src/export-card-audit-snapshots.ts",
+    "issue:evaluation-lease": "tsx src/issue-evaluation-lease.ts",
+    "revoke:evaluation-lease": "tsx src/revoke-evaluation-lease.ts",
+    "verify:cloud-beta": "tsx src/verify-cloud-beta.ts",
+    "release:identity": "tsx src/release-identity.ts",
+    "test": "vitest run --coverage.enabled=false",
+    "test:postgres": "vitest run src/postgres.integration.test.ts --coverage.enabled=false"
+  },
+  "dependencies": {
+    "@fastify/cors": "10.1.0",
+    "@fastify/rate-limit": "10.3.0",
+    "ali-oss": "6.23.0",
+    "fastify": "5.8.5",
+    "postgres": "3.4.7",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@types/ali-oss": "6.16.11",
+    "@types/node": "24.9.2",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

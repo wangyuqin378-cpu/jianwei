@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "clothes_hanger",
+  "displayName": "衣架",
+  "category": "home",
+  "aliases": ["clothes hanger", "coat hanger", "衣架", "挂衣架"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-anti-slip-garment-hanger",
+      "title": "US5170916A: Anti-slip garment hanger",
+      "url": "https://patents.google.com/patent/US5170916A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-foldable-clothes-hanger",
+      "title": "US5893493A: Foldable clothes hanger",
+      "url": "https://patents.google.com/patent/US5893493A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "clothes-hanger-draft-002",
+      "topicId": "clothes_hanger",
+      "factText": "一种防滑衣架让柔性嵌件的凸点从肩部孔洞穿出，表面凸棱接触衣物；既增加摩擦，也用侧向凸起锁住嵌件。",
+      "sourceIds": ["src-anti-slip-garment-hanger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "clothes-hanger-draft-003",
+      "topicId": "clothes_hanger",
+      "factText": "折叠衣架需要同时解决便携和承重：一种结构展开后用锁定件形成刚性三角框架，收起时再把横杆和两侧折合。",
+      "sourceIds": ["src-foldable-clothes-hanger"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

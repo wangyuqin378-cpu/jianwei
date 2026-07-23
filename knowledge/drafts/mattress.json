@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "mattress",
+  "displayName": "床垫",
+  "category": "home",
+  "aliases": ["mattress", "bed mattress", "床垫", "弹簧床垫"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-mattress-pocketed-coil-topper",
+      "title": "US20240251958A1: Mattresses including an elastomeric cushioning element on pocketed coils with cushioning coil toppers",
+      "url": "https://patents.google.com/patent/US20240251958A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mattress-segmented-support-layer",
+      "title": "US12156595B1: Mattress and associated methods for providing customized spine and body support",
+      "url": "https://patents.google.com/patent/US12156595B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-mattress-edge-support",
+      "title": "US7287291B2: Mattress with improved edge support",
+      "url": "https://patents.google.com/patent/US7287291B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "mattress-draft-001",
+      "topicId": "mattress",
+      "factText": "独立袋弹簧把每只金属线圈单独装进布套；有些结构还把小块泡棉与弹簧封在同一布袋中，让每个单元同时承担弹性和缓冲。",
+      "sourceIds": ["src-mattress-pocketed-coil-topper"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mattress-draft-002",
+      "topicId": "mattress",
+      "factText": "床垫的软硬分区可以来自弹簧上方的缓冲层：把不同泡棉垫和长条分别排列在对应区域，就能形成不同的局部支撑结构。",
+      "sourceIds": ["src-mattress-segmented-support-layer"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "mattress-draft-003",
+      "topicId": "mattress",
+      "factText": "床垫边缘常有独立加固圈；一种结构用泡棉边框包围内部弹簧，再把额外边缘弹簧插进泡棉开槽中，提高外围的结构刚度。",
+      "sourceIds": ["src-mattress-edge-support"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

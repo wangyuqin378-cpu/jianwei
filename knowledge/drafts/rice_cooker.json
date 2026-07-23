@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "rice_cooker",
+  "displayName": "电饭煲",
+  "category": "tableware",
+  "aliases": ["rice cooker", "electric rice cooker", "电饭煲"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-rice-cooker-magnetic-limiter",
+      "title": "CN1899171A: Magnetic steel temperature limiter for electric rice cooker",
+      "url": "https://patents.google.com/patent/CN1899171A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rice-cooker-inner-pot-heater",
+      "title": "JP5359005B2: Electric rice cooker",
+      "url": "https://patents.google.com/patent/JP5359005B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-rice-cooker-steam-sensors",
+      "title": "CN102743096A: Rice cooker",
+      "url": "https://patents.google.com/patent/CN102743096A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "rice-cooker-draft-001",
+      "topicId": "rice_cooker",
+      "factText": "机械式电饭煲可用感温磁体、永久磁体和弹簧组成温控机构；达到设定温度附近时磁性变化，弹簧便带动开关切换电路。",
+      "sourceIds": ["src-rice-cooker-magnetic-limiter"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rice-cooker-draft-002",
+      "topicId": "rice_cooker",
+      "factText": "电饭煲通常把可取出的内锅放进内壳，底部再布置电热盘或电磁感应线圈；锅体外围的隔热层用来阻挡热量向外壳传递。",
+      "sourceIds": ["src-rice-cooker-inner-pot-heater"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "rice-cooker-draft-003",
+      "topicId": "rice_cooker",
+      "factText": "某些蒸汽控制型电饭煲会在锅盖和蒸汽通道各放一个温度传感器，再依据锅内升温与蒸汽经过的信号调节加热功率。",
+      "sourceIds": ["src-rice-cooker-steam-sensors"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "vacuum_cleaner",
+  "displayName": "吸尘器",
+  "category": "cleaning",
+  "aliases": ["vacuum cleaner", "vacuum", "吸尘器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cyclonic-vacuum-patent",
+      "title": "US6736873B2: Air flow passage for a vacuum cleaner",
+      "url": "https://patents.google.com/patent/US6736873B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "vacuum-cleaner-draft-002",
+      "topicId": "vacuum_cleaner",
+      "factText": "旋风分离器把含尘气流从筒体切向送入，使气流沿内壁高速旋转并逐步向下盘旋。",
+      "sourceIds": ["src-cyclonic-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "vacuum-cleaner-draft-003",
+      "topicId": "vacuum_cleaner",
+      "factText": "旋转气流产生的离心加速度会让颗粒脱离气流并落向容器底部，较干净空气从中心上部排出。",
+      "sourceIds": ["src-cyclonic-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "vacuum-cleaner-draft-004",
+      "topicId": "vacuum_cleaner",
+      "factText": "吸尘器风道里的急弯会造成湍流压力损失；弯得越急，可用吸力和系统效率受影响越明显。",
+      "sourceIds": ["src-cyclonic-vacuum-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

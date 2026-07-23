@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "beta_evidence_trust_policy",
+  "policyId": "jianwei-beta-release-2026",
+  "issuers": [
+    {
+      "issuerId": "replace-with-accountable-human-id",
+      "keyId": "replace-with-ed25519-key-id",
+      "algorithm": "Ed25519",
+      "publicKeyPem": "REPLACE_WITH_ED25519_SPKI_PUBLIC_KEY_PEM",
+      "roles": [
+        "beta_release_approver"
+      ],
+      "notBefore": "2026-01-01T00:00:00.000Z",
+      "notAfter": "2027-01-01T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "issuerId": "replace-with-independent-qa-assembly-id",
+      "keyId": "replace-with-assembly-attestor-key-id",
+      "algorithm": "Ed25519",
+      "publicKeyPem": "REPLACE_WITH_ASSEMBLY_ATTESTOR_ED25519_SPKI_PUBLIC_KEY_PEM",
+      "roles": [
+        "beta_assembly_attestor"
+      ],
+      "notBefore": "2026-01-01T00:00:00.000Z",
+      "notAfter": "2027-01-01T00:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "issuerId": "replace-with-deployment-pipeline-id",
+      "keyId": "replace-with-deployment-attestor-key-id",
+      "algorithm": "Ed25519",
+      "publicKeyPem": "REPLACE_WITH_DEPLOYMENT_ATTESTOR_ED25519_SPKI_PUBLIC_KEY_PEM",
+      "roles": [
+        "beta_deployment_attestor"
+      ],
+      "notBefore": "2026-01-01T00:00:00.000Z",
+      "notAfter": "2027-01-01T00:00:00.000Z",
+      "status": "active"
+    }
+  ]
+}

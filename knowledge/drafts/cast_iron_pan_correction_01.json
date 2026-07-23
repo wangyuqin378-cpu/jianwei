@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "cast_iron_pan",
+  "displayName": "铸铁锅",
+  "category": "tableware",
+  "aliases": ["cast iron pan", "skillet", "铸铁锅", "铸铁煎锅"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-cookware",
+      "title": "Cookware and bakeware",
+      "url": "https://en.wikipedia.org/wiki/Cookware_and_bakeware",
+      "publisher": "Wikipedia",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-usu-cast-iron-care",
+      "title": "Skillet Cooking",
+      "url": "https://extension.usu.edu/fscreate/files/handout_skillet_cooking.pdf",
+      "publisher": "Utah State University Extension",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "cast-iron-pan-001",
+      "topicId": "cast_iron_pan",
+      "factText": "铸铁锅质量大、热容量高，升温较慢，却能在放入食材后较好地维持表面温度。",
+      "sourceIds": ["src-cookware"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cast-iron-pan-draft-002",
+      "topicId": "cast_iron_pan",
+      "factText": "铸铁锅的“开锅层”是油脂受热后聚合并附着在铁表面形成的保护层，不是没有洗净的油污。",
+      "sourceIds": ["src-usu-cast-iron-care"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cast-iron-pan-draft-003",
+      "topicId": "cast_iron_pan",
+      "factText": "铸铁锅清洗后要彻底烘干，再薄薄擦一层食用油；残留水分会促进生锈，厚油层则容易发黏。",
+      "sourceIds": ["src-usu-cast-iron-care"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

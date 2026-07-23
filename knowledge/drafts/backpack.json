@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "backpack",
+  "displayName": "背包",
+  "category": "home",
+  "aliases": ["backpack", "rucksack", "背包", "双肩包"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-backpack-pressure-spreading-strap",
+      "title": "US11134767B2: Shoulder straps for backpack",
+      "url": "https://patents.google.com/patent/US11134767B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-backpack-sternum-strap",
+      "title": "US20050017041A1: Backpack",
+      "url": "https://patents.google.com/patent/US20050017041A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-backpack-airflow-channels",
+      "title": "US11712105B2: Backpack with airflow system",
+      "url": "https://patents.google.com/patent/US11712105B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "backpack-draft-001",
+      "topicId": "backpack",
+      "factText": "背带内部的弹性芯材可做成外侧更厚、内侧更薄；负重后较厚部分被压缩，使整条背带更均匀贴肩并分散局部压力。",
+      "sourceIds": ["src-backpack-pressure-spreading-strap"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "backpack-draft-002",
+      "topicId": "backpack",
+      "factText": "胸带把左右肩带横向连在一起，限制它们向外分开；这样能让背包更贴近躯干，并减少行走时向后滑动。",
+      "sourceIds": ["src-backpack-sternum-strap"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "backpack-draft-003",
+      "topicId": "backpack",
+      "factText": "透气背板不只靠网布：预成型凸点会把背包撑离背部，凸点之间的纵横通道则为对流和汗液蒸发留出路径。",
+      "sourceIds": ["src-backpack-airflow-channels"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

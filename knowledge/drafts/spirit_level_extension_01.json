@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "spirit_level",
+  "displayName": "水平尺",
+  "category": "tool",
+  "aliases": ["spirit level", "bubble level", "水平尺"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-spirit-level-patent",
+      "title": "US5749152A: Spirit level vial construction",
+      "url": "https://patents.google.com/patent/US5749152A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "spirit-level-draft-002",
+      "topicId": "spirit_level",
+      "factText": "水平尺的透明管并未完全装满液体，刻意留下的空气空间形成可见气泡，气泡位置就是倾斜提示。",
+      "sourceIds": ["src-spirit-level-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "spirit-level-draft-003",
+      "topicId": "spirit_level",
+      "factText": "水平管的内壁只有很轻微的弧度；当工具接近水平时，气泡会浮到弧线最高点，也就是两条基准线之间。",
+      "sourceIds": ["src-spirit-level-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "spirit-level-draft-004",
+      "topicId": "spirit_level",
+      "factText": "现代水平泡可用透明亚克力注塑成形，再以超声波焊接永久封住接缝，减少装液后的渗漏。",
+      "sourceIds": ["src-spirit-level-patent"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

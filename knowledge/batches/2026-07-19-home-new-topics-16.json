@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-16",
+  "baseCatalogVersion": "2026-07-19-beta.45",
+  "nextCatalogVersion": "2026-07-19-beta.46",
+  "drafts": [
+    "knowledge/drafts/shoelace.json",
+    "knowledge/drafts/storage_box.json",
+    "knowledge/drafts/suitcase.json"
+  ]
+}

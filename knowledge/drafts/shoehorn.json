@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "shoehorn",
+  "displayName": "鞋拔",
+  "category": "home",
+  "aliases": ["shoehorn", "shoe horn", "鞋拔", "鞋拔子"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-shoehorn-curved-blade",
+      "title": "US1081391A: Shoe-horn",
+      "url": "https://patents.google.com/patent/US1081391A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shoehorn-flexible-chute-clip",
+      "title": "US5655693A: Clip-on shoehorn",
+      "url": "https://patents.google.com/patent/US5655693A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shoehorn-telescoping-pivot",
+      "title": "US7337933B1: Pocket shoe horn with telescopic handle",
+      "url": "https://patents.google.com/patent/US7337933B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "shoehorn-draft-001",
+      "topicId": "shoehorn",
+      "factText": "鞋拔的薄片横向弯曲，是为了贴合鞋后跟的弧度；它插在鞋帮与脚跟之间，形成连续滑面，减少脚跟把鞋后帮向内压折。",
+      "sourceIds": ["src-shoehorn-curved-blade"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shoehorn-draft-002",
+      "topicId": "shoehorn",
+      "factText": "U 形柔性鞋拔的两侧会轻推开鞋口，中央弧面则像滑槽引导脚跟；背面的夹片还能夹住鞋后帮，让薄片保持位置。",
+      "sourceIds": ["src-shoehorn-flexible-chute-clip"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shoehorn-draft-003",
+      "topicId": "shoehorn",
+      "factText": "便携长柄鞋拔可以把多节套管逐级拉出，前端鞋拔片通过转轴折叠；弹簧定位球卡入不同凹槽，使鞋拔片锁在展开或收纳角度。",
+      "sourceIds": ["src-shoehorn-telescoping-pivot"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

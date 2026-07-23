@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hard_drive",
+  "displayName": "机械硬盘",
+  "category": "digital",
+  "aliases": ["hard disk drive", "机械硬盘"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hard-drive-ibm-ramac",
+      "title": "RAMAC",
+      "url": "https://www.ibm.com/history/ramac",
+      "publisher": "IBM",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hard-drive-draft-001",
+      "topicId": "hard_drive",
+      "factText": "1956年的IBM 305 RAMAC是第一台使用随机访问磁盘驱动器的计算机，整套设备占据房间般的空间，却只能保存约5 MB数据。",
+      "sourceIds": ["src-hard-drive-ibm-ramac"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hard-drive-draft-002",
+      "topicId": "hard_drive",
+      "factText": "RAMAC的磁盘是在铝盘表面涂覆氧化铁来记录磁性信息；读写臂不能碰到盘面，工程师用压缩空气让它悬浮。",
+      "sourceIds": ["src-hard-drive-ibm-ramac"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hard-drive-draft-003",
+      "topicId": "hard_drive",
+      "factText": "RAMAC这个名字最初把“随机访问存储”的含义与当时UNIVAC常见的AC后缀组合起来，后来市场宣传又把AC解释为会计与控制。",
+      "sourceIds": ["src-hard-drive-ibm-ramac"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,3275 @@
+{
+  "version": "2026-07-18-beta-taxonomy.1",
+  "generatedFromCatalogVersion": "2026-07-19-beta.62",
+  "policy": {
+    "publishesFacts": false,
+    "requiredFactsPerTopic": "3-5",
+    "requiredReview": "accountable human source review",
+    "note": "Proposed topics are taxonomy backlog only and are never served until facts and sources pass the production catalog gate."
+  },
+  "categoryTargets": {
+    "home": 45,
+    "tableware": 35,
+    "cleaning": 30,
+    "tool": 35,
+    "digital": 30,
+    "transport": 25
+  },
+  "metrics": {
+    "topics": 200,
+    "seededTopics": 200,
+    "proposedTopics": 0,
+    "productionReadyTopics": 0
+  },
+  "topics": [
+    {
+      "topicId": "air_purifier",
+      "displayName": "空气净化器",
+      "category": "cleaning",
+      "aliases": [
+        "air purifier",
+        "空气净化器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bottle_brush",
+      "displayName": "瓶刷",
+      "category": "cleaning",
+      "aliases": [
+        "bottle brush",
+        "bottle cleaning brush",
+        "瓶刷",
+        "奶瓶刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "broom",
+      "displayName": "扫帚",
+      "category": "cleaning",
+      "aliases": [
+        "broom",
+        "扫把",
+        "笤帚",
+        "扫帚"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "clothes_drying_rack",
+      "displayName": "晾衣架",
+      "category": "cleaning",
+      "aliases": [
+        "clothes drying rack",
+        "drying rack",
+        "晾衣架",
+        "晾衣杆"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dehumidifier",
+      "displayName": "除湿机",
+      "category": "cleaning",
+      "aliases": [
+        "dehumidifier",
+        "除湿机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dental_floss",
+      "displayName": "牙线",
+      "category": "cleaning",
+      "aliases": [
+        "dental floss",
+        "floss",
+        "牙线"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "detergent_bottle",
+      "displayName": "洗涤剂瓶",
+      "category": "cleaning",
+      "aliases": [
+        "detergent bottle",
+        "laundry detergent bottle",
+        "洗涤剂瓶",
+        "洗衣液瓶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dish_brush",
+      "displayName": "洗碗刷",
+      "category": "cleaning",
+      "aliases": [
+        "dish brush",
+        "dishwashing brush",
+        "洗碗刷",
+        "锅刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dishwasher",
+      "displayName": "洗碗机",
+      "category": "cleaning",
+      "aliases": [
+        "dishwasher",
+        "洗碗机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dustpan",
+      "displayName": "簸箕",
+      "category": "cleaning",
+      "aliases": [
+        "dustpan",
+        "upright dustpan",
+        "簸箕",
+        "畚箕"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "feather_duster",
+      "displayName": "鸡毛掸子",
+      "category": "cleaning",
+      "aliases": [
+        "feather duster",
+        "ostrich feather duster",
+        "鸡毛掸子",
+        "羽毛掸子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "iron",
+      "displayName": "熨斗",
+      "category": "cleaning",
+      "aliases": [
+        "clothes iron",
+        "steam iron",
+        "熨斗",
+        "蒸汽熨斗"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "ironing_board",
+      "displayName": "熨衣板",
+      "category": "cleaning",
+      "aliases": [
+        "ironing board",
+        "folding ironing board",
+        "熨衣板",
+        "烫衣板"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "laundry_basket",
+      "displayName": "洗衣篮",
+      "category": "cleaning",
+      "aliases": [
+        "laundry basket",
+        "clothes basket",
+        "洗衣篮",
+        "脏衣篮"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "lint_roller",
+      "displayName": "粘毛滚",
+      "category": "cleaning",
+      "aliases": [
+        "lint roller",
+        "adhesive lint roller",
+        "粘毛滚",
+        "粘毛器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "microfiber_cloth",
+      "displayName": "超细纤维布",
+      "category": "cleaning",
+      "aliases": [
+        "microfiber cloth",
+        "microfibre cleaning cloth",
+        "超细纤维布",
+        "微纤维抹布"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "mop",
+      "displayName": "拖把",
+      "category": "cleaning",
+      "aliases": [
+        "mop",
+        "拖把",
+        "floor mop",
+        "地拖"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "nail_brush",
+      "displayName": "指甲刷",
+      "category": "cleaning",
+      "aliases": [
+        "nail brush",
+        "fingernail brush",
+        "指甲刷",
+        "清洁指甲刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "plunger",
+      "displayName": "皮搋子",
+      "category": "cleaning",
+      "aliases": [
+        "plunger",
+        "toilet plunger",
+        "皮搋子",
+        "马桶吸"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rubber_gloves",
+      "displayName": "清洁手套",
+      "category": "cleaning",
+      "aliases": [
+        "rubber gloves",
+        "cleaning gloves",
+        "清洁手套",
+        "洗碗手套"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "soap_dispenser",
+      "displayName": "皂液器",
+      "category": "cleaning",
+      "aliases": [
+        "soap dispenser",
+        "pump bottle",
+        "皂液器",
+        "按压瓶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "sponge",
+      "displayName": "清洁海绵",
+      "category": "cleaning",
+      "aliases": [
+        "sponge",
+        "cleaning sponge",
+        "海绵",
+        "百洁布",
+        "清洁海绵"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "spray_bottle",
+      "displayName": "喷雾瓶",
+      "category": "cleaning",
+      "aliases": [
+        "spray bottle",
+        "trigger sprayer",
+        "喷雾瓶",
+        "喷壶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "squeegee",
+      "displayName": "刮水器",
+      "category": "cleaning",
+      "aliases": [
+        "squeegee",
+        "window squeegee",
+        "刮水器",
+        "玻璃刮"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "toilet_brush",
+      "displayName": "马桶刷",
+      "category": "cleaning",
+      "aliases": [
+        "toilet brush",
+        "lavatory brush",
+        "马桶刷",
+        "厕刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "toothbrush",
+      "displayName": "牙刷",
+      "category": "cleaning",
+      "aliases": [
+        "toothbrush",
+        "牙刷",
+        "electric toothbrush",
+        "manual toothbrush"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "trash_bag",
+      "displayName": "垃圾袋",
+      "category": "cleaning",
+      "aliases": [
+        "trash bag",
+        "garbage bag",
+        "垃圾袋",
+        "抽绳垃圾袋"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "trash_can",
+      "displayName": "垃圾桶",
+      "category": "cleaning",
+      "aliases": [
+        "trash can",
+        "waste bin",
+        "垃圾桶",
+        "脚踏垃圾桶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "vacuum_cleaner",
+      "displayName": "吸尘器",
+      "category": "cleaning",
+      "aliases": [
+        "vacuum cleaner",
+        "vacuum",
+        "吸尘器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "washing_machine",
+      "displayName": "洗衣机",
+      "category": "cleaning",
+      "aliases": [
+        "washing machine",
+        "washer",
+        "洗衣机",
+        "滚筒洗衣机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "camera",
+      "displayName": "相机",
+      "category": "digital",
+      "aliases": [
+        "camera",
+        "相机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "camera_lens",
+      "displayName": "相机镜头",
+      "category": "digital",
+      "aliases": [
+        "camera lens",
+        "photographic lens",
+        "相机镜头",
+        "摄影镜头"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "charger",
+      "displayName": "充电器",
+      "category": "digital",
+      "aliases": [
+        "charger",
+        "充电器",
+        "USB charger",
+        "充电头"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "computer_fan",
+      "displayName": "电脑风扇",
+      "category": "digital",
+      "aliases": [
+        "computer fan",
+        "cooling fan",
+        "电脑风扇",
+        "散热风扇"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "computer_mouse",
+      "displayName": "鼠标",
+      "category": "digital",
+      "aliases": [
+        "computer mouse",
+        "mouse",
+        "鼠标"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "e_reader",
+      "displayName": "电子书阅读器",
+      "category": "digital",
+      "aliases": [
+        "e-reader",
+        "ebook reader",
+        "电子书阅读器",
+        "电纸书"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "ethernet_cable",
+      "displayName": "网线",
+      "category": "digital",
+      "aliases": [
+        "Ethernet cable",
+        "网线"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "game_controller",
+      "displayName": "游戏手柄",
+      "category": "digital",
+      "aliases": [
+        "game controller",
+        "gamepad",
+        "游戏手柄",
+        "手柄"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hard_drive",
+      "displayName": "机械硬盘",
+      "category": "digital",
+      "aliases": [
+        "hard disk drive",
+        "机械硬盘"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hdmi_cable",
+      "displayName": "HDMI 线",
+      "category": "digital",
+      "aliases": [
+        "HDMI cable",
+        "HDMI 线"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "headphones",
+      "displayName": "耳机",
+      "category": "digital",
+      "aliases": [
+        "headphones",
+        "earphones",
+        "耳机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "keyboard",
+      "displayName": "键盘",
+      "category": "digital",
+      "aliases": [
+        "keyboard",
+        "computer keyboard",
+        "键盘"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "laptop",
+      "displayName": "笔记本电脑",
+      "category": "digital",
+      "aliases": [
+        "laptop",
+        "笔记本电脑",
+        "notebook computer",
+        "笔记本"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "microphone",
+      "displayName": "麦克风",
+      "category": "digital",
+      "aliases": [
+        "microphone",
+        "mic",
+        "麦克风",
+        "话筒"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "monitor",
+      "displayName": "显示器",
+      "category": "digital",
+      "aliases": [
+        "computer monitor",
+        "显示器",
+        "monitor",
+        "电脑屏幕"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "power_bank",
+      "displayName": "充电宝",
+      "category": "digital",
+      "aliases": [
+        "power bank",
+        "充电宝"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "power_strip",
+      "displayName": "插线板",
+      "category": "digital",
+      "aliases": [
+        "power strip",
+        "extension socket",
+        "插线板",
+        "排插"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "printer",
+      "displayName": "打印机",
+      "category": "digital",
+      "aliases": [
+        "printer",
+        "打印机",
+        "inkjet printer",
+        "laser printer"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "remote_control",
+      "displayName": "遥控器",
+      "category": "digital",
+      "aliases": [
+        "remote control",
+        "remote",
+        "遥控器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "sd_card",
+      "displayName": "SD 卡",
+      "category": "digital",
+      "aliases": [
+        "SD card",
+        "SD 卡"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "smartphone",
+      "displayName": "智能手机",
+      "category": "digital",
+      "aliases": [
+        "smartphone",
+        "mobile phone",
+        "智能手机",
+        "手机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "smartwatch",
+      "displayName": "智能手表",
+      "category": "digital",
+      "aliases": [
+        "smartwatch",
+        "smart watch",
+        "智能手表",
+        "电子手表"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "solid_state_drive",
+      "displayName": "固态硬盘",
+      "category": "digital",
+      "aliases": [
+        "solid state drive",
+        "固态硬盘",
+        "SSD",
+        "NVMe SSD"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "speaker",
+      "displayName": "扬声器",
+      "category": "digital",
+      "aliases": [
+        "speaker",
+        "loudspeaker",
+        "扬声器",
+        "音箱"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "tablet",
+      "displayName": "平板电脑",
+      "category": "digital",
+      "aliases": [
+        "tablet computer",
+        "tablet",
+        "平板电脑",
+        "平板"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "tripod",
+      "displayName": "三脚架",
+      "category": "digital",
+      "aliases": [
+        "tripod",
+        "camera tripod",
+        "三脚架",
+        "相机三脚架"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "usb_cable",
+      "displayName": "USB 数据线",
+      "category": "digital",
+      "aliases": [
+        "USB cable",
+        "USB 数据线",
+        "Type-C cable",
+        "USB-C 线"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "usb_flash_drive",
+      "displayName": "U 盘",
+      "category": "digital",
+      "aliases": [
+        "usb flash drive",
+        "flash drive",
+        "U盘",
+        "优盘",
+        "U 盘"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "webcam",
+      "displayName": "网络摄像头",
+      "category": "digital",
+      "aliases": [
+        "webcam",
+        "web camera",
+        "网络摄像头",
+        "电脑摄像头"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wifi_router",
+      "displayName": "无线路由器",
+      "category": "digital",
+      "aliases": [
+        "Wi-Fi router",
+        "wireless router",
+        "无线路由器",
+        "路由器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "alarm_clock",
+      "displayName": "闹钟",
+      "category": "home",
+      "aliases": [
+        "alarm clock",
+        "clock alarm",
+        "闹钟",
+        "机械闹钟"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "backpack",
+      "displayName": "背包",
+      "category": "home",
+      "aliases": [
+        "backpack",
+        "rucksack",
+        "背包",
+        "双肩包"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "button",
+      "displayName": "衣扣",
+      "category": "home",
+      "aliases": [
+        "clothing button",
+        "garment button",
+        "衣扣",
+        "纽扣"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "cabinet_handle",
+      "displayName": "柜门把手",
+      "category": "home",
+      "aliases": [
+        "cabinet handle",
+        "drawer pull",
+        "柜门把手",
+        "抽屉拉手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "candle",
+      "displayName": "蜡烛",
+      "category": "home",
+      "aliases": [
+        "candle",
+        "蜡烛"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "clothes_hanger",
+      "displayName": "衣架",
+      "category": "home",
+      "aliases": [
+        "clothes hanger",
+        "coat hanger",
+        "衣架",
+        "挂衣架"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "clothespin",
+      "displayName": "晾衣夹",
+      "category": "home",
+      "aliases": [
+        "clothespin",
+        "clothes peg",
+        "晾衣夹",
+        "衣夹"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "comb",
+      "displayName": "梳子",
+      "category": "home",
+      "aliases": [
+        "comb",
+        "hair comb",
+        "梳子",
+        "发梳"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "curtain",
+      "displayName": "窗帘",
+      "category": "home",
+      "aliases": [
+        "curtain",
+        "drape",
+        "窗帘",
+        "帘布"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "curtain_rod",
+      "displayName": "窗帘杆",
+      "category": "home",
+      "aliases": [
+        "curtain rod",
+        "drapery rod",
+        "窗帘杆",
+        "伸缩杆"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "door_handle",
+      "displayName": "门把手",
+      "category": "home",
+      "aliases": [
+        "door handle",
+        "door lever",
+        "门把手",
+        "门执手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "door_hinge",
+      "displayName": "门铰链",
+      "category": "home",
+      "aliases": [
+        "door hinge",
+        "hinge",
+        "门铰链",
+        "合页"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "door_lock",
+      "displayName": "门锁",
+      "category": "home",
+      "aliases": [
+        "door lock",
+        "cylinder lock",
+        "门锁",
+        "锁芯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "doormat",
+      "displayName": "门垫",
+      "category": "home",
+      "aliases": [
+        "doormat",
+        "entrance mat",
+        "门垫",
+        "入户地垫"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "drawer_slide",
+      "displayName": "抽屉滑轨",
+      "category": "home",
+      "aliases": [
+        "drawer slide",
+        "drawer runner",
+        "抽屉滑轨",
+        "抽屉导轨"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "duvet",
+      "displayName": "羽绒被",
+      "category": "home",
+      "aliases": [
+        "duvet",
+        "down comforter",
+        "羽绒被",
+        "被芯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "electrical_outlet",
+      "displayName": "电源插座",
+      "category": "home",
+      "aliases": [
+        "electrical outlet",
+        "电源插座"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hair_dryer",
+      "displayName": "吹风机",
+      "category": "home",
+      "aliases": [
+        "hair dryer",
+        "吹风机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hand_fan",
+      "displayName": "手扇",
+      "category": "home",
+      "aliases": [
+        "hand fan",
+        "folding fan",
+        "手扇",
+        "折扇"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "key",
+      "displayName": "钥匙",
+      "category": "home",
+      "aliases": [
+        "key",
+        "door key",
+        "钥匙"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "led_bulb",
+      "displayName": "LED 灯泡",
+      "category": "home",
+      "aliases": [
+        "LED bulb",
+        "LED 灯泡"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "light_switch",
+      "displayName": "电灯开关",
+      "category": "home",
+      "aliases": [
+        "light switch",
+        "wall switch",
+        "电灯开关",
+        "墙壁开关"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "lighter",
+      "displayName": "打火机",
+      "category": "home",
+      "aliases": [
+        "lighter",
+        "gas lighter",
+        "打火机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "mattress",
+      "displayName": "床垫",
+      "category": "home",
+      "aliases": [
+        "mattress",
+        "bed mattress",
+        "床垫",
+        "弹簧床垫"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "mirror",
+      "displayName": "镜子",
+      "category": "home",
+      "aliases": [
+        "mirror",
+        "household mirror",
+        "镜子",
+        "玻璃镜"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "mosquito_coil",
+      "displayName": "蚊香",
+      "category": "home",
+      "aliases": [
+        "mosquito coil",
+        "insect coil",
+        "蚊香"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "notebook",
+      "displayName": "笔记本",
+      "category": "home",
+      "aliases": [
+        "notebook",
+        "notepad",
+        "笔记本",
+        "记事本"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "padlock",
+      "displayName": "挂锁",
+      "category": "home",
+      "aliases": [
+        "padlock",
+        "挂锁"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "pillow",
+      "displayName": "枕头",
+      "category": "home",
+      "aliases": [
+        "pillow",
+        "bed pillow",
+        "枕头",
+        "睡枕"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rubber_band",
+      "displayName": "橡皮筋",
+      "category": "home",
+      "aliases": [
+        "rubber band",
+        "elastic band",
+        "橡皮筋",
+        "胶圈"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rug",
+      "displayName": "地毯",
+      "category": "home",
+      "aliases": [
+        "rug",
+        "carpet",
+        "地毯",
+        "块毯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "safety_pin",
+      "displayName": "安全别针",
+      "category": "home",
+      "aliases": [
+        "safety pin",
+        "安全别针"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "sewing_needle",
+      "displayName": "缝衣针",
+      "category": "home",
+      "aliases": [
+        "sewing needle",
+        "hand needle",
+        "缝衣针",
+        "针线针"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "shoehorn",
+      "displayName": "鞋拔",
+      "category": "home",
+      "aliases": [
+        "shoehorn",
+        "shoe horn",
+        "鞋拔",
+        "鞋拔子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "shoelace",
+      "displayName": "鞋带",
+      "category": "home",
+      "aliases": [
+        "shoelace",
+        "shoe lace",
+        "鞋带"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "storage_box",
+      "displayName": "收纳箱",
+      "category": "home",
+      "aliases": [
+        "storage box",
+        "storage bin",
+        "收纳箱"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "suitcase",
+      "displayName": "行李箱",
+      "category": "home",
+      "aliases": [
+        "suitcase",
+        "luggage",
+        "行李箱"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "thread_spool",
+      "displayName": "线轴",
+      "category": "home",
+      "aliases": [
+        "thread spool",
+        "spool of thread",
+        "线轴"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "tissue_box",
+      "displayName": "纸巾盒",
+      "category": "home",
+      "aliases": [
+        "tissue box",
+        "facial tissue box",
+        "纸巾盒"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "toilet_paper",
+      "displayName": "卫生纸",
+      "category": "home",
+      "aliases": [
+        "toilet paper",
+        "toilet roll",
+        "卫生纸"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "umbrella",
+      "displayName": "雨伞",
+      "category": "home",
+      "aliases": [
+        "umbrella",
+        "parasol",
+        "雨伞",
+        "伞",
+        "rain umbrella"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wall_clock",
+      "displayName": "挂钟",
+      "category": "home",
+      "aliases": [
+        "wall clock",
+        "quartz wall clock",
+        "挂钟"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wallet",
+      "displayName": "钱包",
+      "category": "home",
+      "aliases": [
+        "wallet",
+        "billfold",
+        "钱包"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "window_screen",
+      "displayName": "纱窗",
+      "category": "home",
+      "aliases": [
+        "window screen",
+        "insect screen",
+        "纱窗"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "zipper",
+      "displayName": "拉链",
+      "category": "home",
+      "aliases": [
+        "zipper",
+        "zip",
+        "拉链"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "aluminum_foil",
+      "displayName": "铝箔",
+      "category": "tableware",
+      "aliases": [
+        "aluminum foil",
+        "aluminium foil",
+        "铝箔"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bottle_opener",
+      "displayName": "开瓶器",
+      "category": "tableware",
+      "aliases": [
+        "bottle opener",
+        "cap opener",
+        "开瓶器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "can_opener",
+      "displayName": "开罐器",
+      "category": "tableware",
+      "aliases": [
+        "can opener",
+        "tin opener",
+        "开罐器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "cast_iron_pan",
+      "displayName": "铸铁锅",
+      "category": "tableware",
+      "aliases": [
+        "cast iron pan",
+        "skillet",
+        "铸铁锅",
+        "铸铁煎锅"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "chopsticks",
+      "displayName": "筷子",
+      "category": "tableware",
+      "aliases": [
+        "chopsticks",
+        "筷子",
+        "箸"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "colander",
+      "displayName": "滤水篮",
+      "category": "tableware",
+      "aliases": [
+        "colander",
+        "strainer",
+        "滤水篮",
+        "漏勺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "corkscrew",
+      "displayName": "红酒开瓶器",
+      "category": "tableware",
+      "aliases": [
+        "corkscrew",
+        "wine opener",
+        "开塞钻",
+        "红酒开瓶器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "cutting_board",
+      "displayName": "砧板",
+      "category": "tableware",
+      "aliases": [
+        "cutting board",
+        "chopping board",
+        "砧板",
+        "菜板"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "dish_rack",
+      "displayName": "沥水架",
+      "category": "tableware",
+      "aliases": [
+        "dish rack",
+        "dish drainer",
+        "碗碟架",
+        "沥水架"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "electric_kettle",
+      "displayName": "电热水壶",
+      "category": "tableware",
+      "aliases": [
+        "electric kettle",
+        "cordless kettle",
+        "电热水壶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "food_storage_container",
+      "displayName": "保鲜盒",
+      "category": "tableware",
+      "aliases": [
+        "food storage container",
+        "vacuum container",
+        "保鲜盒"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "fork",
+      "displayName": "餐叉",
+      "category": "tableware",
+      "aliases": [
+        "fork",
+        "餐叉",
+        "叉子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "grater",
+      "displayName": "刨丝器",
+      "category": "tableware",
+      "aliases": [
+        "grater",
+        "food grater",
+        "刨丝器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "kettle",
+      "displayName": "水壶",
+      "category": "tableware",
+      "aliases": [
+        "kettle",
+        "stovetop kettle",
+        "水壶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "kitchen_knife",
+      "displayName": "菜刀",
+      "category": "tableware",
+      "aliases": [
+        "kitchen knife",
+        "chef knife",
+        "菜刀"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "kitchen_scissors",
+      "displayName": "厨房剪",
+      "category": "tableware",
+      "aliases": [
+        "kitchen scissors",
+        "kitchen shears",
+        "厨房剪"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "kitchen_tongs",
+      "displayName": "食物夹",
+      "category": "tableware",
+      "aliases": [
+        "kitchen tongs",
+        "food tongs",
+        "食物夹"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "ladle",
+      "displayName": "汤勺",
+      "category": "tableware",
+      "aliases": [
+        "ladle",
+        "soup ladle",
+        "汤勺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "measuring_cup",
+      "displayName": "量杯",
+      "category": "tableware",
+      "aliases": [
+        "measuring cup",
+        "measuring jug",
+        "量杯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "measuring_spoon",
+      "displayName": "量勺",
+      "category": "tableware",
+      "aliases": [
+        "measuring spoon",
+        "量勺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "mug",
+      "displayName": "马克杯",
+      "category": "tableware",
+      "aliases": [
+        "mug",
+        "coffee cup",
+        "马克杯",
+        "杯子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "nonstick_pan",
+      "displayName": "不粘锅",
+      "category": "tableware",
+      "aliases": [
+        "nonstick pan",
+        "non-stick pan",
+        "不粘锅"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "peeler",
+      "displayName": "削皮器",
+      "category": "tableware",
+      "aliases": [
+        "peeler",
+        "vegetable peeler",
+        "削皮器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "plastic_wrap",
+      "displayName": "保鲜膜",
+      "category": "tableware",
+      "aliases": [
+        "plastic wrap",
+        "cling film",
+        "保鲜膜"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "pressure_cooker",
+      "displayName": "压力锅",
+      "category": "tableware",
+      "aliases": [
+        "pressure cooker",
+        "压力锅"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rice_cooker",
+      "displayName": "电饭煲",
+      "category": "tableware",
+      "aliases": [
+        "rice cooker",
+        "electric rice cooker",
+        "电饭煲"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rice_paddle",
+      "displayName": "饭勺",
+      "category": "tableware",
+      "aliases": [
+        "rice paddle",
+        "rice scoop",
+        "饭勺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rolling_pin",
+      "displayName": "擀面杖",
+      "category": "tableware",
+      "aliases": [
+        "rolling pin",
+        "擀面杖"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "spoon",
+      "displayName": "勺子",
+      "category": "tableware",
+      "aliases": [
+        "spoon",
+        "勺子",
+        "汤匙"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "stainless_steel_pan",
+      "displayName": "不锈钢锅",
+      "category": "tableware",
+      "aliases": [
+        "stainless steel pan",
+        "不锈钢锅"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "steamer_basket",
+      "displayName": "蒸屉",
+      "category": "tableware",
+      "aliases": [
+        "steamer basket",
+        "蒸屉"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "tea_strainer",
+      "displayName": "茶滤",
+      "category": "tableware",
+      "aliases": [
+        "tea strainer",
+        "tea infuser",
+        "茶滤"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "thermos",
+      "displayName": "保温杯",
+      "category": "tableware",
+      "aliases": [
+        "thermos",
+        "vacuum flask",
+        "保温杯",
+        "暖水瓶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "whisk",
+      "displayName": "打蛋器",
+      "category": "tableware",
+      "aliases": [
+        "whisk",
+        "打蛋器",
+        "蛋抽"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wok",
+      "displayName": "炒锅",
+      "category": "tableware",
+      "aliases": [
+        "wok",
+        "炒锅"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "ballpoint_pen",
+      "displayName": "圆珠笔",
+      "category": "tool",
+      "aliases": [
+        "ballpoint pen",
+        "biro",
+        "圆珠笔"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bench_vise",
+      "displayName": "台钳",
+      "category": "tool",
+      "aliases": [
+        "bench vise",
+        "bench vice",
+        "台钳"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "caulking_gun",
+      "displayName": "胶枪",
+      "category": "tool",
+      "aliases": [
+        "caulking gun",
+        "胶枪"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "clamp",
+      "displayName": "夹钳",
+      "category": "tool",
+      "aliases": [
+        "clamp",
+        "夹钳"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "drill_bit",
+      "displayName": "钻头",
+      "category": "tool",
+      "aliases": [
+        "drill bit",
+        "钻头"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "eraser",
+      "displayName": "橡皮擦",
+      "category": "tool",
+      "aliases": [
+        "eraser",
+        "rubber",
+        "橡皮擦",
+        "橡皮"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "flashlight",
+      "displayName": "手电筒",
+      "category": "tool",
+      "aliases": [
+        "flashlight",
+        "torch",
+        "手电筒"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "garden_trowel",
+      "displayName": "园艺铲",
+      "category": "tool",
+      "aliases": [
+        "garden trowel",
+        "园艺铲"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hammer",
+      "displayName": "锤子",
+      "category": "tool",
+      "aliases": [
+        "hammer",
+        "mallet",
+        "锤子",
+        "榔头"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "handsaw",
+      "displayName": "手锯",
+      "category": "tool",
+      "aliases": [
+        "handsaw",
+        "hand saw",
+        "手锯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hex_key",
+      "displayName": "内六角扳手",
+      "category": "tool",
+      "aliases": [
+        "hex key",
+        "Allen key",
+        "内六角扳手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "hot_glue_gun",
+      "displayName": "热熔胶枪",
+      "category": "tool",
+      "aliases": [
+        "hot glue gun",
+        "热熔胶枪"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "multimeter",
+      "displayName": "万用表",
+      "category": "tool",
+      "aliases": [
+        "multimeter",
+        "万用表"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "paint_brush",
+      "displayName": "油漆刷",
+      "category": "tool",
+      "aliases": [
+        "paint brush",
+        "油漆刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "paint_roller",
+      "displayName": "滚筒刷",
+      "category": "tool",
+      "aliases": [
+        "paint roller",
+        "滚筒刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "paper_clip",
+      "displayName": "回形针",
+      "category": "tool",
+      "aliases": [
+        "paper clip",
+        "paperclip",
+        "回形针"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "pencil",
+      "displayName": "铅笔",
+      "category": "tool",
+      "aliases": [
+        "pencil",
+        "铅笔"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "pliers",
+      "displayName": "钳子",
+      "category": "tool",
+      "aliases": [
+        "pliers",
+        "钳子",
+        "老虎钳"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "power_drill",
+      "displayName": "电钻",
+      "category": "tool",
+      "aliases": [
+        "power drill",
+        "电钻"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "pruning_shears",
+      "displayName": "修枝剪",
+      "category": "tool",
+      "aliases": [
+        "pruning shears",
+        "修枝剪"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rake",
+      "displayName": "耙子",
+      "category": "tool",
+      "aliases": [
+        "rake",
+        "耙子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "ratchet_wrench",
+      "displayName": "棘轮扳手",
+      "category": "tool",
+      "aliases": [
+        "ratchet wrench",
+        "棘轮扳手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "sandpaper",
+      "displayName": "砂纸",
+      "category": "tool",
+      "aliases": [
+        "sandpaper",
+        "砂纸"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "scissors",
+      "displayName": "剪刀",
+      "category": "tool",
+      "aliases": [
+        "scissors",
+        "shears",
+        "剪刀"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "screwdriver",
+      "displayName": "螺丝刀",
+      "category": "tool",
+      "aliases": [
+        "screwdriver",
+        "螺丝刀",
+        "起子"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "shovel",
+      "displayName": "铁锹",
+      "category": "tool",
+      "aliases": [
+        "shovel",
+        "铁锹"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "socket_wrench",
+      "displayName": "套筒扳手",
+      "category": "tool",
+      "aliases": [
+        "socket wrench",
+        "套筒扳手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "soldering_iron",
+      "displayName": "电烙铁",
+      "category": "tool",
+      "aliases": [
+        "soldering iron",
+        "电烙铁"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "spirit_level",
+      "displayName": "水平尺",
+      "category": "tool",
+      "aliases": [
+        "spirit level",
+        "bubble level",
+        "水平尺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "stapler",
+      "displayName": "订书机",
+      "category": "tool",
+      "aliases": [
+        "stapler",
+        "订书机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "tape_measure",
+      "displayName": "卷尺",
+      "category": "tool",
+      "aliases": [
+        "tape measure",
+        "measuring tape",
+        "卷尺"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "utility_knife",
+      "displayName": "美工刀",
+      "category": "tool",
+      "aliases": [
+        "utility knife",
+        "美工刀"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "watering_can",
+      "displayName": "浇水壶",
+      "category": "tool",
+      "aliases": [
+        "watering can",
+        "garden watering can",
+        "浇水壶"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wire_stripper",
+      "displayName": "剥线钳",
+      "category": "tool",
+      "aliases": [
+        "wire stripper",
+        "剥线钳"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "wrench",
+      "displayName": "扳手",
+      "category": "tool",
+      "aliases": [
+        "wrench",
+        "spanner",
+        "扳手"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 4,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "airbag",
+      "displayName": "安全气囊",
+      "category": "transport",
+      "aliases": [
+        "airbag",
+        "安全气囊",
+        "气囊"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bicycle",
+      "displayName": "自行车",
+      "category": "transport",
+      "aliases": [
+        "bicycle",
+        "bike",
+        "自行车",
+        "单车"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bicycle_bell",
+      "displayName": "自行车铃",
+      "category": "transport",
+      "aliases": [
+        "bicycle bell",
+        "bike bell",
+        "自行车铃",
+        "车铃"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bicycle_brake",
+      "displayName": "自行车刹车",
+      "category": "transport",
+      "aliases": [
+        "bicycle brake",
+        "bike brake",
+        "自行车刹车",
+        "自行车制动器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bicycle_chain",
+      "displayName": "自行车链条",
+      "category": "transport",
+      "aliases": [
+        "bicycle chain",
+        "自行车链条"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bicycle_pedal",
+      "displayName": "自行车脚踏",
+      "category": "transport",
+      "aliases": [
+        "bicycle pedal",
+        "自行车脚踏"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "bus_stop_sign",
+      "displayName": "公交站牌",
+      "category": "transport",
+      "aliases": [
+        "bus stop sign",
+        "公交站牌"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "car_headrest",
+      "displayName": "汽车头枕",
+      "category": "transport",
+      "aliases": [
+        "car headrest",
+        "head restraint",
+        "汽车头枕",
+        "头枕"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "car_key_fob",
+      "displayName": "汽车遥控钥匙",
+      "category": "transport",
+      "aliases": [
+        "car key fob",
+        "汽车遥控钥匙"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "car_tire",
+      "displayName": "汽车轮胎",
+      "category": "transport",
+      "aliases": [
+        "car tire",
+        "汽车轮胎"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "crosswalk",
+      "displayName": "人行横道",
+      "category": "transport",
+      "aliases": [
+        "crosswalk",
+        "pedestrian crossing",
+        "人行横道",
+        "斑马线"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "fuel_nozzle",
+      "displayName": "加油枪",
+      "category": "transport",
+      "aliases": [
+        "fuel nozzle",
+        "gas pump nozzle",
+        "加油枪",
+        "油枪"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "helmet",
+      "displayName": "头盔",
+      "category": "transport",
+      "aliases": [
+        "helmet",
+        "头盔"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "license_plate",
+      "displayName": "车牌",
+      "category": "transport",
+      "aliases": [
+        "license plate",
+        "车牌"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "motorcycle",
+      "displayName": "摩托车",
+      "category": "transport",
+      "aliases": [
+        "motorcycle",
+        "摩托车"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "motorcycle_mirror",
+      "displayName": "摩托车后视镜",
+      "category": "transport",
+      "aliases": [
+        "motorcycle mirror",
+        "motorbike mirror",
+        "摩托车后视镜",
+        "摩托车反光镜"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "parking_meter",
+      "displayName": "停车计时器",
+      "category": "transport",
+      "aliases": [
+        "parking meter",
+        "停车计时器"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "rearview_mirror",
+      "displayName": "后视镜",
+      "category": "transport",
+      "aliases": [
+        "rearview mirror",
+        "rear-view mirror",
+        "后视镜",
+        "汽车后视镜",
+        "车内后视镜",
+        "汽车反光镜"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "road_sign",
+      "displayName": "道路标志",
+      "category": "transport",
+      "aliases": [
+        "road sign",
+        "traffic sign",
+        "道路标志",
+        "交通标志",
+        "路牌"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "seat_belt",
+      "displayName": "安全带",
+      "category": "transport",
+      "aliases": [
+        "seat belt",
+        "seatbelt",
+        "安全带"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "speed_bump",
+      "displayName": "减速带",
+      "category": "transport",
+      "aliases": [
+        "speed bump",
+        "speed hump",
+        "speed cushion",
+        "减速带",
+        "减速丘",
+        "减速垫"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "subway_gate",
+      "displayName": "地铁闸机",
+      "category": "transport",
+      "aliases": [
+        "subway gate",
+        "地铁闸机"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "traffic_light",
+      "displayName": "交通信号灯",
+      "category": "transport",
+      "aliases": [
+        "traffic light",
+        "traffic signal",
+        "红绿灯",
+        "交通信号灯"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "train_ticket",
+      "displayName": "火车票",
+      "category": "transport",
+      "aliases": [
+        "train ticket",
+        "火车票"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    },
+    {
+      "topicId": "windshield_wiper",
+      "displayName": "雨刮器",
+      "category": "transport",
+      "aliases": [
+        "windshield wiper",
+        "windscreen wiper",
+        "雨刮器",
+        "挡风玻璃雨刷",
+        "雨刷"
+      ],
+      "catalogState": "seeded",
+      "factsInCatalog": 3,
+      "humanAttestedFactCount": 0,
+      "targetFactCount": 3,
+      "researchState": "human_research_required",
+      "readyForProduction": false
+    }
+  ]
+}

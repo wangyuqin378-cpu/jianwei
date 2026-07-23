@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "dental_floss",
+  "displayName": "牙线",
+  "category": "cleaning",
+  "aliases": ["dental floss", "floss", "牙线"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-ada-dental-floss",
+      "title": "Dental Floss/Interdental Cleaners",
+      "url": "https://www.ada.org/resources/ada-library/oral-health-topics/floss",
+      "publisher": "American Dental Association",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-nhs-toothbrush",
+      "title": "How to keep your teeth clean",
+      "url": "https://www.nhs.uk/live-well/healthy-teeth-and-gums/how-to-keep-your-teeth-clean/",
+      "publisher": "NHS",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-nidcr-oral-hygiene",
+      "title": "Oral Hygiene",
+      "url": "https://www.nidcr.nih.gov/health-info/oral-hygiene",
+      "publisher": "National Institute of Dental and Craniofacial Research",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "dental-floss-draft-001",
+      "topicId": "dental_floss",
+      "factText": "牙刷毛很难有效进入紧密的牙缝；牙线等牙间清洁工具用于带走两牙之间和牙龈边缘的食物残屑与牙菌斑。",
+      "sourceIds": ["src-ada-dental-floss", "src-nhs-toothbrush"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dental-floss-draft-002",
+      "topicId": "dental_floss",
+      "factText": "牙线到达牙龈线后应贴着单颗牙弯成 C 形，再沿牙面轻柔上下移动；不要猛地把牙线弹入牙龈。",
+      "sourceIds": ["src-nhs-toothbrush", "src-nidcr-oral-hygiene"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "dental-floss-draft-003",
+      "topicId": "dental_floss",
+      "factText": "牙线过去曾用多股丝纤维捻成；如今常见产品更多采用尼龙细丝或塑料单丝，是否上蜡并不是清洁效果的决定因素。",
+      "sourceIds": ["src-ada-dental-floss"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

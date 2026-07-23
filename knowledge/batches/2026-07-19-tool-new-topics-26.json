@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tool-new-topics-26",
+  "baseCatalogVersion": "2026-07-19-beta.55",
+  "nextCatalogVersion": "2026-07-19-beta.56",
+  "drafts": [
+    "knowledge/drafts/caulking_gun.json",
+    "knowledge/drafts/clamp.json",
+    "knowledge/drafts/drill_bit.json",
+    "knowledge/drafts/garden_trowel.json",
+    "knowledge/drafts/handsaw.json",
+    "knowledge/drafts/hex_key.json"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "topicId": "air_purifier",
+  "displayName": "空气净化器",
+  "category": "cleaning",
+  "aliases": ["air purifier", "空气净化器"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-energy-star-air-cleaners",
+      "title": "Air Cleaners",
+      "url": "https://www.energystar.gov/products/air_cleaners",
+      "publisher": "ENERGY STAR",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "air-purifier-draft-001",
+      "topicId": "air_purifier",
+      "factText": "洁净空气量简称 CADR，表示设备输送过滤空气的速度；数值越高，过滤越快，可服务面积通常也越大。",
+      "sourceIds": ["src-energy-star-air-cleaners"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "air-purifier-draft-002",
+      "topicId": "air_purifier",
+      "factText": "选择空气净化器要同时看房间面积和层高；同样面积下，层高增加通常需要更高的 CADR。",
+      "sourceIds": ["src-energy-star-air-cleaners"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "air-purifier-draft-003",
+      "topicId": "air_purifier",
+      "factText": "摆放位置会影响实际性能，应给进出风口留出空间，并避开窗帘等可能阻挡气流的物体。",
+      "sourceIds": ["src-energy-star-air-cleaners"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

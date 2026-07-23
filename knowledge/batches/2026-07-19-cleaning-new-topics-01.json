@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-01",
+  "baseCatalogVersion": "2026-07-19-beta.26",
+  "nextCatalogVersion": "2026-07-19-beta.27",
+  "drafts": [
+    "knowledge/drafts/bottle_brush.json",
+    "knowledge/drafts/clothes_drying_rack.json",
+    "knowledge/drafts/detergent_bottle.json"
+  ]
+}

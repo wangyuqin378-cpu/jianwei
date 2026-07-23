@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-tableware-new-topics-23",
+  "baseCatalogVersion": "2026-07-19-beta.52",
+  "nextCatalogVersion": "2026-07-19-beta.53",
+  "drafts": [
+    "knowledge/drafts/kettle.json",
+    "knowledge/drafts/kitchen_knife.json",
+    "knowledge/drafts/kitchen_scissors.json",
+    "knowledge/drafts/kitchen_tongs.json",
+    "knowledge/drafts/ladle.json",
+    "knowledge/drafts/measuring_cup.json"
+  ]
+}

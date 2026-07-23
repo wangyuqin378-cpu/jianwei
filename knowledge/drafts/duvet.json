@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "duvet",
+  "displayName": "羽绒被",
+  "category": "home",
+  "aliases": ["duvet", "down comforter", "羽绒被", "被芯"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-duvet-baffle-box",
+      "title": "US8776288B1: Baffle box comforter structure designed to resist shifting of fill",
+      "url": "https://patents.google.com/patent/US8776288B1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-duvet-sewn-through-pockets",
+      "title": "US20200196780A1: Duvet inserts and methods of manufacture thereof",
+      "url": "https://patents.google.com/patent/US20200196780A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-duvet-cover-corner-ties",
+      "title": "US12232642B2: Duvet cover",
+      "url": "https://patents.google.com/patent/US12232642B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "duvet-draft-001",
+      "topicId": "duvet",
+      "factText": "方格羽绒被内部可以缝入纵横立衬，把上下两层面料撑成独立盒仓；仓壁限制填充物迁移，同时预留通道供生产时吹入羽绒。",
+      "sourceIds": ["src-duvet-baffle-box"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "duvet-draft-002",
+      "topicId": "duvet",
+      "factText": "另一种分仓方式是直接把被芯上下两层缝在一起，互相垂直的车线形成一格格口袋，让填充物被限制在各自区域。",
+      "sourceIds": ["src-duvet-sewn-through-pockets"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "duvet-draft-003",
+      "topicId": "duvet",
+      "factText": "被套内角的小系带不是装饰：它与被芯角上的布环连接，把四角相对固定，减少被芯在宽大的被套腔体里移位或缩成一团。",
+      "sourceIds": ["src-duvet-cover-corner-ties"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

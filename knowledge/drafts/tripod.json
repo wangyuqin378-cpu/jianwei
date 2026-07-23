@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "tripod",
+  "displayName": "三脚架",
+  "category": "digital",
+  "aliases": ["tripod", "camera tripod", "三脚架", "相机三脚架"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-tripod-leg-lock",
+      "title": "US5503357A: Lock mechanism for tripod legs",
+      "url": "https://patents.google.com/patent/US5503357A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tripod-ball-head",
+      "title": "US20070152116A1: Ball head",
+      "url": "https://patents.google.com/patent/US20070152116A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-tripod-quick-release",
+      "title": "US8827219B2: Quick release plate",
+      "url": "https://patents.google.com/patent/US8827219B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "tripod-draft-001",
+      "topicId": "tripod",
+      "factText": "可伸缩脚管由内外管相对滑动调节长度；翻转锁扣时，锁紧螺杆和夹块向脚管施加夹紧力，阻止它继续伸缩。",
+      "sourceIds": ["src-tripod-leg-lock"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tripod-draft-002",
+      "topicId": "tripod",
+      "factText": "球形云台用球窝让相机同时改变俯仰和横滚角度；锁紧机构压住较大的球面接触区，靠摩擦力固定姿态。",
+      "sourceIds": ["src-tripod-ball-head"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "tripod-draft-003",
+      "topicId": "tripod",
+      "factText": "快装系统把一块板固定在相机底部、底座留在云台上；燕尾边进入底座后由弹起挡块和夹具限制上下与横向脱出。",
+      "sourceIds": ["src-tripod-quick-release"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

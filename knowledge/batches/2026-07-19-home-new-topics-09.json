@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-09",
+  "baseCatalogVersion": "2026-07-19-beta.38",
+  "nextCatalogVersion": "2026-07-19-beta.39",
+  "drafts": [
+    "knowledge/drafts/alarm_clock.json",
+    "knowledge/drafts/backpack.json",
+    "knowledge/drafts/button.json"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "shoelace",
+  "displayName": "鞋带",
+  "category": "home",
+  "aliases": ["shoelace", "shoe lace", "鞋带"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-shoelace-curved-aglet",
+      "title": "US20050257355A1: Aglet for footwear",
+      "url": "https://patents.google.com/patent/US20050257355A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shoelace-elastic-core",
+      "title": "US20060168785A1: Elastic shoelace",
+      "url": "https://patents.google.com/patent/US20060168785A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-shoelace-adjustable-aglet",
+      "title": "US20040148801A1: Adjustable shoelace",
+      "url": "https://patents.google.com/patent/US20040148801A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "shoelace-draft-001",
+      "topicId": "shoelace",
+      "factText": "鞋带末端的硬头叫 aglet。把它做成逐渐收尖的弧形，能让尖端更容易对准鞋孔，并在拉动时顺着孔壁转向。",
+      "sourceIds": ["src-shoelace-curved-aglet"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shoelace-draft-002",
+      "topicId": "shoelace",
+      "factText": "弹性鞋带可以由弹性内芯和编织外套组成；再把细长摩擦条织进外套并略微凸出，就能在鞋孔和打结处增加接触。",
+      "sourceIds": ["src-shoelace-elastic-core"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "shoelace-draft-003",
+      "topicId": "shoelace",
+      "factText": "有些可调鞋带利用“拉伸会变细”：拉紧时鞋带直径缩小，鞋带头可沿线移动；松开后直径恢复，鞋带头便被卡住。",
+      "sourceIds": ["src-shoelace-adjustable-aglet"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

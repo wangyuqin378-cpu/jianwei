@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "topicId": "soldering_iron",
+  "displayName": "电烙铁",
+  "category": "tool",
+  "aliases": ["soldering iron", "电烙铁"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-soldering-iron-tip-thermocouple",
+      "title": "CN100418687C: Electric soldering iron and its temperature control method",
+      "url": "https://patents.google.com/patent/CN100418687C/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-soldering-iron-removable-self-regulating-tip",
+      "title": "EP1680252A1: Temperature self-regulating soldering iron with removable tip",
+      "url": "https://patents.google.com/patent/EP1680252A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-soldering-iron-cleaning-stand",
+      "title": "US2213367A: Soldering iron stands",
+      "url": "https://patents.google.com/patent/US2213367A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "soldering-iron-draft-001",
+      "topicId": "soldering_iron",
+      "factText": "一种电烙铁让中空烙铁头本身参与构成热电偶，并把加热元件放在内部；控制器在加热脉冲间隙读取温度，再决定下一次供电。",
+      "sourceIds": ["src-soldering-iron-tip-thermocouple"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "soldering-iron-draft-002",
+      "topicId": "soldering_iron",
+      "factText": "自调温烙铁可把加热合金层与导热铜层都做在可拆烙铁头上；装入时，手柄轴上的磁线圈进入烙铁头内部与加热层耦合。",
+      "sourceIds": ["src-soldering-iron-removable-self-regulating-tip"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "soldering-iron-draft-003",
+      "topicId": "soldering_iron",
+      "factText": "早期烙铁架已经把两件事合在一起：金属支架托住烙铁，底座凹槽则放清洁或研磨材料，烙铁头可直接在架旁清理。",
+      "sourceIds": ["src-soldering-iron-cleaning-stand"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

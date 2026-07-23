@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-14",
+  "baseCatalogVersion": "2026-07-19-beta.43",
+  "nextCatalogVersion": "2026-07-19-beta.44",
+  "drafts": [
+    "knowledge/drafts/mirror.json",
+    "knowledge/drafts/pillow.json",
+    "knowledge/drafts/rug.json"
+  ]
+}

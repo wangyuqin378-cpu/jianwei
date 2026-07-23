@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "hdmi_cable",
+  "displayName": "HDMI 线",
+  "category": "digital",
+  "aliases": ["HDMI cable", "HDMI 线"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-hdmi-20-anniversary",
+      "title": "HDMI v1.0 20th Anniversary",
+      "url": "https://www.hdmi.org/blog/detail/151",
+      "publisher": "HDMI Licensing Administrator",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-hdmi-specifications",
+      "title": "HDMI Technology: Specifications and Programs",
+      "url": "https://www.hdmi.org/spec/index",
+      "publisher": "HDMI Licensing Administrator",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "hdmi-cable-draft-001",
+      "topicId": "hdmi_cable",
+      "factText": "HDMI 1.0规范在2002年12月9日发布，它的重要目标之一，是用一根线传输未压缩的高清视频和多声道数字音频。",
+      "sourceIds": ["src-hdmi-20-anniversary"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hdmi-cable-draft-002",
+      "topicId": "hdmi_cable",
+      "factText": "HDMI 1.x时期陆续加入了音频回传通道、自动唇音同步、CEC控制命令、深色彩和3D视频等能力。",
+      "sourceIds": ["src-hdmi-20-anniversary"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "hdmi-cable-draft-003",
+      "topicId": "hdmi_cable",
+      "factText": "HDMI Forum在2011年成立，让更广泛的行业成员共同推进2.x系列规范；HDMI因此不仅是一种插头外形，也是一套持续演进的接口规范。",
+      "sourceIds": ["src-hdmi-20-anniversary", "src-hdmi-specifications"],
+      "riskLevel": "general",
+      "reviewStatus": "draft"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-digital-new-topics-03",
+  "baseCatalogVersion": "2026-07-19-beta.36",
+  "nextCatalogVersion": "2026-07-19-beta.37",
+  "drafts": [
+    "knowledge/drafts/game_controller.json",
+    "knowledge/drafts/speaker.json",
+    "knowledge/drafts/tablet.json"
+  ]
+}

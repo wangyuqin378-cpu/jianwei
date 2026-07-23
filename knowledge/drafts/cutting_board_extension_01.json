@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "intakeMode": "extend",
+  "topicId": "cutting_board",
+  "displayName": "砧板",
+  "category": "tableware",
+  "aliases": ["cutting board", "chopping board", "砧板", "菜板"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-usda-fsis-cutting-boards",
+      "title": "Cutting Boards",
+      "url": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/cutting-boards",
+      "publisher": "USDA Food Safety and Inspection Service",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-fda-safe-food-handling",
+      "title": "Safe Food Handling",
+      "url": "https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling",
+      "publisher": "U.S. Food and Drug Administration",
+      "authority": "official"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "cutting-board-draft-002",
+      "topicId": "cutting_board",
+      "factText": "处理生肉、禽肉或海鲜的砧板应与切水果、蔬菜和即食食物的砧板分开，减少交叉污染。",
+      "sourceIds": ["src-usda-fsis-cutting-boards", "src-fda-safe-food-handling"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "cutting-board-draft-003",
+      "topicId": "cutting_board",
+      "factText": "砧板每次使用后都要用热肥皂水清洗；处理完一种食材后，应洗净再继续处理下一种食材。",
+      "sourceIds": ["src-usda-fsis-cutting-boards", "src-fda-safe-food-handling"],
+      "riskLevel": "health",
+      "reviewStatus": "draft"
+    }
+  ]
+}

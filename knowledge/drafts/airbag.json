@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "topicId": "airbag",
+  "displayName": "安全气囊",
+  "category": "transport",
+  "aliases": ["airbag", "安全气囊", "气囊"],
+  "origin": "ai_assisted_draft",
+  "sources": [
+    {
+      "sourceId": "src-iihs-airbags",
+      "title": "IIHS: Airbags",
+      "url": "https://www.iihs.org/research-areas/airbags",
+      "publisher": "Insurance Institute for Highway Safety",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-euroncap-aop-protocol",
+      "title": "Euro NCAP Assessment Protocol - Adult Occupant Protection v9.3",
+      "url": "https://cdn.euroncap.com/cars/assets/euro_ncap_assessment_protocol_aop_v93_f17b8fd21c.pdf",
+      "publisher": "Euro NCAP",
+      "authority": "professional"
+    }
+  ],
+  "facts": [
+    {
+      "factId": "airbag-draft-001",
+      "topicId": "airbag",
+      "factText": "正面安全气囊在碰撞中为向前运动的头部和胸部提供缓冲，目标是减少乘员与方向盘、仪表板等硬结构的直接接触。",
+      "sourceIds": ["src-iihs-airbags", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "airbag-draft-002",
+      "topicId": "airbag",
+      "factText": "侧气囊安装空间很小，需要极快展开；座椅或车门内的侧气囊主要保护躯干，帘式气囊则重点保护头部。",
+      "sourceIds": ["src-iihs-airbags", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    },
+    {
+      "factId": "airbag-draft-003",
+      "topicId": "airbag",
+      "factText": "头部保护帘式气囊会从车顶边缘展开并覆盖侧窗区域，在侧撞时把乘员头部与侵入车体或外部物体隔开。",
+      "sourceIds": ["src-iihs-airbags", "src-euroncap-aop-protocol"],
+      "riskLevel": "safety",
+      "reviewStatus": "draft"
+    }
+  ]
+}

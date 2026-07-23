@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-digital-new-topics-02",
+  "baseCatalogVersion": "2026-07-19-beta.35",
+  "nextCatalogVersion": "2026-07-19-beta.36",
+  "drafts": [
+    "knowledge/drafts/microphone.json",
+    "knowledge/drafts/smartphone.json",
+    "knowledge/drafts/smartwatch.json"
+  ]
+}

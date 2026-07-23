@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-home-new-topics-13",
+  "baseCatalogVersion": "2026-07-19-beta.42",
+  "nextCatalogVersion": "2026-07-19-beta.43",
+  "drafts": [
+    "knowledge/drafts/hand_fan.json",
+    "knowledge/drafts/light_switch.json",
+    "knowledge/drafts/mattress.json"
+  ]
+}

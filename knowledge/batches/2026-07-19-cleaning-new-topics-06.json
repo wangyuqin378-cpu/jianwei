@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "batchId": "2026-07-19-cleaning-new-topics-06",
+  "baseCatalogVersion": "2026-07-19-beta.33",
+  "nextCatalogVersion": "2026-07-19-beta.34",
+  "drafts": [
+    "knowledge/drafts/toilet_brush.json",
+    "knowledge/drafts/trash_bag.json",
+    "knowledge/drafts/trash_can.json"
+  ]
+}
