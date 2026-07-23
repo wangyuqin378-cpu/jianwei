@@ -91,6 +91,7 @@ import cn.jianwei.app.widget.DailyWidgetReceiver
 import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
 import cn.jianwei.domain.card.cardRecognitionPresentation
+import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
@@ -225,7 +226,6 @@ class MainActivity : ComponentActivity() {
                         onAddWidget = addWidget,
                         onFeedback = viewModel::feedback,
                         onSetSaved = viewModel::setSaved,
-                        onNeverAnalyze = viewModel::neverAnalyze,
                         onTrack = submitReminder,
                         onCancelReminder = viewModel::cancelReminder,
                         onEngagement = betaMetrics::markEngaged,
@@ -649,7 +649,6 @@ private fun HomeScreen(
     onAddWidget: () -> Unit,
     onFeedback: (String, FeedbackAction) -> Unit,
     onSetSaved: (String, Boolean) -> Unit,
-    onNeverAnalyze: (String) -> Unit,
     onTrack: (ItemReminderSubmission) -> Unit,
     onCancelReminder: (String) -> Unit,
     onEngagement: () -> Unit,
@@ -767,10 +766,10 @@ private fun HomeScreen(
                     KnowledgeCardView(
                         card,
                         state.trackedItems[card.cardId],
+                        state.feedbackStates[card.cardId],
                         card.cardId in savedCardIds,
                         onFeedback,
                         onSetSaved,
-                        onNeverAnalyze,
                         onTrack,
                         onCancelReminder,
                         onEngagement
@@ -860,10 +859,10 @@ private fun EmptyState(
 private fun KnowledgeCardView(
     card: KnowledgeCard,
     trackedItem: TrackedItem?,
+    feedbackState: CardFeedbackState?,
     isSaved: Boolean,
     onFeedback: (String, FeedbackAction) -> Unit,
     onSetSaved: (String, Boolean) -> Unit,
-    onNeverAnalyze: (String) -> Unit,
     onTrack: (ItemReminderSubmission) -> Unit,
     onCancelReminder: (String) -> Unit,
     onEngagement: () -> Unit
@@ -877,6 +876,7 @@ private fun KnowledgeCardView(
     }
     var showReminderDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
     var showCancelReminderDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
+    var showPrivateFeedbackDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
     if (showReminderDialog) {
         ItemReminderDialog(
             card = card,
@@ -901,6 +901,27 @@ private fun KnowledgeCardView(
             },
             dismissButton = {
                 TextButton(onClick = { showCancelReminderDialog = false }) { Text("保留提醒") }
+            }
+        )
+    }
+    if (showPrivateFeedbackDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivateFeedbackDialog = false },
+            title = { Text("将这张照片标记为太私人？") },
+            text = {
+                Text(
+                    "确认后会立即删除这张知识卡、取消对应提醒，并在本次安装中停止分析这张照片。" +
+                        "卸载应用或清除应用数据后，这项排除会被重置。"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPrivateFeedbackDialog = false
+                    onFeedback(card.cardId, FeedbackAction.TOO_PRIVATE)
+                }) { Text("删除并停止分析") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPrivateFeedbackDialog = false }) { Text("保留卡片") }
             }
         )
     }
@@ -1059,23 +1080,62 @@ private fun KnowledgeCardView(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text("这张卡对你有用吗？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text("你的选择只用于改进本次安装的推荐。", style = MaterialTheme.typography.bodySmall)
-                        FeedbackAction.entries.take(4).chunked(2).forEach { actions ->
+                        if (shouldOfferOrdinaryFeedback(feedbackState)) {
+                            Text("选择一次即可；你的判断只用于改进本次安装的推荐。", style = MaterialTheme.typography.bodySmall)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                actions.forEach { action ->
-                                    OutlinedButton(
-                                        onClick = { onFeedback(card.cardId, action) },
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text(action.label())
-                                    }
+                                OutlinedButton(
+                                    onClick = { onFeedback(card.cardId, FeedbackAction.LIKE) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(FeedbackAction.LIKE.userLabel())
+                                }
+                                OutlinedButton(
+                                    onClick = { onFeedback(card.cardId, FeedbackAction.DISLIKE) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(FeedbackAction.DISLIKE.userLabel())
+                                }
+                            }
+                            OutlinedButton(
+                                onClick = { onFeedback(card.cardId, FeedbackAction.WRONG_OBJECT) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(FeedbackAction.WRONG_OBJECT.userLabel())
+                            }
+                        } else {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .semantics {
+                                        stateDescription = "已反馈${feedbackState?.action?.userLabel().orEmpty()}"
+                                    },
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        "已反馈 · ${feedbackState?.action?.userLabel().orEmpty()}",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        "这次判断已经计入推荐，不会重复记录。",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
+                        TextButton(
+                            onClick = { showPrivateFeedbackDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(FeedbackAction.TOO_PRIVATE.userLabel())
+                        }
                     }
-                }
-                TextButton(onClick = { onNeverAnalyze(card.cardId) }, modifier = Modifier.fillMaxWidth()) {
-                    Text("在本次安装中不再分析")
                 }
             }
         }
@@ -1243,14 +1303,6 @@ private fun PhotoThumbnail(uri: String, contentDescription: String, modifier: Mo
         if (displayBitmap != null) Image(displayBitmap.asImageBitmap(), contentDescription = contentDescription, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         else Text("照片保留在本机")
     }
-}
-
-private fun FeedbackAction.label() = when (this) {
-    FeedbackAction.LIKE -> "有意思"
-    FeedbackAction.DISLIKE -> "没意思"
-    FeedbackAction.WRONG_OBJECT -> "识错了"
-    FeedbackAction.TOO_PRIVATE -> "太私人"
-    FeedbackAction.SAVE -> "收藏"
 }
 
 private const val DETAIL_THUMBNAIL_MAX_SIDE_PX = 1280

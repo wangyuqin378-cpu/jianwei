@@ -1,5 +1,11 @@
 package cn.jianwei.data.local
 
+import cn.jianwei.data.cards.topicAliasTokens
+import cn.jianwei.domain.feedback.feedbackAffinityDelta
+import cn.jianwei.domain.feedback.replaceTopicAffinity
+import cn.jianwei.domain.feedback.updatedTopicAffinity
+import cn.jianwei.domain.model.FeedbackAction
+import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -9,9 +15,14 @@ import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 data class PrivateCardCleanup(
-    val topicId: String?,
-    val title: String?,
-    val photoLocalId: Long?
+    val photoLocalId: Long?,
+    val cardRemoved: Boolean
+)
+
+data class OrdinaryFeedbackCommit(
+    val recorded: Boolean,
+    val existingAction: String?,
+    val cardFound: Boolean
 )
 
 @Dao
@@ -119,8 +130,57 @@ interface CardDao {
     @Upsert
     suspend fun upsertAll(items: List<CardEntity>)
 
+    @Query("SELECT * FROM card_feedback_states ORDER BY submittedAtMillis DESC, cardId ASC")
+    fun observeFeedbackStates(): Flow<List<CardFeedbackStateEntity>>
+
+    @Query("SELECT * FROM card_feedback_states WHERE cardId = :cardId LIMIT 1")
+    suspend fun findFeedbackState(cardId: String): CardFeedbackStateEntity?
+
+    @Upsert
+    suspend fun upsertFeedbackState(item: CardFeedbackStateEntity)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun enqueueFeedback(item: PendingFeedbackEntity)
+
+    @Transaction
+    suspend fun commitOrdinaryFeedback(
+        cardId: String,
+        action: String,
+        nowMillis: Long
+    ): OrdinaryFeedbackCommit {
+        val ordinaryAction = runCatching { FeedbackAction.valueOf(action) }
+            .getOrNull()
+            ?.takeIf { it.isOrdinaryCardFeedback() }
+            ?: throw IllegalArgumentException(
+                "Only LIKE, DISLIKE or WRONG_OBJECT can be stored as ordinary card feedback"
+            )
+        val card = findById(cardId)
+            ?: return OrdinaryFeedbackCommit(recorded = false, existingAction = null, cardFound = false)
+        val existing = findFeedbackState(cardId)
+        if (existing != null) {
+            return OrdinaryFeedbackCommit(
+                recorded = false,
+                existingAction = existing.action,
+                cardFound = true
+            )
+        }
+        upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis))
+        enqueueFeedback(PendingFeedbackEntity(cardId = cardId, action = action, createdAtMillis = nowMillis))
+        if (feedbackAffinityDelta(ordinaryAction) != 0.0) {
+            val current = findTopicAffinity(card.topicId)
+            upsertTopicAffinity(
+                TopicAffinityEntity(
+                    topicId = card.topicId,
+                    weight = updatedTopicAffinity(current?.weight ?: 0.0, ordinaryAction),
+                    aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
+                        .distinct()
+                        .take(12),
+                    updatedAtMillis = nowMillis
+                )
+            )
+        }
+        return OrdinaryFeedbackCommit(recorded = true, existingAction = action, cardFound = true)
+    }
 
     @Query("SELECT * FROM photo_candidates WHERE candidateToken = :candidateToken LIMIT 1")
     suspend fun findPhotoForPrivateCleanup(candidateToken: String): PhotoCandidateEntity?
@@ -139,6 +199,7 @@ interface CardDao {
 
     @Transaction
     suspend fun setCardSaved(cardId: String, saved: Boolean, nowMillis: Long): Boolean {
+        val card = findById(cardId) ?: return false
         val current = findSavedCard(cardId)
         if (!saved && current == null) return false
         val shouldSignal = saved && current?.feedbackSignaled != true
@@ -157,6 +218,20 @@ interface CardDao {
                     cardId = cardId,
                     action = "SAVE",
                     createdAtMillis = nowMillis
+                )
+            )
+            val affinity = findTopicAffinity(card.topicId)
+            upsertTopicAffinity(
+                TopicAffinityEntity(
+                    topicId = card.topicId,
+                    weight = updatedTopicAffinity(
+                        affinity?.weight ?: 0.0,
+                        FeedbackAction.SAVE
+                    ),
+                    aliases = (affinity?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
+                        .distinct()
+                        .take(12),
+                    updatedAtMillis = nowMillis
                 )
             )
         }
@@ -224,10 +299,37 @@ interface CardDao {
     @Transaction
     suspend fun stagePrivateFeedbackAndDelete(cardId: String, nowMillis: Long): PrivateCardCleanup {
         val card = findById(cardId)
+        val priorFeedback = findFeedbackState(cardId)
+        val priorSave = findSavedCard(cardId)
         val photo = card?.let { findPhotoForPrivateCleanup(it.candidateToken) }
         // This transaction is the local privacy commit point. After it returns, a process death
         // can leave only a private-storage file awaiting cleanup; the photo cannot be scanned or
         // uploaded, the card cannot be displayed, and the server barrier cannot be lost.
+        if (card != null) {
+            val previousActions = buildList {
+                val ordinaryAction = priorFeedback?.action
+                    ?.let { stored -> runCatching { FeedbackAction.valueOf(stored) }.getOrNull() }
+                if (ordinaryAction?.isOrdinaryCardFeedback() == true) {
+                    add(ordinaryAction)
+                }
+                if (priorSave?.feedbackSignaled == true) add(FeedbackAction.SAVE)
+            }
+            val current = findTopicAffinity(card.topicId)
+            upsertTopicAffinity(
+                TopicAffinityEntity(
+                    topicId = card.topicId,
+                    weight = replaceTopicAffinity(
+                        current = current?.weight ?: 0.0,
+                        previousActions = previousActions,
+                        nextAction = FeedbackAction.TOO_PRIVATE
+                    ),
+                    aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
+                        .distinct()
+                        .take(12),
+                    updatedAtMillis = nowMillis
+                )
+            )
+        }
         enqueueFeedback(
             PendingFeedbackEntity(
                 cardId = cardId,
@@ -242,7 +344,7 @@ interface CardDao {
         removeTrackedItem(cardId)
         removeNonPrivateFeedbackForCard(cardId)
         deleteById(cardId)
-        return PrivateCardCleanup(card?.topicId, card?.title, photo?.localId)
+        return PrivateCardCleanup(photo?.localId, cardRemoved = card != null)
     }
 
     @Transaction

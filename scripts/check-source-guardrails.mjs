@@ -155,6 +155,10 @@ const widgetStateDeviceTest = await readFile(path.join(root, "android", "data", 
 const widgetSwitchPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "widget", "WidgetSwitchPolicy.kt"), "utf8");
 const widgetSwitchPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "widget", "WidgetSwitchPolicyTest.kt"), "utf8");
 const mainViewModel = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainViewModel.kt"), "utf8");
+const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
+const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
+const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicy.kt"), "utf8");
+const feedbackAffinityPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicyTest.kt"), "utf8");
 const dailyCardPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "card", "DailyCardPolicy.kt"), "utf8");
 const dailyCardPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "card", "DailyCardPolicyTest.kt"), "utf8");
 const cardRecognitionPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "card", "CardRecognitionPolicy.kt"), "utf8");
@@ -345,6 +349,66 @@ check(
   "TOO_PRIVATE barrier, photo suppression and private-card deletion are not one crash-atomic Room transaction"
 );
 check(
+  localEntities.includes("data class CardFeedbackStateEntity") &&
+    localEntities.includes('tableName = "card_feedback_states"') &&
+    localEntities.includes("onDelete = ForeignKey.CASCADE"),
+  "Ordinary card feedback has no card-owned persistent Room state"
+);
+const ordinaryFeedbackTransaction = cardDaos.slice(
+  cardDaos.indexOf("suspend fun commitOrdinaryFeedback("),
+  cardDaos.indexOf("suspend fun findPhotoForPrivateCleanup(")
+);
+const savedFeedbackTransaction = cardDaos.slice(
+  cardDaos.indexOf("suspend fun setCardSaved("),
+  cardDaos.indexOf("suspend fun pendingFeedback(")
+);
+check(
+  cardDaos.includes("@Transaction\n    suspend fun commitOrdinaryFeedback(") &&
+    ordinaryFeedbackTransaction.includes("findFeedbackState(cardId)") &&
+    ordinaryFeedbackTransaction.includes("upsertFeedbackState(") &&
+    ordinaryFeedbackTransaction.includes("enqueueFeedback(") &&
+    ordinaryFeedbackTransaction.includes("upsertTopicAffinity(") &&
+    ordinaryFeedbackTransaction.includes("recorded = false") &&
+    ordinaryFeedbackTransaction.includes("recorded = true"),
+  "Ordinary feedback state, outbox and affinity are not committed idempotently in one Room transaction"
+);
+check(
+  cardDaos.includes("@Transaction\n    suspend fun setCardSaved(") &&
+    savedFeedbackTransaction.includes("enqueueFeedback(") &&
+    savedFeedbackTransaction.includes("upsertTopicAffinity("),
+  "SAVE outbox and affinity signal are not committed in one Room transaction"
+);
+check(
+  privateDeleteTransaction.includes("replaceTopicAffinity(") &&
+    privateDeleteTransaction.includes("FeedbackAction.SAVE") &&
+    privateDeleteTransaction.includes("FeedbackAction.TOO_PRIVATE"),
+  "Private feedback does not replace prior ordinary and SAVE affinity signals"
+);
+check(
+  cardRepository.includes("override fun observeFeedbackStates()") &&
+    cardRepository.includes("cards.commitOrdinaryFeedback(") &&
+    cardRepository.includes("FeedbackSubmissionResult(") &&
+    mainViewModel.includes("feedbackStates = cardState.second.associateBy") &&
+    mainViewModel.includes("feedbackResultMessage(result)"),
+  "Persistent feedback state is not exposed through repository and presentation state"
+);
+check(
+  mainActivity.includes("state.feedbackStates[card.cardId]") &&
+    mainActivity.includes('"已反馈 · ${feedbackState?.action?.userLabel().orEmpty()}"') &&
+    mainActivity.includes('"将这张照片标记为太私人？"') &&
+    mainActivity.includes('"删除并停止分析"') &&
+    mainActivity.includes('"保留卡片"') &&
+    !mainActivity.includes('"在本次安装中不再分析"') &&
+    feedbackUiPolicy.includes("shouldOfferOrdinaryFeedback") &&
+    feedbackUiPolicyTest.includes("ordinary choices disappear after one persisted selection"),
+  "Feedback UI does not persist one ordinary choice or safely confirm private deletion"
+);
+check(
+  feedbackAffinityPolicy.includes("fun replaceTopicAffinity") &&
+    feedbackAffinityPolicyTest.includes("privacy replacement removes prior ordinary and save signals"),
+  "Feedback affinity replacement rule is missing domain-owned policy evidence"
+);
+check(
   cardRepository.includes("override fun observeSavedCards()") &&
     cardRepository.includes("override suspend fun setSaved(cardId: String, saved: Boolean): Boolean") &&
     cardRepository.includes("cards.stagePrivateFeedbackAndDelete(cardId") &&
@@ -398,7 +462,21 @@ for (const marker of [
   check(sourceSyncDeviceTest.includes(marker), `API 34 saved-card lifecycle evidence is missing marker: ${marker}`);
 }
 check(
-  databaseSource.includes("version = 9") &&
+  sourceSyncDeviceTest.includes("ordinaryFeedbackIsPersistentIdempotentAndKeepsOneEffectiveChoice") &&
+    sourceSyncDeviceTest.includes("assertThat(duplicate.accepted).isFalse()") &&
+    sourceSyncDeviceTest.includes("assertThat(conflicting.effectiveAction).isEqualTo(FeedbackAction.LIKE)") &&
+    sourceSyncDeviceTest.includes("findTopicAffinity(\"broom\")?.weight).isEqualTo(-0.75)"),
+  "API 34 feedback idempotency or private affinity replacement evidence is missing"
+);
+check(
+  databaseSource.includes("version = 10") &&
+    databaseSource.includes("MIGRATION_9_10") &&
+    databaseMigrationDeviceTest.includes("migratesVersion9To10CompactsLegacyFeedbackAndCascadesState") &&
+    databaseMigrationDeviceTest.includes("card_feedback_states"),
+  "Room 9-to-10 persistent feedback migration or cascade evidence is missing"
+);
+check(
+  databaseSource.includes("version = 10") &&
     databaseSource.includes("MIGRATION_6_7") &&
     databaseSource.includes("MIGRATION_7_8") &&
     databaseMigrationDeviceTest.includes("migratesVersion7To8PreservesCardsAndCascadesSavedState"),
@@ -562,7 +640,7 @@ for (const marker of ["val detectedObjectName: String", "detectedObjectName = dt
     `Android card pipeline is missing explicit object identity marker: ${marker}`
   );
 }
-for (const marker of ["version = 9", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
+for (const marker of ["version = 10", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
   check(databaseSource.includes(marker), `Room object-name migration is missing marker: ${marker}`);
 }
 for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "HIGH_OBJECT_CONFIDENCE = 0.90", "titleAlreadyCarriesIdentity", "识别把握较低", "未知物件"]) {
@@ -692,7 +770,7 @@ check(trackApiCall >= 0 && trackAck > trackApiCall, "Pending item tracking can b
 check(untrackApiCall >= 0 && untrackAck > untrackApiCall, "Pending item cancellation can be removed before a successful API response");
 check(cardRepository.includes("expectedUpdatedAtMillis") || cardRepository.includes("pending.updatedAtMillis"), "Reminder outbox acknowledgements are not version-guarded");
 check(androidApiSource.includes('@DELETE("v1/items/{cardId}/track")') && serverSource.includes('app.delete("/v1/items/:cardId/track"'), "Reminder cancellation API is missing on Android or backend");
-check(databaseSource.includes("version = 9") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
+check(databaseSource.includes("version = 10") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
 check(mainActivity.includes("物品提醒已开启") && mainActivity.includes("取消物品提醒") && mainActivity.includes("确认取消"), "Reminder visible state/update/cancel UI is incomplete");
 check(mediaIndexPolicy.includes("if (access == PhotoAccess.FULL) stored else null"), "Partial-photo scans still trust a stale MediaStore authorization watermark");
 check(mediaRepository.includes("catch (_: SecurityException)") && !mediaRepository.includes("catch (_: Exception)"), "MediaStore query defects can still be silently reported as an empty successful scan");
@@ -966,7 +1044,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

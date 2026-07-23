@@ -68,6 +68,23 @@ data class SavedCardEntity(
     val updatedAtMillis: Long
 )
 
+@Entity(
+    tableName = "card_feedback_states",
+    foreignKeys = [
+        ForeignKey(
+            entity = CardEntity::class,
+            parentColumns = ["cardId"],
+            childColumns = ["cardId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class CardFeedbackStateEntity(
+    @PrimaryKey val cardId: String,
+    val action: String,
+    val submittedAtMillis: Long
+)
+
 @Entity(tableName = "pending_feedback", indices = [Index(value = ["cardId", "action"], unique = true)])
 data class PendingFeedbackEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

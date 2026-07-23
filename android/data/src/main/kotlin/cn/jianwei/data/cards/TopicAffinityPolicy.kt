@@ -1,20 +1,18 @@
 package cn.jianwei.data.cards
 
+import cn.jianwei.domain.feedback.MAX_TOPIC_AFFINITY as DOMAIN_MAX_TOPIC_AFFINITY
+import cn.jianwei.domain.feedback.MIN_TOPIC_AFFINITY as DOMAIN_MIN_TOPIC_AFFINITY
+import cn.jianwei.domain.feedback.feedbackAffinityDelta
+import cn.jianwei.domain.feedback.updatedTopicAffinity
 import cn.jianwei.domain.model.FeedbackAction
 
-internal const val MIN_TOPIC_AFFINITY = -2.0
-internal const val MAX_TOPIC_AFFINITY = 2.0
+internal const val MIN_TOPIC_AFFINITY = DOMAIN_MIN_TOPIC_AFFINITY
+internal const val MAX_TOPIC_AFFINITY = DOMAIN_MAX_TOPIC_AFFINITY
 
-internal fun affinityDelta(action: FeedbackAction): Double = when (action) {
-    FeedbackAction.LIKE -> 0.35
-    FeedbackAction.SAVE -> 0.50
-    FeedbackAction.DISLIKE -> -0.40
-    FeedbackAction.TOO_PRIVATE -> -0.75
-    FeedbackAction.WRONG_OBJECT -> 0.0
-}
+internal fun affinityDelta(action: FeedbackAction): Double = feedbackAffinityDelta(action)
 
 internal fun updatedAffinity(current: Double, action: FeedbackAction): Double =
-    (current + affinityDelta(action)).coerceIn(MIN_TOPIC_AFFINITY, MAX_TOPIC_AFFINITY)
+    updatedTopicAffinity(current, action)
 
 internal fun topicAliasTokens(topicId: String, title: String): List<String> =
     sequenceOf(topicId, title)

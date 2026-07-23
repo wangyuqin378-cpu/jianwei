@@ -193,6 +193,58 @@ class DatabaseMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion9To10CompactsLegacyFeedbackAndCascadesState() {
+        helper.createDatabase(FEEDBACK_STATE_DATABASE, 9).apply {
+            execSQL(
+                "INSERT INTO knowledge_cards " +
+                    "(cardId, candidateToken, photoUri, topicId, factId, title, detectedObjectName, body, " +
+                    "personalContext, confidence, sources, status, scheduledDate, createdAtMillis) VALUES " +
+                    "('card-feedback', 'candidate-feedback', '', 'broom', 'broom-001', '扫帚的设计', " +
+                    "'扫帚', 'Fact', 'Context', 0.9, '[]', 'scheduled', '2026-07-24', 1)"
+            )
+            execSQL(
+                "INSERT INTO pending_feedback (cardId, action, createdAtMillis) VALUES " +
+                    "('card-feedback', 'LIKE', 100), " +
+                    "('card-feedback', 'DISLIKE', 200)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            FEEDBACK_STATE_DATABASE,
+            10,
+            true,
+            MIGRATION_9_10
+        ).use { database ->
+            database.query(
+                "SELECT action, submittedAtMillis FROM card_feedback_states " +
+                    "WHERE cardId = 'card-feedback'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("DISLIKE")
+                assertThat(cursor.getLong(1)).isEqualTo(200L)
+                assertThat(cursor.moveToNext()).isFalse()
+            }
+            database.query(
+                "SELECT action FROM pending_feedback WHERE cardId = 'card-feedback'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("DISLIKE")
+                assertThat(cursor.moveToNext()).isFalse()
+            }
+            database.execSQL("PRAGMA foreign_keys=ON")
+            database.execSQL("DELETE FROM knowledge_cards WHERE cardId = 'card-feedback'")
+            database.query(
+                "SELECT COUNT(*) FROM card_feedback_states WHERE cardId = 'card-feedback'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getInt(0)).isEqualTo(0)
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-2-3-test"
         const val CURSOR_DATABASE = "migration-3-4-cursor-test"
@@ -201,5 +253,6 @@ class DatabaseMigrationInstrumentedTest {
         const val REMINDER_STATE_DATABASE = "migration-6-7-reminder-state-test"
         const val SAVED_CARDS_DATABASE = "migration-7-8-saved-cards-test"
         const val OBJECT_NAME_DATABASE = "migration-8-9-object-name-test"
+        const val FEEDBACK_STATE_DATABASE = "migration-9-10-feedback-state-test"
     }
 }

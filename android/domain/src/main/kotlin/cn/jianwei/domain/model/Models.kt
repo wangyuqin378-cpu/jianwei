@@ -95,6 +95,21 @@ data class TrackedItem(
 
 enum class FeedbackAction { LIKE, DISLIKE, WRONG_OBJECT, TOO_PRIVATE, SAVE }
 
+data class CardFeedbackState(
+    val cardId: String,
+    val action: FeedbackAction,
+    val submittedAtMillis: Long
+)
+
+data class FeedbackSubmissionResult(
+    val accepted: Boolean,
+    val effectiveAction: FeedbackAction,
+    val cardRemoved: Boolean = false
+)
+
+fun FeedbackAction.isOrdinaryCardFeedback(): Boolean =
+    this == FeedbackAction.LIKE || this == FeedbackAction.DISLIKE || this == FeedbackAction.WRONG_OBJECT
+
 /**
  * PII-free, device-local preference signal learned from card feedback.
  * Aliases are limited to reviewed topic metadata and never contain photo or user text.

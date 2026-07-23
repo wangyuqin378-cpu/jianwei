@@ -17,10 +17,13 @@ import cn.jianwei.data.network.JianweiApi
 import cn.jianwei.data.network.SourceDto
 import cn.jianwei.data.network.TrackRequest
 import cn.jianwei.domain.model.AnalysisState
+import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
+import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.KnowledgeSource
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import cn.jianwei.domain.model.normalizedSafeKnowledgeSourceUrl
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.PhotoRepository
@@ -53,6 +56,17 @@ class RoomCardRepository @Inject constructor(
     override fun observeTrackedItems(): Flow<List<TrackedItem>> = cards.observeTrackedItems().map { items ->
         items.map { TrackedItem(it.cardId, LocalDate.parse(it.startedOn), it.reminderDays) }
     }
+    override fun observeFeedbackStates(): Flow<List<CardFeedbackState>> =
+        cards.observeFeedbackStates().map { items ->
+            items.mapNotNull { item ->
+                runCatching { FeedbackAction.valueOf(item.action) }
+                    .getOrNull()
+                    ?.takeIf(FeedbackAction::isOrdinaryCardFeedback)
+                    ?.let { action ->
+                        CardFeedbackState(item.cardId, action, item.submittedAtMillis)
+                    }
+            }
+        }
 
     override suspend fun syncCards() = sessionGate.withActiveSession { session ->
         // A privacy deletion is a barrier: never download cards while one is unacknowledged.
@@ -115,41 +129,45 @@ class RoomCardRepository @Inject constructor(
         flushTrackedItems(session)
     }
 
-    override suspend fun sendFeedback(cardId: String, action: FeedbackAction) = sessionGate.withActiveSession { session ->
+    override suspend fun sendFeedback(
+        cardId: String,
+        action: FeedbackAction
+    ): FeedbackSubmissionResult = sessionGate.withActiveSession { session ->
         session.requireActive()
-        if (action == FeedbackAction.TOO_PRIVATE) {
-            val cleanup = markPhotoNeverAnalyzeLocally(cardId)
-            if (cleanup.topicId != null && cleanup.title != null) {
-                affinities.applyTopicFeedback(cleanup.topicId, cleanup.title, action)
+        when {
+            action == FeedbackAction.TOO_PRIVATE -> {
+                val cleanup = markPhotoNeverAnalyzeLocally(cardId)
+                FeedbackSubmissionResult(
+                    accepted = cleanup.cardRemoved,
+                    effectiveAction = action,
+                    cardRemoved = true
+                )
             }
-            return@withActiveSession Unit
+            action.isOrdinaryCardFeedback() -> {
+                val commit = cards.commitOrdinaryFeedback(cardId, action.name, System.currentTimeMillis())
+                require(commit.cardFound) { "Knowledge card is no longer available" }
+                val effectiveAction = commit.existingAction
+                    ?.let { FeedbackAction.valueOf(it) }
+                    ?: action
+                FeedbackSubmissionResult(
+                    accepted = commit.recorded,
+                    effectiveAction = effectiveAction
+                )
+            }
+            else -> throw IllegalArgumentException("SAVE feedback is managed by the saved-card flow")
         }
-        affinities.applyFeedback(cardId, action)
-        val pending = PendingFeedbackEntity(cardId = cardId, action = action.name, createdAtMillis = System.currentTimeMillis())
-        cards.enqueueFeedback(pending)
-        Unit
     }
 
     override suspend fun setSaved(cardId: String, saved: Boolean): Boolean =
         sessionGate.withActiveSession { session ->
             session.requireActive()
-            val shouldSignal = cards.setCardSaved(cardId, saved, System.currentTimeMillis())
-            if (shouldSignal) affinities.applyFeedback(cardId, FeedbackAction.SAVE)
-            shouldSignal
+            cards.setCardSaved(cardId, saved, System.currentTimeMillis())
         }
-
-    override suspend fun markPhotoNeverAnalyze(cardId: String) = sessionGate.withActiveSession { session ->
-        session.requireActive()
-        val cleanup = markPhotoNeverAnalyzeLocally(cardId)
-        if (cleanup.topicId != null && cleanup.title != null) {
-            affinities.applyTopicFeedback(cleanup.topicId, cleanup.title, FeedbackAction.TOO_PRIVATE)
-        }
-        Unit
-    }
 
     private suspend fun markPhotoNeverAnalyzeLocally(cardId: String): PrivateCardCleanup {
-        // The Room transaction is deliberately the first mutating operation. File cleanup and
-        // affinity learning are idempotent follow-ups; neither can reopen the display/upload path.
+        // Room atomically commits the feedback state, affinity replacement, privacy outbox,
+        // suppression and card deletion. Only the private file cleanup remains as an idempotent
+        // follow-up, so process death cannot reopen display, scanning or upload.
         val cleanup = cards.stagePrivateFeedbackAndDelete(cardId, System.currentTimeMillis())
         cleanup.photoLocalId?.let { photoRepository.markNeverAnalyze(it) }
         return cleanup

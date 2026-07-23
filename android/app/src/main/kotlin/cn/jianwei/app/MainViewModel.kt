@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.jianwei.domain.card.visibleDailyCards
 import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
@@ -26,6 +27,7 @@ data class MainUiState(
     val cards: List<KnowledgeCard> = emptyList(),
     val savedCards: List<KnowledgeCard> = emptyList(),
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
+    val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
     val busy: Boolean = false,
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
@@ -44,17 +46,22 @@ class MainViewModel @Inject constructor(
     private val itemReminders: ItemReminderScheduler
 ) : ViewModel() {
     private val localState = MutableStateFlow(MainUiState(paused = scheduler.isPaused()))
+    private val cardLocalState = combine(
+        cards.observeTrackedItems(),
+        cards.observeFeedbackStates()
+    ) { tracked, feedback -> tracked to feedback }
     val uiState = combine(
         cards.observeCards(),
         cards.observeSavedCards(),
-        cards.observeTrackedItems(),
+        cardLocalState,
         localState,
         analysisStatus.observeProgress()
-    ) { cardList, savedCards, tracked, state, progress ->
+    ) { cardList, savedCards, cardState, state, progress ->
         state.copy(
             cards = visibleDailyCards(cardList, state.currentDay, state.focusedCardId),
             savedCards = savedCards,
-            trackedItems = tracked.associateBy(TrackedItem::cardId),
+            trackedItems = cardState.first.associateBy(TrackedItem::cardId),
+            feedbackStates = cardState.second.associateBy(CardFeedbackState::cardId),
             analysisProgress = progress
         )
     }
@@ -116,23 +123,18 @@ class MainViewModel @Inject constructor(
     }
 
     fun feedback(cardId: String, action: FeedbackAction) = runBusy {
-        cards.sendFeedback(cardId, action)
-        if (action == FeedbackAction.TOO_PRIVATE) itemReminders.cancel(cardId)
-        betaMetrics.markFeedback(action)
-        "反馈已记录"
+        val result = cards.sendFeedback(cardId, action)
+        if (result.accepted) {
+            if (action == FeedbackAction.TOO_PRIVATE) itemReminders.cancel(cardId)
+            betaMetrics.markFeedback(action)
+        }
+        feedbackResultMessage(result)
     }
 
     fun setSaved(cardId: String, saved: Boolean) = runBusy {
         val newPreferenceSignal = cards.setSaved(cardId, saved)
         if (newPreferenceSignal) betaMetrics.markFeedback(FeedbackAction.SAVE) else betaMetrics.markEngaged()
         if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
-    }
-
-    fun neverAnalyze(cardId: String) = runBusy {
-        cards.markPhotoNeverAnalyze(cardId)
-        itemReminders.cancel(cardId)
-        betaMetrics.markEngaged()
-        "已加入本次安装的排除列表；卸载或清除应用数据会重置"
     }
 
     fun track(cardId: String, cardTitle: String, startedOn: LocalDate, reminderDays: Int) = runBusy {

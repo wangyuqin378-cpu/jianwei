@@ -97,17 +97,50 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun ordinaryFeedbackIsPersistentIdempotentAndKeepsOneEffectiveChoice() = runBlocking {
+        withRepository { database, repository, _, api ->
+            val first = repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            val duplicate = repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            val conflicting = repository.sendFeedback(CARD_ID, FeedbackAction.DISLIKE)
+
+            assertThat(first.accepted).isTrue()
+            assertThat(first.effectiveAction).isEqualTo(FeedbackAction.LIKE)
+            assertThat(duplicate.accepted).isFalse()
+            assertThat(duplicate.effectiveAction).isEqualTo(FeedbackAction.LIKE)
+            assertThat(conflicting.accepted).isFalse()
+            assertThat(conflicting.effectiveAction).isEqualTo(FeedbackAction.LIKE)
+            assertThat(repository.observeFeedbackStates().first().single().action)
+                .isEqualTo(FeedbackAction.LIKE)
+            assertThat(database.cards().pendingFeedback().map { it.action })
+                .containsExactly(FeedbackAction.LIKE.name)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.35)
+
+            repository.syncCards()
+
+            assertThat(database.cards().pendingFeedback()).isEmpty()
+            assertThat(repository.observeFeedbackStates().first().single().action)
+                .isEqualTo(FeedbackAction.LIKE)
+            assertThat(api.events.count { it == "feedback:LIKE" }).isEqualTo(1)
+            assertThat(api.events).doesNotContain("feedback:DISLIKE")
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.35)
+        }
+    }
+
+    @Test
     fun tooPrivateDropsSaveOutboxBeforeRemoteDeletion() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.setSaved(CARD_ID, true)
             repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.85)
 
             repository.sendFeedback(CARD_ID, FeedbackAction.TOO_PRIVATE)
 
             assertThat(repository.observeSavedCards().first()).isEmpty()
+            assertThat(repository.observeFeedbackStates().first()).isEmpty()
             assertThat(database.cards().findById(CARD_ID)).isNull()
             assertThat(database.cards().pendingFeedback().map { it.action })
                 .containsExactly(FeedbackAction.TOO_PRIVATE.name)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(-0.75)
 
             repository.syncCards()
 
