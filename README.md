@@ -188,6 +188,23 @@ cd android
 .\gradlew.bat :domain:test :app:testDebugUnitTest :data:testDebugUnitTest :data:assembleDebugAndroidTest lintDebug assembleDebug
 ```
 
+真人审核必须由受保护白名单中的责任人启动。工作台会固定当前目录与审核队列快照，只监听
+`127.0.0.1`，并提供一次性浏览器入口；自动保存使用不可变修订，遇到并发版本冲突时保留本页输入，
+不会自动刷新或应用到知识目录。完成批次前会等待最后一次保存，完成后仍须在终端执行页面给出的人工应用命令：
+
+```powershell
+node scripts\knowledge-review-workbench.mjs `
+  --confirm-human-review-session `
+  --reviewer <protected-human-reviewer-id> `
+  --next-version <new-catalog-version> `
+  --output .tooling\knowledge-review-batches\<batch-name>.json `
+  --limit 20 `
+  --port 8791
+```
+
+浏览器入口只能使用一次；意外关闭后按终端输出的 `--resume <session-id>` 命令恢复。来源可访问只代表能够打开，
+不代表支持事实；每条批准决定仍必须人工核对全部来源、完整语义、数字、因果和适用范围。
+
 PostgreSQL 门禁使用项目 `.tooling` 下的 PostgreSQL 17 隔离实例，在随机本地端口三跑 13 个迁移并执行至少 13 项真实仓储/升级测试，包括迁移 13 对既有卡片识别对象名的回填与约束、四个独立连接池下的全局预算原子性、单次上传、处理租约恢复、主题偏好持久化、卡片后端 Release 摘要落库、“太私人”原子删除回执、并发注册唯一 `created=true` 证明，以及 300–500 样本授权评测租约的单设备绑定、并发幂等消费与撤销；结束后立即停止实例。Windows 运行 `scripts/run-postgres-integration-windows.ps1`，macOS 运行 `scripts/run-postgres-integration-macos.sh`。普通设备的日/月额度不为评测放宽，租约样本也不会计入该设备后续普通请求的日/月用量；真实图片评测必须按 `docs/BETA_EVIDENCE_RUNBOOK.md` 由后端签发短期、清单绑定的租约，且仍受全局数量与模型成本熔断约束。`preflight-knowledge-sources.mjs` 在草稿入库前用与全目录检查相同的超时、Header、Range 和响应类型边界验证候选 URL；`--live` 只验证已批准候选事实引用的来源，`--all-live` 还覆盖不可发布草稿的编辑来源。联网检查每次保留 `*-latest-attempt.json`；多主机统一 DNS/网络失败会被标为基础设施故障并退出 `NO_GO`，但不会覆盖正式来源证据，审核队列也不会采信该次结果。URL 可达性与预检都不能替代真人语义审核。
 
 `pnpm e2e` 启动刚编译的 `dist/index.js`，在随机回环端口通过真实 TCP 依次验证健康检查、匿名注册、上传前敏感拒绝、一次性图片上传、识别完成、卡片同步、反馈、主动追踪、未知物件 `needs_content`、设备数据删除和旧令牌失效。内存模式结构化结果写入 `.tooling/backend-e2e/result.json`；Windows PostgreSQL 门禁还会设置 `BACKEND_E2E_DATABASE_URL`，让相同闭环再经过 PostgreSQL 17.10，结果写入 `.tooling/backend-e2e-postgres/result.json`。服务日志不含令牌、安装 ID 或数据库地址；这两种门禁仍使用本地视觉和对象存储，不冒充真实 OSS/Qwen/托管 PostgreSQL 云证据。

@@ -7,6 +7,7 @@
 
 ## 已完成并验证
 
+- 2026-07-24 真人知识审核工作台已修复会静默丢失责任人输入的三类状态问题：首次保存后控件不再闭包写入旧 decisions，对请求期间产生的新编辑会按 `editVersion` 补存，完成批次前必须刷新到无 dirty/in-flight；409 冲突保留本页输入并要求显式确认后才重载。真实 Android 14 Chrome 还发现外部 Intent 会在 `SameSite=Strict` 下消费一次性入口但丢 Cookie，现改为顶层导航兼容的 `SameSite=Lax`，POST 仍受回环 Host、Origin、CSRF 和一次性入口保护。真实 Chrome 合成回归通过两次自动保存、完成前最后一刻编辑、双来源健康事实最终写批次不自动应用，输出 `decisionIdentityPreserved=1 finalizeFlush=1 autoApply=0 runtimeExceptions=0`；并发内容版本回归输出 `localInputPreserved=1 explicitReload=1 destructiveAutoReload=0`，单来源健康批准仍被拒绝。这不构成真人语义审核，目录仍为 0 真人签注，Beta 仍为 `NO_GO`。
 - 2026-07-24 知识来源审核准备链路已从“代理 DNS 全部失败”恢复为可执行状态：本机 VPN/代理把公开域名统一解析到保留的 `198.18.0.0/15` 假 IP，原安全检查因此正确失败关闭。新增显式 `--google-doh` 模式，只访问固定 `https://dns.google/resolve`、禁止重定向、核对 Question 与记录类型、只接收 A/AAAA；得到的地址仍必须通过公网校验，随后来源 HTTPS 连接钉扎该地址并继续以原域名做 TLS/SNI，DoH 返回私网地址的自测失败关闭。真实运行已完成状态批准候选 13/13、全部编辑来源 531/531 可达，证据 SHA-256 分别为 `dfdc08abd113e113532c675a93237b2cbf1dae80990ecd042f3df2f2eec0f7dd`、`718c7d19c8b0a6a488885f6ca52402a590e0988d748185a21fed0884cc74b7bb`。重新生成的审核队列绑定当前 `2026-07-19-beta.62` 目录和来源证据，覆盖 200 个主题、624 条待审事实，JSON/Markdown SHA-256 为 `bb4a0f50c4daa5038b0c7cbc24a8c75087dd68640b5b53388cc4960a13f06253`、`af92d6e9437b82194e33f14385e62a47d0c8a98b681919adb1a209c7e4d59e19`；首批 20 条工作台预检全部 `pending`，工作台对抗自测通过。审计 `.tooling/knowledge-source-results/review-readiness-audit.json` 明确 `humanAttestedFacts=0`、`semanticSupportVerified=false`、`releaseEvidence=false`，SHA-256 `9a411b498af63e5af423efadbd512891a00527067c7e11481e49d7d6e952fc01`。这只消除了审核执行前的网络阻塞，不把可达性冒充语义支持，Beta 仍为 `NO_GO`。
 - 2026-07-24 物品提醒补齐“追踪存在但卡片已不存在”的失效边界：提醒发送资格不再由 Repository 先后读取多个状态，而是由 Room 单条 `SELECT EXISTS` 原子联结 `local_tracked_items` 与 `knowledge_cards`，并同时核对非删除同步状态、启用日和提醒周期；因此卡片被删除后，即使追踪行或陈旧 Work 仍残留，也会失败关闭而不发送一条点开无内容的通知。API 34 真实 WorkManager 正向证明“有效卡片 + 有效追踪”会通知且精准回卡；两个独立负向路径分别证明“只删卡片、保留追踪”和“恢复卡片、只删追踪”时，陈旧 Work 均到达 `SUCCEEDED` 但无通知。`.tooling/reminder-privacy-audit/audit.json` 保持 `physicalNotificationTap=false`、`releaseEvidence=false`，SHA-256 `123a12f1bacc6dbc911337c74a4bed46e03c15ff7da8c3b515fb041b8372a3b8`。完整回归 JVM 126/126、API 34 instrumentation 49/49（App 3、Data 46）、源码守卫新增 `reminderCardPresence=1`、App Debug/Release Lint 0 error（22/8 warning）、R8 Release 成功；Debug/未签名 Release/App/Data instrumentation APK SHA-256 分别为 `ddfa738b29a9dee0b823459be203b70620f96b2f5b9f99ba5a9d550c5f45b73a`、`1cebe1f4ddb82247e980381463406913a987a815816545938c3006adb1025df0`、`4ffa7b1dd437115cb057a3c96e1a29732d216e8c09ecffb8c00a3c06e9c2ea70`、`573511c75fc5e70ba6ddc72038c09badef43f41d83052399a4b4d86c4fc00344`。这仍不是实体机真人通知点击或正式 Release 证据，外部 Beta 阻断不变。
 - 2026-07-24 物品提醒从“打开首页”补齐为精准回到被追踪卡片：通知 `PendingIntent` 复用组件已验证的 `MainActivity.EXTRA_CARD_ID` 协议，MainActivity 冷启动和复用时分别由 `onCreate`/`onNewIntent` 聚焦卡片，不恢复卡片标题到通知或 Work 输入。API 34 首次直接从后台测试进程发送 PendingIntent 被系统后台 Activity 启动规则拦截；最终测试显式使用 Android 14 允许的 `MODE_BACKGROUND_ACTIVITY_START_ALLOWED` 后，真实通知 PendingIntent 启动 MainActivity，并读回完全一致的 card ID。该边界记录在 `.tooling/reminder-privacy-audit/audit.json`，明确 `physicalNotificationTap=false`、`releaseEvidence=false`，SHA-256 `34aaecadc89d6cd5922e241d2547a78361fbf32ed4bcf8c7fa092adc4a2502f7`。完整回归仍为 JVM 126/126、API 34 instrumentation 49/49（App 3、Data 46）、源码守卫新增 `reminderCardDeepLink=1`、App Debug/Release Lint 0 error（23/9 warning）、R8 Release 成功；Debug/未签名 Release/App/Data instrumentation APK SHA-256 分别为 `ea717910e33d51dd6524241dae80846ce247766f1349c5d0e9481c7c26b28dcd`、`1c505805766d49337f8a83eba175af2e9626c58fc2e44bc293797e21c4d16302`、`1b3c26bf73a60dc66a07d4c4bf05c56a07ec9c3abf9cce80ee9e50583c021e50`、`e78678b22e71a8d91f85ae2b5e43aaf40c8ba55387673b3559bf58d6d3dbb151`。这仍不是实体机真人通知点击证据，外部 Beta 阻断不变。
@@ -45,13 +46,12 @@
 - 生产日志最小化、非测试环境依赖覆盖拒绝、同候选成本幂等、分享确认前 MediaStore URI 日志泄漏修复均已回归。
 - 34 个证据/安全自测及 API 契约、运行预算、供应链、部署清单、源码守卫全部 GO。
 - 已按 Beta.62 当前目录生成首批 20 条全空决策人工审核包 `.tooling/knowledge-review-batches/beta62-review-01-pending.json`，覆盖砧板、牙线、海绵、牙刷、安全气囊、自行车和自行车刹车，风险构成为 health 10、safety 6、general 4；包内没有预选决定、来源勾选、语义确认或审核人，不能授予发布资格。
-- 来源联网检查会识别跨多主机的统一 DNS/网络基础设施失败：每次保留 latest-attempt 诊断，但不以系统性失败覆盖正式证据，审核队列也拒绝 `infrastructureFailure=true`。2026-07-23 19:11 再次真实运行 531/531 全目录检查；当前 Codex 网络把 Wikipedia、ADA、Android、GHCR 等代表性公共域名统一解析到 RFC 2544 保留的 `198.18.0.0/15`，安全请求层按设计拒绝，得到 `infrastructureFailure=1 canonicalUpdated=0`。最新诊断在 `.tooling/knowledge-source-results/all-sources-latest-attempt.json`；队列预览仍为 `sourceEvidence=0 grantsApproval=0`。必须在能直接解析公共 IP 的网络环境重跑，不能绕过 SSRF 防线。
 - Kimi 已完成 20 个 SAFE_PACKET 轮次并达到硬上限；报告在 `reports/kimi-adversarial-review-round-20.md`，结论仍为 `NO-GO`。
 
 ## 当前阻断
 
 - 知识目录 200 个主题、624 条事实；613 draft、11 仅状态 approved、0 真人签注、0 ready topic。未提供受保护的 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`。
-- 当前没有可采信的全目录实时来源证据；最新 531/531 统一失败已确认是 Codex 网络的保留地址 DNS 映射，不是 531 个来源各自失效，更不是语义审核结论。
+- 已有与当前目录绑定的全目录 531/531 来源可访问证据，但来源可访问不等于语义支持；624 条事实仍未经过受保护白名单中的责任人逐条审核。
 - 只有一张 CC0 图片的本地工程闭环；仍没有 300–500 张明确授权的隐私/识别评测集，也没有真实 Qwen/OSS 生产管线结果。
 - 没有真实托管 PostgreSQL/OSS/Qwen/HTTPS、不可变 OCI/base-image 摘要和三方签名部署回执。
 - 没有正式 APK 私钥签名、华为/小米/OPPO 或 vivo 七天实体机矩阵、真人 `zh-CN` TalkBack 听读、200 卡人工抽检和 10–50 人 cohort。
@@ -59,7 +59,7 @@
 
 ## 下一步最短动作
 
-1. 若先做内容：先在可完成公共 IP 安全解析的网络环境运行 `node scripts/check-knowledge-sources.mjs --all-live` 并重建队列；再由用户提供真实审核人 ID 白名单，从首批 20 条审核包启动本地工作台，逐条打开来源、形成并应用真人决策；每批后运行 `node scripts/check-knowledge-readiness.mjs`。
+1. 若先做内容：由用户在受保护环境配置真实 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`，按 README 的工作台命令从首批 20 条启动真人审核，逐条打开来源、形成并应用决策；每批后运行 `node scripts/check-knowledge-readiness.mjs`。不要把当前合成 Chrome 回归或 URL 可达性当作审核结论。
 2. 若先做云：提供真实测试环境的 HTTPS API、临时 OSS STS、Qwen 与托管 PostgreSQL，按 `docs/DEPLOYMENT.md` 部署，并按 `docs/BETA_EVIDENCE_RUNBOOK.md` 生成已签名部署回执和安全/敏感双样本证据。
 3. 若先做设备：用正式签名 APK 在华为、小米、OPPO/vivo 采集七天原始报告，再编译实体机与 TalkBack 工件。
 4. 所有真实工件齐备后组装 `evaluation/beta-evidence.json`，只有 `node scripts/check-beta-readiness.mjs evaluation/beta-evidence.json` 返回 GO 才可 Beta。

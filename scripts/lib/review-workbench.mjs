@@ -24,6 +24,8 @@ const DECISION_KEYS = [
   "unsupportedClaimsChecked",
   "notes"
 ];
+const CLIENT_JS = await readFile(new URL("./review-workbench-client.mjs", import.meta.url), "utf8");
+const DATA_LOSS_CSS = `.summary #status[data-tone="danger"]{color:var(--red)}button.danger{border-color:var(--red);color:var(--red)}button.compact{justify-self:start;margin-top:8px;padding:7px 13px}`;
 
 export async function prepareControlledRoots(workspaceRoot) {
   const root = path.resolve(workspaceRoot);
@@ -200,15 +202,15 @@ export async function startReviewWorkbench({ state: initialState, sessionDirecto
           "cache-control": "no-store",
           "location": "/",
           "referrer-policy": "no-referrer",
-          "set-cookie": `jianwei_review=${cookieToken}; HttpOnly; SameSite=Strict; Path=/`
+          "set-cookie": `jianwei_review=${cookieToken}; HttpOnly; SameSite=Lax; Path=/`
         });
         return response.end();
       }
 
       if (!authorizedCookie(request.headers.cookie, cookieToken)) return sendText(response, 401, "Unauthorized");
       if (request.method === "GET" && url.pathname === "/") return send(response, 200, "text/html; charset=utf-8", HTML);
-      if (request.method === "GET" && url.pathname === "/app.css") return send(response, 200, "text/css; charset=utf-8", CSS);
-      if (request.method === "GET" && url.pathname === "/app.js") return send(response, 200, "text/javascript; charset=utf-8", JS);
+      if (request.method === "GET" && url.pathname === "/app.css") return send(response, 200, "text/css; charset=utf-8", `${CSS}${DATA_LOSS_CSS}`);
+      if (request.method === "GET" && url.pathname === "/app.js") return send(response, 200, "text/javascript; charset=utf-8", CLIENT_JS);
       if (request.method === "GET" && url.pathname === "/api/state") {
         return sendJson(response, 200, publicState(state, csrfToken));
       }
@@ -556,7 +558,7 @@ const HTML = `<!doctype html>
 <body>
   <header><p class="eyebrow">见微 / LOCAL REVIEW</p><h1>真人知识审核工作台</h1><p>来源可访问不等于支持事实。逐一打开来源、核对原文，再作决定。</p></header>
   <main>
-    <section class="summary" aria-live="polite"><div id="meta">正在读取固定快照…</div><div id="progress"></div><div id="status"></div></section>
+    <section class="summary" aria-live="polite"><div id="meta">正在读取固定快照…</div><div id="progress"></div><div id="status"></div><button id="reload" class="danger compact" type="button" hidden>重新加载服务端版本</button></section>
     <section id="facts" aria-label="待审核事实"></section>
     <section class="finalize">
       <label><input id="checkpoint" type="checkbox"> 我确认这些判断由我本人完成，且没有把 AI 输出当作审核结论。</label>
@@ -564,7 +566,7 @@ const HTML = `<!doctype html>
       <pre id="command" hidden></pre>
     </section>
   </main>
-  <script src="/app.js"></script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>`;
 

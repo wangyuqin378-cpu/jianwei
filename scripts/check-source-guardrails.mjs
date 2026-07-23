@@ -34,6 +34,7 @@ const knowledgeReviewTemplate = await readFile(path.join(root, "scripts", "creat
 const knowledgeReviewTemplateLibrary = await readFile(path.join(root, "scripts", "lib", "review-template.mjs"), "utf8");
 const knowledgeReviewWorkbench = await readFile(path.join(root, "scripts", "knowledge-review-workbench.mjs"), "utf8");
 const knowledgeReviewWorkbenchLibrary = await readFile(path.join(root, "scripts", "lib", "review-workbench.mjs"), "utf8");
+const knowledgeReviewWorkbenchClient = await readFile(path.join(root, "scripts", "lib", "review-workbench-client.mjs"), "utf8");
 const knowledgeReviewApply = await readFile(path.join(root, "scripts", "apply-knowledge-review-batch.mjs"), "utf8");
 const knowledgeReviewLibrary = await readFile(path.join(root, "scripts", "lib", "review-batch.mjs"), "utf8");
 const deprecatedDirectReview = await readFile(path.join(root, "scripts", "review-fact.mjs"), "utf8");
@@ -1036,14 +1037,19 @@ for (const marker of ["grantsApproval: false", "humanReviewRequired: true", "Rea
 for (const marker of ["decision: \"pending\"", "semanticSupportConfirmed: false", "unsupportedClaimsChecked: false", "grantsApproval=0"]) {
   check(knowledgeReviewTemplate.includes(marker) || knowledgeReviewTemplateLibrary.includes(marker), `Knowledge review template is missing fail-closed marker: ${marker}`);
 }
-for (const marker of ["--confirm-human-review-session", "loopback=127.0.0.1", "grantsApproval=0", "autoApply=0", "staleRevisionRejected=1", "humanCheckpoint=1", "symlinkRejected="]) {
+for (const marker of ["--confirm-human-review-session", "loopback=127.0.0.1", "grantsApproval=0", "autoApply=0", "staleRevisionRejected=1", "humanCheckpoint=1", "symlinkRejected=", "decisionIdentityPreserved=1", "autosaveRaceSafe=1", "conflictPreservesInput=1", "finalizeFlush=1"]) {
   check(knowledgeReviewWorkbench.includes(marker), `Knowledge review workbench command is missing fail-closed marker: ${marker}`);
 }
+for (const marker of ["createReviewAutosaveController", "editVersion", "currentModel.decisions", "async function flush()", "markConflict", "本页输入仍完整保留", "重新加载会丢弃本页尚未保存的输入"]) {
+  check(knowledgeReviewWorkbenchClient.includes(marker), `Knowledge review workbench client is missing data-loss prevention marker: ${marker}`);
+}
+check(!knowledgeReviewWorkbenchClient.includes("if(response.status===409)await load()"), "Knowledge review workbench client still reloads destructively on revision conflict");
 for (const marker of ["server.listen(port, \"127.0.0.1\"", "Mutation origin is invalid", "CSRF token is invalid", "Review state is stale", "flag: \"wx\"", "assertOrdinaryDirectory(sessionDirectory)", "applyReviewBatch({ catalogText", "Explicit human finalization checkpoint is required", "The workbench writes a completed decision batch only"]) {
   const present = knowledgeReviewWorkbenchLibrary.includes(marker) ||
     (marker === "The workbench writes a completed decision batch only" && knowledgeReviewWorkbench.includes(marker));
   check(present, `Knowledge review workbench library is missing fail-closed marker: ${marker}`);
 }
+check(knowledgeReviewWorkbenchLibrary.includes("HttpOnly; SameSite=Lax; Path=/"), "Knowledge review workbench bootstrap cookie is not compatible with safe top-level browser navigation");
 for (const marker of ["--confirm-human-review", "--write", "atomicDecisions=2", "placeholderVersionRejected=1"]) {
   check(knowledgeReviewApply.includes(marker), `Knowledge review batch apply command is missing explicit-authority marker: ${marker}`);
 }

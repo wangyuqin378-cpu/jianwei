@@ -15,6 +15,7 @@ import {
   resumeReviewSession,
   startReviewWorkbench
 } from "./lib/review-workbench.mjs";
+import { createReviewAutosaveController } from "./lib/review-workbench-client.mjs";
 
 if (process.argv.includes("--self-test")) {
   await runSelfTest();
@@ -96,6 +97,7 @@ function integerArgument(args, name, fallback, minimum, maximum) {
 }
 
 async function runSelfTest() {
+  await runAutosaveControllerSelfTest();
   const workspace = path.join(process.cwd(), ".tooling", `review-workbench-self-test-${randomBytes(6).toString("hex")}`);
   const originalCatalog = fixtureCatalog();
   const catalogText = `${JSON.stringify(originalCatalog, null, 2)}\n`;
@@ -175,6 +177,13 @@ async function runSelfTest() {
     const bootstrap = await call(workbench.origin, new URL(workbench.bootstrapUrl).pathname + new URL(workbench.bootstrapUrl).search);
     if (bootstrap.status !== 303 || !bootstrap.headers["set-cookie"]?.[0]) throw new Error("Workbench bootstrap failed");
     const cookie = bootstrap.headers["set-cookie"][0].split(";", 1)[0];
+    const clientResponse = await call(workbench.origin, "/app.js", { headers: { cookie } });
+    if (clientResponse.status !== 200 ||
+        !clientResponse.body.includes("createReviewAutosaveController") ||
+        !clientResponse.body.includes("currentModel.decisions") ||
+        clientResponse.body.includes("if(response.status===409)await load()")) {
+      throw new Error("Workbench did not serve the race-safe conflict-preserving browser client");
+    }
     const bootstrapReplay = await call(workbench.origin, new URL(workbench.bootstrapUrl).pathname + new URL(workbench.bootstrapUrl).search);
     if (bootstrapReplay.status !== 403) throw new Error("Workbench bootstrap token was reusable");
     const stateResponse = await call(workbench.origin, "/api/state", { headers: { cookie } });
@@ -230,13 +239,127 @@ async function runSelfTest() {
     if (applied.metrics.approved !== 1 || applied.metrics.rejected !== 1 || JSON.stringify(originalCatalog) !== JSON.stringify(fixtureCatalog())) {
       throw new Error("Workbench output was not apply-compatible or mutated the source catalog");
     }
-    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 autoApply=0\n`);
+    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 decisionIdentityPreserved=1 autosaveRaceSafe=1 conflictPreservesInput=1 finalizeFlush=1 autoApply=0\n`);
   } finally {
     if (workbench) await workbench.close();
     const resolved = path.resolve(workspace);
     const expectedRoot = path.resolve(process.cwd(), ".tooling");
     if (resolved.startsWith(`${expectedRoot}${path.sep}`)) await rm(resolved, { recursive: true, force: true });
   }
+}
+
+async function runAutosaveControllerSelfTest() {
+  const originalDecision = {
+    factId: "fixture",
+    factSha256: "a".repeat(64),
+    decision: "pending",
+    checkedSourceIds: [],
+    semanticSupportConfirmed: false,
+    unsupportedClaimsChecked: false,
+    notes: ""
+  };
+  let model = {
+    revision: 0,
+    revisionSha256: "revision-0",
+    finalized: false,
+    decisions: [originalDecision]
+  };
+  const originalDecisions = model.decisions;
+  const identityController = createReviewAutosaveController({
+    getModel: () => model,
+    setModel: (value) => {
+      model = value;
+    },
+    requestSave: async (snapshot) => ({
+      ...snapshot,
+      revision: 1,
+      revisionSha256: "revision-1",
+      decisions: structuredClone(snapshot.decisions)
+    }),
+    debounceMs: 60_000
+  });
+  model.decisions[0].notes = "First accountable edit";
+  identityController.changed();
+  if (!await identityController.flush() ||
+      model.decisions !== originalDecisions ||
+      model.decisions[0] !== originalDecision ||
+      model.revision !== 1) {
+    throw new Error("Autosave replaced live decision references after a successful revision");
+  }
+  identityController.dispose();
+
+  let releaseFirst;
+  let markFirstStarted;
+  const firstStarted = new Promise((resolve) => {
+    markFirstStarted = resolve;
+  });
+  const firstPending = new Promise((resolve) => {
+    releaseFirst = resolve;
+  });
+  let saveCalls = 0;
+  const raceController = createReviewAutosaveController({
+    getModel: () => model,
+    setModel: (value) => {
+      model = value;
+    },
+    requestSave: async (snapshot) => {
+      saveCalls += 1;
+      if (saveCalls === 1) {
+        markFirstStarted();
+        await firstPending;
+      }
+      return {
+        ...snapshot,
+        revision: model.revision + 1,
+        revisionSha256: `revision-${model.revision + 1}`,
+        decisions: structuredClone(snapshot.decisions)
+      };
+    },
+    debounceMs: 60_000
+  });
+  model.decisions[0].notes = "Edit sent by first request";
+  raceController.changed();
+  const firstSave = raceController.save();
+  await firstStarted;
+  model.decisions[0].notes = "Edit made while first request was in flight";
+  raceController.changed();
+  releaseFirst();
+  await firstSave;
+  if (!raceController.getState().dirty) throw new Error("Autosave lost the in-flight edit marker");
+  if (!await raceController.flush() ||
+      saveCalls !== 2 ||
+      model.decisions[0].notes !== "Edit made while first request was in flight") {
+    throw new Error("Autosave failed to serialize and preserve an in-flight edit");
+  }
+  raceController.dispose();
+
+  const localDecision = model.decisions[0];
+  localDecision.notes = "Unsaved local conflict evidence";
+  const conflictController = createReviewAutosaveController({
+    getModel: () => model,
+    setModel: (value) => {
+      model = value;
+    },
+    requestSave: async () => {
+      const error = new Error("stale revision");
+      error.status = 409;
+      throw error;
+    },
+    debounceMs: 60_000
+  });
+  conflictController.changed();
+  try {
+    await conflictController.save();
+  } catch {
+    // The controller must expose the conflict without replacing local decisions.
+  }
+  if (!conflictController.getState().conflict ||
+      model.decisions[0] !== localDecision ||
+      model.decisions[0].notes !== "Unsaved local conflict evidence" ||
+      await conflictController.flush()) {
+    throw new Error("Autosave conflict handling discarded or falsely saved local input");
+  }
+  conflictController.dispose();
 }
 
 async function apiMutation(origin, pathname, cookie, state, decisions) {
