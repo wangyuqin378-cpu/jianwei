@@ -126,7 +126,6 @@ class MainActivity : ComponentActivity() {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 val context = LocalContext.current
                 var pendingReminderCardId by rememberSaveable { mutableStateOf<String?>(null) }
-                var pendingReminderCardTitle by rememberSaveable { mutableStateOf<String?>(null) }
                 var pendingReminderStartedOn by rememberSaveable { mutableLongStateOf(Long.MIN_VALUE) }
                 var pendingReminderDays by rememberSaveable { mutableIntStateOf(0) }
                 val completeOnboarding = {
@@ -136,23 +135,20 @@ class MainActivity : ComponentActivity() {
                 }
                 val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
                     val cardId = pendingReminderCardId
-                    val title = pendingReminderCardTitle
                     val startedOn = pendingReminderStartedOn
                         .takeIf { it != Long.MIN_VALUE }
                         ?.let(LocalDate::ofEpochDay)
                     val reminderDays = pendingReminderDays
                     pendingReminderCardId = null
-                    pendingReminderCardTitle = null
                     pendingReminderStartedOn = Long.MIN_VALUE
                     pendingReminderDays = 0
                     if (
                         granted &&
                         cardId != null &&
-                        title != null &&
                         startedOn != null &&
                         NotificationManagerCompat.from(context).areNotificationsEnabled()
                     ) {
-                        viewModel.track(cardId, title, startedOn, reminderDays)
+                        viewModel.track(cardId, startedOn, reminderDays)
                     } else {
                         Toast.makeText(context, "未开启通知，因此没有建立物品提醒", Toast.LENGTH_LONG).show()
                     }
@@ -179,7 +175,6 @@ class MainActivity : ComponentActivity() {
                     ) == PackageManager.PERMISSION_GRANTED
                     if (!permissionGranted) {
                         pendingReminderCardId = submission.cardId
-                        pendingReminderCardTitle = submission.cardTitle
                         pendingReminderStartedOn = submission.startedOn.toEpochDay()
                         pendingReminderDays = submission.reminderDays
                         notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -188,7 +183,6 @@ class MainActivity : ComponentActivity() {
                     } else {
                         viewModel.track(
                             submission.cardId,
-                            submission.cardTitle,
                             submission.startedOn,
                             submission.reminderDays
                         )
@@ -1144,7 +1138,6 @@ private fun KnowledgeCardView(
 
 internal data class ItemReminderSubmission(
     val cardId: String,
-    val cardTitle: String,
     val startedOn: LocalDate,
     val reminderDays: Int
 )
@@ -1215,7 +1208,7 @@ private fun ItemReminderDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirm(ItemReminderSubmission(card.cardId, card.title, startedOn, reminderDays))
+                    onConfirm(ItemReminderSubmission(card.cardId, startedOn, reminderDays))
                 },
                 enabled = isValidItemReminderDraft(startedOn, reminderDays, today)
             ) { Text(if (existing == null) "确认并开启提醒" else "保存提醒") }

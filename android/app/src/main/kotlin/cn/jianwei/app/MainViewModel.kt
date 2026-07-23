@@ -137,11 +137,11 @@ class MainViewModel @Inject constructor(
         if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
     }
 
-    fun track(cardId: String, cardTitle: String, startedOn: LocalDate, reminderDays: Int) = runBusy {
+    fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = runBusy {
         require(isValidItemReminderDraft(startedOn, reminderDays)) {
             "请选择不晚于今天的启用日期和有效提醒周期"
         }
-        itemReminders.schedule(cardId, cardTitle, startedOn, reminderDays)
+        itemReminders.schedule(cardId, startedOn, reminderDays)
         cards.track(cardId, startedOn, reminderDays)
         betaMetrics.markEngaged()
         "已设置物品提醒；预计 ${startedOn.plusDays(reminderDays.toLong())} 上午送达，系统省电可能造成延迟"

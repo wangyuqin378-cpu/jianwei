@@ -187,6 +187,17 @@ class RoomCardRepository @Inject constructor(
         )
     }
 
+    override suspend fun isTrackedReminderCurrent(
+        cardId: String,
+        startedOn: LocalDate,
+        reminderDays: Int
+    ): Boolean {
+        val tracked = cards.findTrackedItem(cardId) ?: return false
+        return tracked.syncAction != TRACK_DELETE &&
+            tracked.startedOn == startedOn.toString() &&
+            tracked.reminderDays == reminderDays
+    }
+
     override suspend fun cancelTracking(cardId: String) = trackedItemMutex.withLock {
         val existing = cards.findTrackedItem(cardId) ?: return
         cards.upsertTrackedItem(

@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
@@ -97,4 +98,14 @@ dependencies {
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
+}
+
+// AndroidX Hilt's worker compiler still declares an older Room compiler-processing
+// transitive dependency. Keep every module on the repository's pinned Room line without
+// adding the Room annotation processor to the App module itself.
+dependencies.constraints {
+    add(
+        "ksp",
+        "androidx.room:room-compiler-processing:${libs.versions.room.get()}"
+    )
 }

@@ -41,6 +41,11 @@ interface CardRepository {
     suspend fun sendFeedback(cardId: String, action: FeedbackAction): FeedbackSubmissionResult
     suspend fun setSaved(cardId: String, saved: Boolean): Boolean
     suspend fun track(cardId: String, startedOn: LocalDate, reminderDays: Int)
+    suspend fun isTrackedReminderCurrent(
+        cardId: String,
+        startedOn: LocalDate,
+        reminderDays: Int
+    ): Boolean
     suspend fun cancelTracking(cardId: String)
     suspend fun clearCloudData()
     suspend fun clearLocalCards()
