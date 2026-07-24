@@ -105,14 +105,19 @@ class PrivacyScanWorker @AssistedInject constructor(
     private val permissionGate: PhotoPermissionGate,
     private val affinities: LocalTopicAffinityStore,
     private val interestPreferences: InterestPreferencesRepository,
-    private val status: AnalysisStatusRepository
+    private val status: AnalysisStatusRepository,
+    private val privacyExecutionGate: PrivacyExecutionGate
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        if (applicationContext.analysisIsPaused()) return Result.success()
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
             status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
             return Result.failure()
         }
+        return privacyExecutionGate.run(originScope) { runPrivacyWork(originScope) }
+    }
+
+    private suspend fun runPrivacyWork(originScope: UploadOriginScope): Result {
+        if (applicationContext.analysisIsPaused()) return Result.success()
         val supplyMode = when (originScope) {
             UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
             UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT

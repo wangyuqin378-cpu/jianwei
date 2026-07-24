@@ -140,6 +140,8 @@ const deviceIdentity = await readFile(path.join(root, "android", "data", "src", 
 const workersSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "Workers.kt"), "utf8");
 const deferredCandidateSelector = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelector.kt"), "utf8");
 const deferredCandidateSelectorDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelectorInstrumentedTest.kt"), "utf8");
+const privacyExecutionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "PrivacyExecutionGate.kt"), "utf8");
+const privacyExecutionGateTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "work", "PrivacyExecutionGateTest.kt"), "utf8");
 const uploadExecutionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "UploadExecutionGate.kt"), "utf8");
 const workManagerScheduler = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "WorkManagerScheduler.kt"), "utf8");
 const jpegMetadataGuard = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "JpegMetadataGuard.kt"), "utf8");
@@ -826,6 +828,15 @@ check(
     uploadOriginScopeDeviceTest.includes('discoveredForPrivacy(10, "ALL")') &&
     analysisPauseDeviceTest.includes("schedulerScopesPrivacyWorkBeforeItCanInspectCandidates"),
   "Privacy filtering can mix automatic and explicit queues or delay the first card behind an unbounded local batch"
+);
+check(
+  privacyExecutionGate.includes("automaticMutex.withLock") &&
+    privacyExecutionGate.includes("originScope == UploadOriginScope.MEDIA_STORE") &&
+    workersSource.includes("privacyExecutionGate.run(originScope)") &&
+    privacyExecutionGateTest.includes("serializesConcurrentAutomaticBatches") &&
+    privacyExecutionGateTest.includes("explicitImportDoesNotWaitForAutomaticBatch") &&
+    privacyExecutionGateTest.includes("cancelledAutomaticWaiterNeverEntersAndGateRemainsUsable"),
+  "Automatic privacy batches can overlap or explicit imports can be blocked behind automatic work"
 );
 check(
   userOperationGate.includes("@Singleton") &&
