@@ -170,6 +170,60 @@ class CandidateRankerTest {
         assertThat(result.first().localId).isEqualTo(preferred.localId)
     }
 
+    @Test
+    fun `day seeded serendipity is stable but varies near equivalent automatic candidates`() {
+        val candidates = listOf(
+            candidate(1, 0xFF, 0.90, labels = listOf("Kitchen", "Kettle"), capturedAt = now.minusSeconds(86_400)),
+            candidate(2, 0xFF00, 0.89, labels = listOf("Cleaning", "Broom"), capturedAt = now.minusSeconds(172_800)),
+            candidate(3, 0xFF0000, 0.88, labels = listOf("Desk", "Pencil"), capturedAt = now.minusSeconds(259_200))
+        )
+        val ranker = CandidateRanker()
+        val firstRun = ranker.rank(
+            candidates,
+            emptySet(),
+            now,
+            limit = 3,
+            serendipitySeed = "2026-07-25"
+        ).map { it.localId }
+        val retry = ranker.rank(
+            candidates,
+            emptySet(),
+            now,
+            limit = 3,
+            serendipitySeed = "2026-07-25"
+        ).map { it.localId }
+        val firstChoices = (1..20).map { day ->
+            ranker.rank(
+                candidates,
+                emptySet(),
+                now,
+                limit = 3,
+                serendipitySeed = "day-$day"
+            ).first().localId
+        }.toSet()
+
+        assertThat(retry).containsExactlyElementsIn(firstRun).inOrder()
+        assertThat(firstChoices.size).isGreaterThan(1)
+    }
+
+    @Test
+    fun `serendipity cannot promote a candidate outside the quality score band`() {
+        val clearBest = candidate(1, 0xFF, 0.98, labels = listOf("Kitchen", "Kettle"))
+        val lowerQuality = candidate(2, 0xFF00, 0.70, labels = listOf("Cleaning", "Broom"))
+
+        val firstChoices = (1..20).map { day ->
+            CandidateRanker().rank(
+                listOf(lowerQuality, clearBest),
+                emptySet(),
+                now,
+                limit = 2,
+                serendipitySeed = "day-$day"
+            ).first().localId
+        }
+
+        assertThat(firstChoices).containsExactlyElementsIn(List(20) { clearBest.localId })
+    }
+
     private fun candidate(
         id: Long,
         hash: Long,

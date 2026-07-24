@@ -3,6 +3,7 @@ package cn.jianwei.data.work
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgressScope
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import org.junit.Test
 
 class UploadOriginScopeTest {
@@ -26,5 +27,14 @@ class UploadOriginScopeTest {
 
         assertThat(failures.keys).containsExactlyElementsIn(AnalysisProgressScope.entries)
         assertThat(failures.values.map { it.phase }.distinct()).containsExactly(AnalysisPhase.FAILED)
+    }
+
+    @Test
+    fun automaticDiscoveryUsesChinaDaySeedWhileExplicitImportsStayQualityOrdered() {
+        val instant = Instant.parse("2026-07-24T16:30:00Z")
+
+        assertThat(automaticSerendipitySeed(UploadOriginScope.MEDIA_STORE, instant))
+            .isEqualTo("2026-07-25")
+        assertThat(automaticSerendipitySeed(UploadOriginScope.EXPLICIT_IMPORT, instant)).isNull()
     }
 }

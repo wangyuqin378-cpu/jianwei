@@ -207,6 +207,7 @@ class PrivacyScanWorker @AssistedInject constructor(
             }
         }
         val interests = expandedInterestTerms(interestPreferences.selected())
+        val rankingNow = Instant.now()
         val duplicateIds = ranker.nearDuplicateIds(analyzed, baselineHashes)
         analyzed.filter { it.localId in duplicateIds }.forEach {
             photos.updateAnalysis(it.localId, AnalysisState.FILTERED)
@@ -216,8 +217,10 @@ class PrivacyScanWorker @AssistedInject constructor(
         val selected = ranker.rank(
             unique,
             interests,
+            now = rankingNow,
             limit = 12,
-            topicAffinities = affinities.signals()
+            topicAffinities = affinities.signals(),
+            serendipitySeed = automaticSerendipitySeed(originScope, rankingNow)
         ).map { it.localId }.toSet()
         unique.filter { it.analysisState == AnalysisState.READY && it.localId !in selected }
             .forEach { photos.updateAnalysis(it.localId, AnalysisState.DEFERRED) }
@@ -389,6 +392,9 @@ internal fun UploadOriginScope.analysisProgressScope(): AnalysisProgressScope = 
     UploadOriginScope.MEDIA_STORE -> AnalysisProgressScope.AUTOMATIC_DISCOVERY
     UploadOriginScope.EXPLICIT_IMPORT -> AnalysisProgressScope.EXPLICIT_IMPORT
 }
+
+internal fun automaticSerendipitySeed(originScope: UploadOriginScope, now: Instant): String? =
+    if (originScope == UploadOriginScope.MEDIA_STORE) ChinaCalendar.dateOf(now).toString() else null
 
 internal fun invalidScopeFailureProgress(): Map<AnalysisProgressScope, AnalysisProgress> =
     AnalysisProgressScope.entries.associateWith {

@@ -34,7 +34,8 @@ class DeferredCandidateSelector @Inject constructor(
             interests = expandedInterestTerms(interests.selected()),
             now = now,
             limit = limit.coerceAtMost(MAX_PROMOTION_BATCH),
-            topicAffinities = affinities.signals()
+            topicAffinities = affinities.signals(),
+            serendipitySeed = automaticSerendipitySeed(originScope, now)
         ).map { it.localId }
         if (selectedIds.isEmpty()) return 0
         return photos.promoteDeferredById(selectedIds)

@@ -35,15 +35,18 @@ class CandidateRanker {
         interests: Set<String>,
         now: Instant = Instant.now(),
         limit: Int = 12,
-        topicAffinities: Collection<TopicAffinitySignal> = emptyList()
+        topicAffinities: Collection<TopicAffinitySignal> = emptyList(),
+        serendipitySeed: String? = null
     ): List<PhotoCandidate> {
         require(limit >= 0)
         if (limit == 0) return emptyList()
-        val accepted = candidates
+        val scored = candidates
             .asSequence()
             .filter { it.sensitiveFlags.isEmpty() && it.qualityScore >= 0.35 }
-            .sortedByDescending { score(it, interests, now, topicAffinities) }
+            .map { ScoredCandidate(it, score(it, interests, now, topicAffinities)) }
+            .sortedByDescending { it.score }
             .toList()
+        val accepted = qualityBoundedSerendipity(scored, serendipitySeed)
 
         val selected = mutableListOf<PhotoCandidate>()
         val diversityOverflow = mutableListOf<PhotoCandidate>()
@@ -68,6 +71,45 @@ class CandidateRanker {
             }
         }
         return selected
+    }
+
+    /**
+     * Automatic discovery should feel surprising without letting randomness override quality,
+     * explicit interests, or learned feedback. Only candidates inside a narrow score band can
+     * change order, and the supplied day seed makes retries and process restarts deterministic.
+     */
+    private fun qualityBoundedSerendipity(
+        ranked: List<ScoredCandidate>,
+        seed: String?
+    ): List<PhotoCandidate> {
+        if (seed.isNullOrBlank()) return ranked.map { it.candidate }
+        val result = ArrayList<PhotoCandidate>(ranked.size)
+        var index = 0
+        while (index < ranked.size) {
+            val bestScore = ranked[index].score
+            var endExclusive = index + 1
+            while (
+                endExclusive < ranked.size &&
+                endExclusive - index < SERENDIPITY_BAND_SIZE &&
+                bestScore - ranked[endExclusive].score <= SERENDIPITY_MAX_SCORE_GAP
+            ) {
+                endExclusive += 1
+            }
+            val band = ranked.subList(index, endExclusive)
+            result += band
+                .sortedBy { stableSerendipityKey(seed, it.candidate.candidateToken) }
+                .map { it.candidate }
+            index += band.size
+        }
+        return result
+    }
+
+    private fun stableSerendipityKey(seed: String, candidateToken: String): ULong {
+        var hash = FNV_OFFSET_BASIS
+        "$seed\u0000$candidateToken".forEach { character ->
+            hash = (hash xor character.code.toULong()) * FNV_PRIME
+        }
+        return hash
     }
 
     private fun isNearDuplicate(candidate: PhotoCandidate, other: PhotoCandidate): Boolean =
@@ -122,9 +164,15 @@ class CandidateRanker {
         .replace(TOPIC_SEPARATOR, "")
 
     private companion object {
+        data class ScoredCandidate(val candidate: PhotoCandidate, val score: Double)
+
         const val MAX_HASH_DISTANCE = 5
         const val MIN_AFFINITY = -2.0
         const val MAX_AFFINITY = 2.0
+        const val SERENDIPITY_BAND_SIZE = 3
+        const val SERENDIPITY_MAX_SCORE_GAP = 0.04
+        val FNV_OFFSET_BASIS = 14_695_981_039_346_656_037uL
+        val FNV_PRIME = 1_099_511_628_211uL
         val TOPIC_SEPARATOR = Regex("[\\s_\\-/]+")
     }
 }
