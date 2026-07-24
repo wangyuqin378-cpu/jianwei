@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-25 WRONG_OBJECT 终止反馈闭环（当前最新权威摘要）：此前“识错了”正确地不惩罚用户对主题的兴趣，但只保存一条零权重反馈；错误卡片继续存在于每日页、收藏和组件，服务端同步还会重新写入 `scheduled`，已收藏卡也继续保留 +0.5 的错误主题信号。当前使用既有 `archived` 卡片状态建立终止语义。Room 单一事务提交反馈状态/outbox、卡片归档、SAVE 信号撤销、收藏清除和提醒 DELETE outbox；App 取消对应提醒 Work。Repository 在卡片下载前先发送 WRONG_OBJECT，并把尚未完成整页提交的 outbox 保留为显示屏障；即使反馈请求期间旧进程重新写卡、服务端返回陈旧 `scheduled` 页面，落库仍强制为 archived，确认后才删除 outbox。文件数据库测试证明事务提交后立即崩溃、重启仍保留上述状态；仅有 archived 卡片时不再误记“首卡可用”。
+
+服务端内存与 PostgreSQL 仓储同步实现终止语义：每设备/卡片的普通反馈与 TOO_PRIVATE 共用 advisory lock，首次 WRONG_OBJECT 归档卡片并抵消同卡既有 LIKE/DISLIKE/SAVE 对主题权重的影响，之后陈旧 LIKE/SAVE 返回已有 WRONG_OBJECT 且不再训练。API 端到端测试覆盖 SAVE +0.5 → WRONG_OBJECT 归零 → 卡片 archived → 陈旧 LIKE 仍为零；真实 PostgreSQL 17.10 完成 13 次迁移、13/13 集成测试和编译服务 TCP E2E。Android Clean Architecture 的影响是把原子业务提交留在 data/Room、同步编排留在 Repository，domain 继续保持纯 Kotlin，UI 只负责准确文案和取消提醒副作用。
+
+最终验证为后端 115/115 基础测试、TypeScript check/build、API 契约和源码护栏 `wrongObjectTerminal=1` GO；Android 43 个 JVM 套件 176/176、API 34 Data 58/58 + App 11/11，最终反馈类 15/15 重跑；App/Data Debug/Release Lint 分别 0 error/42 warning、0 error/22 warning，Debug 与 R8 Release 成功。Debug/未签名 Release APK SHA-256 为 `ad37b102062814e489de03cc86642e7c1832a6dbd09a039eee8ea8438407d8f1` / `b80cb1db74bc5e78d75ab9480c4d8f830e452e15fdab1bc4ea366d1073cf8c40`。测试包、模拟器、ADB、QEMU 和 PostgreSQL 均已清理。以上仍是本地工程证据，不替代百炼生产护栏、真人知识审核、真实托管云、正式签名、国产 OEM 七天运行、真人 TalkBack、200 卡抽检或 cohort；Beta 保持 `NO_GO`。
+
 2026-07-25 卡片对象命名与拍摄日期可信边界（当前最新权威摘要）：此前视觉模型命中目录主题后，标题编辑和推送理由使用审核目录的对象名，但持久化 `detectedObjectName` 与低置信度标题仍使用模型原始 `displayName`；模型返回同义词时，一张卡可能同时出现“清扫刷”和“扫帚”。当前模型只负责主题候选与置信度，目录命中后以 `topic.displayName` 统一标题输入、低置信度标题、识别对象、推送理由与事实正文；目录对象名限制为清理空白后的 1–60 字，匹配 API 与数据库约束。端到端测试让模型返回“清扫刷”、目录命中“扫帚”且置信度 0.68，最终标题为“这可能是扫帚”、识别对象和拍摄理由也只使用“扫帚”。API 会在创建上传目标前拒绝 `2026-02-31`，历史任务若带无效日期则降级为不含日期的授权来源说明。
 
 最终验证为后端 114/114 基础测试通过、13 项 PostgreSQL 集成测试按环境显式 skipped，TypeScript check/build、API 契约（13 个服务操作、8 个 Retrofit 操作、1 个原始上传、9 个 DTO）、真实回环 TCP 完整闭环与源码护栏 `canonicalCardIdentity=1 strictCapturedAtBucket=1` 全部 GO。首次 TCP 命令仅因受限沙箱禁止绑定 `127.0.0.1` 返回 EPERM，随后在获准的本机回环隔离环境原命令通过。本轮没有 Android/API 结构变更，未重建 APK；以上仍是本地工程证据，不替代真实 Qwen/OSS/PostgreSQL/HTTPS、真人事实审核、200 卡抽检、正式签名、OEM 实体机、真人 TalkBack 或 cohort，Beta 保持 `NO_GO`。

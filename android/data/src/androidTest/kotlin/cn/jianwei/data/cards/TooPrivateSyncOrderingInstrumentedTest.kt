@@ -42,6 +42,41 @@ import retrofit2.Response
 
 class TooPrivateSyncOrderingInstrumentedTest {
     @Test
+    fun wrongObjectBarrierSurvivesCrashRestart() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val databaseName = "wrong-object-crash-${System.nanoTime()}.db"
+        context.deleteDatabase(databaseName)
+        var database = Room.databaseBuilder(context, JianweiDatabase::class.java, databaseName).build()
+        try {
+            database.cards().upsertAll(listOf(localCard()))
+            database.cards().setCardSaved(CARD_ID, true, 1L)
+            database.cards().upsertTrackedItem(
+                TrackedItemEntity(CARD_ID, "2026-07-20", 90, "NONE", 2L)
+            )
+
+            database.cards().commitOrdinaryFeedback(
+                CARD_ID,
+                FeedbackAction.WRONG_OBJECT.name,
+                3L
+            )
+            database.close()
+            database = Room.databaseBuilder(context, JianweiDatabase::class.java, databaseName).build()
+
+            assertThat(database.cards().findById(CARD_ID)?.status).isEqualTo("archived")
+            assertThat(database.cards().observeSavedCards().first()).isEmpty()
+            assertThat(database.cards().findFeedbackState(CARD_ID)?.action)
+                .isEqualTo(FeedbackAction.WRONG_OBJECT.name)
+            assertThat(database.cards().pendingFeedback().map { it.action })
+                .containsExactly(FeedbackAction.WRONG_OBJECT.name)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.0)
+            assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("DELETE")
+        } finally {
+            database.close()
+            context.deleteDatabase(databaseName)
+        }
+    }
+
+    @Test
     fun privateBarrierAndDeletionSurviveCrashRestart() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val databaseName = "too-private-crash-${System.nanoTime()}.db"
@@ -86,6 +121,12 @@ class TooPrivateSyncOrderingInstrumentedTest {
             firstCardMetrics = FirstCardMetricRecorder { recordedAt += it }
         ) { database, repository, _, api ->
             api.cardsHandler = { CardsResponse(emptyList(), null) }
+            repository.syncCards()
+            assertThat(recordedAt).isEmpty()
+
+            api.cardsHandler = {
+                CardsResponse(listOf(serverCard(title = "rejected-card").copy(status = "archived")), null)
+            }
             repository.syncCards()
             assertThat(recordedAt).isEmpty()
 
@@ -156,6 +197,49 @@ class TooPrivateSyncOrderingInstrumentedTest {
             assertThat(api.events.count { it == "feedback:LIKE" }).isEqualTo(1)
             assertThat(api.events).doesNotContain("feedback:DISLIKE")
             assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.35)
+        }
+    }
+
+    @Test
+    fun wrongObjectHidesCardRevokesSaveAndCannotBeResurrectedByStaleSync() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.setSaved(CARD_ID, true)
+            repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.5)
+
+            val result = repository.sendFeedback(CARD_ID, FeedbackAction.WRONG_OBJECT)
+
+            assertThat(result.accepted).isTrue()
+            assertThat(database.cards().findById(CARD_ID)?.status).isEqualTo("archived")
+            assertThat(repository.observeSavedCards().first()).isEmpty()
+            assertThat(repository.observeFeedbackStates().first().single().action)
+                .isEqualTo(FeedbackAction.WRONG_OBJECT)
+            assertThat(database.cards().pendingFeedback().map { it.action })
+                .containsExactly(FeedbackAction.WRONG_OBJECT.name)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.0)
+            assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("DELETE")
+
+            // Reproduce a stale server page and an older local write arriving while the
+            // terminal feedback is in flight. The outbox must remain a display barrier.
+            api.onSuccessfulPrivacy = { database.cards().upsertAll(listOf(localCard())) }
+            var outboxPresentDuringDownload = false
+            api.onCards = {
+                outboxPresentDuringDownload = database.cards().pendingFeedback()
+                    .any { it.cardId == CARD_ID && it.action == FeedbackAction.WRONG_OBJECT.name }
+            }
+            api.cardsHandler = { CardsResponse(listOf(serverCard()), null) }
+
+            repository.syncCards()
+
+            assertThat(api.events.indexOf("feedback:WRONG_OBJECT"))
+                .isLessThan(api.events.indexOf("cards"))
+            assertThat(outboxPresentDuringDownload).isTrue()
+            assertThat(database.cards().findById(CARD_ID)?.status).isEqualTo("archived")
+            assertThat(repository.observeSavedCards().first()).isEmpty()
+            assertThat(database.cards().pendingFeedback()).isEmpty()
+            assertThat(api.events).doesNotContain("feedback:SAVE")
+            assertThat(api.events).contains("cancelTracking:$CARD_ID")
+            assertThat(database.cards().findTrackedItem(CARD_ID)).isNull()
         }
     }
 
@@ -443,9 +527,13 @@ class TooPrivateSyncOrderingInstrumentedTest {
             authorization: String,
             cardId: String,
             request: TrackRequest
-        ) = error("unused")
+        ) {
+            events += "track:$cardId"
+        }
 
-        override suspend fun cancelTracking(authorization: String, cardId: String) = error("unused")
+        override suspend fun cancelTracking(authorization: String, cardId: String) {
+            events += "cancelTracking:$cardId"
+        }
 
         override suspend fun deleteDeviceData(authorization: String) {
             deleteCalls += 1

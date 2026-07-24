@@ -242,7 +242,9 @@ class MainViewModel @Inject constructor(
     fun feedback(cardId: String, action: FeedbackAction) = runBusy(UserOperation.RECORD_FEEDBACK) {
         val result = cards.sendFeedback(cardId, action)
         if (result.accepted) {
-            if (action == FeedbackAction.TOO_PRIVATE) itemReminders.cancel(cardId)
+            if (action == FeedbackAction.TOO_PRIVATE || action == FeedbackAction.WRONG_OBJECT) {
+                itemReminders.cancel(cardId)
+            }
             betaMetrics.markFeedback(action)
         }
         feedbackResultMessage(result)

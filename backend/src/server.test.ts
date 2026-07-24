@@ -274,14 +274,6 @@ describe("见微 API", () => {
     expect(repeatedFeedback.statusCode).toBe(201);
     expect(repeatedFeedback.json().id).toBe(feedback.json().id);
     expect(repeatedFeedback.json().topicAffinities[0].weight).toBe(0.4);
-    const wrongObject = await app.inject({
-      method: "POST",
-      url: `/v1/cards/${card.cardId}/feedback`,
-      headers: bearer(token),
-      payload: { action: "WRONG_OBJECT" }
-    });
-    expect(wrongObject.statusCode).toBe(201);
-    expect(wrongObject.json().topicAffinities[0].weight).toBe(0.4);
     const saved = await app.inject({
       method: "POST",
       url: `/v1/cards/${card.cardId}/feedback`,
@@ -491,6 +483,46 @@ describe("见微 API", () => {
       personalContext: "你在 2026 年 7 月 18 日拍下了「扫帚」，所以今天从它讲起。",
       confidence: 0.68
     });
+    expect(await readdir(objectDir)).toEqual([]);
+    await app.close();
+  });
+
+  it("archives a wrong-object card and revokes its prior interest signals", async () => {
+    const objectDir = await temporaryObjectDir();
+    const app = await buildServer({ config: testConfig(objectDir) });
+    const token = await register(app);
+    const card = await completeTestCard(app, token, CANDIDATE_ID);
+
+    const saved = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${card.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "SAVE" }
+    });
+    expect(saved.json().topicAffinities[0].weight).toBe(0.5);
+
+    const wrong = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${card.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "WRONG_OBJECT" }
+    });
+    expect(wrong.statusCode).toBe(201);
+    expect(wrong.json().action).toBe("WRONG_OBJECT");
+    expect(wrong.json().topicAffinities[0].weight).toBe(0);
+
+    const listed = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
+    expect(listed.json().items).toEqual([
+      expect.objectContaining({ cardId: card.cardId, status: "archived" })
+    ]);
+    const staleLike = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${card.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "LIKE" }
+    });
+    expect(staleLike.json().action).toBe("WRONG_OBJECT");
+    expect(staleLike.json().topicAffinities[0].weight).toBe(0);
     expect(await readdir(objectDir)).toEqual([]);
     await app.close();
   });
@@ -1359,6 +1391,40 @@ async function register(
   });
   expect(response.statusCode).toBe(201);
   return response.json().deviceToken as string;
+}
+
+async function completeTestCard(
+  app: Awaited<ReturnType<typeof buildServer>>,
+  token: string,
+  candidateToken: string
+): Promise<{ cardId: string }> {
+  const created = await app.inject({
+    method: "POST",
+    url: "/v1/analysis-jobs",
+    headers: bearer(token),
+    payload: {
+      candidateToken,
+      capturedAtBucket: "2026-07-18",
+      localLabels: ["broom"],
+      qualityScore: 0.91,
+      sensitiveFlags: [],
+      contentType: "image/jpeg"
+    }
+  });
+  expect(created.statusCode).toBe(201);
+  expect((await app.inject({
+    method: "PUT",
+    url: uploadPath(created.json().uploadUrl as string),
+    headers: { ...bearer(token), "content-type": "image/jpeg" },
+    payload: jpegPayload(12)
+  })).statusCode).toBe(200);
+  const completed = await app.inject({
+    method: "POST",
+    url: `/v1/analysis-jobs/${created.json().jobId as string}/complete`,
+    headers: bearer(token)
+  });
+  expect(completed.statusCode).toBe(200);
+  return completed.json().card as { cardId: string };
 }
 
 async function temporaryObjectDir(): Promise<string> {

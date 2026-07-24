@@ -1506,7 +1506,10 @@ private fun KnowledgeCardView(
                     ) {
                         Text("这张卡对你有用吗？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         if (shouldOfferOrdinaryFeedback(feedbackState)) {
-                            Text("选择一次即可；你的判断只用于改进本次安装的推荐。", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                "有意思/没意思会改进推荐；识错了会隐藏这张卡。",
+                                style = MaterialTheme.typography.bodySmall
+                            )
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(
                                     onClick = { onFeedback(card.cardId, FeedbackAction.LIKE) },

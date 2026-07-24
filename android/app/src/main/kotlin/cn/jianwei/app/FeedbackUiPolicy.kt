@@ -20,7 +20,7 @@ internal fun feedbackResultMessage(result: FeedbackSubmissionResult): String = w
     result.effectiveAction == FeedbackAction.TOO_PRIVATE ->
         "已删除这张卡，并停止分析对应照片"
     result.effectiveAction == FeedbackAction.WRONG_OBJECT ->
-        "已记录识别有误；这次反馈不会被当作兴趣信号"
+        "已隐藏这张识别有误的卡片；不会把它当作兴趣信号"
     else ->
         "已记录「${result.effectiveAction.userLabel()}」，用于改进本次安装的推荐"
 }

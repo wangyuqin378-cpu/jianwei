@@ -39,4 +39,14 @@ class FeedbackUiPolicyTest {
         assertThat(message).contains("已删除")
         assertThat(message).contains("停止分析")
     }
+
+    @Test
+    fun `wrong object result explains immediate hiding without an interest penalty`() {
+        val message = feedbackResultMessage(
+            FeedbackSubmissionResult(true, FeedbackAction.WRONG_OBJECT)
+        )
+
+        assertThat(message).contains("已隐藏")
+        assertThat(message).contains("不会把它当作兴趣信号")
+    }
 }

@@ -395,6 +395,22 @@ export class InMemoryRepositories {
   }
 
   async addFeedback(input: Omit<CardFeedback, "id" | "createdAt"> & { topicId: string }) {
+    const cardFeedback = [...this.feedback.values()].filter(
+      (item) => item.deviceId === input.deviceId && item.cardId === input.cardId
+    );
+    const terminalWrongObject = cardFeedback.find((item) => item.action === "WRONG_OBJECT");
+    const key = `${input.deviceId}:${input.topicId}`;
+    const current = this.preferences.get(key);
+    if (terminalWrongObject && input.action !== "WRONG_OBJECT") {
+      const preference: TopicPreference = current ?? {
+        deviceId: input.deviceId,
+        topicId: input.topicId,
+        weight: 0,
+        updatedAt: terminalWrongObject.createdAt
+      };
+      this.preferences.set(key, preference);
+      return { feedback: terminalWrongObject, preference };
+    }
     const existing = [...this.feedback.values()].find(
       (item) => item.deviceId === input.deviceId && item.cardId === input.cardId && item.action === input.action
     );
@@ -407,9 +423,13 @@ export class InMemoryRepositories {
       createdAt: now
     };
     if (!existing) this.feedback.set(item.id, item);
-    const key = `${input.deviceId}:${input.topicId}`;
-    const current = this.preferences.get(key);
-    const weight = clampPreference((current?.weight ?? 0) + (existing ? 0 : feedbackWeightDelta(input.action)));
+    const priorInterestDelta = input.action === "WRONG_OBJECT" && !existing
+      ? cardFeedback
+          .filter((feedback) => feedback.action === "LIKE" || feedback.action === "DISLIKE" || feedback.action === "SAVE")
+          .reduce((total, feedback) => total + feedbackWeightDelta(feedback.action), 0)
+      : 0;
+    const delta = existing ? 0 : feedbackWeightDelta(input.action) - priorInterestDelta;
+    const weight = clampPreference((current?.weight ?? 0) + delta);
     const preference: TopicPreference = {
       deviceId: input.deviceId,
       topicId: input.topicId,
@@ -417,6 +437,10 @@ export class InMemoryRepositories {
       updatedAt: existing && current ? current.updatedAt : now
     };
     this.preferences.set(key, preference);
+    if (input.action === "WRONG_OBJECT") {
+      const card = this.cards.get(input.cardId);
+      if (card?.deviceId === input.deviceId) this.cards.set(input.cardId, { ...card, status: "archived" });
+    }
     return { feedback: item, preference };
   }
 

@@ -487,7 +487,9 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
     expect(first.preference.weight).toBe(4);
     expect(duplicate.feedback.id).toBe(first.feedback.id);
     expect(duplicate.preference.weight).toBe(4);
-    expect(wrongObject.preference.weight).toBe(4);
+    expect(wrongObject.preference.weight).toBe(0);
+    expect((await repositories[0].cardsRepository.findById(card.cardId))?.status).toBe("archived");
+    expect(disliked.feedback.action).toBe("WRONG_OBJECT");
     expect(disliked.preference.weight).toBe(0);
     expect(await repositories[0].cardsRepository.listPreferences(device.id)).toEqual([
       expect.objectContaining({ deviceId: device.id, topicId: "broom", weight: 0 })

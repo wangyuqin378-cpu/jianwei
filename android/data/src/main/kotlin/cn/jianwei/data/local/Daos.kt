@@ -120,7 +120,8 @@ interface CardDao {
     @Query(
         "SELECT cards.* FROM knowledge_cards AS cards " +
             "INNER JOIN saved_cards AS saved ON saved.cardId = cards.cardId " +
-            "WHERE saved.isSaved = 1 ORDER BY saved.savedAtMillis DESC, cards.cardId ASC"
+            "WHERE saved.isSaved = 1 AND cards.status = 'scheduled' " +
+            "ORDER BY saved.savedAtMillis DESC, cards.cardId ASC"
     )
     fun observeSavedCards(): Flow<List<CardEntity>>
 
@@ -147,6 +148,9 @@ interface CardDao {
 
     @Upsert
     suspend fun upsertFeedbackState(item: CardFeedbackStateEntity)
+
+    @Query("UPDATE knowledge_cards SET status = 'archived' WHERE cardId = :cardId")
+    suspend fun archiveCard(cardId: String): Int
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun enqueueFeedback(item: PendingFeedbackEntity)
@@ -175,6 +179,38 @@ interface CardDao {
         }
         upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis))
         enqueueFeedback(PendingFeedbackEntity(cardId = cardId, action = action, createdAtMillis = nowMillis))
+        if (ordinaryAction == FeedbackAction.WRONG_OBJECT) {
+            val saved = findSavedCard(cardId)
+            if (saved?.feedbackSignaled == true) {
+                val current = findTopicAffinity(card.topicId)
+                upsertTopicAffinity(
+                    TopicAffinityEntity(
+                        topicId = card.topicId,
+                        weight = replaceTopicAffinity(
+                            current = current?.weight ?: 0.0,
+                            previousActions = listOf(FeedbackAction.SAVE),
+                            nextAction = FeedbackAction.WRONG_OBJECT
+                        ),
+                        aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
+                            .distinct()
+                            .take(12),
+                        updatedAtMillis = nowMillis
+                    )
+                )
+            }
+            removePendingSaveFeedback(cardId)
+            removeSavedCardState(cardId)
+            findTrackedItem(cardId)?.let { tracked ->
+                upsertTrackedItem(
+                    tracked.copy(
+                        syncAction = "DELETE",
+                        updatedAtMillis = maxOf(nowMillis, tracked.updatedAtMillis + 1)
+                    )
+                )
+            }
+            archiveCard(cardId)
+            return OrdinaryFeedbackCommit(recorded = true, existingAction = action, cardFound = true)
+        }
         if (feedbackAffinityDelta(ordinaryAction) != 0.0) {
             val current = findTopicAffinity(card.topicId)
             upsertTopicAffinity(
@@ -209,6 +245,7 @@ interface CardDao {
     @Transaction
     suspend fun setCardSaved(cardId: String, saved: Boolean, nowMillis: Long): Boolean {
         val card = findById(cardId) ?: return false
+        if (card.status != "scheduled") return false
         val current = findSavedCard(cardId)
         if (!saved && current == null) return false
         val shouldSignal = saved && current?.feedbackSignaled != true
@@ -253,7 +290,7 @@ interface CardDao {
     @Query("SELECT * FROM pending_feedback WHERE action = :action ORDER BY createdAtMillis ASC, id ASC")
     suspend fun pendingFeedbackByAction(action: String): List<PendingFeedbackEntity>
 
-    @Query("SELECT * FROM pending_feedback WHERE action != 'TOO_PRIVATE' ORDER BY createdAtMillis ASC LIMIT :limit")
+    @Query("SELECT * FROM pending_feedback WHERE action NOT IN ('TOO_PRIVATE', 'WRONG_OBJECT') ORDER BY createdAtMillis ASC LIMIT :limit")
     suspend fun pendingNonPrivateFeedback(limit: Int = 50): List<PendingFeedbackEntity>
 
     @Query("DELETE FROM pending_feedback WHERE id = :id")
@@ -261,6 +298,9 @@ interface CardDao {
 
     @Query("DELETE FROM pending_feedback WHERE cardId = :cardId AND action != 'TOO_PRIVATE'")
     suspend fun removeNonPrivateFeedbackForCard(cardId: String): Int
+
+    @Query("DELETE FROM pending_feedback WHERE cardId = :cardId AND action = 'SAVE'")
+    suspend fun removePendingSaveFeedback(cardId: String): Int
 
     @Query("DELETE FROM pending_feedback")
     suspend fun clearPendingFeedback()
@@ -280,6 +320,7 @@ interface CardDao {
             "INNER JOIN knowledge_cards AS card ON card.cardId = tracked.cardId " +
             "WHERE tracked.cardId = :cardId " +
             "AND tracked.syncAction != 'DELETE' " +
+            "AND card.status = 'scheduled' " +
             "AND tracked.startedOn = :startedOn " +
             "AND tracked.reminderDays = :reminderDays" +
             ")"
@@ -301,6 +342,9 @@ interface CardDao {
 
     @Query("DELETE FROM local_tracked_items WHERE cardId = :cardId")
     suspend fun removeTrackedItem(cardId: String)
+
+    @Query("DELETE FROM saved_cards WHERE cardId = :cardId")
+    suspend fun removeSavedCardState(cardId: String)
 
     @Query("DELETE FROM local_tracked_items")
     suspend fun clearTrackedItems()

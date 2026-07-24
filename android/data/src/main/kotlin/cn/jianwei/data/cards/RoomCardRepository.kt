@@ -74,6 +74,11 @@ class RoomCardRepository @Inject constructor(
         // A privacy deletion is a barrier: never download cards while one is unacknowledged.
         val privacyFeedback = flushPrivacyFeedback(session)
         val privacyCardIds = privacyFeedback.mapTo(mutableSetOf()) { it.cardId }
+        // A wrong-object report is also a display barrier. Confirm it before downloading and
+        // keep its outbox until the complete page set commits, so a stale page cannot revive
+        // a card the user has already rejected.
+        val wrongObjectFeedback = flushWrongObjectFeedback(session)
+        val wrongObjectCardIds = wrongObjectFeedback.mapTo(mutableSetOf()) { it.cardId }
         val downloaded = identity.authenticated(session::requireActive) { bearer ->
             val entitiesById = linkedMapOf<String, CardEntity>()
             val seenCursors = mutableSetOf<String>()
@@ -107,7 +112,7 @@ class RoomCardRepository @Inject constructor(
                         personalContext = dto.personalContext,
                         confidence = dto.confidence,
                         sources = sourcesToJson(sources),
-                        status = dto.status,
+                        status = if (dto.cardId in wrongObjectCardIds) "archived" else dto.status,
                         scheduledDate = dto.scheduledDate,
                         createdAtMillis = Instant.parse(dto.createdAt).toEpochMilli()
                     )
@@ -126,7 +131,7 @@ class RoomCardRepository @Inject constructor(
         // Commit only after every page has passed validation. A later malformed page
         // must not leave the cache half-updated or acknowledge a privacy barrier.
         cards.upsertAll(downloaded)
-        if (downloaded.isNotEmpty()) {
+        if (downloaded.any { it.status == "scheduled" }) {
             try {
                 firstCardMetrics.recordFirstCardAvailable(System.currentTimeMillis())
             } catch (_: Exception) {
@@ -134,6 +139,7 @@ class RoomCardRepository @Inject constructor(
             }
         }
         acknowledgePrivacyFeedback(privacyFeedback)
+        acknowledgeWrongObjectFeedback(wrongObjectFeedback)
         flushFeedback(session)
         flushTrackedItems(session)
     }
@@ -255,9 +261,27 @@ class RoomCardRepository @Inject constructor(
         return pending
     }
 
+    private suspend fun flushWrongObjectFeedback(
+        session: AnalysisSessionToken
+    ): List<PendingFeedbackEntity> {
+        val pending = cards.pendingFeedbackByAction(FeedbackAction.WRONG_OBJECT.name)
+        pending.forEach { item ->
+            cards.archiveCard(item.cardId)
+            sendPendingFeedback(session, item)
+        }
+        return pending
+    }
+
     private suspend fun acknowledgePrivacyFeedback(pending: List<PendingFeedbackEntity>) {
         pending.forEach { item ->
             markPhotoNeverAnalyzeLocally(item.cardId)
+            cards.removeFeedback(item.id)
+        }
+    }
+
+    private suspend fun acknowledgeWrongObjectFeedback(pending: List<PendingFeedbackEntity>) {
+        pending.forEach { item ->
+            cards.archiveCard(item.cardId)
             cards.removeFeedback(item.id)
         }
     }

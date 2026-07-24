@@ -513,6 +513,37 @@ export class PostgresRepositories {
     },
     addFeedback: async (input) => {
       return this.sql.begin(async (transaction) => {
+        await transaction`
+          SELECT pg_advisory_xact_lock(hashtextextended(${`${input.deviceId}:${input.cardId}`}, 0))`;
+        const terminalRows = await transaction<DbRow[]>`
+          SELECT * FROM feedback
+          WHERE device_id = ${input.deviceId} AND card_id = ${input.cardId} AND action = 'WRONG_OBJECT'
+          LIMIT 1`;
+        if (terminalRows[0] && input.action !== "WRONG_OBJECT") {
+          const preferenceRows = await transaction<DbRow[]>`
+            INSERT INTO topic_preferences (device_id, topic_id, weight)
+            VALUES (${input.deviceId}, ${input.topicId}, 0)
+            ON CONFLICT (device_id, topic_id) DO UPDATE SET weight = topic_preferences.weight
+            RETURNING *`;
+          const terminal = terminalRows[0];
+          const preference = preferenceRows[0] as DbRow;
+          return {
+            feedback: {
+              id: String(terminal.id), deviceId: String(terminal.device_id), cardId: String(terminal.card_id),
+              action: terminal.action as CardFeedback["action"], createdAt: new Date(String(terminal.created_at)).toISOString()
+            },
+            preference: {
+              deviceId: String(preference.device_id), topicId: String(preference.topic_id),
+              weight: Number(preference.weight), updatedAt: new Date(String(preference.updated_at)).toISOString()
+            }
+          };
+        }
+        const priorInterestRows = input.action === "WRONG_OBJECT"
+          ? await transaction<{ action: CardFeedback["action"] }[]>`
+              SELECT action FROM feedback
+              WHERE device_id = ${input.deviceId} AND card_id = ${input.cardId}
+                AND action IN ('LIKE', 'DISLIKE', 'SAVE')`
+          : [];
         const id = randomUUID();
         let rows = await transaction<DbRow[]>`
           INSERT INTO feedback (id, device_id, card_id, action)
@@ -526,7 +557,18 @@ export class PostgresRepositories {
             WHERE device_id = ${input.deviceId} AND card_id = ${input.cardId} AND action = ${input.action}
             LIMIT 1`;
         }
-        const delta = inserted ? feedbackWeightDelta(input.action) : 0;
+        const priorInterestDelta = priorInterestRows.reduce(
+          (total, row) => total + feedbackWeightDelta(row.action),
+          0
+        );
+        const delta = inserted
+          ? feedbackWeightDelta(input.action) - priorInterestDelta
+          : 0;
+        if (input.action === "WRONG_OBJECT") {
+          await transaction`
+            UPDATE cards SET status = 'archived'
+            WHERE id = ${input.cardId} AND device_id = ${input.deviceId}`;
+        }
         const preferenceRows = await transaction<DbRow[]>`
           INSERT INTO topic_preferences (device_id, topic_id, weight)
           VALUES (${input.deviceId}, ${input.topicId}, ${delta})
