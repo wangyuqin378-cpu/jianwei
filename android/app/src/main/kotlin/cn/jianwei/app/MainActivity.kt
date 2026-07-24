@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1409,16 +1410,15 @@ private fun KnowledgeCardView(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
-                        Modifier.fillMaxWidth().padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            "从你的照片说起",
+                            "为什么推给你",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         safeSources.forEach { source ->
                             TextButton(
                                 onClick = {
@@ -1429,8 +1429,13 @@ private fun KnowledgeCardView(
                                         Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
                                     }
                                 },
+                                contentPadding = PaddingValues(0.dp),
+                                modifier = Modifier.semantics {
+                                    contentDescription =
+                                        "查看来源：${source.publisher}，${source.title}"
+                                }
                             ) {
-                                Text("来源 · ${source.publisher} · ${source.title}")
+                                Text("查看来源 · ${source.publisher}")
                             }
                         }
                         if (safeSources.isEmpty()) {
@@ -1442,36 +1447,36 @@ private fun KnowledgeCardView(
                     val stacked = shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)
                     if (stacked) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
+                            OutlinedButton(
                                 onClick = { onSetSaved(card.cardId, !isSaved) },
                                 enabled = actionsEnabled,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
+                                Text(if (isSaved) "取消收藏" else "收藏")
                             }
                             OutlinedButton(
                                 onClick = { showReminderDialog = true },
                                 enabled = actionsEnabled,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
+                                Text(if (trackedItem == null) "物品提醒" else "更新提醒")
                             }
                         }
                     } else {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
+                            OutlinedButton(
                                 onClick = { onSetSaved(card.cardId, !isSaved) },
                                 enabled = actionsEnabled,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(if (isSaved) "已收藏 · 点击取消" else "收藏这张知识卡")
+                                Text(if (isSaved) "取消收藏" else "收藏")
                             }
                             OutlinedButton(
                                 onClick = { showReminderDialog = true },
                                 enabled = actionsEnabled,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(if (trackedItem == null) "设置物品提醒" else "更新物品提醒")
+                                Text(if (trackedItem == null) "物品提醒" else "更新提醒")
                             }
                         }
                     }

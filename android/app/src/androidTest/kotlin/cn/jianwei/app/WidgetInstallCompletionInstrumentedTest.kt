@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
@@ -125,7 +126,11 @@ class WidgetInstallCompletionInstrumentedTest {
 
     private fun expandPrivacyCenter(instrumentation: android.app.Instrumentation) {
         repeat(3) {
-            click(awaitNodeWithScroll(instrumentation, "管理隐私与数据"))
+            val node = awaitNodeWithScroll(instrumentation, "管理隐私与数据")
+            val bounds = Rect().also(node::getBoundsInScreen)
+            instrumentation.uiAutomation
+                .executeShellCommand("input tap ${bounds.centerX()} ${bounds.centerY()}")
+                .close()
             val deadline = SystemClock.uptimeMillis() + 2_000
             while (SystemClock.uptimeMillis() < deadline) {
                 if (findTextNode(
@@ -136,7 +141,10 @@ class WidgetInstallCompletionInstrumentedTest {
                 SystemClock.sleep(100)
             }
         }
-        error("Timed out expanding privacy center")
+        error(
+            "Timed out expanding privacy center; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow)
+        )
     }
 
     private fun click(node: AccessibilityNodeInfo) {

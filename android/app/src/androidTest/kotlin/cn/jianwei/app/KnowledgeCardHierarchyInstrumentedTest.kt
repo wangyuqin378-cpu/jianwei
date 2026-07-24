@@ -34,16 +34,30 @@ class KnowledgeCardHierarchyInstrumentedTest {
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
             val body = awaitNode(instrumentation, BODY)
-            val recognition = awaitNode(instrumentation, RECOGNITION)
-            val provenance = awaitNode(instrumentation, PROVENANCE_TITLE)
-
-            assertThat(topOf(body)).isLessThan(topOf(recognition))
-            assertThat(topOf(recognition)).isLessThan(topOf(provenance))
             assertThat(awaitNode(instrumentation, "今日一知")).isNotNull()
             assertThat(awaitNode(instrumentation, BRAND_PROMISE)).isNotNull()
             assertThat(findTextNode(instrumentation.uiAutomation.rootInActiveWindow, "照片权限：仅手动选择")).isNull()
+            val requiresScroll = context.resources.configuration.screenWidthDp < 360 ||
+                context.resources.configuration.fontScale >= 1.5f
+            val recognition = if (requiresScroll) {
+                awaitNodeWithScroll(instrumentation, RECOGNITION)
+            } else {
+                awaitNode(instrumentation, RECOGNITION)
+            }
+            val provenance = if (requiresScroll) {
+                awaitNodeWithScroll(instrumentation, PROVENANCE_TITLE)
+            } else {
+                awaitNode(instrumentation, PROVENANCE_TITLE)
+            }
             if (context.resources.configuration.screenWidthDp >= 360) {
                 assertThat(awaitNode(instrumentation, PERSONAL_CONTEXT)).isNotNull()
+            }
+
+            if (!requiresScroll) {
+                assertThat(topOf(body)).isLessThan(topOf(recognition))
+                assertThat(topOf(recognition)).isLessThan(topOf(provenance))
+            } else {
+                assertThat(awaitNodeWithScroll(instrumentation, SAVE_ACTION)).isNotNull()
             }
 
             val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
@@ -99,6 +113,27 @@ class KnowledgeCardHierarchyInstrumentedTest {
         error("Timed out waiting for accessibility node: $text")
     }
 
+    private fun awaitNodeWithScroll(
+        instrumentation: android.app.Instrumentation,
+        text: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            findTextNode(root, text)?.let { return it }
+            val metrics = instrumentation.targetContext.resources.displayMetrics
+            val centerX = metrics.widthPixels / 2
+            val startY = (metrics.heightPixels * 0.78f).toInt()
+            val endY = (metrics.heightPixels * 0.32f).toInt()
+            instrumentation.uiAutomation
+                .executeShellCommand("input swipe $centerX $startY $centerX $endY 250")
+                .close()
+            SystemClock.sleep(250)
+        }
+        error("Timed out scrolling to accessibility node: $text")
+    }
+
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
         if (root.text?.toString() == text) return root
@@ -111,7 +146,8 @@ class KnowledgeCardHierarchyInstrumentedTest {
     private companion object {
         const val BODY = "自行车链传动用前后不同大小的齿盘改变转速与扭矩，让骑手在速度和省力之间选择。"
         const val RECOGNITION = "识别对象：自行车 · 把握较高"
-        const val PROVENANCE_TITLE = "从你的照片说起"
+        const val PROVENANCE_TITLE = "为什么推给你"
+        const val SAVE_ACTION = "收藏"
         const val PERSONAL_CONTEXT = "你在 2026 年 7 月 23 日拍下了「自行车」，所以今天从它讲起。"
         const val BRAND_PROMISE = "从你的照片里，每天认识一件小事"
         const val SCREENSHOT_NAME = "knowledge-card-hierarchy.png"

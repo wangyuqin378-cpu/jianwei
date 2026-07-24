@@ -465,17 +465,18 @@ check(
 check(
   mainActivity.includes("收藏 ${state.savedCards.size}") &&
     mainActivity.includes("还没有收藏") &&
-    mainActivity.includes("收藏这张知识卡") &&
-    mainActivity.includes("已收藏 · 点击取消"),
+    mainActivity.includes('Text(if (isSaved) "取消收藏" else "收藏")') &&
+    mainActivity.includes('Text(if (trackedItem == null) "物品提醒" else "更新提醒")'),
   "Saved-card collection has no complete visible add/list/remove UI"
 );
 check(
   mainActivity.includes("datePresentation.visibleLabel") &&
     mainActivity.includes("DailyCardSectionHeader(datePresentation.section)") &&
-    mainActivity.includes('"从你的照片说起"') &&
+    mainActivity.includes('"为什么推给你"') &&
+    mainActivity.includes('Text("查看来源 · ${source.publisher}")') &&
     mainActivity.includes('"这张卡对你有用吗？"') &&
-    mainActivity.indexOf('"从你的照片说起"') < mainActivity.indexOf('"收藏这张知识卡"') &&
-    mainActivity.indexOf('"收藏这张知识卡"') < mainActivity.indexOf('"这张卡对你有用吗？"') &&
+    mainActivity.indexOf('"为什么推给你"') < mainActivity.indexOf('Text(if (isSaved) "取消收藏" else "收藏")') &&
+    mainActivity.indexOf('Text(if (isSaved) "取消收藏" else "收藏")') < mainActivity.indexOf('"这张卡对你有用吗？"') &&
     mainActivity.includes("shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)") &&
     discoveryUiPolicy.includes("availableWidthDp < 340f || fontScale >= 1.5f") &&
     discoveryUiPolicyTest.includes("knowledge card actions stack before labels become cramped"),

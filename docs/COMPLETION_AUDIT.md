@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 每日知识卡视觉层级与大字可达性（当前最新权威摘要）：API 34 真实截图确认旧卡片虽已知识优先，但来源卡和绿色“收藏这张知识卡”仍把阅读流拉回操作表单。当前继续保留对象把握、个性化缘由和来源可信链路；“为什么推给你”直接解释推荐，来源主视觉只显示发布者，完整来源标题进入 TalkBack 描述。收藏与物品提醒统一降为描边次级操作并使用短标签，反馈学习仍位于其后。
+
+标准 1080×2400 与精确 320dp/2× 字体均由 API 34 instrumentation 生成真实截图；大字路径会实际滚动并确认识别、来源和收藏可达，短操作标签不再被拆成多行大圆按钮。Pixel Launcher 组件闭环同时把返回 App 后的隐私管理点击改为屏幕坐标输入，避免窗口焦点竞态造成假失败。全新 `-wipe-data` AVD 最终 App instrumentation 11/11；Android JVM 178/178（Domain 56、App 44、Data 78），Lint 0 issue，Debug 与 R8 Release 全部通过。Debug/未签名 Release APK SHA-256 为 `bdf7c425671def3fc7abcf24933ce7aedda7ec55ba54f9b10787645a2ed9647b` / `96a14430b77bc07ff1e7e3441396d3e2f83d8ee48a487e0b45acdf36f324a5bb`。标准/大字截图 SHA-256 为 `181a5abbea25ce0c15d707e1621a1954dc2bcf71c70259180241a61c906822f2` / `8b23e6d0d9de54f8d5d63d9d041aec05edd763eb4fd15e2e5b814282dd4394e8`，仅属本地工程证据；Beta 外部阻断不变，保持 `NO_GO`。
+
 2026-07-25 真实 Qwen 结构化识别复验（当前最新权威摘要）：使用用户提供的北京百炼业务空间凭据和项目既有 CC0 自行车图片执行真实 Provider。首轮诊断请求已到达模型并返回顶层字段完整的 JSON，但 boundingBox 使用了非约定坐标形状，因此严格 Schema 失败；旧验证命令也会把文档中的 pnpm `--` 当作未知参数。当前 Qwen JSON Mode 提示固定完整对象示例、`{x,y,width,height}` 数字坐标并禁止 x1/x2、left/right、数组等替代字段；按阿里云官方结构化输出建议移除 `max_tokens`，避免 JSON 被输出上限截断。验证器兼容 pnpm 分隔符，并在任何网络请求前于内存移除 JPEG APP/COM 元数据，再拒绝残留元数据、畸形结构和尾随字节。
 
 修正后真实 `qwen3.6-flash-2026-04-16` 在 5.46 秒内返回 `canonicalTopicId=bicycle`、`displayName=自行车`、`confidence=0.98`、`sensitiveFlags=[]`，严格 Schema 通过，且仍为单卡一次视觉模型调用。带 `X-DashScope-DataInspection` 的生产请求继续返回 `403 access_denied`，同业务空间普通模型探针为 200，因此账号侧阻断仍精确为 `ai_safety_guardrails_not_authorized`，所需角色为 `AliyunServiceRoleForSFMAccessingCIP`。省略付费护栏的本地诊断不能进入服务端生产装配，也不构成发布证据。TypeScript check/build、后端 113/113 基础测试和源码护栏 `qwenStructuredContract=1 qwenVerifierPrivacy=1` 通过；本轮未改 Android/API。真人内容审核、真实托管云、正式签名、OEM 七天运行、真人 TalkBack、200 卡抽检和 cohort 仍未完成，Beta 保持 `NO_GO`。
