@@ -49,8 +49,7 @@ async function callQwen(options: QwenOptions, messages: unknown[]): Promise<unkn
         messages,
         enable_thinking: false,
         response_format: { type: "json_object" },
-        temperature: 0,
-        max_tokens: 800
+        temperature: 0
       }),
       redirect: "error",
       signal: AbortSignal.timeout(QWEN_REQUEST_TIMEOUT_MS)
@@ -91,7 +90,9 @@ export class QwenVisionProvider implements VisionProvider {
           text: [
             "先检查图片是否含人脸/自拍、身份证件、银行卡、票据、文档、截图或高文字密度内容；命中时写入 sensitiveFlags。不要识别人、关系、情绪、健康或位置。",
             `端侧候选标签：${input.localLabels.join("、") || "无"}。`,
-            "只识别最适合讲日常知识的单个物件。返回 JSON：canonicalTopicId 使用简短英文 snake_case；displayName 中文；confidence 0-1；boundingBox 为 0-1 坐标或 null；alternatives 最多 5 个；sensitiveFlags 只能从 face,selfie,identity_document,bank_card,receipt,document,high_text_density,screenshot 中选择。"
+            "只识别最适合讲日常知识的单个物件。严格只返回一个 JSON 对象，不得新增、删除或改名字段。canonicalTopicId 使用简短英文 snake_case；displayName 使用中文；confidence 是 0 到 1 的数字；alternatives 是最多 5 个中文字符串；sensitiveFlags 只能从 face,selfie,identity_document,bank_card,receipt,document,high_text_density,screenshot 中选择。",
+            "boundingBox 必须严格为 null，或严格为 {\"x\":0.1,\"y\":0.1,\"width\":0.8,\"height\":0.8} 这种对象；四个字段都必须是 0 到 1 的数字，禁止使用 x1、y1、x2、y2、left、top、right、bottom、bbox_2d 或数组。",
+            "完整 JSON 形状示例：{\"canonicalTopicId\":\"bicycle\",\"displayName\":\"自行车\",\"confidence\":0.95,\"boundingBox\":{\"x\":0.1,\"y\":0.1,\"width\":0.8,\"height\":0.8},\"alternatives\":[\"单车\"],\"sensitiveFlags\":[]}"
           ].join("\n")
         },
         { type: "image_url", image_url: { url: imageUrl } }

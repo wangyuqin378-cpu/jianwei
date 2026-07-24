@@ -40,6 +40,10 @@ describe("Qwen server-side image safety contract", () => {
     expect(requestUrl).toBe("https://workspace-123.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions");
     expect(redirect).toBe("error");
     expect(requestBody).toContain("sensitiveFlags");
+    expect(requestBody).toContain("boundingBox 必须严格为 null");
+    expect(requestBody).toContain("禁止使用 x1、y1、x2、y2");
+    expect(JSON.parse(requestBody)).not.toHaveProperty("max_tokens");
+    expect(JSON.parse(requestBody)).not.toHaveProperty("max_completion_tokens");
     expect(result.sensitiveFlags).toEqual(["identity_document"]);
   });
 

@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 真实 Qwen 结构化识别复验（当前最新权威摘要）：使用用户提供的北京百炼业务空间凭据和项目既有 CC0 自行车图片执行真实 Provider。首轮诊断请求已到达模型并返回顶层字段完整的 JSON，但 boundingBox 使用了非约定坐标形状，因此严格 Schema 失败；旧验证命令也会把文档中的 pnpm `--` 当作未知参数。当前 Qwen JSON Mode 提示固定完整对象示例、`{x,y,width,height}` 数字坐标并禁止 x1/x2、left/right、数组等替代字段；按阿里云官方结构化输出建议移除 `max_tokens`，避免 JSON 被输出上限截断。验证器兼容 pnpm 分隔符，并在任何网络请求前于内存移除 JPEG APP/COM 元数据，再拒绝残留元数据、畸形结构和尾随字节。
+
+修正后真实 `qwen3.6-flash-2026-04-16` 在 5.46 秒内返回 `canonicalTopicId=bicycle`、`displayName=自行车`、`confidence=0.98`、`sensitiveFlags=[]`，严格 Schema 通过，且仍为单卡一次视觉模型调用。带 `X-DashScope-DataInspection` 的生产请求继续返回 `403 access_denied`，同业务空间普通模型探针为 200，因此账号侧阻断仍精确为 `ai_safety_guardrails_not_authorized`，所需角色为 `AliyunServiceRoleForSFMAccessingCIP`。省略付费护栏的本地诊断不能进入服务端生产装配，也不构成发布证据。TypeScript check/build、后端 113/113 基础测试和源码护栏 `qwenStructuredContract=1 qwenVerifierPrivacy=1` 通过；本轮未改 Android/API。真人内容审核、真实托管云、正式签名、OEM 七天运行、真人 TalkBack、200 卡抽检和 cohort 仍未完成，Beta 保持 `NO_GO`。
+
 2026-07-25 组件信任文案与对象去重（当前最新权威摘要）：缩略图不可读取时，App 与 Glance 统一显示“原图暂不可显示”，不再用“照片保留在本机 / 照片在本机”制造候选图绝不上云的理解；这不改变明确授权、压缩去 EXIF、短暂处理和服务端删除边界。组件对旧缓存卡 `title == detectedObjectName` 增加去重，高置信度对象名只显示一次，中低置信度与更丰富标题继续显示识别提示。源码护栏拒绝旧文案并要求去重测试存在。
 
 API 34 Pixel Launcher 端到端测试真实完成 Pin、桌面渲染与安装完成态：组件无照片夹具显示“见微 · 今日”和“原图暂不可显示”，无障碍树中“自行车”恰好一个。Android JVM 178/178（Domain 56、App 44、Data 78）、App instrumentation 11/11、Debug/Release Lint 0 error/42 warning、Debug 与 R8 Release、源码护栏和差异检查全部通过。Debug/未签名 Release APK SHA-256 为 `c6e058a75b9202d93e291bfaed1db3c3d789015d2a80b7fb4c53fb2837c2edc7` / `b22a7ee1dc9438f2be67095699eeb5edf86452ba67e12501a3b6b22675090207`；组件截图 SHA-256 `8821da053e0b0731d5a1480998a7c1ab2f1730919f636f5ab62116df08b89f06`，明确只属模拟器工程证据。真人知识审核、真实托管云、正式签名、OEM 七天运行、真人 TalkBack、200 卡抽检和 cohort 仍未完成，Beta 保持 `NO_GO`。

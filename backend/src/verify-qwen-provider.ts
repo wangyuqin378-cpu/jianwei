@@ -82,6 +82,7 @@ export function parseVerificationArguments(args: string[]): VerificationArgument
   let authorizedImageConfirmed = false;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
+    if (argument === "--") continue;
     if (argument === "--credentials-file") credentialsFile = args[++index] ?? "";
     else if (argument === "--image") imageFile = args[++index] ?? "";
     else if (argument === "--confirm-authorized-image") authorizedImageConfirmed = true;
@@ -104,6 +105,8 @@ async function verifyQwenProvider(
   if (image.length < 4 || image.length > 5 * 1024 * 1024 || image[0] !== 0xff || image[1] !== 0xd8) {
     throw new Error("Smoke verification requires a JPEG image no larger than 5 MiB");
   }
+  const sanitizedImage = stripJpegMetadata(image);
+  assertMetadataFreeJpeg(sanitizedImage);
   const config = loadConfig({
     NODE_ENV: "development",
     VISION_PROVIDER: "qwen",
@@ -119,7 +122,7 @@ async function verifyQwenProvider(
     model: config.qwenFlashModel,
     baseUrl: config.dashscopeBaseUrl,
     additionalDataInspection
-  }).detect({ image, localLabels: [] });
+  }).detect({ image: sanitizedImage, localLabels: [] });
   process.stdout.write(`${JSON.stringify({
     provider: "qwen",
     endpointRegion: "cn-beijing",
@@ -135,6 +138,99 @@ async function verifyQwenProvider(
     modelCallsPerCard: 1,
     cardTitlePolicy: "deterministic_server_side"
   }, null, 2)}\n`);
+}
+
+export function stripJpegMetadata(bytes: Buffer): Buffer {
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8 ||
+      bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
+    throw new Error("Smoke verification requires a complete JPEG");
+  }
+  const chunks: Buffer[] = [bytes.subarray(0, 2)];
+  let offset = 2;
+  while (offset < bytes.length) {
+    const markerStart = offset;
+    if (bytes[offset] !== 0xff) throw new Error("Smoke verification JPEG marker is malformed");
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) throw new Error("Smoke verification JPEG is truncated");
+    const marker = bytes[offset++]!;
+    if (marker === 0xd9) {
+      if (offset !== bytes.length) throw new Error("Smoke verification JPEG has trailing bytes");
+      chunks.push(bytes.subarray(markerStart, offset));
+      return Buffer.concat(chunks);
+    }
+    if (marker === 0xd8 || marker === 0x00) {
+      throw new Error("Smoke verification JPEG contains an unexpected marker");
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      chunks.push(bytes.subarray(markerStart, offset));
+      continue;
+    }
+    if (offset + 1 >= bytes.length) throw new Error("Smoke verification JPEG segment is truncated");
+    const length = (bytes[offset]! << 8) | bytes[offset + 1]!;
+    if (length < 2 || offset + length > bytes.length) {
+      throw new Error("Smoke verification JPEG segment length is invalid");
+    }
+    const segmentEnd = offset + length;
+    if (marker === 0xda) {
+      chunks.push(bytes.subarray(markerStart, segmentEnd));
+      chunks.push(bytes.subarray(segmentEnd));
+      return Buffer.concat(chunks);
+    }
+    if (!((marker >= 0xe0 && marker <= 0xef) || marker === 0xfe)) {
+      chunks.push(bytes.subarray(markerStart, segmentEnd));
+    }
+    offset = segmentEnd;
+  }
+  throw new Error("Smoke verification JPEG has no end marker");
+}
+
+export function assertMetadataFreeJpeg(bytes: Buffer): void {
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8 ||
+      bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
+    throw new Error("Smoke verification requires a complete metadata-free JPEG");
+  }
+  let offset = 2;
+  let inEntropyData = false;
+  while (offset < bytes.length) {
+    if (inEntropyData) {
+      while (offset < bytes.length) {
+        if (bytes[offset] !== 0xff) {
+          offset += 1;
+          continue;
+        }
+        const markerStart = offset;
+        while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+        if (offset >= bytes.length) throw new Error("Smoke verification JPEG is truncated");
+        const marker = bytes[offset++]!;
+        if (marker === 0x00 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+        offset = markerStart;
+        inEntropyData = false;
+        break;
+      }
+      if (inEntropyData) throw new Error("Smoke verification JPEG has no end marker");
+      continue;
+    }
+    if (bytes[offset] !== 0xff) throw new Error("Smoke verification JPEG marker is malformed");
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) throw new Error("Smoke verification JPEG is truncated");
+    const marker = bytes[offset++]!;
+    if (marker === 0xd9) {
+      if (offset !== bytes.length) throw new Error("Smoke verification JPEG has trailing bytes");
+      return;
+    }
+    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (offset + 1 >= bytes.length) throw new Error("Smoke verification JPEG segment is truncated");
+    const length = (bytes[offset]! << 8) | bytes[offset + 1]!;
+    if (length < 2 || offset + length > bytes.length) {
+      throw new Error("Smoke verification JPEG segment length is invalid");
+    }
+    if ((marker >= 0xe0 && marker <= 0xef) || marker === 0xfe) {
+      throw new Error("Smoke verification refuses JPEG metadata segments; sanitize the authorized fixture first");
+    }
+    offset += length;
+    if (marker === 0xda) inEntropyData = true;
+  }
+  throw new Error("Smoke verification JPEG has no end marker");
 }
 
 async function probeModelAccessWithoutOptionalGuardrail(

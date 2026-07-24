@@ -58,8 +58,11 @@ cd backend
 pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv> --image <absolute-path-to-authorized-jpeg> --confirm-authorized-image
 ```
 
-The verifier reads the CSV only at runtime and never prints or persists the key. Its local diagnostic
-fallback may omit the optional paid guardrail solely to distinguish model access from guardrail
+The verifier reads the CSV only at runtime and never prints or persists the key. Before any network
+request it removes APP/COM metadata segments in memory, then rejects any remaining metadata,
+trailing bytes or malformed JPEG structure; original metadata is neither persisted nor sent to the
+provider. Its local diagnostic fallback may
+omit the optional paid guardrail solely to distinguish model access from guardrail
 activation. The command still exits unsuccessfully until the production request with the guardrail
 succeeds; this fallback is not available to the server runtime and is not release evidence. If the
 guarded request returns `403 access_denied` while the plain model-access probe returns 200, the

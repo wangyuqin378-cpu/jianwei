@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  assertMetadataFreeJpeg,
   classifyVerificationFailure,
   parseBailianCredentialsCsv,
-  parseVerificationArguments
+  parseVerificationArguments,
+  stripJpegMetadata
 } from "./verify-qwen-provider.js";
 
 describe("Qwen provider verification inputs", () => {
@@ -29,6 +31,33 @@ describe("Qwen provider verification inputs", () => {
       "--credentials-file", "credentials.csv",
       "--image", "fixture.jpg"
     ])).toThrow(/confirm-authorized-image/);
+  });
+
+  it("accepts pnpm argument separators and strips JPEG metadata before verification", () => {
+    expect(parseVerificationArguments([
+      "--",
+      "--credentials-file", "credentials.csv",
+      "--image", "fixture.jpg",
+      "--confirm-authorized-image"
+    ])).toEqual({
+      credentialsFile: "credentials.csv",
+      imageFile: "fixture.jpg",
+      authorizedImageConfirmed: true
+    });
+
+    const clean = Buffer.from([0xff, 0xd8, 0xff, 0xda, 0x00, 0x02, 0xff, 0xd9]);
+    expect(() => assertMetadataFreeJpeg(clean)).not.toThrow();
+    const withExif = Buffer.from([
+      0xff, 0xd8,
+      0xff, 0xe1, 0x00, 0x04, 0x45, 0x78,
+      0xff, 0xda, 0x00, 0x02,
+      0xff, 0xd9
+    ]);
+    expect(() => assertMetadataFreeJpeg(withExif)).toThrow(/metadata segments/);
+    const stripped = stripJpegMetadata(withExif);
+    expect(stripped).toEqual(clean);
+    expect(() => assertMetadataFreeJpeg(stripped)).not.toThrow();
+    expect(() => stripJpegMetadata(Buffer.concat([clean, Buffer.from([0x00])]))).toThrow(/complete JPEG/);
   });
 
   it("distinguishes missing AI Safety Guardrails authorization from model access failure", () => {
