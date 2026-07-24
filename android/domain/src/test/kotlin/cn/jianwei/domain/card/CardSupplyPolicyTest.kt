@@ -35,6 +35,14 @@ class CardSupplyPolicyTest {
     }
 
     @Test
+    fun `healthy automatic cache skips privacy analysis but explicit imports never do`() {
+        assertThat(shouldRunPrivacyBatch(CardSupplyMode.AUTOMATIC_DISCOVERY, 6)).isTrue()
+        assertThat(shouldRunPrivacyBatch(CardSupplyMode.AUTOMATIC_DISCOVERY, 7)).isFalse()
+        assertThat(shouldRunPrivacyBatch(CardSupplyMode.AUTOMATIC_DISCOVERY, 14)).isFalse()
+        assertThat(shouldRunPrivacyBatch(CardSupplyMode.EXPLICIT_IMPORT, 14)).isTrue()
+    }
+
+    @Test
     fun `first automatic card syncs immediately only once`() {
         assertThat(shouldSyncCardsImmediately(
             CardSupplyMode.AUTOMATIC_DISCOVERY,

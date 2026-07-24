@@ -795,8 +795,10 @@ check(
 check(
   cardSupplyPolicy.includes("INITIAL_UNIQUE_ELIGIBLE_TARGET = 12") &&
     cardSupplyPolicy.includes("shouldSyncCardsImmediately") &&
+    cardSupplyPolicy.includes("shouldRunPrivacyBatch") &&
     cardSupplyPolicyTest.includes("first automatic card syncs immediately only once") &&
     cardSupplyPolicyTest.includes("explicit import syncs its first completed candidate without waiting for batch end") &&
+    cardSupplyPolicyTest.includes("healthy automatic cache skips privacy analysis but explicit imports never do") &&
     cardSupplyPolicy.includes("maxInspections = MAX_AUTOMATIC_CANDIDATES_PER_RUN") &&
     cardSupplyPolicy.includes("maxInspections = MAX_EXPLICIT_IMPORTS_PER_RUN") &&
     cardSupplyPolicy.includes("shouldContinuePrivacyBatch") &&
@@ -810,6 +812,8 @@ check(
     workersSource.includes("uniqueEligibleCandidates = ranker.uniqueEligibleCount(analyzed, baselineHashes)") &&
     workersSource.includes("hadAnyLocalCardAtStart = cardDao.countCards() > 0") &&
     workersSource.includes("shouldSyncCardsImmediately(") &&
+    workersSource.includes("!shouldRunPrivacyBatch(supplyMode, currentCachedCards)") &&
+    workersSource.includes("completedAnalysisProgress(currentCachedCards, processedCount = 0)") &&
     cardDaos.includes("suspend fun countCards(): Int") &&
     workersSource.includes("dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS, originScope.name)") &&
     !workersSource.includes("MAX_PRIVACY_ANALYSES = 60") &&

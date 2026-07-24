@@ -55,6 +55,12 @@ fun shouldContinueCardSupply(
     return plan.targetCachedCards?.let { currentCachedCards < it } ?: true
 }
 
+fun shouldRunPrivacyBatch(mode: CardSupplyMode, currentCachedCards: Int): Boolean {
+    require(currentCachedCards >= 0)
+    return mode == CardSupplyMode.EXPLICIT_IMPORT ||
+        cardSupplyPlan(mode, currentCachedCards) != null
+}
+
 /**
  * A first-time automatic run should publish its first completed card without waiting for the rest
  * of the model batch. Explicit imports get the same one-shot fast path because the user is waiting

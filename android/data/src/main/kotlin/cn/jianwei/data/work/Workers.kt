@@ -27,6 +27,7 @@ import cn.jianwei.domain.card.cardSupplyPlan
 import cn.jianwei.domain.card.privacyBatchPlan
 import cn.jianwei.domain.card.shouldContinueCardSupply
 import cn.jianwei.domain.card.shouldContinuePrivacyBatch
+import cn.jianwei.domain.card.shouldRunPrivacyBatch
 import cn.jianwei.domain.card.shouldSyncCardsImmediately
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
@@ -98,6 +99,7 @@ class PrivacyScanWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val dao: PhotoDao,
+    private val cardDao: CardDao,
     private val photos: PhotoRepository,
     private val privacyFilter: PrivacyFilter,
     private val permissionGate: PhotoPermissionGate,
@@ -107,8 +109,6 @@ class PrivacyScanWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.FILTERING))
-        photos.purgeExpiredImportedCopies(Instant.now())
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
             status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
             return Result.failure()
@@ -117,6 +117,17 @@ class PrivacyScanWorker @AssistedInject constructor(
             UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
             UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
         }
+        val currentCachedCards = if (supplyMode == CardSupplyMode.AUTOMATIC_DISCOVERY) {
+            cardDao.countFutureCards(ChinaCalendar.today().toString())
+        } else {
+            0
+        }
+        if (!shouldRunPrivacyBatch(supplyMode, currentCachedCards)) {
+            status.publishProgress(completedAnalysisProgress(currentCachedCards, processedCount = 0))
+            return Result.success()
+        }
+        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.FILTERING))
+        photos.purgeExpiredImportedCopies(Instant.now())
         val batchPlan = privacyBatchPlan(supplyMode)
         // Partial-photo grants are per item. Keep inaccessible rows out of the hot queue, while
         // opportunistically restoring rows that became readable after the user expanded access.
