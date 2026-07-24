@@ -21,10 +21,21 @@ fallback and is never release evidence.
    device bearer on every private route.
 5. Store the database URL and DashScope key in the deployment environment or KMS-backed secret
    workflow. `deploy/s.yaml.example` reads them from the deploying process and contains no values.
-6. Activate Model Studio AI Guardrails for the same workspace as the DashScope key, including the
-   required service-linked-role authorization. Production Qwen calls always request this inspection
-   layer and must fail closed if it is unavailable. A plain model call succeeding does not satisfy
-   this prerequisite.
+6. Activate the separate pay-as-you-go
+   [AI Safety Guardrails service](https://help.aliyun.com/zh/document_detail/2878218.html) with the
+   Alibaba Cloud primary account. Then authorize content safety for the same Bailian workspace as the
+   DashScope key from Bailian's safety-management page. Allow Bailian to create
+   `AliyunServiceRoleForSFMAccessingCIP`, whose documented purpose is calling content security on
+   Bailian's behalf. `AliyunServiceRoleForCIPAccessLogDelivery` is a different role that Guardrails
+   may create for log delivery; it does not replace the Bailian access role. See Alibaba Cloud's
+   [Bailian role reference](https://help.aliyun.com/zh/model-studio/bailian-service-linked-role),
+   [Guardrails role reference](https://help.aliyun.com/zh/document_detail/2998651.html), and
+   [Bailian content-security integration guide](https://help.aliyun.com/zh/model-studio/content-security/).
+   Production Qwen calls always send
+   `X-DashScope-DataInspection: {"input":"cip","output":"cip"}` and must fail closed if this layer is
+   unavailable. A plain model call succeeding does not satisfy this prerequisite. Guardrails is
+   separately metered; review the current
+   [pricing page](https://help.aliyun.com/zh/document_detail/2872706.html) before enabling it.
 7. Complete the accountable-human content review, set `JIANWEI_KNOWLEDGE_REVIEWER_IDS` to the
    exact internal reviewer IDs, then pin the reviewed bytes before building the image:
 
@@ -50,7 +61,12 @@ pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv
 The verifier reads the CSV only at runtime and never prints or persists the key. Its local diagnostic
 fallback may omit the optional paid guardrail solely to distinguish model access from guardrail
 activation. The command still exits unsuccessfully until the production request with the guardrail
-succeeds; this fallback is not available to the server runtime and is not release evidence.
+succeeds; this fallback is not available to the server runtime and is not release evidence. If the
+guarded request returns `403 access_denied` while the plain model-access probe returns 200, the
+machine-readable result reports `ai_safety_guardrails_not_authorized`, the exact required header and
+the expected Bailian role. That diagnosis means the key and fixed model are reachable, but it does
+not prove which console activation step is missing; confirm both service enablement and workspace
+authorization before rerunning.
 
 ## Build and deploy
 

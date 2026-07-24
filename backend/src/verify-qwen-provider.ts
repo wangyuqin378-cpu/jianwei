@@ -24,6 +24,40 @@ interface AccessProbeResult {
   code: string | null;
 }
 
+interface VerificationFailureDiagnostic {
+  failureKind: "ai_safety_guardrails_not_authorized" | "qwen_provider_request_failed";
+  productionReady: false;
+  requiredInspectionHeader: string;
+  requiredServiceLinkedRole?: string;
+  nextAction: string;
+}
+
+export function classifyVerificationFailure(
+  upstreamStatus: number,
+  upstreamCode: string | null,
+  accessProbe: AccessProbeResult | null
+): VerificationFailureDiagnostic {
+  const common = {
+    productionReady: false as const,
+    requiredInspectionHeader: '{"input":"cip","output":"cip"}'
+  };
+  if (upstreamStatus === 403 && upstreamCode === "access_denied" && accessProbe?.status === 200) {
+    return {
+      ...common,
+      failureKind: "ai_safety_guardrails_not_authorized",
+      requiredServiceLinkedRole: "AliyunServiceRoleForSFMAccessingCIP",
+      nextAction:
+        "Use the Alibaba Cloud primary account to enable pay-as-you-go AI Safety Guardrails, authorize Bailian content safety for this workspace, then rerun this verifier."
+    };
+  }
+  return {
+    ...common,
+    failureKind: "qwen_provider_request_failed",
+    nextAction:
+      "Check the workspace endpoint, pay-as-you-go API key, fixed model access, account balance, and provider service status before rerunning this verifier."
+  };
+}
+
 export function parseBailianCredentialsCsv(source: string): BailianCredentials {
   const rows = new Map<string, string>();
   for (const [index, rawLine] of source.split(/\r?\n/).entries()) {
@@ -205,7 +239,8 @@ if (isMainModule(import.meta.url)) {
         verification: "failed",
         upstreamStatus: error.upstreamStatus,
         upstreamCode: error.upstreamCode,
-        modelAccessWithoutOptionalGuardrail: accessProbe
+        modelAccessWithoutOptionalGuardrail: accessProbe,
+        diagnostic: classifyVerificationFailure(error.upstreamStatus, error.upstreamCode, accessProbe)
       })}\n`);
       process.exitCode = 1;
     } else if (error instanceof QwenSchemaError) {

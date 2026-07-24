@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseBailianCredentialsCsv, parseVerificationArguments } from "./verify-qwen-provider.js";
+import {
+  classifyVerificationFailure,
+  parseBailianCredentialsCsv,
+  parseVerificationArguments
+} from "./verify-qwen-provider.js";
 
 describe("Qwen provider verification inputs", () => {
   it("loads the pay-as-you-go key and compatible endpoint without changing them", () => {
@@ -25,5 +29,29 @@ describe("Qwen provider verification inputs", () => {
       "--credentials-file", "credentials.csv",
       "--image", "fixture.jpg"
     ])).toThrow(/confirm-authorized-image/);
+  });
+
+  it("distinguishes missing AI Safety Guardrails authorization from model access failure", () => {
+    expect(classifyVerificationFailure(
+      403,
+      "access_denied",
+      { status: 200, code: null }
+    )).toEqual({
+      failureKind: "ai_safety_guardrails_not_authorized",
+      productionReady: false,
+      requiredInspectionHeader: '{"input":"cip","output":"cip"}',
+      requiredServiceLinkedRole: "AliyunServiceRoleForSFMAccessingCIP",
+      nextAction:
+        "Use the Alibaba Cloud primary account to enable pay-as-you-go AI Safety Guardrails, authorize Bailian content safety for this workspace, then rerun this verifier."
+    });
+
+    expect(classifyVerificationFailure(
+      403,
+      "access_denied",
+      { status: 401, code: "invalid_api_key" }
+    )).toMatchObject({
+      failureKind: "qwen_provider_request_failed",
+      productionReady: false
+    });
   });
 });
