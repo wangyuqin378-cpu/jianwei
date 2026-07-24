@@ -76,7 +76,7 @@ class ShareReceiverFlowInstrumentedTest {
             assertThat(resumedMainActivity).isSameInstanceAs(initialMainActivity)
 
             val imported = database.photos()
-                .discoveredForPrivacy(10)
+                .discoveredForPrivacy(10, "EXPLICIT_IMPORT")
                 .single()
             assertThat(imported.origin).isEqualTo("PHOTO_PICKER")
             assertThat(imported.contentUri).startsWith("file:")

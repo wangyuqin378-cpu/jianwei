@@ -33,4 +33,25 @@ class CardSupplyPolicyTest {
         assertThat(shouldContinueCardSupply(plan, currentCachedCards = 30, processedCandidates = 19)).isTrue()
         assertThat(shouldContinueCardSupply(plan, currentCachedCards = 30, processedCandidates = 20)).isFalse()
     }
+
+    @Test
+    fun `automatic privacy batch moves on after twelve locally eligible candidates`() {
+        val plan = privacyBatchPlan(CardSupplyMode.AUTOMATIC_DISCOVERY)
+
+        assertThat(plan.maxInspections).isEqualTo(24)
+        assertThat(plan.targetLocallyEligibleCandidates).isEqualTo(12)
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 11, locallyEligibleCandidates = 11)).isTrue()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 18, locallyEligibleCandidates = 12)).isFalse()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 24, locallyEligibleCandidates = 4)).isFalse()
+    }
+
+    @Test
+    fun `explicit privacy batch inspects all accepted user imports`() {
+        val plan = privacyBatchPlan(CardSupplyMode.EXPLICIT_IMPORT)
+
+        assertThat(plan.maxInspections).isEqualTo(20)
+        assertThat(plan.targetLocallyEligibleCandidates).isNull()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 12, locallyEligibleCandidates = 12)).isTrue()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 20, locallyEligibleCandidates = 20)).isFalse()
+    }
 }

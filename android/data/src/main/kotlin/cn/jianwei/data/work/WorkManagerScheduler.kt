@@ -42,9 +42,7 @@ class WorkManagerScheduler @Inject constructor(
             .setInputData(Data.Builder().putString(ScanWorker.KEY_ACCESS, access.name).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
             .build()
-        val privacy = OneTimeWorkRequestBuilder<PrivacyScanWorker>()
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
-            .build()
+        val privacy = privacyScanRequest(UploadOriginScope.MEDIA_STORE)
         val upload = OneTimeWorkRequestBuilder<UploadWorker>()
             .setInputData(Data.Builder().putString(UploadWorker.KEY_ORIGIN_SCOPE, UploadOriginScope.MEDIA_STORE.name).build())
             .setConstraints(uploadConstraints())
@@ -66,9 +64,7 @@ class WorkManagerScheduler @Inject constructor(
             .setInputData(Data.Builder().putString(ScanWorker.KEY_ACCESS, access.name).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
             .build()
-        val privacy = OneTimeWorkRequestBuilder<PrivacyScanWorker>()
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
-            .build()
+        val privacy = privacyScanRequest(UploadOriginScope.MEDIA_STORE)
         val upload = OneTimeWorkRequestBuilder<UploadWorker>()
             .setInputData(Data.Builder().putString(UploadWorker.KEY_ORIGIN_SCOPE, UploadOriginScope.MEDIA_STORE.name).build())
             .setConstraints(uploadConstraints())
@@ -86,9 +82,7 @@ class WorkManagerScheduler @Inject constructor(
         workManager.beginUniqueWork(
             IMPORTED,
             ExistingWorkPolicy.APPEND_OR_REPLACE,
-            OneTimeWorkRequestBuilder<PrivacyScanWorker>()
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
-                .build()
+            privacyScanRequest(UploadOriginScope.EXPLICIT_IMPORT)
         ).then(
             OneTimeWorkRequestBuilder<UploadWorker>()
                 .setInputData(Data.Builder().putString(UploadWorker.KEY_ORIGIN_SCOPE, UploadOriginScope.EXPLICIT_IMPORT.name).build())
@@ -159,3 +153,16 @@ class WorkManagerScheduler @Inject constructor(
         internal const val DAILY = "jianwei-daily-card-sync"
     }
 }
+
+internal const val PRIVACY_ORIGIN_TAG_PREFIX = "jianwei-privacy-origin:"
+
+internal fun privacyScanRequest(originScope: UploadOriginScope) =
+    OneTimeWorkRequestBuilder<PrivacyScanWorker>()
+        .setInputData(
+            Data.Builder()
+                .putString(PrivacyScanWorker.KEY_ORIGIN_SCOPE, originScope.name)
+                .build()
+        )
+        .addTag(PRIVACY_ORIGIN_TAG_PREFIX + originScope.name)
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
+        .build()

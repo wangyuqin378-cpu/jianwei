@@ -24,7 +24,9 @@ import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
 import cn.jianwei.domain.card.CardSupplyMode
 import cn.jianwei.domain.card.cardSupplyPlan
+import cn.jianwei.domain.card.privacyBatchPlan
 import cn.jianwei.domain.card.shouldContinueCardSupply
+import cn.jianwei.domain.card.shouldContinuePrivacyBatch
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisState
@@ -106,16 +108,30 @@ class PrivacyScanWorker @AssistedInject constructor(
         if (applicationContext.analysisIsPaused()) return Result.success()
         status.publishProgress(AnalysisProgress(phase = AnalysisPhase.FILTERING))
         photos.purgeExpiredImportedCopies(Instant.now())
+        val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
+            status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
+            return Result.failure()
+        }
+        val supplyMode = when (originScope) {
+            UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
+            UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
+        }
+        val batchPlan = privacyBatchPlan(supplyMode)
         // Partial-photo grants are per item. Keep inaccessible rows out of the hot queue, while
         // opportunistically restoring rows that became readable after the user expanded access.
-        dao.unavailableMediaForRecheck(MAX_ACCESS_RECHECKS).forEach { entity ->
-            if (permissionGate.canReadMediaStoreItem(entity.contentUri)) {
-                photos.updateAnalysis(entity.localId, AnalysisState.DISCOVERED)
+        if (originScope == UploadOriginScope.MEDIA_STORE) {
+            dao.unavailableMediaForRecheck(MAX_ACCESS_RECHECKS).forEach { entity ->
+                if (permissionGate.canReadMediaStoreItem(entity.contentUri)) {
+                    photos.updateAnalysis(entity.localId, AnalysisState.DISCOVERED)
+                }
             }
         }
         val analyzed = mutableListOf<cn.jianwei.domain.model.PhotoCandidate>()
-        for (entity in dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS)) {
-            if (analyzed.size >= MAX_PRIVACY_ANALYSES) break
+        var inspectedCandidates = 0
+        var locallyEligibleCandidates = 0
+        for (entity in dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS, originScope.name)) {
+            if (!shouldContinuePrivacyBatch(batchPlan, inspectedCandidates, locallyEligibleCandidates)) break
+            inspectedCandidates += 1
             if (entity.origin == PhotoOrigin.MEDIA_STORE.name &&
                 !permissionGate.canReadMediaStoreItem(entity.contentUri)
             ) {
@@ -149,6 +165,7 @@ class PrivacyScanWorker @AssistedInject constructor(
                     result.sensitiveFlags
                 )
                 if (state == AnalysisState.FILTERED) photos.discardImportedCopy(entity.localId)
+                if (state == AnalysisState.READY) locallyEligibleCandidates += 1
                 analyzed += entity.copy(
                     perceptualHash = result.perceptualHash,
                     qualityScore = result.qualityScore,
@@ -185,6 +202,8 @@ class PrivacyScanWorker @AssistedInject constructor(
         )
         return Result.success()
     }
+
+    companion object { const val KEY_ORIGIN_SCOPE = "origin_scope" }
 }
 
 @HiltWorker
@@ -442,7 +461,6 @@ fun scheduleImportedCopyCleanup(context: Context) {
 private const val MAX_WORK_ATTEMPTS = 3
 private const val IMPORTED_COPY_CLEANUP_NOW = "jianwei-imported-copy-cleanup-now"
 private const val IMPORTED_COPY_CLEANUP_PERIODIC = "jianwei-imported-copy-cleanup-periodic"
-private const val MAX_PRIVACY_ANALYSES = 60
 private const val MAX_PRIVACY_QUEUE_INSPECTIONS = 500
 private const val MAX_ACCESS_RECHECKS = 500
 /**
@@ -475,9 +493,7 @@ class DailyPipelineKickWorker(
             .setInputData(Data.Builder().putString(ScanWorker.KEY_ACCESS, access.name).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
             .build()
-        val privacy = OneTimeWorkRequestBuilder<PrivacyScanWorker>()
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
-            .build()
+        val privacy = privacyScanRequest(UploadOriginScope.MEDIA_STORE)
         val upload = OneTimeWorkRequestBuilder<UploadWorker>()
             .setInputData(Data.Builder().putString(UploadWorker.KEY_ORIGIN_SCOPE, UploadOriginScope.MEDIA_STORE.name).build())
             .setConstraints(

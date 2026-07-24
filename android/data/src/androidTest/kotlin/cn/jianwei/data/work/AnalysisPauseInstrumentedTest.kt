@@ -13,6 +13,38 @@ import kotlinx.coroutines.runBlocking
 
 class AnalysisPauseInstrumentedTest {
     @Test
+    fun schedulerScopesPrivacyWorkBeforeItCanInspectCandidates() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val manager = WorkManager.getInstance(context)
+        manager.cancelAllWork().result.get()
+        manager.pruneWork().result.get()
+        val scheduler = WorkManagerScheduler(
+            context,
+            AnalysisSessionGate(context),
+            SharedPreferencesAnalysisStatusRepository(context)
+        )
+
+        try {
+            scheduler.setPaused(false)
+            scheduler.scheduleInitialScan(PhotoAccess.FULL)
+            scheduler.scheduleImportedPhotos()
+
+            val automaticTags = manager.getWorkInfosForUniqueWork(WorkManagerScheduler.INITIAL).get()
+                .single { PrivacyScanWorker::class.java.name in it.tags }
+                .tags
+            val importedTags = manager.getWorkInfosForUniqueWork(WorkManagerScheduler.IMPORTED).get()
+                .single { PrivacyScanWorker::class.java.name in it.tags }
+                .tags
+
+            assertThat(automaticTags).contains(PRIVACY_ORIGIN_TAG_PREFIX + UploadOriginScope.MEDIA_STORE.name)
+            assertThat(importedTags).contains(PRIVACY_ORIGIN_TAG_PREFIX + UploadOriginScope.EXPLICIT_IMPORT.name)
+        } finally {
+            scheduler.cancelAll()
+            scheduler.setPaused(false)
+        }
+    }
+
+    @Test
     fun pausePersistsAcrossSchedulersAndIsVisibleToWorkers() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val preferences = context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)

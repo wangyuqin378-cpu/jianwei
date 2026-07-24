@@ -14,6 +14,28 @@ import org.junit.Test
 
 class UploadOriginScopeInstrumentedTest {
     @Test
+    fun automaticAndExplicitPrivacyQueuesCannotConsumeEachOther() = runBlocking {
+        val database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            JianweiDatabase::class.java
+        ).build()
+        try {
+            val dao = database.photos()
+            dao.upsert(candidate(1, PhotoOrigin.MEDIA_STORE, AnalysisState.DISCOVERED))
+            dao.upsert(candidate(2, PhotoOrigin.PHOTO_PICKER, AnalysisState.DISCOVERED))
+            dao.upsert(candidate(3, PhotoOrigin.SHARED, AnalysisState.DISCOVERED))
+
+            assertThat(dao.discoveredForPrivacy(10, UploadOriginScope.MEDIA_STORE.name).map { it.localId })
+                .containsExactly(1L)
+            assertThat(dao.discoveredForPrivacy(10, UploadOriginScope.EXPLICIT_IMPORT.name).map { it.localId })
+                .containsExactly(3L, 2L).inOrder()
+            assertThat(dao.discoveredForPrivacy(10, "ALL")).isEmpty()
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
     fun automaticAndExplicitUploadQueuesCannotConsumeEachOther() = runBlocking {
         val database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),

@@ -45,8 +45,8 @@ interface PhotoDao {
     @Query("UPDATE photo_candidates SET analysisState = 'READY' WHERE analysisState = 'DEFERRED' AND localId IN (:localIds)")
     suspend fun promoteDeferredById(localIds: List<Long>): Int
 
-    @Query("SELECT * FROM photo_candidates WHERE analysisState = 'DISCOVERED' ORDER BY capturedAtMillis DESC LIMIT :limit")
-    suspend fun discoveredForPrivacy(limit: Int): List<PhotoCandidateEntity>
+    @Query("SELECT * FROM photo_candidates WHERE analysisState = 'DISCOVERED' AND ((:originScope = 'MEDIA_STORE' AND origin = 'MEDIA_STORE') OR (:originScope = 'EXPLICIT_IMPORT' AND origin != 'MEDIA_STORE')) ORDER BY capturedAtMillis DESC LIMIT :limit")
+    suspend fun discoveredForPrivacy(limit: Int, originScope: String): List<PhotoCandidateEntity>
 
     @Query("SELECT * FROM photo_candidates WHERE analysisState = 'ACCESS_UNAVAILABLE' AND origin = 'MEDIA_STORE' ORDER BY capturedAtMillis DESC LIMIT :limit")
     suspend fun unavailableMediaForRecheck(limit: Int): List<PhotoCandidateEntity>

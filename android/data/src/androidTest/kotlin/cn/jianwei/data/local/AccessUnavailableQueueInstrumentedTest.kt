@@ -32,7 +32,9 @@ class AccessUnavailableQueueInstrumentedTest {
                     ).map { it.localId }
                 )
                     .containsExactly(13L)
-                assertThat(dao.discoveredForPrivacy(60).map { it.localId }).containsExactly(14L)
+                assertThat(
+                    dao.discoveredForPrivacy(24, UploadOriginScope.MEDIA_STORE.name).map { it.localId }
+                ).containsExactly(14L)
                 assertThat(dao.unavailableMediaForRecheck(500).map { it.localId })
                     .containsExactlyElementsIn(1L..12L)
             } finally {
