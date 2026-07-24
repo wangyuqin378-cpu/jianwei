@@ -114,6 +114,9 @@ interface CardDao {
     @Query("SELECT * FROM knowledge_cards ORDER BY scheduledDate ASC, createdAtMillis ASC")
     fun observeAll(): Flow<List<CardEntity>>
 
+    @Query("SELECT COUNT(*) FROM knowledge_cards")
+    suspend fun countCards(): Int
+
     @Query(
         "SELECT cards.* FROM knowledge_cards AS cards " +
             "INNER JOIN saved_cards AS saved ON saved.cardId = cards.cardId " +

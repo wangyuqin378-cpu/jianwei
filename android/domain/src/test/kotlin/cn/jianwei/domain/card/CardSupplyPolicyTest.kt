@@ -35,6 +35,44 @@ class CardSupplyPolicyTest {
     }
 
     @Test
+    fun `first automatic card syncs immediately only once`() {
+        assertThat(shouldSyncCardsImmediately(
+            CardSupplyMode.AUTOMATIC_DISCOVERY,
+            hadAnyLocalCardAtStart = false,
+            immediateSyncCompleted = false,
+            candidateCompleted = true
+        )).isTrue()
+        assertThat(shouldSyncCardsImmediately(
+            CardSupplyMode.AUTOMATIC_DISCOVERY,
+            hadAnyLocalCardAtStart = false,
+            immediateSyncCompleted = true,
+            candidateCompleted = true
+        )).isFalse()
+        assertThat(shouldSyncCardsImmediately(
+            CardSupplyMode.AUTOMATIC_DISCOVERY,
+            hadAnyLocalCardAtStart = true,
+            immediateSyncCompleted = false,
+            candidateCompleted = true
+        )).isFalse()
+    }
+
+    @Test
+    fun `explicit import syncs its first completed candidate without waiting for batch end`() {
+        assertThat(shouldSyncCardsImmediately(
+            CardSupplyMode.EXPLICIT_IMPORT,
+            hadAnyLocalCardAtStart = true,
+            immediateSyncCompleted = false,
+            candidateCompleted = true
+        )).isTrue()
+        assertThat(shouldSyncCardsImmediately(
+            CardSupplyMode.EXPLICIT_IMPORT,
+            hadAnyLocalCardAtStart = true,
+            immediateSyncCompleted = false,
+            candidateCompleted = false
+        )).isFalse()
+    }
+
+    @Test
     fun `automatic privacy batch moves on after twelve unique eligible candidates`() {
         val plan = privacyBatchPlan(CardSupplyMode.AUTOMATIC_DISCOVERY)
 

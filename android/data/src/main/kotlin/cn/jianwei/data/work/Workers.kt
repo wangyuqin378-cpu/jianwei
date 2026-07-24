@@ -27,6 +27,7 @@ import cn.jianwei.domain.card.cardSupplyPlan
 import cn.jianwei.domain.card.privacyBatchPlan
 import cn.jianwei.domain.card.shouldContinueCardSupply
 import cn.jianwei.domain.card.shouldContinuePrivacyBatch
+import cn.jianwei.domain.card.shouldSyncCardsImmediately
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisState
@@ -238,6 +239,8 @@ class UploadWorker @AssistedInject constructor(
                 UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
                 UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
             }
+            val hadAnyLocalCardAtStart = cardDao.countCards() > 0
+            var immediateSyncCompleted = false
             val supplyPlan = cardSupplyPlan(supplyMode, cardDao.countFutureCards(today))
             var processed = 0
             while (supplyPlan != null && shouldContinueCardSupply(
@@ -284,6 +287,15 @@ class UploadWorker @AssistedInject constructor(
                             candidate.localId,
                             if (response.status == "completed") AnalysisState.COMPLETED else AnalysisState.FILTERED
                         )
+                        if (shouldSyncCardsImmediately(
+                                mode = supplyMode,
+                                hadAnyLocalCardAtStart = hadAnyLocalCardAtStart,
+                                immediateSyncCompleted = immediateSyncCompleted,
+                                candidateCompleted = response.status == "completed"
+                            )) {
+                            cards.syncCards()
+                            immediateSyncCompleted = true
+                        }
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: AnalysisStoppedException) {

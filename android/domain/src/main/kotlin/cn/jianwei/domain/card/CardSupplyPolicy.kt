@@ -56,6 +56,20 @@ fun shouldContinueCardSupply(
 }
 
 /**
+ * A first-time automatic run should publish its first completed card without waiting for the rest
+ * of the model batch. Explicit imports get the same one-shot fast path because the user is waiting
+ * for the photos they just selected. Routine automatic refills keep the cheaper batch sync.
+ */
+fun shouldSyncCardsImmediately(
+    mode: CardSupplyMode,
+    hadAnyLocalCardAtStart: Boolean,
+    immediateSyncCompleted: Boolean,
+    candidateCompleted: Boolean
+): Boolean = candidateCompleted && !immediateSyncCompleted && (
+    mode == CardSupplyMode.EXPLICIT_IMPORT || !hadAnyLocalCardAtStart
+)
+
+/**
  * Automatic discovery moves on as soon as twelve locally safe, non-duplicate candidates are
  * available, while allowing a bounded amount of over-sampling for blurred, private, or repeated
  * photos. Explicit imports are direct user requests, so every image in the accepted batch is
