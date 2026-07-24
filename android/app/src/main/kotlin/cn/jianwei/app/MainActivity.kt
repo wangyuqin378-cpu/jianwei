@@ -223,6 +223,9 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(hasVisibleCard) {
                         if (hasVisibleCard) betaMetrics.markFirstCardObserved()
                     }
+                    LaunchedEffect(state.focusedCard?.cardId) {
+                        if (state.focusedCard != null) betaMetrics.markEngaged()
+                    }
                     HomeScreen(
                         state = state,
                         access = photoAccess,

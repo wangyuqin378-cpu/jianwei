@@ -1,6 +1,7 @@
 package cn.jianwei.domain.feedback
 
 import cn.jianwei.domain.model.FeedbackAction
+import cn.jianwei.domain.model.isCardFeedback
 import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -13,6 +14,15 @@ class FeedbackAffinityPolicyTest {
         assertThat(FeedbackAction.WRONG_OBJECT.isOrdinaryCardFeedback()).isTrue()
         assertThat(FeedbackAction.TOO_PRIVATE.isOrdinaryCardFeedback()).isFalse()
         assertThat(FeedbackAction.SAVE.isOrdinaryCardFeedback()).isFalse()
+    }
+
+    @Test
+    fun `save is an engagement signal but not card feedback`() {
+        assertThat(FeedbackAction.LIKE.isCardFeedback()).isTrue()
+        assertThat(FeedbackAction.DISLIKE.isCardFeedback()).isTrue()
+        assertThat(FeedbackAction.WRONG_OBJECT.isCardFeedback()).isTrue()
+        assertThat(FeedbackAction.TOO_PRIVATE.isCardFeedback()).isTrue()
+        assertThat(FeedbackAction.SAVE.isCardFeedback()).isFalse()
     }
 
     @Test

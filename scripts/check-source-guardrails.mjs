@@ -71,6 +71,8 @@ const imageEvaluationArtifacts = await readFile(path.join(root, "android", "app"
 const imageEvaluationDebugManifest = await readFile(path.join(root, "android", "app", "src", "debug", "AndroidManifest.xml"), "utf8");
 const imageEvaluationHost = await readFile(path.join(root, "scripts", "run-authorized-image-evaluation-windows.ps1"), "utf8");
 const betaMetricsStore = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "BetaMetricsStore.kt"), "utf8");
+const feedbackModels = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "model", "Models.kt"), "utf8");
+const betaMetricsDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "BetaMetricsStoreInstrumentedTest.kt"), "utf8");
 const cardAuditCompiler = await readFile(path.join(root, "scripts", "compile-card-audit.mjs"), "utf8");
 const cardSnapshotExporter = await readFile(path.join(root, "backend", "src", "export-card-audit-snapshots.ts"), "utf8");
 const evaluationLeaseService = await readFile(path.join(root, "backend", "src", "services", "evaluation-lease.ts"), "utf8");
@@ -1048,6 +1050,20 @@ check(gitignore.includes("evaluation/image-evaluation-lease.json"), "Evaluation 
 check(imageEvaluationArtifacts.includes("evaluationApkSha256") && imageEvaluationArtifacts.includes("installedApkSha256"), "Android image evaluation is not bound to installed APK bytes");
 check(betaMetricsStore.includes("installedApkSha256") && betaMetricsStore.includes("applicationInfo.sourceDir"), "App-exported Beta evidence does not hash the installed APK");
 check(mainActivity.includes("withContext(Dispatchers.IO) { betaMetrics.exportJson() }"), "Installed APK hashing can block the Android main thread");
+check(
+  feedbackModels.includes("fun FeedbackAction.isCardFeedback()") &&
+    betaMetricsStore.includes('require(action.isCardFeedback()) { "SAVE is engagement, not card feedback" }') &&
+    !mainViewModel.includes("markFeedback(FeedbackAction.SAVE)") &&
+    mainViewModel.includes("cards.setSaved(cardId, saved)") &&
+    mainViewModel.includes("betaMetrics.markEngaged()") &&
+    mainActivity.includes("LaunchedEffect(state.focusedCard?.cardId)") &&
+    mainActivity.includes("if (state.focusedCard != null) betaMetrics.markEngaged()") &&
+    betaMetricsDeviceTest.includes("reportSeparatesEngagementFromCardFeedback") &&
+    betaMetricsDeviceTest.includes("validFocusedCardMarksClickEngagement") &&
+    betaMetricsDeviceTest.includes('report.getInt("feedbackCount")') &&
+    betaMetricsDeviceTest.includes('report.has("candidateToken")'),
+  "Beta metrics count saved cards as feedback, miss valid focused-card clicks, or lack privacy-safe device evidence"
+);
 for (const marker of ["releaseApkSha256", "backendReleaseSha256", "apkShaBinding=1", "backendReleaseBinding=1"]) {
   check(cardAuditCompiler.includes(marker), `Card audit compiler is missing Release APK binding: ${marker}`);
 }
@@ -1182,7 +1198,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

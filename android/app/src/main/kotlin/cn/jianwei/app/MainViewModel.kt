@@ -170,8 +170,8 @@ class MainViewModel @Inject constructor(
     }
 
     fun setSaved(cardId: String, saved: Boolean) = runBusy(UserOperation.UPDATE_SAVED) {
-        val newPreferenceSignal = cards.setSaved(cardId, saved)
-        if (newPreferenceSignal) betaMetrics.markFeedback(FeedbackAction.SAVE) else betaMetrics.markEngaged()
+        cards.setSaved(cardId, saved)
+        betaMetrics.markEngaged()
         if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
     }
 

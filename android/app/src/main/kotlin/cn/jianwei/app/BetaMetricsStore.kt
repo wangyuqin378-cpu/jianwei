@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.content.edit
 import cn.jianwei.domain.model.FeedbackAction
+import cn.jianwei.domain.model.isCardFeedback
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.security.MessageDigest
@@ -45,6 +46,7 @@ class BetaMetricsStore @Inject constructor(@ApplicationContext context: Context)
     }
 
     fun markFeedback(action: FeedbackAction, now: Long = System.currentTimeMillis()) {
+        require(action.isCardFeedback()) { "SAVE is engagement, not card feedback" }
         markEngaged(now)
         preferences.edit {
             putInt(KEY_FEEDBACK_COUNT, preferences.getInt(KEY_FEEDBACK_COUNT, 0) + 1)

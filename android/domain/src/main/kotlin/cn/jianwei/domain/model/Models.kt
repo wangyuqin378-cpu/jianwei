@@ -107,6 +107,9 @@ data class FeedbackSubmissionResult(
     val cardRemoved: Boolean = false
 )
 
+fun FeedbackAction.isCardFeedback(): Boolean =
+    this != FeedbackAction.SAVE
+
 fun FeedbackAction.isOrdinaryCardFeedback(): Boolean =
     this == FeedbackAction.LIKE || this == FeedbackAction.DISLIKE || this == FeedbackAction.WRONG_OBJECT
 
