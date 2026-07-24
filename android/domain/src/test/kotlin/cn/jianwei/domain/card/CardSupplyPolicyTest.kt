@@ -35,14 +35,14 @@ class CardSupplyPolicyTest {
     }
 
     @Test
-    fun `automatic privacy batch moves on after twelve locally eligible candidates`() {
+    fun `automatic privacy batch moves on after twelve unique eligible candidates`() {
         val plan = privacyBatchPlan(CardSupplyMode.AUTOMATIC_DISCOVERY)
 
         assertThat(plan.maxInspections).isEqualTo(24)
-        assertThat(plan.targetLocallyEligibleCandidates).isEqualTo(12)
-        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 11, locallyEligibleCandidates = 11)).isTrue()
-        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 18, locallyEligibleCandidates = 12)).isFalse()
-        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 24, locallyEligibleCandidates = 4)).isFalse()
+        assertThat(plan.targetUniqueEligibleCandidates).isEqualTo(12)
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 12, uniqueEligibleCandidates = 3)).isTrue()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 18, uniqueEligibleCandidates = 12)).isFalse()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 24, uniqueEligibleCandidates = 4)).isFalse()
     }
 
     @Test
@@ -50,8 +50,8 @@ class CardSupplyPolicyTest {
         val plan = privacyBatchPlan(CardSupplyMode.EXPLICIT_IMPORT)
 
         assertThat(plan.maxInspections).isEqualTo(20)
-        assertThat(plan.targetLocallyEligibleCandidates).isNull()
-        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 12, locallyEligibleCandidates = 12)).isTrue()
-        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 20, locallyEligibleCandidates = 20)).isFalse()
+        assertThat(plan.targetUniqueEligibleCandidates).isNull()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 12, uniqueEligibleCandidates = 12)).isTrue()
+        assertThat(shouldContinuePrivacyBatch(plan, inspectedCandidates = 20, uniqueEligibleCandidates = 20)).isFalse()
     }
 }

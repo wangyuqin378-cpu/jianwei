@@ -126,11 +126,14 @@ class PrivacyScanWorker @AssistedInject constructor(
                 }
             }
         }
+        val ranker = CandidateRanker()
+        val baselineHashes = dao.candidatesForDuplicateBaseline()
+            .mapNotNull { it.perceptualHash }
         val analyzed = mutableListOf<cn.jianwei.domain.model.PhotoCandidate>()
         var inspectedCandidates = 0
-        var locallyEligibleCandidates = 0
+        var uniqueEligibleCandidates = 0
         for (entity in dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS, originScope.name)) {
-            if (!shouldContinuePrivacyBatch(batchPlan, inspectedCandidates, locallyEligibleCandidates)) break
+            if (!shouldContinuePrivacyBatch(batchPlan, inspectedCandidates, uniqueEligibleCandidates)) break
             inspectedCandidates += 1
             if (entity.origin == PhotoOrigin.MEDIA_STORE.name &&
                 !permissionGate.canReadMediaStoreItem(entity.contentUri)
@@ -164,8 +167,6 @@ class PrivacyScanWorker @AssistedInject constructor(
                     result.labels,
                     result.sensitiveFlags
                 )
-                if (state == AnalysisState.FILTERED) photos.discardImportedCopy(entity.localId)
-                if (state == AnalysisState.READY) locallyEligibleCandidates += 1
                 analyzed += entity.copy(
                     perceptualHash = result.perceptualHash,
                     qualityScore = result.qualityScore,
@@ -173,16 +174,13 @@ class PrivacyScanWorker @AssistedInject constructor(
                     sensitiveFlags = result.sensitiveFlags,
                     analysisState = state.name
                 ).toDomain()
+                if (state == AnalysisState.FILTERED) photos.discardImportedCopy(entity.localId)
+                if (state == AnalysisState.READY) {
+                    uniqueEligibleCandidates = ranker.uniqueEligibleCount(analyzed, baselineHashes)
+                }
             }
         }
         val interests = expandedInterestTerms(interestPreferences.selected())
-        val ranker = CandidateRanker()
-        val currentIds = analyzed.mapTo(mutableSetOf()) { it.localId }
-        val baselineHashes = dao.candidatesForDuplicateBaseline()
-            .asSequence()
-            .filterNot { it.localId in currentIds }
-            .mapNotNull { it.perceptualHash }
-            .toList()
         val duplicateIds = ranker.nearDuplicateIds(analyzed, baselineHashes)
         analyzed.filter { it.localId in duplicateIds }.forEach {
             photos.updateAnalysis(it.localId, AnalysisState.FILTERED)

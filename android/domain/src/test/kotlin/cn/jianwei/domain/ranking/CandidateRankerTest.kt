@@ -48,6 +48,21 @@ class CandidateRankerTest {
     }
 
     @Test
+    fun `unique eligible count excludes historical and current batch duplicates`() {
+        val previousBatchDuplicate = candidate(1, hash = 0b1111_0001, quality = 0.99)
+        val currentBest = candidate(2, hash = 0b1010, quality = 0.95)
+        val currentDuplicate = candidate(3, hash = 0b1011, quality = 0.9)
+        val unique = candidate(4, hash = 0b1111_0000_0000, quality = 0.8)
+
+        val count = CandidateRanker().uniqueEligibleCount(
+            listOf(previousBatchDuplicate, currentDuplicate, unique, currentBest),
+            existingHashes = listOf(0b1111_0000L)
+        )
+
+        assertThat(count).isEqualTo(2)
+    }
+
+    @Test
     fun `positive local topic affinity promotes matching labels`() {
         val preferred = candidate(1, hash = 0xFF, quality = 0.80, labels = listOf("toothbrush"))
         val other = candidate(2, hash = 0xFF00, quality = 0.90, labels = listOf("kettle"))

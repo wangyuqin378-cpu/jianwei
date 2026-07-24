@@ -13,7 +13,7 @@ data class CardSupplyPlan(
 
 data class PrivacyBatchPlan(
     val maxInspections: Int,
-    val targetLocallyEligibleCandidates: Int?
+    val targetUniqueEligibleCandidates: Int?
 )
 
 /**
@@ -56,31 +56,32 @@ fun shouldContinueCardSupply(
 }
 
 /**
- * Automatic discovery moves on as soon as twelve locally safe candidates are available, while
- * allowing a bounded amount of over-sampling for blurred or private photos. Explicit imports are
- * direct user requests, so every image in the accepted batch is inspected before the next stage.
+ * Automatic discovery moves on as soon as twelve locally safe, non-duplicate candidates are
+ * available, while allowing a bounded amount of over-sampling for blurred, private, or repeated
+ * photos. Explicit imports are direct user requests, so every image in the accepted batch is
+ * inspected before the next stage.
  */
 fun privacyBatchPlan(mode: CardSupplyMode): PrivacyBatchPlan = when (mode) {
     CardSupplyMode.AUTOMATIC_DISCOVERY -> PrivacyBatchPlan(
         maxInspections = MAX_AUTOMATIC_CANDIDATES_PER_RUN,
-        targetLocallyEligibleCandidates = INITIAL_LOCALLY_ELIGIBLE_TARGET
+        targetUniqueEligibleCandidates = INITIAL_UNIQUE_ELIGIBLE_TARGET
     )
     CardSupplyMode.EXPLICIT_IMPORT -> PrivacyBatchPlan(
         maxInspections = MAX_EXPLICIT_IMPORTS_PER_RUN,
-        targetLocallyEligibleCandidates = null
+        targetUniqueEligibleCandidates = null
     )
 }
 
 fun shouldContinuePrivacyBatch(
     plan: PrivacyBatchPlan,
     inspectedCandidates: Int,
-    locallyEligibleCandidates: Int
+    uniqueEligibleCandidates: Int
 ): Boolean {
     require(inspectedCandidates >= 0)
-    require(locallyEligibleCandidates >= 0)
+    require(uniqueEligibleCandidates >= 0)
     if (inspectedCandidates >= plan.maxInspections) return false
-    return plan.targetLocallyEligibleCandidates
-        ?.let { locallyEligibleCandidates < it }
+    return plan.targetUniqueEligibleCandidates
+        ?.let { uniqueEligibleCandidates < it }
         ?: true
 }
 
@@ -88,4 +89,4 @@ const val CARD_CACHE_LOW_WATER_MARK = 7
 const val CARD_CACHE_REFILL_TARGET = 14
 const val MAX_AUTOMATIC_CANDIDATES_PER_RUN = 24
 const val MAX_EXPLICIT_IMPORTS_PER_RUN = 20
-const val INITIAL_LOCALLY_ELIGIBLE_TARGET = 12
+const val INITIAL_UNIQUE_ELIGIBLE_TARGET = 12

@@ -8,6 +8,11 @@ import java.time.Instant
 import kotlin.math.max
 
 class CandidateRanker {
+    fun uniqueEligibleCount(candidates: List<PhotoCandidate>, existingHashes: Collection<Long>): Int {
+        val eligible = candidates.filter { it.sensitiveFlags.isEmpty() && it.qualityScore >= 0.35 }
+        return eligible.size - nearDuplicateIds(eligible, existingHashes).size
+    }
+
     fun nearDuplicateIds(candidates: List<PhotoCandidate>, existingHashes: Collection<Long>): Set<Long> {
         val acceptedHashes = existingHashes.toMutableList()
         val duplicates = mutableSetOf<Long>()
