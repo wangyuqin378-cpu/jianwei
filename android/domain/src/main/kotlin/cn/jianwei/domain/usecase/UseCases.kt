@@ -20,6 +20,19 @@ class StartDiscoveryUseCase(
         }
 }
 
+class ConfigurePhotoAccessUseCase(
+    private val scheduler: AnalysisScheduler
+) {
+    suspend operator fun invoke(access: PhotoAccess) {
+        if (access == PhotoAccess.PICKER_ONLY) {
+            scheduler.stopAutomaticDiscovery()
+            return
+        }
+        scheduler.scheduleInitialScan(access)
+        scheduler.scheduleDailyRefresh()
+    }
+}
+
 class SubmitFeedbackUseCase(private val cards: CardRepository) {
     suspend operator fun invoke(cardId: String, action: FeedbackAction) = cards.sendFeedback(cardId, action)
 }

@@ -166,6 +166,10 @@ const userOperationGate = await readFile(path.join(root, "android", "app", "src"
 const shareReceiver = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ShareReceiverActivity.kt"), "utf8");
 const pendingImportResultStore = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "PendingImportResultStore.kt"), "utf8");
 const importPhotosUseCase = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportPhotosUseCase.kt"), "utf8");
+const discoveryUseCases = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "UseCases.kt"), "utf8");
+const configurePhotoAccessTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "usecase", "ConfigurePhotoAccessUseCaseTest.kt"), "utf8");
+const automaticDiscoveryControlDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "AutomaticDiscoveryControlInstrumentedTest.kt"), "utf8");
+const photoAccessPresentationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "PhotoAccessPresentationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
@@ -882,6 +886,25 @@ check(!mainViewModel.includes("init {\n        if (!scheduler.isPaused()) schedu
 for (const marker of ["shouldScheduleAutomaticDiscovery", "PhotoAccess.PICKER_ONLY", "不会自动扫描", "先选择一张照片", "分析已暂停"]) {
   check(discoveryUiPolicy.includes(marker), `Permission-aware empty discovery policy is missing marker: ${marker}`);
 }
+for (const marker of ["class ConfigurePhotoAccessUseCase", "scheduler.stopAutomaticDiscovery()", "scheduler.scheduleInitialScan(access)", "scheduler.scheduleDailyRefresh()"]) {
+  check(discoveryUseCases.includes(marker), `Reversible automatic-discovery use case is missing marker: ${marker}`);
+}
+for (const marker of ["returning to picker only cancels every automatic discovery chain", "enabling automatic discovery starts initial and daily work"]) {
+  check(configurePhotoAccessTest.includes(marker), `Reversible automatic-discovery test is missing marker: ${marker}`);
+}
+check(
+  mainActivity.includes("onManageAutomaticDiscovery") &&
+    mainActivity.includes("photoPermission.launch(requiredPhotoPermissions())") &&
+    discoveryUiPolicy.includes('actionLabel = "开启自动发现"') &&
+    discoveryUiPolicy.includes('actionLabel = "调整可访问照片"'),
+  "Post-onboarding automatic-discovery control is missing or not wired to the system permission launcher"
+);
+for (const marker of ["awaitPermissionController", "开启自动发现", "照片发现方式"]) {
+  check(automaticDiscoveryControlDeviceTest.includes(marker), `Automatic-discovery permission UI evidence is missing marker: ${marker}`);
+}
+for (const marker of ["PhotoAccess.PICKER_ONLY", "PhotoAccess.PARTIAL", "PhotoAccess.FULL", "调整可访问照片", "全部授权照片"]) {
+  check(photoAccessPresentationDeviceTest.includes(marker), `Photo-access presentation evidence is missing marker: ${marker}`);
+}
 for (const marker of ["AnalysisPhase.QUEUED", "AnalysisPhase.SCANNING", "AnalysisPhase.FILTERING", "AnalysisPhase.SYNCING", "AnalysisPhase.NO_MATCH", "AnalysisPhase.RETRYING", "AnalysisPhase.FAILED", "EmptyDiscoveryAction.RETRY"]) {
   check(discoveryUiPolicy.includes(marker), "Truthful first-card UI state is missing marker: " + marker);
 }
@@ -1250,7 +1273,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

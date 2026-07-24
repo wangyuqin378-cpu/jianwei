@@ -33,6 +33,19 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
+    fun `automatic discovery can be enabled or adjusted after onboarding`() {
+        assertThat(automaticDiscoveryControl(PhotoAccess.FULL)).isNull()
+        assertThat(automaticDiscoveryControl(PhotoAccess.PARTIAL)?.actionLabel)
+            .isEqualTo("调整可访问照片")
+        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.actionLabel)
+            .isEqualTo("开启自动发现")
+        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.explanation)
+            .contains("持续补充未来卡片")
+        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.emphasized).isTrue()
+        assertThat(automaticDiscoveryControl(PhotoAccess.PARTIAL)?.emphasized).isFalse()
+    }
+
+    @Test
     fun `paused analysis is surfaced when existing cards would otherwise hide it`() {
         assertThat(shouldShowPausedAnalysisBanner(paused = true, hasCards = true)).isTrue()
         assertThat(shouldShowPausedAnalysisBanner(paused = true, hasCards = false)).isFalse()

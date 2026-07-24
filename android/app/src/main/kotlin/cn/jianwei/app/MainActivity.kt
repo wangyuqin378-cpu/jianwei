@@ -170,8 +170,8 @@ class MainActivity : ComponentActivity() {
                     }
                     viewModel.importUris(uris.map(Uri::toString))
                 }
-                val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-                    completeOnboarding()
+                val photoPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+                    if (!onboarded) completeOnboarding()
                     photoAccess = currentPhotoAccess(context)
                     viewModel.startDiscovery(photoAccess)
                 }
@@ -204,7 +204,7 @@ class MainActivity : ComponentActivity() {
                     Onboarding(
                         onAutomatic = { interests ->
                             if (viewModel.updateInterests(interests, announce = false)) {
-                                permission.launch(requiredPhotoPermissions())
+                                photoPermission.launch(requiredPhotoPermissions())
                             }
                         },
                         onPick = { interests ->
@@ -226,6 +226,9 @@ class MainActivity : ComponentActivity() {
                         state = state,
                         access = photoAccess,
                         onPick = choosePhotos,
+                        onManageAutomaticDiscovery = {
+                            photoPermission.launch(requiredPhotoPermissions())
+                        },
                         onAddWidget = addWidget,
                         onFeedback = viewModel::feedback,
                         onSetSaved = viewModel::setSaved,
@@ -682,6 +685,7 @@ private fun HomeScreen(
     state: MainUiState,
     access: PhotoAccess,
     onPick: () -> Unit,
+    onManageAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
     onFeedback: (String, FeedbackAction) -> Unit,
     onSetSaved: (String, Boolean) -> Unit,
@@ -913,7 +917,19 @@ private fun HomeScreen(
                     InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
                 }
                 item {
-                    PrivacyCenter(access, state.paused, actionsEnabled, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
+                    PrivacyCenter(
+                        access,
+                        state.paused,
+                        actionsEnabled,
+                        onPick,
+                        onManageAutomaticDiscovery,
+                        onAddWidget,
+                        onPause,
+                        onResume,
+                        onClearIndex,
+                        onDeleteCloud,
+                        onExportMetrics
+                    )
                 }
             }
         }
@@ -1628,6 +1644,7 @@ private fun PrivacyCenter(
     paused: Boolean,
     actionsEnabled: Boolean,
     onPick: () -> Unit,
+    onManageAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
@@ -1635,6 +1652,7 @@ private fun PrivacyCenter(
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit
 ) {
+    val automaticControl = automaticDiscoveryControl(access)
     var showCloudDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     Card(
@@ -1661,6 +1679,27 @@ private fun PrivacyCenter(
             }
             if (expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (automaticControl != null) {
+                        Text(
+                            "照片发现方式",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(automaticControl.explanation, style = MaterialTheme.typography.bodySmall)
+                        if (automaticControl.emphasized) {
+                            Button(
+                                onClick = onManageAutomaticDiscovery,
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = actionsEnabled
+                            ) { Text(automaticControl.actionLabel) }
+                        } else {
+                            OutlinedButton(
+                                onClick = onManageAutomaticDiscovery,
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = actionsEnabled
+                            ) { Text(automaticControl.actionLabel) }
+                        }
+                    }
                     OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
                     OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("添加桌面组件") }
                     OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {

@@ -18,6 +18,7 @@ import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
 import cn.jianwei.domain.usecase.ImportPhotosUseCase
+import cn.jianwei.domain.usecase.ConfigurePhotoAccessUseCase
 import cn.jianwei.domain.usecase.ImportedPhotoResultResolution
 import cn.jianwei.domain.usecase.resolveImportedPhotoResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,6 +66,7 @@ class MainViewModel @Inject constructor(
     private val betaMetrics: BetaMetricsStore,
     private val itemReminders: ItemReminderScheduler,
     private val importPhotos: ImportPhotosUseCase,
+    private val configurePhotoAccess: ConfigurePhotoAccessUseCase,
     private val operationGate: UserOperationGate,
     private val pendingImportResults: PendingImportResultStore
 ) : ViewModel() {
@@ -170,8 +172,16 @@ class MainViewModel @Inject constructor(
     }
 
     fun startDiscovery(access: PhotoAccess) = runBusy(UserOperation.START_DISCOVERY) {
-        if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
-        discoveryStartMessage(access)
+        configurePhotoAccess(access)
+        if (scheduler.isPaused()) {
+            if (shouldScheduleAutomaticDiscovery(access)) {
+                "照片访问范围已更新；恢复分析后才会继续自动发现"
+            } else {
+                "自动发现已关闭；分析仍处于暂停状态"
+            }
+        } else {
+            discoveryStartMessage(access)
+        }
     }
 
     fun ensureDailyRefresh(access: PhotoAccess) {

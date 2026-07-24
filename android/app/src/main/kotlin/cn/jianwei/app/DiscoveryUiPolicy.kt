@@ -18,6 +18,26 @@ internal data class HomeActivityIndicator(
     val stateDescription: String
 )
 
+internal data class AutomaticDiscoveryControl(
+    val actionLabel: String,
+    val explanation: String,
+    val emphasized: Boolean
+)
+
+internal fun automaticDiscoveryControl(access: PhotoAccess): AutomaticDiscoveryControl? = when (access) {
+    PhotoAccess.FULL -> null
+    PhotoAccess.PARTIAL -> AutomaticDiscoveryControl(
+        actionLabel = "调整可访问照片",
+        explanation = "自动发现目前只会查看你在系统中选中的照片。",
+        emphasized = false
+    )
+    PhotoAccess.PICKER_ONLY -> AutomaticDiscoveryControl(
+        actionLabel = "开启自动发现",
+        explanation = "开启后，见微会先在本机筛选最近照片，并持续补充未来卡片。",
+        emphasized = true
+    )
+}
+
 internal fun photoAccessSummary(access: PhotoAccess): String = when (access) {
     PhotoAccess.FULL -> "自动发现已开启 · 全部授权照片"
     PhotoAccess.PARTIAL -> "自动发现已开启 · 仅限你选中的照片"
