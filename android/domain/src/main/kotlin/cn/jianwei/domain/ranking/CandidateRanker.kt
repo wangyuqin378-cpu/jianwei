@@ -46,18 +46,23 @@ class CandidateRanker {
             .toList()
 
         val selected = mutableListOf<PhotoCandidate>()
-        val sameDayOverflow = mutableListOf<PhotoCandidate>()
+        val diversityOverflow = mutableListOf<PhotoCandidate>()
         for (candidate in accepted) {
             val duplicate = selected.any { other -> isNearDuplicate(candidate, other) }
             val sameDayOverrepresented = selected.count {
                 ChinaCalendar.dateOf(it.capturedAt) == ChinaCalendar.dateOf(candidate.capturedAt)
             } >= 2
-            if (!duplicate && sameDayOverrepresented) sameDayOverflow += candidate
-            if (!duplicate && !sameDayOverrepresented) selected += candidate
+            val labelKey = diversityLabelKey(candidate)
+            val sameLabelGroupOverrepresented = labelKey != null && selected.count {
+                diversityLabelKey(it) == labelKey
+            } >= 2
+            val overrepresented = sameDayOverrepresented || sameLabelGroupOverrepresented
+            if (!duplicate && overrepresented) diversityOverflow += candidate
+            if (!duplicate && !overrepresented) selected += candidate
             if (selected.size == limit) break
         }
         if (selected.size < limit) {
-            for (candidate in sameDayOverflow) {
+            for (candidate in diversityOverflow) {
                 if (selected.none { other -> isNearDuplicate(candidate, other) }) selected += candidate
                 if (selected.size == limit) break
             }
@@ -68,6 +73,18 @@ class CandidateRanker {
     private fun isNearDuplicate(candidate: PhotoCandidate, other: PhotoCandidate): Boolean =
         candidate.perceptualHash != null && other.perceptualHash != null &&
             java.lang.Long.bitCount(candidate.perceptualHash xor other.perceptualHash) <= MAX_HASH_DISTANCE
+
+    private fun diversityLabelKey(candidate: PhotoCandidate): String? {
+        val labels = candidate.localLabels
+            .asSequence()
+            .map(::normalize)
+            .filter { it.length >= 2 }
+            .distinct()
+            .take(2)
+            .sorted()
+            .toList()
+        return labels.takeIf { it.size == 2 }?.joinToString("|")
+    }
 
     private fun score(
         candidate: PhotoCandidate,

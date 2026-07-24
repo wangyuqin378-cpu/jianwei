@@ -142,6 +142,8 @@ const deferredCandidateSelector = await readFile(path.join(root, "android", "dat
 const deferredCandidateSelectorDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelectorInstrumentedTest.kt"), "utf8");
 const privacyExecutionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "PrivacyExecutionGate.kt"), "utf8");
 const privacyExecutionGateTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "work", "PrivacyExecutionGateTest.kt"), "utf8");
+const candidateRanker = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "ranking", "CandidateRanker.kt"), "utf8");
+const candidateRankerTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "ranking", "CandidateRankerTest.kt"), "utf8");
 const uploadExecutionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "UploadExecutionGate.kt"), "utf8");
 const workManagerScheduler = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "WorkManagerScheduler.kt"), "utf8");
 const jpegMetadataGuard = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "JpegMetadataGuard.kt"), "utf8");
@@ -517,6 +519,13 @@ check(
     deferredCandidateSelectorDeviceTest.includes('topicId = "traffic_light"') &&
     deferredCandidateSelectorDeviceTest.includes('"Traffic light"'),
   "Feedback-driven deferred refill is missing its multi-word real-Room regression"
+);
+check(
+  candidateRanker.includes("diversityLabelKey") &&
+    candidateRanker.includes("sameLabelGroupOverrepresented") &&
+    candidateRankerTest.includes("prefers other local label groups before repeating one object category") &&
+    candidateRankerTest.includes("fills requested supply when only one local label group is available"),
+  "Candidate ranking can fill the rolling cache with one local object category or cannot fall back when supply is narrow"
 );
 for (const marker of ["malformed values fail to defaults", "never exceeds three", "ranking terms derive only"]) {
   check(interestPreferencePolicyTest.includes(marker), `Interest preference policy test is missing marker: ${marker}`);

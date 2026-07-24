@@ -54,6 +54,46 @@ class CandidateRankerTest {
     }
 
     @Test
+    fun `prefers other local label groups before repeating one object category`() {
+        val repeatedLabels = listOf("Vehicle", "Bicycle", "Wheel")
+        val result = CandidateRanker().rank(
+            listOf(
+                candidate(1, 0xFF, 0.95, labels = repeatedLabels, capturedAt = now.minusSeconds(86_400)),
+                candidate(2, 0xFF00, 0.94, labels = repeatedLabels, capturedAt = now.minusSeconds(172_800)),
+                candidate(3, 0xFF0000, 0.93, labels = repeatedLabels, capturedAt = now.minusSeconds(259_200)),
+                candidate(4, 0xFF000000, 0.92, labels = repeatedLabels, capturedAt = now.minusSeconds(345_600)),
+                candidate(5, 0xFF00000000, 0.60, labels = listOf("Kitchen", "Kettle"), capturedAt = now.minusSeconds(432_000)),
+                candidate(6, 0xFF0000000000, 0.55, labels = listOf("Cleaning", "Broom"), capturedAt = now.minusSeconds(518_400))
+            ),
+            emptySet(),
+            now,
+            4
+        )
+
+        assertThat(result.map { it.localId }).containsExactly(1L, 2L, 5L, 6L).inOrder()
+    }
+
+    @Test
+    fun `fills requested supply when only one local label group is available`() {
+        val result = CandidateRanker().rank(
+            (1L..5L).map { id ->
+                candidate(
+                    id,
+                    hash = 0xFFL shl ((id.toInt() - 1) * 8),
+                    quality = 0.9,
+                    labels = listOf("Vehicle", "Bicycle"),
+                    capturedAt = now.minusSeconds(86_400 * id)
+                )
+            },
+            emptySet(),
+            now,
+            5
+        )
+
+        assertThat(result.map { it.localId }).containsExactly(1L, 2L, 3L, 4L, 5L).inOrder()
+    }
+
+    @Test
     fun `marks lower-quality duplicates across batches and within the current batch`() {
         val best = candidate(1, hash = 0b1010, quality = 0.95)
         val currentDuplicate = candidate(2, hash = 0b1011, quality = 0.9)
