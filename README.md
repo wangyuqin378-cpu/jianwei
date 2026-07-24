@@ -23,9 +23,9 @@
 9. 收藏、反馈、提醒、扫描控制和数据删除等用户操作使用单一原子入口串行执行；操作期间冲突按钮禁用，顶部显示具体操作进度，后台照片分析状态不会冒充当前用户操作。
 10. Android 分享入口与照片选择器共用同一导入用例和进程级操作门。分享确认后先复制到 App 私有空间；分析暂停时不创建后台任务，冲突或不可读时停留原页并允许重试，成功后复用唯一主界面并展示经过边界校验的结果。
 
-2026-07-24 当前权威本地基线：Android 38 个 JVM 套件 146/146，Android 14/API 34 设备测试
-56/56（App 6、Data 50）；App Debug/Release Lint 均为 0 error、32 条非阻断 warning，Debug 与 R8 Release 均重建成功。
-后端 TypeScript check/build 与 98/98 项基础测试通过；隔离 PostgreSQL 17.10 已三次执行全部 13 个迁移，
+2026-07-25 当前权威本地基线：Android 43 个 JVM 套件 176/176，Android 14/API 34 设备测试
+69/69（App 11、Data 58）；App/Data Debug/Release Lint 均为 0 error，分别有 42/22 条非阻断 warning，Debug 与 R8 Release 均重建成功。
+后端 TypeScript check/build 与 112/112 项基础测试通过；隔离 PostgreSQL 17.10 已再次执行全部 13 个迁移，
 13/13 项真实仓储/升级测试及编译服务 TCP E2E 通过。迁移 13 已验证旧卡片对象名回填、非空长度约束和
 `detectedObjectName` 持久化；证据位于 `.tooling/postgres-integration-results-macos/`。
 
@@ -70,10 +70,11 @@ pnpm dev
 
 本地演示可在 `.env` 中使用 `ALLOW_UNATTESTED_FACTS=true`。OSS 模式会拒绝该开关；真实发布只允许带真人审核签注的事实进入卡片。
 
-Kimi 已作为独立视觉与标题 Provider 接入。生产环境使用 `VISION_PROVIDER=kimi` 时，只接受
+Kimi 已作为独立视觉 Provider 接入。生产环境使用 `VISION_PROVIDER=kimi` 时，只接受
 `https://api.moonshot.cn/v1`、`kimi-k3` 和 Kimi Open Platform 服务端密钥；Kimi Code 会员密钥及
 `https://api.kimi.com/coding/v1` 仅允许本地工程验证，不能作为面向 Beta 用户的生产凭据。两种
-路径都继续执行同一套端侧过滤、服务端敏感分类、Zod Schema、人工事实绑定、成本熔断和立即删除。
+路径都继续执行同一套端侧过滤、服务端敏感分类、Zod Schema、人工事实绑定、成本熔断和立即删除。Qwen/Kimi
+都只执行一次视觉识别；标题由服务端稳定生成，正文和来源直接取自审核目录，不再为标题发起第二次模型调用。
 
 ## Android 构建
 

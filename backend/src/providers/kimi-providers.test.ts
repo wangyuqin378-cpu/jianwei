@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { KimiCardWriter, KimiVisionProvider } from "./kimi-providers.js";
+import { KimiVisionProvider } from "./kimi-providers.js";
 
 function entity(content: Record<string, unknown>, finishReason = "stop") {
   return JSON.stringify({ choices: [{ finish_reason: finishReason, message: { content: JSON.stringify(content) } }] });
@@ -66,20 +66,5 @@ describe("Kimi provider contract", () => {
     await expect(new KimiVisionProvider({ apiKey: "test", model: "kimi-k3", fetchImpl })
       .detect({ image: Buffer.from([0xff, 0xd8, 0xff]), localLabels: [] }))
       .rejects.toMatchObject({ code: "vision_provider_unavailable", message: "视觉服务暂时不可用" });
-  });
-
-  it("keeps reviewed fact and source identifiers immutable", async () => {
-    const fetchImpl = (async () => new Response(entity({
-      title: "扫帚的设计细节",
-      factId: "broom-001",
-      sourceIds: ["source-one"]
-    }), { status: 200 })) as typeof fetch;
-    const writer = new KimiCardWriter({ apiKey: "test", model: "kimi-k3", fetchImpl });
-    await expect(writer.write({
-      entity: { canonicalTopicId: "broom", displayName: "扫帚", confidence: 0.9, boundingBox: null, alternatives: [], sensitiveFlags: [] },
-      fact: { factId: "broom-001", topicId: "broom", factText: "人工审核事实", sourceIds: ["source-one"], riskLevel: "general", reviewStatus: "approved" },
-      sources: [{ sourceId: "source-one", title: "Source", url: "https://example.com", publisher: "Example", authority: "reference" }],
-      personalContext: "测试"
-    })).resolves.toEqual({ title: "扫帚的设计细节", factId: "broom-001", sourceIds: ["source-one"] });
   });
 });

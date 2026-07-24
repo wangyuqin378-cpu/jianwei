@@ -65,13 +65,6 @@ export const detectedEntitySchema = z.object({
   ])).max(8)
 }).strict();
 
-export const cardDraftSchema = z.object({
-  title: z.string().min(2).max(30),
-  factId: z.string().min(1).max(100),
-  sourceIds: z.array(z.string().min(1).max(100)).min(1).max(3)
-    .refine((ids) => new Set(ids).size === ids.length, "sourceIds must be unique")
-}).strict();
-
 const sourceSchema = z.object({
   sourceId: z.string().trim().min(1).max(100),
   title: z.string().trim().min(1).max(200),

@@ -95,6 +95,11 @@ try {
   assertUuid(card?.cardId, "cardId");
   assert(card.candidateToken === broomCandidate, "card candidate token does not match the submitted candidate");
   assert(card.topicId === "broom", "local vision did not normalize broom topic");
+  assert(card.detectedObjectName === "扫帚", "card did not retain the reviewed catalog object name");
+  assert(
+    typeof card.title === "string" && card.title.includes("扫帚") && Array.from(card.title).length <= 30,
+    "card did not receive a bounded server-generated title"
+  );
   assert(typeof card.body === "string" && card.body.length >= 20, "card fact body is missing");
   assert(Array.isArray(card.sources) && card.sources.length >= 1, "card has no source");
   assert(card.sources.every((source) => /^https:\/\//.test(source.url)), "card contains a non-HTTPS source");
@@ -170,6 +175,7 @@ try {
       oneTimeUpload: true,
       uploadReplayRejected: true,
       analysisComplete: true,
+      deterministicServerTitle: true,
       terminalCandidateIdempotent: true,
       cardSync: true,
       feedback: true,
@@ -180,7 +186,7 @@ try {
       objectFilesRemaining: 0
     }
   };
-  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 complete=1 idempotent=1 cards=1 feedback=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
+  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
   await writeFile(resultJsonPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   await writeFile(resultTextPath, `${summary}\n`, "utf8");
   process.stdout.write(`${summary}\n`);

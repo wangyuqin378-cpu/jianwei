@@ -1,5 +1,5 @@
-import type { CardDraft, CardWriter, DetectedEntity, KnowledgeFact, KnowledgeSource, VisionProvider } from "../domain/types.js";
-import { cardDraftSchema, detectedEntitySchema } from "../domain/schemas.js";
+import type { DetectedEntity, VisionProvider } from "../domain/types.js";
+import { detectedEntitySchema } from "../domain/schemas.js";
 import { AppError, invariant } from "../errors.js";
 
 interface KimiOptions {
@@ -50,24 +50,6 @@ const detectedEntityFormat = {
         }
       },
       required: ["canonicalTopicId", "displayName", "confidence", "boundingBox", "alternatives", "sensitiveFlags"]
-    }
-  }
-} as const;
-
-const cardDraftFormat = {
-  type: "json_schema",
-  json_schema: {
-    name: "jianwei_card_title",
-    strict: true,
-    schema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        title: { type: "string" },
-        factId: { type: "string" },
-        sourceIds: { type: "array", items: { type: "string" }, uniqueItems: true }
-      },
-      required: ["title", "factId", "sourceIds"]
     }
   }
 } as const;
@@ -132,43 +114,5 @@ export class KimiVisionProvider implements VisionProvider {
     const parsed = detectedEntitySchema.safeParse(raw);
     if (!parsed.success) throw new AppError("invalid_model_schema", "视觉服务返回结构无效", 502);
     return parsed.data;
-  }
-}
-
-export class KimiCardWriter implements CardWriter {
-  constructor(private readonly options: KimiOptions) {}
-
-  async write(input: {
-    entity: DetectedEntity;
-    fact: KnowledgeFact;
-    sources: KnowledgeSource[];
-    personalContext: string;
-  }): Promise<CardDraft> {
-    const raw = await callKimi(this.options, [{
-      role: "system",
-      content: "你是知识卡标题编辑。只能生成标题，不得输出或改写正文，不得增加事实、数字、建议或来源。输出 JSON。"
-    }, {
-      role: "user",
-      content: [
-        `物件：${input.entity.displayName}`,
-        `审核事实：${input.fact.factText}`,
-        `factId：${input.fact.factId}`,
-        `sourceIds：${input.sources.map((source) => source.sourceId).join(",")}`,
-        "你只能生成 2-30 字标题；正文由服务端直接使用人工审核事实，禁止输出或改写正文。不确定时标题使用“这可能是…”。原样返回 factId 和 sourceIds。"
-      ].join("\n")
-    }], cardDraftFormat);
-    const parsed = cardDraftSchema.safeParse(raw);
-    if (!parsed.success) throw new AppError("invalid_model_schema", "卡片服务返回结构无效", 502);
-    const draft = parsed.data;
-    invariant(draft.factId === input.fact.factId, "model_changed_fact", "模型修改了 factId", 502);
-    invariant(
-      draft.sourceIds.length === input.sources.length &&
-        new Set(draft.sourceIds).size === draft.sourceIds.length &&
-        draft.sourceIds.every((id) => input.sources.some((source) => source.sourceId === id)),
-      "model_changed_sources",
-      "模型修改了来源",
-      502
-    );
-    return draft;
   }
 }

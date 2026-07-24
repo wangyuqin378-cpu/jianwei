@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { cardTitleForConfidence, UNCERTAIN_OBJECT_CONFIDENCE } from "./card-presentation.js";
+import { cardTitleForConfidence, composeCardTitle, UNCERTAIN_OBJECT_CONFIDENCE } from "./card-presentation.js";
+
+describe("composeCardTitle", () => {
+  it("creates a stable, safe title without model-written facts", () => {
+    const first = composeCardTitle(" 扫帚 ", "broom-001");
+    expect(first).toBe(composeCardTitle("扫帚", "broom-001"));
+    expect(first).toContain("扫帚");
+    expect(Array.from(first).length).toBeLessThanOrEqual(30);
+  });
+
+  it("varies safe phrasing between facts and bounds long object names", () => {
+    const titles = new Set(["a", "b", "c", "d", "e", "f"].map((factId) => composeCardTitle("牙刷", factId)));
+    expect(titles.size).toBe(3);
+    expect(Array.from(composeCardTitle("很长".repeat(30), "fact-long"))).toHaveLength(30);
+  });
+
+  it("fails closed when the catalog identity is missing", () => {
+    expect(() => composeCardTitle(" ", "fact")).toThrow("invalid");
+    expect(() => composeCardTitle("扫帚", " ")).toThrow("invalid");
+  });
+});
 
 describe("cardTitleForConfidence", () => {
   it("replaces a confident generated headline with explicit uncertainty below the threshold", () => {

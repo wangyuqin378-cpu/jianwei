@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { QwenCardWriter, QwenProviderError, QwenVisionProvider } from "./qwen-providers.js";
+import { QwenProviderError, QwenVisionProvider } from "./qwen-providers.js";
 
 describe("Qwen server-side image safety contract", () => {
   it("enables provider inspection and accepts only structured sensitive flags", async () => {
@@ -137,69 +137,5 @@ describe("Qwen server-side image safety contract", () => {
       upstreamStatus: 400,
       upstreamCode: "Model.NotFound"
     });
-  });
-});
-
-describe("Qwen title-only card contract", () => {
-  const input = {
-    entity: {
-      canonicalTopicId: "broom",
-      displayName: "扫帚",
-      confidence: 0.9,
-      boundingBox: null,
-      alternatives: [],
-      sensitiveFlags: [] as []
-    },
-    fact: {
-      factId: "broom-001",
-      topicId: "broom",
-      factText: "这是一条已经经过人工审核并且会由服务端原样发布的测试知识正文。",
-      sourceIds: ["source-one"],
-      riskLevel: "general" as const,
-      reviewStatus: "approved" as const
-    },
-    sources: [{
-      sourceId: "source-one",
-      title: "Source",
-      url: "https://example.com/source",
-      publisher: "Example",
-      authority: "reference" as const
-    }],
-    personalContext: "测试上下文"
-  };
-
-  it("accepts only a title plus unchanged fact and source identifiers", async () => {
-    let requestBody = "";
-    const fetchImpl = (async (_input: RequestInfo | URL, init?: RequestInit) => {
-      requestBody = String(init?.body ?? "");
-      return new Response(JSON.stringify({
-        choices: [{ message: { content: JSON.stringify({
-          title: "扫帚的设计细节",
-          factId: "broom-001",
-          sourceIds: ["source-one"]
-        }) } }]
-      }), { status: 200, headers: { "Content-Type": "application/json" } });
-    }) as typeof fetch;
-    const writer = new QwenCardWriter({ apiKey: "test-only", model: "fixed-model", fetchImpl });
-    await expect(writer.write(input)).resolves.toEqual({
-      title: "扫帚的设计细节",
-      factId: "broom-001",
-      sourceIds: ["source-one"]
-    });
-    expect(requestBody).toContain('\\"sourceIds\\":[\\"source-one\\"]');
-    expect(requestBody).toContain("不得增加其他字段");
-  });
-
-  it("rejects a model attempt to emit or rewrite the body", async () => {
-    const fetchImpl = (async () => new Response(JSON.stringify({
-      choices: [{ message: { content: JSON.stringify({
-        title: "扫帚的设计细节",
-        body: "模型擅自生成的正文绝不能进入卡片。",
-        factId: "broom-001",
-        sourceIds: ["source-one"]
-      }) } }]
-    }), { status: 200, headers: { "Content-Type": "application/json" } })) as typeof fetch;
-    const writer = new QwenCardWriter({ apiKey: "test-only", model: "fixed-model", fetchImpl });
-    await expect(writer.write(input)).rejects.toMatchObject({ code: "invalid_model_schema" });
   });
 });

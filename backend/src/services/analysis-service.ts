@@ -3,7 +3,6 @@ import type {
   AnalysisJob,
   AnalysisJobRepository,
   CardRepository,
-  CardWriter,
   Device,
   EvaluationJobAuthorization,
   KnowledgeCard,
@@ -12,7 +11,7 @@ import type {
   VisionProvider
 } from "../domain/types.js";
 import { AppError, invariant } from "../errors.js";
-import { cardTitleForConfidence } from "../domain/card-presentation.js";
+import { cardTitleForConfidence, composeCardTitle } from "../domain/card-presentation.js";
 import { isValidIsoCalendarDate } from "../domain/card-scheduling.js";
 import { KnowledgeCatalogService } from "./knowledge-catalog.js";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "../infrastructure/object-store.js";
@@ -42,7 +41,6 @@ export class AnalysisService {
     private readonly objects: ObjectStore,
     private readonly objectDeletions: ObjectDeletionRepository,
     private readonly vision: VisionProvider,
-    private readonly writer: CardWriter,
     private readonly knowledge: KnowledgeCatalogService,
     private readonly maxJobsPerDay: number,
     private readonly maxJobsPerMonth: number,
@@ -334,21 +332,6 @@ export class AnalysisService {
       // same object differently across its title, provenance, and body.
       const canonicalObjectName = topic.displayName;
       const personalContext = personalContextForPhoto(job.capturedAtBucket, canonicalObjectName);
-      const draft = await this.writer.write({
-        entity: { ...entity, canonicalTopicId: topic.topicId, displayName: canonicalObjectName },
-        fact: selection.fact,
-        sources: selection.sources,
-        personalContext
-      });
-      invariant(draft.factId === selection.fact.factId, "fact_id_mismatch", "卡片事实 ID 不匹配", 502);
-      invariant(
-        draft.sourceIds.length === selection.sources.length &&
-          new Set(draft.sourceIds).size === draft.sourceIds.length &&
-          draft.sourceIds.every((id) => selection.sources.some((source) => source.sourceId === id)),
-        "source_id_mismatch",
-        "卡片来源不匹配",
-        502
-      );
       if (await this.jobs.isCandidateSuppressed(device.id, job.candidateToken)) {
         throw new AppError("candidate_suppressed", "该候选已被当前匿名设备排除", 410);
       }
@@ -358,7 +341,11 @@ export class AnalysisService {
         candidateToken: job.candidateToken,
         topicId: topic.topicId,
         factId: selection.fact.factId,
-        title: cardTitleForConfidence(draft.title, canonicalObjectName, entity.confidence),
+        title: cardTitleForConfidence(
+          composeCardTitle(canonicalObjectName, selection.fact.factId),
+          canonicalObjectName,
+          entity.confidence
+        ),
         detectedObjectName: canonicalObjectName,
         body: selection.fact.factText,
         personalContext,

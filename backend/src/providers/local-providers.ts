@@ -1,4 +1,4 @@
-import type { CardDraft, CardWriter, DetectedEntity, KnowledgeFact, KnowledgeSource, VisionProvider } from "../domain/types.js";
+import type { DetectedEntity, VisionProvider } from "../domain/types.js";
 import { KnowledgeCatalogService } from "../services/knowledge-catalog.js";
 
 export class LocalVisionProvider implements VisionProvider {
@@ -23,21 +23,6 @@ export class LocalVisionProvider implements VisionProvider {
       boundingBox: null,
       alternatives: [],
       sensitiveFlags: []
-    };
-  }
-}
-
-export class TemplateCardWriter implements CardWriter {
-  async write(input: {
-    entity: DetectedEntity;
-    fact: KnowledgeFact;
-    sources: KnowledgeSource[];
-    personalContext: string;
-  }): Promise<CardDraft> {
-    return {
-      title: input.entity.confidence < 0.8 ? `这可能是${input.entity.displayName}` : input.entity.displayName,
-      factId: input.fact.factId,
-      sourceIds: input.sources.map((source) => source.sourceId)
     };
   }
 }

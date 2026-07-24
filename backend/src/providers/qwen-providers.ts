@@ -1,5 +1,5 @@
-import type { CardDraft, CardWriter, DetectedEntity, KnowledgeFact, KnowledgeSource, VisionProvider } from "../domain/types.js";
-import { cardDraftSchema, detectedEntitySchema } from "../domain/schemas.js";
+import type { DetectedEntity, VisionProvider } from "../domain/types.js";
+import { detectedEntitySchema } from "../domain/schemas.js";
 import { AppError, invariant } from "../errors.js";
 
 interface QwenOptions {
@@ -21,11 +21,10 @@ export class QwenProviderError extends AppError {
 
 export class QwenSchemaError extends AppError {
   constructor(
-    public readonly stage: "vision" | "card",
     public readonly receivedKeys: string[],
     public readonly issues: Array<{ path: string; code: string }>
   ) {
-    super("invalid_model_schema", stage === "vision" ? "视觉服务返回结构无效" : "卡片服务返回结构无效", 502);
+    super("invalid_model_schema", "视觉服务返回结构无效", 502);
   }
 }
 
@@ -99,57 +98,12 @@ export class QwenVisionProvider implements VisionProvider {
       ]
     }]);
     const parsed = detectedEntitySchema.safeParse(raw);
-    if (!parsed.success) throw schemaError("vision", raw, parsed.error.issues);
+    if (!parsed.success) throw schemaError(raw, parsed.error.issues);
     return parsed.data;
   }
 }
 
-export class QwenCardWriter implements CardWriter {
-  constructor(private readonly options: QwenOptions) {}
-
-  async write(input: {
-    entity: DetectedEntity;
-    fact: KnowledgeFact;
-    sources: KnowledgeSource[];
-    personalContext: string;
-  }): Promise<CardDraft> {
-    const raw = await callQwen(this.options, [{
-      role: "system",
-      content: "你是知识卡标题编辑。只能生成标题，不得输出或改写正文，不得增加事实、数字、建议或来源。输出 JSON。"
-    }, {
-      role: "user",
-      content: [
-        `物件：${input.entity.displayName}`,
-        `审核事实：${input.fact.factText}`,
-        `factId：${input.fact.factId}`,
-        `sourceIds：${input.sources.map((source) => source.sourceId).join(",")}`,
-        "你只能生成 2-30 字标题；正文由服务端直接使用人工审核事实，禁止输出或改写正文。不确定时标题使用“这可能是…”。",
-        `严格只返回这一 JSON 结构：${JSON.stringify({
-          title: "2-30字标题",
-          factId: input.fact.factId,
-          sourceIds: input.sources.map((source) => source.sourceId)
-        })}`,
-        "factId 必须是字符串；sourceIds 必须是 JSON 字符串数组，元素、数量和顺序都不得改变；不得增加其他字段。"
-      ].join("\n")
-    }]);
-    const parsed = cardDraftSchema.safeParse(raw);
-    if (!parsed.success) throw schemaError("card", raw, parsed.error.issues);
-    const draft = parsed.data;
-    invariant(draft.factId === input.fact.factId, "model_changed_fact", "模型修改了 factId", 502);
-    invariant(
-      draft.sourceIds.length === input.sources.length &&
-        new Set(draft.sourceIds).size === draft.sourceIds.length &&
-        draft.sourceIds.every((id) => input.sources.some((source) => source.sourceId === id)),
-      "model_changed_sources",
-      "模型修改了来源",
-      502
-    );
-    return draft;
-  }
-}
-
 function schemaError(
-  stage: "vision" | "card",
   raw: unknown,
   issues: ReadonlyArray<{ path: PropertyKey[]; code: string }>
 ): QwenSchemaError {
@@ -157,7 +111,6 @@ function schemaError(
     ? Object.keys(raw).filter((key) => /^[A-Za-z][A-Za-z0-9_]{0,79}$/.test(key)).slice(0, 12)
     : [];
   return new QwenSchemaError(
-    stage,
     receivedKeys,
     issues.slice(0, 12).map((issue) => ({
       path: issue.path.map(String).join(".").slice(0, 160),

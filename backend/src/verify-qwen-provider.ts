@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import { loadConfig } from "./config.js";
 import { isMainModule } from "./main-module.js";
 import {
-  QwenCardWriter,
   QwenProviderError,
   QwenSchemaError,
   QwenVisionProvider
@@ -121,37 +120,6 @@ async function verifyQwenProvider(
     baseUrl: config.dashscopeBaseUrl,
     additionalDataInspection
   }).detect({ image, localLabels: [] });
-  const draft = await new QwenCardWriter({
-    apiKey: credentials.apiKey,
-    model: config.qwenFlashModel,
-    baseUrl: config.dashscopeBaseUrl,
-    additionalDataInspection
-  }).write({
-    entity: {
-      canonicalTopicId: "broom",
-      displayName: "扫帚",
-      confidence: 0.95,
-      boundingBox: null,
-      alternatives: [],
-      sensitiveFlags: []
-    },
-    fact: {
-      factId: "provider-smoke-broom",
-      topicId: "broom",
-      factText: "扫帚刷毛的倾斜排列能让边缘更容易贴近墙角，也减少清扫时反复调整手腕的次数。",
-      sourceIds: ["provider-smoke-source"],
-      riskLevel: "general",
-      reviewStatus: "approved"
-    },
-    sources: [{
-      sourceId: "provider-smoke-source",
-      title: "Provider smoke source",
-      url: "https://example.com/provider-smoke",
-      publisher: "Jianwei verification",
-      authority: "reference"
-    }],
-    personalContext: "仅用于验证受约束标题生成"
-  });
   process.stdout.write(`${JSON.stringify({
     provider: "qwen",
     endpointRegion: "cn-beijing",
@@ -164,11 +132,8 @@ async function verifyQwenProvider(
       confidence: entity.confidence,
       sensitiveFlags: entity.sensitiveFlags
     },
-    titleWriter: {
-      title: draft.title,
-      factIdPreserved: draft.factId === "provider-smoke-broom",
-      sourceIdsPreserved: draft.sourceIds.length === 1 && draft.sourceIds[0] === "provider-smoke-source"
-    }
+    modelCallsPerCard: 1,
+    cardTitlePolicy: "deterministic_server_side"
   }, null, 2)}\n`);
 }
 
@@ -256,7 +221,7 @@ function writeSchemaDiagnostic(error: QwenSchemaError): void {
   process.stderr.write(`${JSON.stringify({
     provider: "qwen",
     verification: "schema_failed",
-    stage: error.stage,
+    stage: "vision",
     receivedKeys: error.receivedKeys,
     issues: error.issues
   })}\n`);

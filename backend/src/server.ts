@@ -6,7 +6,6 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import type {
   CardRepository,
-  CardWriter,
   Device,
   DeviceRepository,
   EvaluationLeaseDefinition,
@@ -33,9 +32,9 @@ import {
 } from "./infrastructure/object-store.js";
 import { KnowledgeCatalogService } from "./services/knowledge-catalog.js";
 import { AnalysisService } from "./services/analysis-service.js";
-import { LocalVisionProvider, TemplateCardWriter } from "./providers/local-providers.js";
-import { ConfidenceFallbackVisionProvider, QwenCardWriter, QwenVisionProvider } from "./providers/qwen-providers.js";
-import { KimiCardWriter, KimiVisionProvider } from "./providers/kimi-providers.js";
+import { LocalVisionProvider } from "./providers/local-providers.js";
+import { ConfidenceFallbackVisionProvider, QwenVisionProvider } from "./providers/qwen-providers.js";
+import { KimiVisionProvider } from "./providers/kimi-providers.js";
 import { loadBackendReleaseSha256 } from "./release-identity.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -82,7 +81,6 @@ export interface ServerOverrides {
   config?: AppConfig;
   knowledgePath?: string;
   vision?: VisionProvider;
-  writer?: CardWriter;
   objects?: ObjectStore;
   ossCredentials?: RotatingOssCredentialSource;
   evaluationLeases?: EvaluationLeaseDefinition[];
@@ -94,7 +92,6 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   const injectedServices = [
     overrides.knowledgePath,
     overrides.vision,
-    overrides.writer,
     overrides.objects,
     overrides.ossCredentials,
     overrides.evaluationLeases,
@@ -202,7 +199,6 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   await objects.verifyRetentionPolicy();
 
   let vision: VisionProvider = overrides.vision ?? new LocalVisionProvider(knowledge);
-  let writer: CardWriter = overrides.writer ?? new TemplateCardWriter();
   if (config.visionProvider === "qwen") {
     const apiKey = required(config.dashscopeApiKey, "DASHSCOPE_API_KEY");
     if (!overrides.vision) {
@@ -211,19 +207,11 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
         new QwenVisionProvider({ apiKey, model: config.qwenPlusModel, baseUrl: config.dashscopeBaseUrl })
       );
     }
-    if (!overrides.writer) writer = new QwenCardWriter({
-      apiKey,
-      model: config.qwenFlashModel,
-      baseUrl: config.dashscopeBaseUrl
-    });
   }
   if (config.visionProvider === "kimi") {
     const apiKey = required(config.kimiApiKey, "KIMI_API_KEY");
     if (!overrides.vision) {
       vision = new KimiVisionProvider({ apiKey, model: config.kimiModel, baseUrl: config.kimiBaseUrl });
-    }
-    if (!overrides.writer) {
-      writer = new KimiCardWriter({ apiKey, model: config.kimiModel, baseUrl: config.kimiBaseUrl });
     }
   }
   const analysis = new AnalysisService(
@@ -232,7 +220,6 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     objects,
     objectDeletions,
     vision,
-    writer,
     knowledge,
     config.maxJobsPerDevicePerDay,
     config.maxJobsPerDevicePerMonth,

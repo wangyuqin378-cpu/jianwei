@@ -138,12 +138,6 @@ export interface TrackedItem {
   createdAt: string;
 }
 
-export interface CardDraft {
-  title: string;
-  factId: string;
-  sourceIds: string[];
-}
-
 export interface DeviceRepository {
   register(installationHash: string, tokenHash: string): Promise<RegisteredDevice>;
   findByTokenHash(tokenHash: string): Promise<Device | null>;
@@ -269,8 +263,4 @@ export interface ObjectDeletionRepository {
 
 export interface VisionProvider {
   detect(input: { image: Buffer; imageUrl?: string; localLabels: string[] }): Promise<DetectedEntity>;
-}
-
-export interface CardWriter {
-  write(input: { entity: DetectedEntity; fact: KnowledgeFact; sources: KnowledgeSource[]; personalContext: string }): Promise<CardDraft>;
 }

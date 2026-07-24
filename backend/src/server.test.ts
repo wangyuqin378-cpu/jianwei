@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { AppConfig } from "./config.js";
-import type { CardWriter, EvaluationLeaseDefinition, VisionProvider } from "./domain/types.js";
+import type { EvaluationLeaseDefinition, VisionProvider } from "./domain/types.js";
 import { LocalObjectStore, RotatingOssCredentialSource } from "./infrastructure/object-store.js";
 import {
   buildServer,
@@ -435,18 +435,7 @@ describe("见微 API", () => {
         sensitiveFlags: []
       })
     };
-    const writer: CardWriter = {
-      write: async (input) => {
-        expect(input.entity.displayName).toBe("扫帚");
-        expect(input.personalContext).toContain("「扫帚」");
-        return {
-          title: "扫帚为什么这样设计",
-          factId: input.fact.factId,
-          sourceIds: input.sources.map((source) => source.sourceId)
-        };
-      }
-    };
-    const app = await buildServer({ config: testConfig(objectDir), vision, writer });
+    const app = await buildServer({ config: testConfig(objectDir), vision });
     const token = await register(app);
     const created = await app.inject({
       method: "POST",
@@ -553,7 +542,6 @@ describe("见微 API", () => {
 
   it("rejects a server-detected sensitive image even when a client reports no flags", async () => {
     const objectDir = await temporaryObjectDir();
-    let writerCalled = false;
     const vision: VisionProvider = {
       detect: async () => ({
         canonicalTopicId: "broom",
@@ -564,13 +552,7 @@ describe("见微 API", () => {
         sensitiveFlags: ["face"]
       })
     };
-    const writer: CardWriter = {
-      write: async () => {
-        writerCalled = true;
-        throw new Error("writer must not run for a sensitive image");
-      }
-    };
-    const app = await buildServer({ config: testConfig(objectDir), vision, writer });
+    const app = await buildServer({ config: testConfig(objectDir), vision });
     const token = await register(app);
     const created = await app.inject({
       method: "POST",
@@ -603,7 +585,6 @@ describe("见微 API", () => {
     expect(completed.statusCode).toBe(200);
     expect(completed.json().status).toBe("rejected");
     expect(completed.json().card).toBeNull();
-    expect(writerCalled).toBe(false);
     expect(cards.json().items).toEqual([]);
     expect(await readdir(objectDir)).toEqual([]);
     await app.close();
@@ -639,82 +620,6 @@ describe("见微 API", () => {
     expect(completed.json().card).toBeNull();
     const cards = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
     expect(cards.json().items).toEqual([]);
-    await app.close();
-  });
-
-  it.each([
-    {
-      name: "forged fact ID",
-      writer: {
-        write: async () => ({
-          title: "伪造事实",
-          body: "这是一条长度足够但事实标识不在服务端所选白名单中的伪造知识卡内容。",
-          factId: "forged-fact-id",
-          sourceIds: ["broom-history"]
-        })
-      } satisfies CardWriter,
-      code: "fact_id_mismatch"
-    },
-    {
-      name: "duplicated source IDs",
-      writer: {
-        write: async (input) => ({
-          title: "重复来源",
-          body: "这是一条长度足够但重复引用同一来源标识的无效知识卡内容，必须被服务端拒绝。",
-          factId: input.fact.factId,
-          sourceIds: [input.sources[0]!.sourceId, input.sources[0]!.sourceId]
-        })
-      } satisfies CardWriter,
-      code: "source_id_mismatch"
-    },
-    {
-      name: "forged source ID",
-      writer: {
-        write: async (input) => ({
-          title: "伪造来源",
-          body: "这是一条长度足够但来源标识不在服务端所选白名单中的伪造知识卡内容。",
-          factId: input.fact.factId,
-          sourceIds: ["forged-source-id"]
-        })
-      } satisfies CardWriter,
-      code: "source_id_mismatch"
-    }
-  ])("rejects $name returned by the card writer", async ({ writer, code }) => {
-    const objectDir = await temporaryObjectDir();
-    const app = await buildServer({ config: testConfig(objectDir), writer });
-    const token = await register(app);
-    const created = await app.inject({
-      method: "POST",
-      url: "/v1/analysis-jobs",
-      headers: bearer(token),
-      payload: {
-        candidateToken: CANDIDATE_ID,
-        capturedAtBucket: null,
-        localLabels: ["broom"],
-        qualityScore: 0.9,
-        sensitiveFlags: [],
-        contentType: "image/jpeg"
-      }
-    });
-    const jobId = created.json().jobId as string;
-    await app.inject({
-      method: "PUT",
-      url: uploadPath(created.json().uploadUrl as string),
-      headers: { ...bearer(token), "content-type": "image/jpeg" },
-      payload: jpegPayload(9)
-    });
-
-    const completed = await app.inject({
-      method: "POST",
-      url: `/v1/analysis-jobs/${jobId}/complete`,
-      headers: bearer(token)
-    });
-    const listed = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
-
-    expect(completed.statusCode).toBe(502);
-    expect(completed.json().error.code).toBe(code);
-    expect(listed.json().items).toEqual([]);
-    expect(await readdir(objectDir)).toEqual([]);
     await app.close();
   });
 
