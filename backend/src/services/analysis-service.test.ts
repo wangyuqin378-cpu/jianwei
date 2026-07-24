@@ -51,6 +51,8 @@ describe("photo provenance copy", () => {
   it("does not expose malformed metadata as display copy", () => {
     expect(personalContextForPhoto("not-a-date", " 扫帚 "))
       .toBe("它来自你主动授权的照片，所以今天从「扫帚」讲起。");
+    expect(personalContextForPhoto("2026-02-31", "扫帚"))
+      .toBe("它来自你主动授权的照片，所以今天从「扫帚」讲起。");
     expect(personalContextForPhoto(null, ""))
       .toBe("它来自你主动授权的照片，所以今天从「这个日常物件」讲起。");
   });

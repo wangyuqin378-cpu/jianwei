@@ -152,6 +152,29 @@ describe("见微 API", () => {
     await app.close();
   });
 
+  it("rejects an impossible capture date before creating an upload target", async () => {
+    const objectDir = await temporaryObjectDir();
+    const app = await buildServer({ config: testConfig(objectDir) });
+    const token = await register(app);
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: bearer(token),
+      payload: {
+        candidateToken: CANDIDATE_ID,
+        capturedAtBucket: "2026-02-31",
+        localLabels: ["broom"],
+        qualityScore: 0.91,
+        sensitiveFlags: [],
+        contentType: "image/jpeg"
+      }
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe("invalid_request");
+    expect(await readdir(objectDir)).toEqual([]);
+    await app.close();
+  });
+
   it("completes the anonymous photo-to-card loop and deletes the uploaded image", async () => {
     const objectDir = await temporaryObjectDir();
     const app = await buildServer({ config: testConfig(objectDir) });
@@ -405,6 +428,70 @@ describe("见微 API", () => {
     expect(deleted.statusCode).toBe(204);
     const afterDelete = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
     expect(afterDelete.statusCode).toBe(401);
+    await app.close();
+  });
+
+  it("uses the reviewed topic name consistently when vision returns an alias", async () => {
+    const objectDir = await temporaryObjectDir();
+    const vision: VisionProvider = {
+      detect: async () => ({
+        canonicalTopicId: "broom",
+        displayName: "清扫刷",
+        confidence: 0.68,
+        boundingBox: null,
+        alternatives: ["扫帚"],
+        sensitiveFlags: []
+      })
+    };
+    const writer: CardWriter = {
+      write: async (input) => {
+        expect(input.entity.displayName).toBe("扫帚");
+        expect(input.personalContext).toContain("「扫帚」");
+        return {
+          title: "扫帚为什么这样设计",
+          factId: input.fact.factId,
+          sourceIds: input.sources.map((source) => source.sourceId)
+        };
+      }
+    };
+    const app = await buildServer({ config: testConfig(objectDir), vision, writer });
+    const token = await register(app);
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: bearer(token),
+      payload: {
+        candidateToken: CANDIDATE_ID,
+        capturedAtBucket: "2026-07-18",
+        localLabels: ["cleaning tool"],
+        qualityScore: 0.91,
+        sensitiveFlags: [],
+        contentType: "image/jpeg"
+      }
+    });
+    expect(created.statusCode).toBe(201);
+    const jobId = created.json().jobId as string;
+    expect((await app.inject({
+      method: "PUT",
+      url: uploadPath(created.json().uploadUrl as string),
+      headers: { ...bearer(token), "content-type": "image/jpeg" },
+      payload: jpegPayload(8)
+    })).statusCode).toBe(200);
+
+    const completed = await app.inject({
+      method: "POST",
+      url: `/v1/analysis-jobs/${jobId}/complete`,
+      headers: bearer(token)
+    });
+    expect(completed.statusCode).toBe(200);
+    expect(completed.json().card).toMatchObject({
+      topicId: "broom",
+      detectedObjectName: "扫帚",
+      title: "这可能是扫帚",
+      personalContext: "你在 2026 年 7 月 18 日拍下了「扫帚」，所以今天从它讲起。",
+      confidence: 0.68
+    });
+    expect(await readdir(objectDir)).toEqual([]);
     await app.close();
   });
 

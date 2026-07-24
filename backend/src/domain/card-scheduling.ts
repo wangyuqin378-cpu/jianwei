@@ -1,5 +1,11 @@
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+export function isValidIsoCalendarDate(value: string): boolean {
+  if (!ISO_DATE.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 /** Returns the first unoccupied China-calendar day on or after notBefore. */
 export function nextAvailableScheduledDate(notBefore: string, occupiedDates: Iterable<string>): string {
   const start = parseIsoDate(notBefore);
@@ -15,9 +21,7 @@ export function nextAvailableScheduledDate(notBefore: string, occupiedDates: Ite
 
 function parseIsoDate(value: string): Date {
   if (!ISO_DATE.test(value)) throw new Error("notBefore must be an ISO calendar date");
+  if (!isValidIsoCalendarDate(value)) throw new Error("notBefore must be a valid ISO calendar date");
   const parsed = new Date(`${value}T00:00:00.000Z`);
-  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
-    throw new Error("notBefore must be a valid ISO calendar date");
-  }
   return parsed;
 }

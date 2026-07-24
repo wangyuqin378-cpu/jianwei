@@ -84,6 +84,8 @@ const privateDeletionMigration = await readFile(path.join(root, "backend", "migr
 const postgresRepositories = await readFile(path.join(root, "backend", "src", "infrastructure", "postgres-repositories.ts"), "utf8");
 const backendServer = await readFile(path.join(root, "backend", "src", "server.ts"), "utf8");
 const analysisService = await readFile(path.join(root, "backend", "src", "services", "analysis-service.ts"), "utf8");
+const analysisServiceTest = await readFile(path.join(root, "backend", "src", "services", "analysis-service.test.ts"), "utf8");
+const backendServerTest = await readFile(path.join(root, "backend", "src", "server.test.ts"), "utf8");
 const cardScheduling = await readFile(path.join(root, "backend", "src", "domain", "card-scheduling.ts"), "utf8");
 const postgresIntegrationTest = await readFile(path.join(root, "backend", "src", "postgres.integration.test.ts"), "utf8");
 const postgresIntegrationGate = await readFile(path.join(root, "scripts", "run-postgres-integration-windows.ps1"), "utf8");
@@ -751,9 +753,32 @@ for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "cardTitleForConfide
 for (const marker of ["below the threshold", "at and above the threshold", "keeps the title schema bound", "fails closed"]) {
   check(backendCardPresentationTest.includes(marker), `Backend object-certainty test is missing case: ${marker}`);
 }
-for (const marker of ["detectedObjectName: entity.displayName.trim()", "cardTitleForConfidence(draft.title, entity.displayName, entity.confidence)"]) {
-  check(analysisService.includes(marker), `Analysis service does not persist explicit object identity: ${marker}`);
+for (const marker of [
+  "const canonicalObjectName = topic.displayName",
+  "displayName: canonicalObjectName",
+  "cardTitleForConfidence(draft.title, canonicalObjectName, entity.confidence)",
+  "detectedObjectName: canonicalObjectName"
+]) {
+  check(analysisService.includes(marker), `Analysis service does not use the reviewed topic identity consistently: ${marker}`);
 }
+check(
+  !analysisService.includes("detectedObjectName: entity.displayName.trim()") &&
+    !analysisService.includes("cardTitleForConfidence(draft.title, entity.displayName, entity.confidence)"),
+  "Analysis service can leak an unreviewed vision alias into card identity"
+);
+check(
+  backendServerTest.includes("uses the reviewed topic name consistently when vision returns an alias") &&
+    backendServerTest.includes('displayName: "清扫刷"') &&
+    backendServerTest.includes('detectedObjectName: "扫帚"'),
+  "Canonical card identity is missing its end-to-end alias regression"
+);
+check(
+  cardScheduling.includes("isValidIsoCalendarDate") &&
+    analysisService.includes("!isValidIsoCalendarDate(capturedAtBucket)") &&
+    analysisServiceTest.includes('personalContextForPhoto("2026-02-31"') &&
+    backendServerTest.includes("rejects an impossible capture date before creating an upload target"),
+  "Photo provenance can display an impossible legacy capture date"
+);
 for (const marker of ["detected_object_name text", "SET NOT NULL", "BETWEEN 1 AND 60"]) {
   check(detectedObjectMigration.includes(marker), `PostgreSQL object-name migration is missing marker: ${marker}`);
 }
@@ -1371,7 +1396,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

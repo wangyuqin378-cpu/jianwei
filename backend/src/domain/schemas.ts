@@ -102,7 +102,7 @@ export const knowledgeCatalogSchema = z.object({
   sources: z.array(sourceSchema).min(1),
   topics: z.array(z.object({
     topicId: z.string().min(1),
-    displayName: z.string().min(1),
+    displayName: z.string().trim().min(1).max(60),
     synonyms: z.array(z.string().min(1)).min(1),
     category: z.enum(["home", "tableware", "cleaning", "tool", "digital", "transport"]),
     facts: z.array(factSchema).min(1)

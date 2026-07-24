@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { KnowledgeCatalog } from "../domain/types.js";
+import { knowledgeCatalogSchema } from "../domain/schemas.js";
 import { AppError } from "../errors.js";
 import { KnowledgeCatalogService, validateCatalog } from "./knowledge-catalog.js";
 
@@ -260,6 +261,15 @@ describe("knowledge catalog safety gates", () => {
     const catalog = reviewedCatalog("human-editor-01");
     catalog.topics[0]!.facts[0]!.factText = "这条审核事实太短，不能原样发布。";
     expect(() => validateCatalog(catalog)).toThrow(/28-80 字卡片正文/);
+  });
+
+  it("bounds canonical object names to the persisted card contract", () => {
+    const catalog = reviewedCatalog("human-editor-01");
+    catalog.topics[0]!.displayName = " 扫帚 ";
+    expect(knowledgeCatalogSchema.parse(catalog).topics[0]!.displayName).toBe("扫帚");
+
+    catalog.topics[0]!.displayName = "物".repeat(61);
+    expect(knowledgeCatalogSchema.safeParse(catalog).success).toBe(false);
   });
 });
 

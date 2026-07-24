@@ -13,6 +13,7 @@ import type {
 } from "../domain/types.js";
 import { AppError, invariant } from "../errors.js";
 import { cardTitleForConfidence } from "../domain/card-presentation.js";
+import { isValidIsoCalendarDate } from "../domain/card-scheduling.js";
 import { KnowledgeCatalogService } from "./knowledge-catalog.js";
 import { MAX_ANALYSIS_IMAGE_BYTES } from "../infrastructure/object-store.js";
 
@@ -328,9 +329,13 @@ export class AnalysisService {
         return { job: needsContent, card: null };
       }
 
-      const personalContext = personalContextForPhoto(job.capturedAtBucket, topic.displayName);
+      // Vision proposes a topic and confidence; the reviewed catalog owns the
+      // user-facing identity after a topic match so one card cannot name the
+      // same object differently across its title, provenance, and body.
+      const canonicalObjectName = topic.displayName;
+      const personalContext = personalContextForPhoto(job.capturedAtBucket, canonicalObjectName);
       const draft = await this.writer.write({
-        entity: { ...entity, canonicalTopicId: topic.topicId, displayName: topic.displayName },
+        entity: { ...entity, canonicalTopicId: topic.topicId, displayName: canonicalObjectName },
         fact: selection.fact,
         sources: selection.sources,
         personalContext
@@ -353,8 +358,8 @@ export class AnalysisService {
         candidateToken: job.candidateToken,
         topicId: topic.topicId,
         factId: selection.fact.factId,
-        title: cardTitleForConfidence(draft.title, entity.displayName, entity.confidence),
-        detectedObjectName: entity.displayName.trim(),
+        title: cardTitleForConfidence(draft.title, canonicalObjectName, entity.confidence),
+        detectedObjectName: canonicalObjectName,
         body: selection.fact.factText,
         personalContext,
         confidence: entity.confidence,
@@ -432,14 +437,12 @@ export function personalContextForPhoto(capturedAtBucket: string | null, topicDi
   const topic = topicDisplayName.trim() || "这个日常物件";
   if (!capturedAtBucket) return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(capturedAtBucket);
-  if (!match) return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  if (!match || !isValidIsoCalendarDate(capturedAtBucket)) {
+    return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  }
   const [, year, month, day] = match;
   const numericMonth = Number(month);
   const numericDay = Number(day);
-  if (!Number.isInteger(numericMonth) || numericMonth < 1 || numericMonth > 12 ||
-      !Number.isInteger(numericDay) || numericDay < 1 || numericDay > 31) {
-    return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
-  }
   return `你在 ${year} 年 ${numericMonth} 月 ${numericDay} 日拍下了「${topic}」，所以今天从它讲起。`;
 }
 
