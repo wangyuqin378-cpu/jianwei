@@ -32,18 +32,6 @@ class UploadRetryPolicyTest {
     }
 
     @Test
-    fun `future card cache fills until seven scheduled cards`() {
-        assertThat(shouldFillFutureCardCache(0, 0)).isTrue()
-        assertThat(shouldFillFutureCardCache(6, 23)).isTrue()
-        assertThat(shouldFillFutureCardCache(7, 0)).isFalse()
-    }
-
-    @Test
-    fun `future card cache stops at the per-run upload cap`() {
-        assertThat(shouldFillFutureCardCache(0, 24)).isFalse()
-    }
-
-    @Test
     fun `authorized evaluation retries only interruptions throttling and server failures`() {
         assertThat(shouldRetryAuthorizedEvaluationError(IOException("offline"))).isTrue()
         assertThat(shouldRetryAuthorizedEvaluationError(AnalysisStoppedException())).isTrue()

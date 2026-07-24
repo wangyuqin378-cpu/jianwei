@@ -11,9 +11,9 @@ class PhotoImportUiPolicyTest {
         val outcome = PhotoImportOutcome(PhotoImportDisposition.IMPORTED_AND_QUEUED, 2)
 
         assertThat(photoImportResultMessage(outcome, PhotoImportEntry.PHOTO_PICKER))
-            .isEqualTo("已安全导入 2 张照片，正在等待本机隐私筛选")
+            .isEqualTo("已安全导入 2 张照片，正在从画面里找一条可靠知识")
         assertThat(photoImportResultMessage(outcome, PhotoImportEntry.ANDROID_SHARE))
-            .isEqualTo("已从分享安全导入 2 张照片，正在等待本机隐私筛选")
+            .isEqualTo("已从分享安全导入 2 张照片，正在从画面里找一条可靠知识")
     }
 
     @Test
@@ -49,5 +49,22 @@ class PhotoImportUiPolicyTest {
         ).isNull()
         assertThat(sharedImportNotice("INJECTED_MESSAGE", 1)).isNull()
         assertThat(sharedImportNotice(null, 1)).isNull()
+    }
+
+    @Test
+    fun `pending result tokens accept only bounded opaque identifiers`() {
+        val values = (1..24).map { "candidate-$it" } + listOf(
+            "candidate-1",
+            "  candidate-trimmed  ",
+            "candidate/injected",
+            "x".repeat(129)
+        )
+
+        val normalized = normalizedPendingImportTokens(values)
+
+        assertThat(normalized).hasSize(20)
+        assertThat(normalized.first()).isEqualTo("candidate-1")
+        assertThat(normalized).doesNotContain("candidate/injected")
+        assertThat(normalized).containsNoDuplicates()
     }
 }

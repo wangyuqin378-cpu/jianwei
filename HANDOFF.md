@@ -7,6 +7,8 @@
 
 ## 已完成并验证
 
+- 2026-07-25 主动选图/分享已从“只提示排队、结果可能被未来卡池隐藏”补成可恢复的直接结果闭环。`PhotoImportOutcome` 返回本机随机候选令牌；App 只在设备私有 `pending_import_result` 中持久化最多 20 个不透明令牌、结果卡 ID 和 NO_MATCH/FAILED 状态，不保存 URI、文件名、标签、对象名或模型输出。进度页明确本机隐私筛选和可靠事实匹配；卡生成后即使排在未来日期也会直接打开精准卡片，关闭 Activity 后重新进入仍恢复；无命中和失败改为持久、可操作的专属结果卡，不再与后台全局状态互相矛盾。清本地索引和删云端数据会同步清除此状态。真实 API 34 Photo Picker 用非个人截图夹具完成选择、私有导入、过滤和“换一张照片/收起”结果页；新增设备测试证明未来卡即时打开、跨新 Activity 会话恢复、返回每日页后清除焦点。完整 App 7/7、Data 50/50 设备测试，domain/data/app JVM、Debug APK、Lint、源码隐私护栏和差异检查均通过。Debug APK SHA-256 为 `ccaf895b58e700a0d31a0467b84888fb808988da2b2a89b1347c44d448316877`；视觉证据位于忽略目录 `.tooling/import-result-flow-audit/final-result.png`，只属模拟器工程证据。Beta 仍为 `NO_GO`。
+- 2026-07-25 已使用下载的百炼按量付费业务空间 CSV 做受控 Qwen 诊断，凭据只在进程内读取，未写入仓库、`.env`、日志或证据。北京业务空间端点、固定 `qwen3.6-flash-2026-04-16` 模型、真实图片结构化识别和受约束标题生成均成功；生产请求携带 `X-DashScope-DataInspection` 时返回 `403 access_denied`，而无该可选付费护栏的访问探针为 200，因此当前明确阻塞在同业务空间尚未开通 AI 安全护栏及服务关联角色授权。生产 Provider 仍默认强制护栏，只有 `verify:qwen-provider` 可显式执行失败关闭的本地诊断。Android 卡片供给改为混合滚动池：自动发现仅在未来缓存低于 7 张时启动，并向 14 张补足、每轮最多分析 24 个候选；用户 Photo Picker/分享导入不再被健康自动缓存阻塞，每轮最多处理 20 个显式候选。后端 107/107 基础测试、TypeScript check/build、源码密钥护栏，Android domain/data/app JVM 测试、Debug APK 和 Lint 全部通过；当前 Debug APK SHA-256 为 `1f16c6c79135e9554369d4292107bdf01c7161aa3f1a834e84f4e10a39bdb119`。当前实现基线 HEAD 仍为 `77ce415`，本轮改动尚未提交，Beta 结论仍为 `NO_GO`。
 - 2026-07-24 外部发布状态已从当前工作区重新核对，而不是沿用旧结论：`check-knowledge-readiness` 返回 200 个主题、0 ready topic、11 状态 approved、0 真人签注，并因缺少受保护 reviewer allowlist 和 200 个完整真人审核主题失败；`check-container-deployment-inputs` 返回镜像摘要、声明摘要和基础镜像固定均为 0；`check-beta-readiness` 因 `evaluation/beta-evidence.json` 不存在失败。`android/keystore.properties`、正式 `config/evidence-trust-policy.json`、云运行、正式 Release、证据装配文件均不存在，环境也没有可用的见微/Qwen/OSS 生产变量或 Release API 配置。仓库仍干净且最新实现提交为 `0530c42` / `80d43b8`；此时继续生成模拟配置或合成证据不会推进真实 Beta，必须取得真人审核身份、真实云、正式签名/信任材料或实体机 cohort 之一后再沿对应 runbook 执行。
 - 2026-07-24 首卡时延从 UI “观察到卡片”改为真实落库事件：domain `FirstCardMetricRecorder` 作为无 Android 依赖端口，由 data `RoomCardRepository` 在完整分页通过且非空卡片批次成功 `upsertAll` 后调用；App `BetaMetricsStore` 幂等保留首值。首页不再补记晚到的观察时间，用户切后台或进程重启不会把等待下次打开 App 的时间误算成生成耗时；指标实现抛出异常时已提交卡片仍保留且同步成功。组件成功口径也确认来自 `AppWidgetManager.getAppWidgetIds()` 的真实实例，不来自 Pin 请求受理。API 34 新增两项 Data 设备回归并复跑 13 项卡片同步/隐私顺序测试；完整回归为 JVM 146/146、instrumentation 56/56（App 6、Data 50）、双 Lint 0 error/32 warning、Debug 与 R8 Release 成功，源码守卫输出 `FIRST_CARD_COMMIT_METRIC_GATE=GO`。`.tooling/truthful-beta-metrics-audit/audit.json` 更新为 schema 2、`GO`、`releaseEvidence=false`，SHA-256 `b39caf9435f0d1bcae1675ee6ae60fc488a3539271474c91b57c52895f4e4169`。Debug/未签名 Release/App/Data instrumentation APK SHA-256 为 `f18e3a6a5112708eeadf5089a3881f7cd0744f4f4e8adc2dffc8c456f93bab5d` / `f65d3de90abfea21141937834ec8674c547d56dc98fb939749a7c6b78fd27058` / `81e86ee8bacf3238503ec542300a55d3bbae727b80e14c6e7e66208af6aea119` / `b0d02628ac312790bb338066cd3ff771107f8ae0f138ca20868af95ad307634d`。真实 P50/P95、组件添加率和其他 cohort/发布证据仍未产生，Beta 保持 `NO_GO`。
 - 2026-07-24 Beta 本地指标已从“所有偏好动作混作反馈”收口为可用于真实 cohort 判定的语义边界：domain `FeedbackAction.isCardFeedback()` 明确把 SAVE 排除在卡片反馈外；收藏仍调用 `markEngaged()`，但不再污染 LIKE/feedback 分母；组件或提醒的 card ID 只有成功解析为本地有效 `focusedCard` 后才记录点击互动。API 34 两项新设备测试证明 SAVE 被指标 API 拒绝、LIKE 独立计数、有效精准回卡写入 `firstEngagedAt`，且导出不含照片路径、来源 URI 或候选令牌。`.tooling/truthful-beta-metrics-audit/audit.json` 为 `GO`、`releaseEvidence=false`，SHA-256 `28223cf0d8646df6309939244d018aa7308a5f9e18e025a9e8e2c939c57ec08a`。完整回归 38 个 JVM 套件 146/146、API 34 instrumentation 54/54（App 6、Data 48）、源码守卫 `truthfulBetaMetrics=1`、双 Lint 0 error/32 warning、Debug 与 R8 Release 成功；Debug/未签名 Release/App/Data instrumentation APK SHA-256 为 `7cd55769c8f5b017e4a99a52cbd48a258e6f6b467d0dcb14bfe584d3cf04555c` / `0a17ea45e1d8c4b93d3ccfc71d09e8b3b574b2e796f5508c7c91cc9f37e4b0b7` / `e51553e2e692cc1705513fa96a326055f643cdc6e4b907d8c28397b36ff8146c` / `281bb02afafe20dc49842294b7a4bd84257a333068b135a6f8d739e673fc8269`。实际检查仍因 `evaluation/beta-evidence.json` 缺失返回 `NO_GO`；真实 7 日互动率、LIKE 率、真人内容审核、真实云、正式签名、OEM 实体机、真人 TalkBack、200 卡抽检和 cohort 均未被本地证据替代。
@@ -60,6 +62,7 @@
 
 ## 当前阻断
 
+- 百炼按量付费 Key 与 Qwen 模型权限已验证可用，但 AI 安全护栏和所需服务关联角色尚未开通；在此之前，生产 Provider 会按设计失败关闭，不能形成真实 Qwen 安全管线放行证据。
 - 知识目录 200 个主题、624 条事实；613 draft、11 仅状态 approved、0 真人签注、0 ready topic。未提供受保护的 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`。
 - 已有与当前目录绑定的全目录 531/531 来源可访问证据，但来源可访问不等于语义支持；624 条事实仍未经过受保护白名单中的责任人逐条审核。
 - 只有一张 CC0 图片的本地工程闭环；仍没有 300–500 张明确授权的隐私/识别评测集，也没有真实 Qwen/OSS 生产管线结果。
@@ -69,10 +72,11 @@
 
 ## 下一步最短动作
 
-1. 若先做内容：由用户在受保护环境配置真实 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`，按 README 的工作台命令从首批 20 条启动真人审核，逐条打开来源、形成并应用决策；每批后运行 `node scripts/check-knowledge-readiness.mjs`。不要把当前合成 Chrome 回归或 URL 可达性当作审核结论。
-2. 若先做云：提供真实测试环境的 HTTPS API、临时 OSS STS、Qwen 与托管 PostgreSQL，按 `docs/DEPLOYMENT.md` 部署，并按 `docs/BETA_EVIDENCE_RUNBOOK.md` 生成已签名部署回执和安全/敏感双样本证据。
-3. 若先做设备：用正式签名 APK 在华为、小米、OPPO/vivo 采集七天原始报告，再编译实体机与 TalkBack 工件。
-4. 所有真实工件齐备后组装 `evaluation/beta-evidence.json`，只有 `node scripts/check-beta-readiness.mjs evaluation/beta-evidence.json` 返回 GO 才可 Beta。
+1. 先在当前北京百炼业务空间开通 AI 安全护栏并完成服务关联角色/安全管理授权，然后重跑 `backend` 的 `pnpm verify:qwen-provider -- --credentials-file <csv> --image <authorized-jpeg> --confirm-authorized-image`；只有携带生产护栏的首次调用成功，Qwen Provider 烟测才算完成。
+2. 若先做内容：由用户在受保护环境配置真实 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`，按 README 的工作台命令从首批 20 条启动真人审核，逐条打开来源、形成并应用决策；每批后运行 `node scripts/check-knowledge-readiness.mjs`。不要把当前合成 Chrome 回归或 URL 可达性当作审核结论。
+3. 若先做云：提供真实测试环境的 HTTPS API、临时 OSS STS 与托管 PostgreSQL，按 `docs/DEPLOYMENT.md` 部署，并按 `docs/BETA_EVIDENCE_RUNBOOK.md` 生成已签名部署回执和安全/敏感双样本证据。
+4. 若先做设备：用正式签名 APK 在华为、小米、OPPO/vivo 采集七天原始报告，再编译实体机与 TalkBack 工件。
+5. 所有真实工件齐备后组装 `evaluation/beta-evidence.json`，只有 `node scripts/check-beta-readiness.mjs evaluation/beta-evidence.json` 返回 GO 才可 Beta。
 
 ## 不可重复的坑
 

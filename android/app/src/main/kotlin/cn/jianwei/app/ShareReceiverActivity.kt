@@ -97,6 +97,10 @@ class ShareReceiverActivity : ComponentActivity() {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(MainActivity.EXTRA_SHARED_IMPORT_DISPOSITION, outcome.disposition.name)
                 putExtra(MainActivity.EXTRA_SHARED_IMPORT_COUNT, outcome.importedCount)
+                putStringArrayListExtra(
+                    MainActivity.EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS,
+                    ArrayList(outcome.candidateTokens)
+                )
             }
         )
         finish()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { QwenCardWriter, QwenVisionProvider } from "./qwen-providers.js";
+import { QwenCardWriter, QwenProviderError, QwenVisionProvider } from "./qwen-providers.js";
 
 describe("Qwen server-side image safety contract", () => {
   it("enables provider inspection and accepts only structured sensitive flags", async () => {
@@ -66,6 +66,33 @@ describe("Qwen server-side image safety contract", () => {
     });
   });
 
+  it("allows only an explicit local verification call to omit the optional paid guardrail", async () => {
+    let inspectionHeader: string | null = "not-called";
+    const fetchImpl = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      inspectionHeader = new Headers(init?.headers).get("X-DashScope-DataInspection");
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({
+          canonicalTopicId: "broom",
+          displayName: "扫帚",
+          confidence: 0.9,
+          boundingBox: null,
+          alternatives: [],
+          sensitiveFlags: []
+        }) } }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }) as typeof fetch;
+    const provider = new QwenVisionProvider({
+      apiKey: "test-only",
+      model: "fixed-model",
+      additionalDataInspection: "omit-for-local-verification",
+      fetchImpl
+    });
+
+    await provider.detect({ image: Buffer.from([0xff, 0xd8, 0xff]), localLabels: [] });
+
+    expect(inspectionHeader).toBeNull();
+  });
+
   it("maps provider network failures to a bounded upstream error without leaking details", async () => {
     const fetchImpl = (async () => {
       throw new Error("request containing a secret failed");
@@ -88,7 +115,27 @@ describe("Qwen server-side image safety contract", () => {
     await expect(provider.detect({ image: Buffer.from([0xff, 0xd8, 0xff]), localLabels: [] })).rejects.toMatchObject({
       code: "vision_provider_error",
       message: "视觉服务暂时不可用",
-      statusCode: 502
+      statusCode: 502,
+      upstreamStatus: 500,
+      upstreamCode: null
+    });
+  });
+
+  it("retains only a bounded upstream code for private operations diagnostics", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      error: { code: "Model.NotFound", message: "private provider details" }
+    }), { status: 400, headers: { "Content-Type": "application/json" } })) as typeof fetch;
+    const provider = new QwenVisionProvider({ apiKey: "test-only", model: "fixed-model", fetchImpl });
+
+    const error = await provider.detect({ image: Buffer.from([0xff, 0xd8, 0xff]), localLabels: [] })
+      .then(() => null, (reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(QwenProviderError);
+    expect(error).toMatchObject({
+      code: "vision_provider_error",
+      message: "视觉服务暂时不可用",
+      upstreamStatus: 400,
+      upstreamCode: "Model.NotFound"
     });
   });
 });
@@ -122,19 +169,25 @@ describe("Qwen title-only card contract", () => {
   };
 
   it("accepts only a title plus unchanged fact and source identifiers", async () => {
-    const fetchImpl = (async () => new Response(JSON.stringify({
-      choices: [{ message: { content: JSON.stringify({
-        title: "扫帚的设计细节",
-        factId: "broom-001",
-        sourceIds: ["source-one"]
-      }) } }]
-    }), { status: 200, headers: { "Content-Type": "application/json" } })) as typeof fetch;
+    let requestBody = "";
+    const fetchImpl = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      requestBody = String(init?.body ?? "");
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({
+          title: "扫帚的设计细节",
+          factId: "broom-001",
+          sourceIds: ["source-one"]
+        }) } }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }) as typeof fetch;
     const writer = new QwenCardWriter({ apiKey: "test-only", model: "fixed-model", fetchImpl });
     await expect(writer.write(input)).resolves.toEqual({
       title: "扫帚的设计细节",
       factId: "broom-001",
       sourceIds: ["source-one"]
     });
+    expect(requestBody).toContain('\\"sourceIds\\":[\\"source-one\\"]');
+    expect(requestBody).toContain("不得增加其他字段");
   });
 
   it("rejects a model attempt to emit or rewrite the body", async () => {

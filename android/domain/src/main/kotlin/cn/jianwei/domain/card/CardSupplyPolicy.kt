@@ -1,0 +1,56 @@
+package cn.jianwei.domain.card
+
+enum class CardSupplyMode {
+    AUTOMATIC_DISCOVERY,
+    EXPLICIT_IMPORT
+}
+
+data class CardSupplyPlan(
+    val mode: CardSupplyMode,
+    val targetCachedCards: Int?,
+    val maxCandidates: Int
+)
+
+/**
+ * Automatic discovery sleeps while the offline cache is healthy. Once it drops below seven
+ * scheduled cards, one bounded run refills toward fourteen so daily delivery does not require a
+ * network wake-up. Explicit imports are user-requested work and must never be blocked by a full
+ * automatic cache.
+ */
+fun cardSupplyPlan(mode: CardSupplyMode, currentCachedCards: Int): CardSupplyPlan? {
+    require(currentCachedCards >= 0)
+    return when (mode) {
+        CardSupplyMode.AUTOMATIC_DISCOVERY -> {
+            if (currentCachedCards >= CARD_CACHE_LOW_WATER_MARK) {
+                null
+            } else {
+                CardSupplyPlan(
+                    mode = mode,
+                    targetCachedCards = CARD_CACHE_REFILL_TARGET,
+                    maxCandidates = MAX_AUTOMATIC_CANDIDATES_PER_RUN
+                )
+            }
+        }
+        CardSupplyMode.EXPLICIT_IMPORT -> CardSupplyPlan(
+            mode = mode,
+            targetCachedCards = null,
+            maxCandidates = MAX_EXPLICIT_IMPORTS_PER_RUN
+        )
+    }
+}
+
+fun shouldContinueCardSupply(
+    plan: CardSupplyPlan,
+    currentCachedCards: Int,
+    processedCandidates: Int
+): Boolean {
+    require(currentCachedCards >= 0)
+    require(processedCandidates >= 0)
+    if (processedCandidates >= plan.maxCandidates) return false
+    return plan.targetCachedCards?.let { currentCachedCards < it } ?: true
+}
+
+const val CARD_CACHE_LOW_WATER_MARK = 7
+const val CARD_CACHE_REFILL_TARGET = 14
+const val MAX_AUTOMATIC_CANDIDATES_PER_RUN = 24
+const val MAX_EXPLICIT_IMPORTS_PER_RUN = 20

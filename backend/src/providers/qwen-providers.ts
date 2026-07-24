@@ -7,6 +7,26 @@ interface QwenOptions {
   model: string;
   baseUrl?: string;
   fetchImpl?: typeof fetch;
+  additionalDataInspection?: "required" | "omit-for-local-verification";
+}
+
+export class QwenProviderError extends AppError {
+  constructor(
+    public readonly upstreamStatus: number,
+    public readonly upstreamCode: string | null
+  ) {
+    super("vision_provider_error", "视觉服务暂时不可用", 502);
+  }
+}
+
+export class QwenSchemaError extends AppError {
+  constructor(
+    public readonly stage: "vision" | "card",
+    public readonly receivedKeys: string[],
+    public readonly issues: Array<{ path: string; code: string }>
+  ) {
+    super("invalid_model_schema", stage === "vision" ? "视觉服务返回结构无效" : "卡片服务返回结构无效", 502);
+  }
 }
 
 export const QWEN_REQUEST_TIMEOUT_MS = 25_000;
@@ -15,13 +35,16 @@ async function callQwen(options: QwenOptions, messages: unknown[]): Promise<unkn
   let response: Response;
   try {
     const baseUrl = options.baseUrl ?? "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${options.apiKey}`,
+      "Content-Type": "application/json"
+    };
+    if (options.additionalDataInspection !== "omit-for-local-verification") {
+      headers["X-DashScope-DataInspection"] = '{"input":"cip","output":"cip"}';
+    }
     response = await (options.fetchImpl ?? fetch)(`${baseUrl}/chat/completions`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${options.apiKey}`,
-        "Content-Type": "application/json",
-        "X-DashScope-DataInspection": '{"input":"cip","output":"cip"}'
-      },
+      headers,
       body: JSON.stringify({
         model: options.model,
         messages,
@@ -37,10 +60,12 @@ async function callQwen(options: QwenOptions, messages: unknown[]): Promise<unkn
     throw new AppError("vision_provider_unavailable", "视觉服务暂时不可用", 502);
   }
   const payload = await response.json().catch(() => ({})) as {
-    error?: { message?: string };
+    error?: { code?: string; message?: string };
     choices?: Array<{ message?: { content?: string } }>;
   };
-  if (!response.ok) throw new AppError("vision_provider_error", "视觉服务暂时不可用", 502);
+  if (!response.ok) {
+    throw new QwenProviderError(response.status, safeUpstreamCode(payload.error?.code));
+  }
   const content = payload.choices?.[0]?.message?.content;
   invariant(content, "empty_model_response", "通义没有返回结构化内容", 502);
   try {
@@ -48,6 +73,10 @@ async function callQwen(options: QwenOptions, messages: unknown[]): Promise<unkn
   } catch {
     throw new AppError("invalid_model_json", "通义返回了无效 JSON", 502);
   }
+}
+
+function safeUpstreamCode(value: unknown): string | null {
+  return typeof value === "string" && /^[A-Za-z0-9_.-]{1,80}$/.test(value) ? value : null;
 }
 
 export class QwenVisionProvider implements VisionProvider {
@@ -70,7 +99,7 @@ export class QwenVisionProvider implements VisionProvider {
       ]
     }]);
     const parsed = detectedEntitySchema.safeParse(raw);
-    if (!parsed.success) throw new AppError("invalid_model_schema", "视觉服务返回结构无效", 502);
+    if (!parsed.success) throw schemaError("vision", raw, parsed.error.issues);
     return parsed.data;
   }
 }
@@ -94,11 +123,17 @@ export class QwenCardWriter implements CardWriter {
         `审核事实：${input.fact.factText}`,
         `factId：${input.fact.factId}`,
         `sourceIds：${input.sources.map((source) => source.sourceId).join(",")}`,
-        "你只能生成 2-30 字标题；正文由服务端直接使用人工审核事实，禁止输出或改写正文。不确定时标题使用“这可能是…”。原样返回 factId 和 sourceIds。"
+        "你只能生成 2-30 字标题；正文由服务端直接使用人工审核事实，禁止输出或改写正文。不确定时标题使用“这可能是…”。",
+        `严格只返回这一 JSON 结构：${JSON.stringify({
+          title: "2-30字标题",
+          factId: input.fact.factId,
+          sourceIds: input.sources.map((source) => source.sourceId)
+        })}`,
+        "factId 必须是字符串；sourceIds 必须是 JSON 字符串数组，元素、数量和顺序都不得改变；不得增加其他字段。"
       ].join("\n")
     }]);
     const parsed = cardDraftSchema.safeParse(raw);
-    if (!parsed.success) throw new AppError("invalid_model_schema", "卡片服务返回结构无效", 502);
+    if (!parsed.success) throw schemaError("card", raw, parsed.error.issues);
     const draft = parsed.data;
     invariant(draft.factId === input.fact.factId, "model_changed_fact", "模型修改了 factId", 502);
     invariant(
@@ -111,6 +146,24 @@ export class QwenCardWriter implements CardWriter {
     );
     return draft;
   }
+}
+
+function schemaError(
+  stage: "vision" | "card",
+  raw: unknown,
+  issues: ReadonlyArray<{ path: PropertyKey[]; code: string }>
+): QwenSchemaError {
+  const receivedKeys = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? Object.keys(raw).filter((key) => /^[A-Za-z][A-Za-z0-9_]{0,79}$/.test(key)).slice(0, 12)
+    : [];
+  return new QwenSchemaError(
+    stage,
+    receivedKeys,
+    issues.slice(0, 12).map((issue) => ({
+      path: issue.path.map(String).join(".").slice(0, 160),
+      code: issue.code.slice(0, 80)
+    }))
+  );
 }
 
 export class ConfidenceFallbackVisionProvider implements VisionProvider {

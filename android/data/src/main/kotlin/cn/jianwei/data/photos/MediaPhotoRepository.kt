@@ -31,6 +31,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 @Singleton
@@ -147,6 +149,11 @@ class MediaPhotoRepository @Inject constructor(
             }
         }
         imported.values.map { it.toDomain() }
+    }
+
+    override fun observeCandidatesByTokens(candidateTokens: Set<String>): Flow<List<PhotoCandidate>> {
+        require(candidateTokens.isNotEmpty())
+        return dao.observeByTokens(candidateTokens).map { candidates -> candidates.map { it.toDomain() } }
     }
 
     override suspend fun candidatesForAnalysis(limit: Int): List<PhotoCandidate> =

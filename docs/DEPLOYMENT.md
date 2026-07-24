@@ -21,7 +21,11 @@ fallback and is never release evidence.
    device bearer on every private route.
 5. Store the database URL and DashScope key in the deployment environment or KMS-backed secret
    workflow. `deploy/s.yaml.example` reads them from the deploying process and contains no values.
-6. Complete the accountable-human content review, set `JIANWEI_KNOWLEDGE_REVIEWER_IDS` to the
+6. Activate Model Studio AI Guardrails for the same workspace as the DashScope key, including the
+   required service-linked-role authorization. Production Qwen calls always request this inspection
+   layer and must fail closed if it is unavailable. A plain model call succeeding does not satisfy
+   this prerequisite.
+7. Complete the accountable-human content review, set `JIANWEI_KNOWLEDGE_REVIEWER_IDS` to the
    exact internal reviewer IDs, then pin the reviewed bytes before building the image:
 
    ```powershell
@@ -34,6 +38,19 @@ fallback and is never release evidence.
    carry an attestation from a configured human reviewer ID. The protected release process separately
    binds the exact catalog/backlog bytes and reviewer-allowlist digest into the independently signed
    assembly manifest. Updating content therefore requires a new reviewed digest and image rollout.
+
+Before deployment, an operator can verify the workspace, fixed models and guardrail activation with
+one explicitly authorized, non-personal JPEG:
+
+```powershell
+cd backend
+pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv> --image <absolute-path-to-authorized-jpeg> --confirm-authorized-image
+```
+
+The verifier reads the CSV only at runtime and never prints or persists the key. Its local diagnostic
+fallback may omit the optional paid guardrail solely to distinguish model access from guardrail
+activation. The command still exits unsuccessfully until the production request with the guardrail
+succeeds; this fallback is not available to the server runtime and is not release evidence.
 
 ## Build and deploy
 

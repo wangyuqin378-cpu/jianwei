@@ -54,6 +54,9 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_candidates WHERE candidateToken = :candidateToken LIMIT 1")
     suspend fun findByToken(candidateToken: String): PhotoCandidateEntity?
 
+    @Query("SELECT * FROM photo_candidates WHERE candidateToken IN (:candidateTokens)")
+    fun observeByTokens(candidateTokens: Set<String>): Flow<List<PhotoCandidateEntity>>
+
     @Query("SELECT * FROM photo_candidates WHERE sourceDigest = :sourceDigest LIMIT 1")
     suspend fun findBySourceDigest(sourceDigest: String): PhotoCandidateEntity?
 

@@ -11,7 +11,8 @@ enum class PhotoImportDisposition {
 
 data class PhotoImportOutcome(
     val disposition: PhotoImportDisposition,
-    val importedCount: Int
+    val importedCount: Int,
+    val candidateTokens: List<String> = emptyList()
 ) {
     init {
         require(importedCount >= 0)
@@ -19,6 +20,8 @@ data class PhotoImportOutcome(
             (disposition == PhotoImportDisposition.NO_READABLE_PHOTOS && importedCount == 0) ||
                 (disposition != PhotoImportDisposition.NO_READABLE_PHOTOS && importedCount > 0)
         )
+        require(candidateTokens.isEmpty() || candidateTokens.size == importedCount)
+        require(candidateTokens.distinct().size == candidateTokens.size)
     }
 }
 
@@ -33,14 +36,24 @@ class ImportPhotosUseCase(
     private val scheduler: AnalysisScheduler
 ) {
     suspend operator fun invoke(uris: List<String>): PhotoImportOutcome {
-        val importedCount = photos.importUris(uris).size
+        val imported = photos.importUris(uris)
+        val importedCount = imported.size
         if (importedCount == 0) {
             return PhotoImportOutcome(PhotoImportDisposition.NO_READABLE_PHOTOS, 0)
         }
+        val candidateTokens = imported.map { it.candidateToken }
         if (scheduler.isPaused()) {
-            return PhotoImportOutcome(PhotoImportDisposition.IMPORTED_WHILE_PAUSED, importedCount)
+            return PhotoImportOutcome(
+                PhotoImportDisposition.IMPORTED_WHILE_PAUSED,
+                importedCount,
+                candidateTokens
+            )
         }
         scheduler.scheduleImportedPhotos()
-        return PhotoImportOutcome(PhotoImportDisposition.IMPORTED_AND_QUEUED, importedCount)
+        return PhotoImportOutcome(
+            PhotoImportDisposition.IMPORTED_AND_QUEUED,
+            importedCount,
+            candidateTokens
+        )
     }
 }

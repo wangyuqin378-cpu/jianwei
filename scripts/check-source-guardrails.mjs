@@ -162,8 +162,10 @@ const widgetSwitchPolicyTest = await readFile(path.join(root, "android", "app", 
 const mainViewModel = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainViewModel.kt"), "utf8");
 const userOperationGate = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "UserOperationGate.kt"), "utf8");
 const shareReceiver = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ShareReceiverActivity.kt"), "utf8");
+const pendingImportResultStore = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "PendingImportResultStore.kt"), "utf8");
 const importPhotosUseCase = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportPhotosUseCase.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
+const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
 const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
 const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicy.kt"), "utf8");
@@ -770,11 +772,20 @@ check(
     shareReceiver.includes("Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP") &&
     androidManifest.includes('android:name=".MainActivity"') &&
     androidManifest.includes('android:launchMode="singleTask"') &&
-    mainViewModel.includes("photoImportResultMessage(importPhotos(uris), PhotoImportEntry.PHOTO_PICKER)") &&
+    mainViewModel.includes("val outcome = importPhotos(uris)") &&
+    mainViewModel.includes("rememberPendingImport(outcome.candidateTokens)") &&
     importPhotosUseCase.includes("PhotoImportDisposition.IMPORTED_WHILE_PAUSED") &&
+    importPhotosUseCase.includes("val candidateTokens = imported.map { it.candidateToken }") &&
     importPhotosUseCase.includes("if (scheduler.isPaused())") &&
     importPhotosUseCase.includes("scheduler.scheduleImportedPhotos()") &&
     mainActivity.includes("sharedImportNotice(") &&
+    shareReceiver.includes("putStringArrayListExtra(") &&
+    shareReceiver.includes("EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS") &&
+    pendingImportResultStore.includes("normalizedPendingImportTokens") &&
+    pendingImportResultStore.includes("fun complete(focusedCardId: String?, notice: ImportedPhotoResultNotice?)") &&
+    !pendingImportResultStore.includes("contentUri =") &&
+    importedPhotoResultDeviceTest.includes("importedCardOpensImmediatelyAndSurvivesANewActivitySession") &&
+    importedPhotoResultDeviceTest.includes("assertThat(resultStore.snapshot().focusedCardId).isEqualTo(CARD_ID)") &&
     shareReceiverDeviceTest.includes("sharedImageRetriesAcrossProcessGateAndExplainsPausedImport") &&
     shareReceiverDeviceTest.includes("assertThat(activeImportWork).isEmpty()") &&
     shareReceiverDeviceTest.includes("assertThat(imported.contentUri).doesNotContain(sourceUri.toString())"),

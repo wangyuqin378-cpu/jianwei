@@ -20,9 +20,9 @@ internal fun photoImportResultMessage(
         }
     PhotoImportDisposition.IMPORTED_AND_QUEUED ->
         if (entry == PhotoImportEntry.ANDROID_SHARE) {
-            "已从分享安全导入 ${outcome.importedCount} 张照片，正在等待本机隐私筛选"
+            "已从分享安全导入 ${outcome.importedCount} 张照片，正在从画面里找一条可靠知识"
         } else {
-            "已安全导入 ${outcome.importedCount} 张照片，正在等待本机隐私筛选"
+            "已安全导入 ${outcome.importedCount} 张照片，正在从画面里找一条可靠知识"
         }
     PhotoImportDisposition.IMPORTED_WHILE_PAUSED ->
         if (entry == PhotoImportEntry.ANDROID_SHARE) {
@@ -31,6 +31,15 @@ internal fun photoImportResultMessage(
             "已安全导入 ${outcome.importedCount} 张照片；分析仍处于暂停状态，恢复后继续"
         }
 }
+
+internal fun normalizedPendingImportTokens(values: List<String>?): List<String> = values
+    .orEmpty()
+    .asSequence()
+    .map(String::trim)
+    .filter { it.length in 1..128 && IMPORT_TOKEN_PATTERN.matches(it) }
+    .distinct()
+    .take(MAX_PENDING_IMPORT_RESULTS)
+    .toList()
 
 internal fun sharedImportNotice(
     dispositionName: String?,
@@ -49,3 +58,6 @@ internal fun sharedImportNotice(
         PhotoImportEntry.ANDROID_SHARE
     )
 }
+
+private val IMPORT_TOKEN_PATTERN = Regex("[A-Za-z0-9-]+")
+private const val MAX_PENDING_IMPORT_RESULTS = 20

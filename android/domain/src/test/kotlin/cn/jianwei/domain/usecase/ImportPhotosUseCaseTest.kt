@@ -21,7 +21,11 @@ class ImportPhotosUseCaseTest {
         val outcome = ImportPhotosUseCase(photos, scheduler)(listOf("content://one", "content://two"))
 
         assertThat(outcome).isEqualTo(
-            PhotoImportOutcome(PhotoImportDisposition.IMPORTED_AND_QUEUED, 2)
+            PhotoImportOutcome(
+                PhotoImportDisposition.IMPORTED_AND_QUEUED,
+                2,
+                listOf("candidate-1", "candidate-2")
+            )
         )
         assertThat(scheduler.importSchedules).isEqualTo(1)
     }
@@ -34,7 +38,11 @@ class ImportPhotosUseCaseTest {
         val outcome = ImportPhotosUseCase(photos, scheduler)(listOf("content://one"))
 
         assertThat(outcome).isEqualTo(
-            PhotoImportOutcome(PhotoImportDisposition.IMPORTED_WHILE_PAUSED, 1)
+            PhotoImportOutcome(
+                PhotoImportDisposition.IMPORTED_WHILE_PAUSED,
+                1,
+                listOf("candidate-1")
+            )
         )
         assertThat(scheduler.importSchedules).isEqualTo(0)
     }
@@ -59,6 +67,9 @@ class ImportPhotosUseCaseTest {
     ) : PhotoRepository {
         override suspend fun importUris(uris: List<String>): List<PhotoCandidate> =
             (1..importedCount).map(::candidate)
+
+        override fun observeCandidatesByTokens(candidateTokens: Set<String>) =
+            error("not used")
 
         override suspend fun scanRecent(request: ScanRequest): ScanResult =
             error("not used")

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 interface PhotoRepository {
     suspend fun scanRecent(request: ScanRequest): ScanResult
     suspend fun importUris(uris: List<String>): List<PhotoCandidate>
+    fun observeCandidatesByTokens(candidateTokens: Set<String>): Flow<List<PhotoCandidate>>
     suspend fun candidatesForAnalysis(limit: Int): List<PhotoCandidate>
     suspend fun updateAnalysis(
         localId: Long,

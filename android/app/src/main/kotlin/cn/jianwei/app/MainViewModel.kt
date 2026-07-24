@@ -18,12 +18,17 @@ import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
 import cn.jianwei.domain.usecase.ImportPhotosUseCase
+import cn.jianwei.domain.usecase.ImportedPhotoResultResolution
+import cn.jianwei.domain.usecase.resolveImportedPhotoResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,12 +47,15 @@ data class MainUiState(
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
     val paused: Boolean = false,
     val currentDay: LocalDate = ChinaCalendar.today(),
-    val focusedCardId: String? = null
+    val focusedCardId: String? = null,
+    val pendingImportCount: Int = 0,
+    val importedPhotoResultNotice: ImportedPhotoResultNotice? = null
 ) {
     val busy: Boolean get() = activeOperation != null
 }
 
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel @Inject constructor(
     private val photos: PhotoRepository,
     private val cards: CardRepository,
@@ -57,9 +65,24 @@ class MainViewModel @Inject constructor(
     private val betaMetrics: BetaMetricsStore,
     private val itemReminders: ItemReminderScheduler,
     private val importPhotos: ImportPhotosUseCase,
-    private val operationGate: UserOperationGate
+    private val operationGate: UserOperationGate,
+    private val pendingImportResults: PendingImportResultStore
 ) : ViewModel() {
-    private val localState = MutableStateFlow(MainUiState(paused = scheduler.isPaused()))
+    private val restoredImportResult = pendingImportResults.snapshot()
+    private val pendingImportTokens = MutableStateFlow(
+        restoredImportResult.candidateTokens
+    )
+    private val pendingImportCandidates = pendingImportTokens.flatMapLatest { tokens ->
+        if (tokens.isEmpty()) flowOf(emptyList()) else photos.observeCandidatesByTokens(tokens.toSet())
+    }
+    private val localState = MutableStateFlow(
+        MainUiState(
+            paused = scheduler.isPaused(),
+            pendingImportCount = pendingImportTokens.value.size,
+            focusedCardId = restoredImportResult.focusedCardId,
+            importedPhotoResultNotice = restoredImportResult.notice
+        )
+    )
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
         cards.observeFeedbackStates(),
@@ -86,10 +109,41 @@ class MainViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MainUiState())
 
-    fun focusCard(cardId: String?) {
-        val safeId = cardId?.trim()?.takeIf { value ->
-            value.length in 1..128 && value.none(Char::isISOControl)
+    init {
+        viewModelScope.launch {
+            combine(
+                cards.observeCards(),
+                pendingImportCandidates,
+                analysisStatus.observeProgress(),
+                pendingImportTokens
+            ) { cardList, candidates, progress, tokens ->
+                if (tokens.isEmpty()) null else resolveImportedPhotoResult(
+                    candidateTokens = tokens,
+                    candidates = candidates,
+                    cards = cardList,
+                    analysisPhase = progress.phase
+                )
+            }.collect { resolution ->
+                when (resolution) {
+                    null, ImportedPhotoResultResolution.Pending -> Unit
+                    is ImportedPhotoResultResolution.CardReady -> completePendingImport(
+                        focusedCardId = resolution.cardId,
+                        message = "已经从你刚选的照片找到一张知识卡"
+                    )
+                    ImportedPhotoResultResolution.NoMatch -> completePendingImport(
+                        notice = ImportedPhotoResultNotice.NO_MATCH
+                    )
+                    ImportedPhotoResultResolution.Failed -> completePendingImport(
+                        notice = ImportedPhotoResultNotice.FAILED
+                    )
+                }
+            }
         }
+    }
+
+    fun focusCard(cardId: String?) {
+        val safeId = normalizedFocusedCardId(cardId)
+        if (safeId == null) pendingImportResults.setFocusedCard(null)
         localState.value = localState.value.copy(focusedCardId = safeId)
     }
 
@@ -139,8 +193,14 @@ class MainViewModel @Inject constructor(
     fun importUris(uris: List<String>) {
         if (uris.isEmpty()) return
         runBusy(UserOperation.IMPORT_PHOTOS) {
-            photoImportResultMessage(importPhotos(uris), PhotoImportEntry.PHOTO_PICKER)
+            val outcome = importPhotos(uris)
+            rememberPendingImport(outcome.candidateTokens)
+            photoImportResultMessage(outcome, PhotoImportEntry.PHOTO_PICKER)
         }
+    }
+
+    fun trackSharedImportResults(candidateTokens: List<String>?) {
+        rememberPendingImport(candidateTokens.orEmpty())
     }
 
     fun retry(access: PhotoAccess) = runBusy(UserOperation.RETRY_ANALYSIS) {
@@ -209,6 +269,11 @@ class MainViewModel @Inject constructor(
     fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
         cards.clearLocalPhotoReferences()
         photos.clearIndex()
+        pendingImportResults.clearAll()
+        pendingImportTokens.value = emptyList()
+        localState.update {
+            it.copy(focusedCardId = null, pendingImportCount = 0, importedPhotoResultNotice = null)
+        }
         "本地照片索引和卡片中的照片引用已清除"
     }
 
@@ -216,7 +281,16 @@ class MainViewModel @Inject constructor(
         scheduler.pauseAndCancel()
         itemReminders.cancelAllAndAwait()
         cards.clearCloudData()
-        localState.update { it.copy(paused = true) }
+        pendingImportResults.clearAll()
+        pendingImportTokens.value = emptyList()
+        localState.update {
+            it.copy(
+                paused = true,
+                focusedCardId = null,
+                pendingImportCount = 0,
+                importedPhotoResultNotice = null
+            )
+        }
         "云端设备数据和未完成任务已删除"
     }
 
@@ -224,8 +298,43 @@ class MainViewModel @Inject constructor(
         localState.value = localState.value.copy(message = null)
     }
 
+    fun clearImportedPhotoResultNotice() {
+        pendingImportResults.clearNotice()
+        localState.update { it.copy(importedPhotoResultNotice = null) }
+    }
+
     fun announceMessage(message: String) {
         localState.update { it.copy(message = message) }
+    }
+
+    private fun rememberPendingImport(candidateTokens: List<String>) {
+        val normalized = pendingImportResults.remember(candidateTokens)
+        if (normalized.isEmpty()) return
+        pendingImportTokens.value = normalized
+        localState.update {
+            it.copy(
+                focusedCardId = null,
+                pendingImportCount = normalized.size,
+                importedPhotoResultNotice = null
+            )
+        }
+    }
+
+    private fun completePendingImport(
+        focusedCardId: String? = null,
+        message: String? = null,
+        notice: ImportedPhotoResultNotice? = null
+    ) {
+        pendingImportResults.complete(focusedCardId, notice)
+        pendingImportTokens.value = emptyList()
+        localState.update { state ->
+            state.copy(
+                focusedCardId = focusedCardId,
+                pendingImportCount = 0,
+                message = message,
+                importedPhotoResultNotice = notice
+            )
+        }
     }
 
     private fun runBusy(operation: UserOperation, block: suspend () -> String) {
@@ -250,4 +359,5 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
 }

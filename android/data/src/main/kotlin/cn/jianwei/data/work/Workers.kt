@@ -22,6 +22,9 @@ import cn.jianwei.data.network.RemoteAnalysisClient
 import cn.jianwei.data.network.UploadHttpStatusException
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
+import cn.jianwei.domain.card.CardSupplyMode
+import cn.jianwei.domain.card.cardSupplyPlan
+import cn.jianwei.domain.card.shouldContinueCardSupply
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisState
@@ -212,21 +215,33 @@ class UploadWorker @AssistedInject constructor(
         val includeMediaStore = if (permissionGate.canReadMediaStore()) 1 else 0
         return try {
             cards.syncCards()
+            val today = ChinaCalendar.today().toString()
+            val supplyMode = when (originScope) {
+                UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
+                UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
+            }
+            val supplyPlan = cardSupplyPlan(supplyMode, cardDao.countFutureCards(today))
             var processed = 0
-            while (shouldFillFutureCardCache(
-                    cardDao.countFutureCards(ChinaCalendar.today().toString()),
+            while (supplyPlan != null && shouldContinueCardSupply(
+                    supplyPlan,
+                    cardDao.countFutureCards(today),
                     processed
                 )) {
+                val remaining = supplyPlan.maxCandidates - processed
                 var candidates = photoDao.eligibleCandidatesForAnalysis(
-                    minOf(BATCH_SIZE, MAX_UPLOADS_PER_RUN - processed),
+                    minOf(BATCH_SIZE, remaining),
                     includeMediaStore,
                     originScope.name
                 ).map { it.toDomain() }
                 if (candidates.isEmpty()) {
-                    val promoted = photoDao.promoteDeferred(BATCH_SIZE, includeMediaStore, originScope.name)
+                    val promoted = photoDao.promoteDeferred(
+                        minOf(BATCH_SIZE, remaining),
+                        includeMediaStore,
+                        originScope.name
+                    )
                     if (promoted == 0) break
                     candidates = photoDao.eligibleCandidatesForAnalysis(
-                        minOf(BATCH_SIZE, MAX_UPLOADS_PER_RUN - processed),
+                        minOf(BATCH_SIZE, remaining),
                         includeMediaStore,
                         originScope.name
                     ).map { it.toDomain() }
@@ -355,9 +370,6 @@ internal fun httpStatusCode(error: Throwable): Int? = when (error) {
     else -> null
 }
 
-internal fun shouldFillFutureCardCache(futureCardCount: Int, processedThisRun: Int): Boolean =
-    futureCardCount < TARGET_FUTURE_CARDS && processedThisRun < MAX_UPLOADS_PER_RUN
-
 internal fun completedAnalysisProgress(cachedCardCount: Int, processedCount: Int): AnalysisProgress = AnalysisProgress(
     phase = if (cachedCardCount > 0) AnalysisPhase.READY else AnalysisPhase.NO_MATCH,
     eligibleCount = processedCount.coerceAtLeast(0),
@@ -432,9 +444,6 @@ private const val IMPORTED_COPY_CLEANUP_PERIODIC = "jianwei-imported-copy-cleanu
 private const val MAX_PRIVACY_ANALYSES = 60
 private const val MAX_PRIVACY_QUEUE_INSPECTIONS = 500
 private const val MAX_ACCESS_RECHECKS = 500
-internal const val TARGET_FUTURE_CARDS = 7
-internal const val MAX_UPLOADS_PER_RUN = 24
-
 /**
  * Periodic work cannot be chained directly. This small worker starts an idempotent one-time
  * scan -> privacy -> upload chain so MediaStore changes are picked up even when the app is closed.

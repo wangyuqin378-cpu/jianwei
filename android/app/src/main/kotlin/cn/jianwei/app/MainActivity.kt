@@ -96,6 +96,7 @@ import cn.jianwei.domain.card.cardRecognitionPresentation
 import cn.jianwei.domain.card.cardDatePresentation
 import cn.jianwei.domain.card.CardDateSection
 import cn.jianwei.domain.card.FocusedCardStatus
+import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
@@ -239,6 +240,7 @@ class MainActivity : ComponentActivity() {
                         onExportMetrics = ::shareBetaMetrics,
                         onUpdateInterests = { viewModel.updateInterests(it) },
                         onCloseFocusedCard = { viewModel.focusCard(null) },
+                        onDismissImportedPhotoResult = viewModel::clearImportedPhotoResultNotice,
                         onMessageShown = viewModel::clearMessage
                     )
                     LaunchedEffect(state.cards) { DailyWidget().updateAll(context) }
@@ -264,13 +266,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun consumeNavigationIntent(intent: Intent) {
-        viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+        if (intent.hasExtra(EXTRA_CARD_ID)) {
+            viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+        }
+        viewModel.trackSharedImportResults(
+            intent.getStringArrayListExtra(EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS)
+        )
         sharedImportNotice(
             intent.getStringExtra(EXTRA_SHARED_IMPORT_DISPOSITION),
             intent.getIntExtra(EXTRA_SHARED_IMPORT_COUNT, -1)
         )?.let(viewModel::announceMessage)
         intent.removeExtra(EXTRA_SHARED_IMPORT_DISPOSITION)
         intent.removeExtra(EXTRA_SHARED_IMPORT_COUNT)
+        intent.removeExtra(EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS)
     }
 
     private fun hasDailyWidget(): Boolean = AppWidgetManager.getInstance(this)
@@ -298,6 +306,8 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"
         const val EXTRA_SHARED_IMPORT_DISPOSITION = "cn.jianwei.app.extra.SHARED_IMPORT_DISPOSITION"
         const val EXTRA_SHARED_IMPORT_COUNT = "cn.jianwei.app.extra.SHARED_IMPORT_COUNT"
+        const val EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS =
+            "cn.jianwei.app.extra.SHARED_IMPORT_CANDIDATE_TOKENS"
     }
 }
 
@@ -686,6 +696,7 @@ private fun HomeScreen(
     onExportMetrics: () -> Unit,
     onUpdateInterests: (Set<String>) -> Boolean,
     onCloseFocusedCard: () -> Unit,
+    onDismissImportedPhotoResult: () -> Unit,
     onMessageShown: () -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -815,19 +826,46 @@ private fun HomeScreen(
                         }
                     }
                 }
-                analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
+                if (state.pendingImportCount > 0) {
                     item {
-                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                            Text(
-                                bannerMessage,
-                                modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                        ImportedPhotoProgressCard(
+                            count = state.pendingImportCount,
+                            paused = state.paused,
+                            phase = state.analysisProgress.phase
+                        )
+                    }
+                } else if (state.importedPhotoResultNotice != null) {
+                    item {
+                        ImportedPhotoResultCard(
+                            result = state.importedPhotoResultNotice,
+                            actionsEnabled = actionsEnabled,
+                            onPick = onPick,
+                            onRetry = onRetry,
+                            onDismiss = onDismissImportedPhotoResult
+                        )
+                    }
+                } else {
+                    analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
+                        item {
+                            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                                Text(
+                                    bannerMessage,
+                                    modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                     }
                 }
                 item {
-                    if (!showSavedCards && state.cards.isEmpty()) EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
+                    if (
+                        !showSavedCards &&
+                        state.cards.isEmpty() &&
+                        state.pendingImportCount == 0 &&
+                        state.importedPhotoResultNotice == null
+                    ) {
+                        EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
+                    }
                     if (showSavedCards && state.savedCards.isEmpty()) {
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -878,6 +916,89 @@ private fun HomeScreen(
 }
 
 @Composable
+private fun ImportedPhotoResultCard(
+    result: ImportedPhotoResultNotice,
+    actionsEnabled: Boolean,
+    onPick: () -> Unit,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val noMatch = result == ImportedPhotoResultNotice.NO_MATCH
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                if (noMatch) "这张照片没有生成知识卡" else "这次分析没有完成",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                if (noMatch) {
+                    "它可能因隐私、画质或暂时没有可靠知识而被跳过。见微不会为了出卡而猜测。"
+                } else {
+                    "网络或服务暂时不可用。你可以立即重试，也可以稍后再回来。"
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Button(
+                onClick = if (noMatch) onPick else onRetry,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = actionsEnabled
+            ) {
+                Text(if (noMatch) "换一张照片" else "立即重试")
+            }
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.align(Alignment.End),
+                enabled = actionsEnabled
+            ) {
+                Text("收起")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportedPhotoProgressCard(
+    count: Int,
+    paused: Boolean,
+    phase: AnalysisPhase
+) {
+    val detail = when {
+        paused -> "照片已安全保存在见微的私有空间。恢复分析后，会继续寻找可靠知识。"
+        phase == AnalysisPhase.FILTERING -> "正在本机检查画质和隐私；不合适的照片不会上传。"
+        phase == AnalysisPhase.SYNCING -> "正在理解画面，并从审核过的事实和来源中寻找匹配。"
+        phase == AnalysisPhase.RETRYING -> "网络暂时不稳定，系统会保留进度并自动重试。"
+        else -> "先做本机隐私筛选，再理解画面；找到后会直接打开结果。"
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth().semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = "正在分析刚选择的 $count 张照片。$detail"
+        },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (!paused) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    if (paused) "你刚选的照片正在等待" else "正在读你刚选的照片",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(detail, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
 private fun FocusedCardEntryHeader(onClose: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -894,7 +1015,7 @@ private fun FocusedCardEntryHeader(onClose: () -> Unit) {
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "这是你刚刚从桌面组件或物品提醒打开的卡片。返回后只会看到今天及过去的卡片。",
+                "这是你刚刚打开的知识卡。返回后只会看到今天及过去的卡片。",
                 style = MaterialTheme.typography.bodySmall
             )
             OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
