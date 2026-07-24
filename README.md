@@ -70,6 +70,11 @@ pnpm dev
 
 本地演示可在 `.env` 中使用 `ALLOW_UNATTESTED_FACTS=true`。OSS 模式会拒绝该开关；真实发布只允许带真人审核签注的事实进入卡片。
 
+Kimi 已作为独立视觉与标题 Provider 接入。生产环境使用 `VISION_PROVIDER=kimi` 时，只接受
+`https://api.moonshot.cn/v1`、`kimi-k3` 和 Kimi Open Platform 服务端密钥；Kimi Code 会员密钥及
+`https://api.kimi.com/coding/v1` 仅允许本地工程验证，不能作为面向 Beta 用户的生产凭据。两种
+路径都继续执行同一套端侧过滤、服务端敏感分类、Zod Schema、人工事实绑定、成本熔断和立即删除。
+
 ## Android 构建
 
 Windows 可用仓库内脚本准备隔离工具链并构建：

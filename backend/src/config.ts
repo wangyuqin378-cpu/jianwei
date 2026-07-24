@@ -12,11 +12,14 @@ export interface AppConfig {
   databaseUrl: string | null;
   objectStore: "local" | "oss";
   localObjectDir: string;
-  visionProvider: "local" | "qwen";
+  visionProvider: "local" | "qwen" | "kimi";
   dashscopeApiKey: string | null;
   dashscopeBaseUrl: string;
   qwenFlashModel: string;
   qwenPlusModel: string;
+  kimiApiKey: string | null;
+  kimiBaseUrl: string;
+  kimiModel: string;
   ossRegion: string;
   ossBucket: string | null;
   ossAccessKeyId: string | null;
@@ -42,7 +45,7 @@ function optional(value: string | undefined): string | null {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const environment = parseEnvironment(env.NODE_ENV);
-  const visionProvider = parseProvider(env.VISION_PROVIDER, "VISION_PROVIDER", ["local", "qwen"], "local");
+  const visionProvider = parseProvider(env.VISION_PROVIDER, "VISION_PROVIDER", ["local", "qwen", "kimi"], "local");
   const port = Number(env.PORT ?? "8787");
   const maxJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_DAY ?? "24");
   const maxMonthlyJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_MONTH ?? "300");
@@ -82,13 +85,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   validateSafePositiveInteger(worstCaseCostMicroCnyPerJob, "WORST_CASE_COST_MICRO_CNY_PER_JOB");
   validateSafePositiveInteger(maxGlobalCostMicroCnyPerDay, "MAX_GLOBAL_COST_MICRO_CNY_PER_DAY");
   validateSafePositiveInteger(maxGlobalCostMicroCnyPerMonth, "MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH");
-  if (visionProvider === "qwen") {
+  if (visionProvider !== "local") {
     for (const name of [
       "WORST_CASE_COST_MICRO_CNY_PER_JOB",
       "MAX_GLOBAL_COST_MICRO_CNY_PER_DAY",
       "MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH"
     ]) {
-      if (!env[name]?.trim()) throw new Error(`${name} must be explicitly configured for Qwen`);
+      if (!env[name]?.trim()) throw new Error(`${name} must be explicitly configured for a cloud vision provider`);
     }
   }
   if (!Number.isInteger(ttl) || ttl < 1 || ttl > 168) throw new Error("OBJECT_TTL_HOURS is invalid");
@@ -102,6 +105,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const databaseUrl = optional(env.DATABASE_URL);
   const dashscopeApiKey = optional(env.DASHSCOPE_API_KEY);
   const dashscopeBaseUrl = parseDashscopeBaseUrl(env.DASHSCOPE_BASE_URL);
+  const kimiApiKey = optional(env.KIMI_API_KEY);
+  const kimiBaseUrl = parseKimiBaseUrl(env.KIMI_BASE_URL);
+  const kimiModel = env.KIMI_MODEL?.trim() || (kimiBaseUrl === "https://api.kimi.com/coding/v1" ? "k3" : "kimi-k3");
   const ossBucket = optional(env.OSS_BUCKET);
   const roleAccessKeyId = optional(env.ALIBABA_CLOUD_ACCESS_KEY_ID);
   const roleAccessKeySecret = optional(env.ALIBABA_CLOUD_ACCESS_KEY_SECRET);
@@ -117,16 +123,26 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (!databaseUrl) throw new Error("DATABASE_URL is required in production");
     if (!/^postgres(?:ql)?:\/\//i.test(databaseUrl)) throw new Error("DATABASE_URL must use PostgreSQL in production");
     if (objectStore !== "oss") throw new Error("OBJECT_STORE must be oss in production");
-    if (visionProvider !== "qwen") throw new Error("VISION_PROVIDER must be qwen in production");
+    if (visionProvider === "local") throw new Error("VISION_PROVIDER must be qwen or kimi in production");
     if (!publicBaseUrl.startsWith("https://")) throw new Error("PUBLIC_BASE_URL must use HTTPS in production");
     if (allowUnattestedFacts) throw new Error("ALLOW_UNATTESTED_FACTS cannot be enabled in production");
     if (ttl > 24) throw new Error("OBJECT_TTL_HOURS must not exceed 24 in production");
     if (!knowledgeCatalogSha256) throw new Error("KNOWLEDGE_CATALOG_SHA256 is required in production");
     if (knowledgeReviewerIds.length === 0) throw new Error("KNOWLEDGE_REVIEWER_IDS is required in production");
     if (!containerImageDigest) throw new Error("CONTAINER_IMAGE_DIGEST is required in production");
-    if (!env.DASHSCOPE_BASE_URL?.trim()) throw new Error("DASHSCOPE_BASE_URL is required in production");
+    if (visionProvider === "qwen" && !env.DASHSCOPE_BASE_URL?.trim()) {
+      throw new Error("DASHSCOPE_BASE_URL is required for Qwen in production");
+    }
+    if (visionProvider === "kimi") {
+      if (!env.KIMI_BASE_URL?.trim()) throw new Error("KIMI_BASE_URL is required for Kimi in production");
+      if (kimiBaseUrl !== "https://api.moonshot.cn/v1") {
+        throw new Error("KIMI_BASE_URL must use the China Kimi Open Platform in production");
+      }
+      if (kimiModel !== "kimi-k3") throw new Error("KIMI_MODEL must be the reviewed kimi-k3 model in production");
+    }
     for (const [name, value] of [
-      ["DASHSCOPE_API_KEY", dashscopeApiKey],
+      [visionProvider === "qwen" ? "DASHSCOPE_API_KEY" : "KIMI_API_KEY",
+        visionProvider === "qwen" ? dashscopeApiKey : kimiApiKey],
       ["OSS_BUCKET", ossBucket]
     ] as const) {
       if (!value) throw new Error(`${name} is required in production`);
@@ -151,6 +167,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     dashscopeBaseUrl,
     qwenFlashModel: env.QWEN_FLASH_MODEL ?? "qwen3.6-flash-2026-04-16",
     qwenPlusModel: env.QWEN_PLUS_MODEL ?? "qwen3.6-plus-2026-04-02",
+    kimiApiKey,
+    kimiBaseUrl,
+    kimiModel,
     ossRegion: env.OSS_REGION ?? "oss-cn-beijing",
     ossBucket,
     ossAccessKeyId,
@@ -169,6 +188,34 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     knowledgeReviewerIds,
     containerImageDigest
   };
+}
+
+function parseKimiBaseUrl(value: string | undefined): string {
+  const raw = value?.trim() || "https://api.moonshot.cn/v1";
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("KIMI_BASE_URL must be a valid URL");
+  }
+  const normalized = `${url.protocol}//${url.hostname.toLowerCase()}${url.pathname.replace(/\/$/, "")}`;
+  const allowed = new Set([
+    "https://api.moonshot.cn/v1",
+    "https://api.moonshot.ai/v1",
+    "https://api.kimi.com/coding/v1"
+  ]);
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    url.port ||
+    url.search ||
+    url.hash ||
+    !allowed.has(normalized)
+  ) {
+    throw new Error("KIMI_BASE_URL must be an official Kimi Open Platform or Kimi Code endpoint");
+  }
+  return normalized;
 }
 
 function parseDashscopeBaseUrl(value: string | undefined): string {

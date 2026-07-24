@@ -35,6 +35,7 @@ import { KnowledgeCatalogService } from "./services/knowledge-catalog.js";
 import { AnalysisService } from "./services/analysis-service.js";
 import { LocalVisionProvider, TemplateCardWriter } from "./providers/local-providers.js";
 import { ConfidenceFallbackVisionProvider, QwenCardWriter, QwenVisionProvider } from "./providers/qwen-providers.js";
+import { KimiCardWriter, KimiVisionProvider } from "./providers/kimi-providers.js";
 import { loadBackendReleaseSha256 } from "./release-identity.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -215,6 +216,15 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
       model: config.qwenFlashModel,
       baseUrl: config.dashscopeBaseUrl
     });
+  }
+  if (config.visionProvider === "kimi") {
+    const apiKey = required(config.kimiApiKey, "KIMI_API_KEY");
+    if (!overrides.vision) {
+      vision = new KimiVisionProvider({ apiKey, model: config.kimiModel, baseUrl: config.kimiBaseUrl });
+    }
+    if (!overrides.writer) {
+      writer = new KimiCardWriter({ apiKey, model: config.kimiModel, baseUrl: config.kimiBaseUrl });
+    }
   }
   const analysis = new AnalysisService(
     jobs,

@@ -34,6 +34,36 @@ describe("configuration safety", () => {
     expect(config.maxGlobalCostMicroCnyPerDay).toBe(2500000);
   });
 
+  it("separates local Kimi Code validation from production Kimi Open Platform", () => {
+    expect(loadConfig({}).kimiBaseUrl).toBe("https://api.moonshot.cn/v1");
+    expect(loadConfig({ KIMI_BASE_URL: "https://api.kimi.com/coding/v1/" }).kimiBaseUrl)
+      .toBe("https://api.kimi.com/coding/v1");
+    for (const endpoint of [
+      "http://api.moonshot.cn/v1",
+      "https://attacker.example/v1",
+      "https://user:password@api.moonshot.cn/v1",
+      "https://api.moonshot.cn/v1?redirect=1",
+      "https://api.kimi.com/arbitrary"
+    ]) {
+      expect(() => loadConfig({ KIMI_BASE_URL: endpoint })).toThrow(/KIMI_BASE_URL/);
+    }
+    const production = {
+      ...productionEnv(),
+      VISION_PROVIDER: "kimi",
+      DASHSCOPE_API_KEY: "",
+      KIMI_API_KEY: "test-kimi-key",
+      KIMI_BASE_URL: "https://api.moonshot.cn/v1",
+      KIMI_MODEL: "kimi-k3"
+    };
+    expect(loadConfig(production).visionProvider).toBe("kimi");
+    expect(() => loadConfig({
+      ...production,
+      KIMI_BASE_URL: "https://api.kimi.com/coding/v1",
+      KIMI_MODEL: "k3"
+    })).toThrow(/China Kimi Open Platform/);
+    expect(() => loadConfig({ ...production, KIMI_API_KEY: "" })).toThrow(/KIMI_API_KEY/);
+  });
+
   it("allows only the Beijing Model Studio compatible endpoint", () => {
     expect(loadConfig({}).dashscopeBaseUrl).toBe("https://dashscope.aliyuncs.com/compatible-mode/v1");
     expect(loadConfig({
