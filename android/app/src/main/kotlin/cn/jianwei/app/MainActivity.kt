@@ -1768,7 +1768,7 @@ private fun PhotoThumbnail(uri: String, contentDescription: String, modifier: Mo
     }
     Box(modifier.background(androidx.compose.ui.graphics.Color(0xFFDDE5DD)), contentAlignment = Alignment.Center) {
         if (displayBitmap != null) Image(displayBitmap.asImageBitmap(), contentDescription = contentDescription, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        else Text("照片保留在本机")
+        else Text(PHOTO_THUMBNAIL_UNAVAILABLE_LABEL)
     }
 }
 

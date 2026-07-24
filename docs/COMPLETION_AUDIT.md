@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 组件信任文案与对象去重（当前最新权威摘要）：缩略图不可读取时，App 与 Glance 统一显示“原图暂不可显示”，不再用“照片保留在本机 / 照片在本机”制造候选图绝不上云的理解；这不改变明确授权、压缩去 EXIF、短暂处理和服务端删除边界。组件对旧缓存卡 `title == detectedObjectName` 增加去重，高置信度对象名只显示一次，中低置信度与更丰富标题继续显示识别提示。源码护栏拒绝旧文案并要求去重测试存在。
+
+API 34 Pixel Launcher 端到端测试真实完成 Pin、桌面渲染与安装完成态：组件无照片夹具显示“见微 · 今日”和“原图暂不可显示”，无障碍树中“自行车”恰好一个。Android JVM 178/178（Domain 56、App 44、Data 78）、App instrumentation 11/11、Debug/Release Lint 0 error/42 warning、Debug 与 R8 Release、源码护栏和差异检查全部通过。Debug/未签名 Release APK SHA-256 为 `c6e058a75b9202d93e291bfaed1db3c3d789015d2a80b7fb4c53fb2837c2edc7` / `b22a7ee1dc9438f2be67095699eeb5edf86452ba67e12501a3b6b22675090207`；组件截图 SHA-256 `8821da053e0b0731d5a1480998a7c1ab2f1730919f636f5ab62116df08b89f06`，明确只属模拟器工程证据。真人知识审核、真实托管云、正式签名、OEM 七天运行、真人 TalkBack、200 卡抽检和 cohort 仍未完成，Beta 保持 `NO_GO`。
+
 2026-07-25 单次模型调用卡片管线（当前最新权威摘要）：此前每张候选先调用视觉模型，再把已经选定的审核事实、来源 ID 与对象名交给同一远端模型生成标题；第二次调用不产生正文价值，却增加一次模型成本和最多一个完整 Provider 超时，并可能因标题 JSON/ID 回传异常丢弃一张已有可靠事实的卡片。当前远端 Provider 只保留视觉识别。服务端以审核目录对象名和 `factId` 稳定选择三种不增加事实的安全标题模板，限制 30 字；低置信度继续由 0.72 阈值策略覆盖为“这可能是…”。正文、事实 ID 和来源始终由目录直接进入卡片，不再发送给标题模型，也不存在模型改写或伪造它们的入口。
 
 TypeScript check/build 与后端 112/112 基础测试通过，13 项 PostgreSQL 测试在普通环境显式 skipped；API 契约、源码护栏 `singleModelCallCardPipeline=1`、E2E 自测和内存仓储编译服务 TCP 闭环通过。隔离 PostgreSQL 17.10 再次完成全部 13 个迁移、13/13 集成测试与编译服务 TCP 闭环，内存/PostgreSQL 两种闭环都输出 `deterministicTitle=1`，结束后数据库进程已停止。本轮未改变 Android/API 数据结构，所以沿用前一轮已验证 APK，不把它冒充为新构建证据。百炼生产内容安全授权、真人知识审核、真实托管云、正式签名、OEM 七天运行、真人 TalkBack、200 卡抽检和 cohort 仍未完成，Beta 保持 `NO_GO`。

@@ -46,6 +46,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import cn.jianwei.app.MainActivity
+import cn.jianwei.app.PHOTO_THUMBNAIL_UNAVAILABLE_LABEL
 import cn.jianwei.data.local.CardDao
 import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.buildJianweiDatabase
@@ -140,7 +141,9 @@ private fun WidgetCard(
                 Text("见微 · 今日", style = brandStyle(), maxLines = 1)
                 Spacer(GlanceModifier.height(2.dp))
                 Text(card.title, style = titleStyle(), maxLines = 1)
-                Text(recognition.compactLabel, style = objectStyle(), maxLines = 1)
+                if (shouldShowWidgetRecognitionLabel(card.title, recognition.compactLabel)) {
+                    Text(recognition.compactLabel, style = objectStyle(), maxLines = 1)
+                }
                 Spacer(GlanceModifier.height(4.dp))
                 Text(card.body, style = bodyStyle(), maxLines = 2)
                 if (cacheDepleted) {
@@ -160,7 +163,12 @@ private fun WidgetCard(
         }
     } else {
         Column(modifier) {
-            Text("见微 · ${recognition.compactLabel}", style = brandStyle(), maxLines = 1)
+            val brandLabel = if (shouldShowWidgetRecognitionLabel(card.title, recognition.compactLabel)) {
+                recognition.compactLabel
+            } else {
+                "今日"
+            }
+            Text("见微 · $brandLabel", style = brandStyle(), maxLines = 1)
             Spacer(GlanceModifier.height(6.dp))
             Box(GlanceModifier.fillMaxWidth().height(88.dp)) {
                 Photo(bitmap, "${card.title}的原照片缩略图", GlanceModifier.fillMaxSize().cornerRadius(14.dp))
@@ -200,7 +208,7 @@ private fun Photo(bitmap: Bitmap?, contentDescription: String, modifier: GlanceM
         Image(ImageProvider(bitmap), contentDescription, modifier, contentScale = ContentScale.Crop)
     } else {
         Box(modifier.background(widgetPrimaryContainer())) {
-            Text("照片在本机", style = objectStyle())
+            Text(PHOTO_THUMBNAIL_UNAVAILABLE_LABEL, style = objectStyle())
         }
     }
 }
@@ -222,6 +230,9 @@ class NextCardAction : ActionCallback {
 
 internal fun isWidgetCacheDepleted(today: String, scheduledDate: String?): Boolean =
     scheduledDate != null && scheduledDate < today
+
+internal fun shouldShowWidgetRecognitionLabel(cardTitle: String, compactRecognitionLabel: String): Boolean =
+    cardTitle.trim().replace(Regex("\\s+"), " ") != compactRecognitionLabel.trim().replace(Regex("\\s+"), " ")
 
 private fun titleStyle() = TextStyle(
     color = ColorProvider(Color(0xFF1D211E)),

@@ -23,11 +23,13 @@
 9. 收藏、反馈、提醒、扫描控制和数据删除等用户操作使用单一原子入口串行执行；操作期间冲突按钮禁用，顶部显示具体操作进度，后台照片分析状态不会冒充当前用户操作。
 10. Android 分享入口与照片选择器共用同一导入用例和进程级操作门。分享确认后先复制到 App 私有空间；分析暂停时不创建后台任务，冲突或不可读时停留原页并允许重试，成功后复用唯一主界面并展示经过边界校验的结果。
 
-2026-07-25 当前权威本地基线：Android 43 个 JVM 套件 176/176，Android 14/API 34 设备测试
+2026-07-25 当前权威本地基线：Android 43 个 JVM 套件 178/178，Android 14/API 34 设备测试
 69/69（App 11、Data 58）；App/Data Debug/Release Lint 均为 0 error，分别有 42/22 条非阻断 warning，Debug 与 R8 Release 均重建成功。
 后端 TypeScript check/build 与 112/112 项基础测试通过；隔离 PostgreSQL 17.10 已再次执行全部 13 个迁移，
 13/13 项真实仓储/升级测试及编译服务 TCP E2E 通过。迁移 13 已验证旧卡片对象名回填、非空长度约束和
 `detectedObjectName` 持久化；证据位于 `.tooling/postgres-integration-results-macos/`。
+
+App 与桌面组件在原图缩略图不可读取时统一显示“原图暂不可显示”，不再使用可能被理解为“候选图绝不上云”的“照片在本机”类文案。Pixel Launcher 端到端测试还验证旧缓存卡标题等于对象名时只显示一次对象名，而中低置信度提示继续保留；源码护栏固定这两条产品边界。
 
 Beta 本地指标已修正为可用于真实 cohort 判定的语义：收藏只计“产生互动”，不再进入 LIKE 率的卡片反馈分母；只有组件或提醒携带的 card ID 成功解析到本地有效卡片后，才计一次回卡点击。首卡时延不再等 App 页面“看到卡片”，而在服务端返回非空批次成功写入 Room 后立即、幂等记录；指标写入异常不会让已提交卡片同步失败。组件添加仍以 `AppWidgetManager` 查询到真实实例为准，不把系统仅接受 Pin 请求算作成功。导出继续排除照片路径、来源 URI 和候选令牌。API 34 合成卡片设备回归覆盖反馈分离、有效精准回卡、非空落库和故障隔离；源码守卫输出 `truthfulBetaMetrics=1` 与 `FIRST_CARD_COMMIT_METRIC_GATE=GO`。审计位于 `.tooling/truthful-beta-metrics-audit/audit.json`，状态 `GO`、`releaseEvidence=false`，SHA-256 `b39caf9435f0d1bcae1675ee6ae60fc488a3539271474c91b57c52895f4e4169`；真实首卡 P50/P95、组件添加率、7 日互动率和 LIKE 率仍必须由 Beta cohort 产生。
 

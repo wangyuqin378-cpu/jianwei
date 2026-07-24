@@ -22,6 +22,7 @@ const forbidden = [
   { label: "exact update promise", pattern: /(?:精确每日更新|实时更新|每天准时)/ },
   { label: "absolute protection promise", pattern: /(?:已经保护|已保护|绝对安全)/ },
   { label: "absolute completed-analysis promise", pattern: /已经分析/ },
+  { label: "misleading local-only photo promise", pattern: /照片(?:保留)?在本机/ },
   { label: "unredacted runtime logging call", pattern: /(?:(?:android\.util\.)?Log\.[vdiew]|console\.(?:log|info|debug|warn|error))\s*\(/ }
 ];
 const failures = [];
@@ -305,7 +306,10 @@ check(
 );
 check(
   dailyWidget.includes('Text("见微 · 今日"') &&
-    dailyWidget.includes('Text("见微 · ${recognition.compactLabel}"') &&
+    dailyWidget.includes('Text("见微 · $brandLabel"') &&
+    dailyWidget.includes("shouldShowWidgetRecognitionLabel(card.title, recognition.compactLabel)") &&
+    dailyWidgetPolicyTest.includes("exact object title is not repeated as a recognition label") &&
+    dailyWidgetPolicyTest.includes("confidence and richer recognition labels remain visible") &&
     dailyWidget.includes("GlanceModifier.width(104.dp).fillMaxHeight().cornerRadius(16.dp)") &&
     dailyWidget.includes("Column(GlanceModifier.defaultWeight().fillMaxHeight())") &&
     dailyWidget.includes("private fun SwitchControl(label: String)") &&
@@ -980,6 +984,9 @@ check(
     discoveryUiPolicyTest.includes("widgetInstalled = true") &&
     discoveryUiPolicyTest.includes('isEqualTo("再添加一个桌面组件")') &&
     widgetInstallCompletionDeviceTest.includes("manager.getAppWidgetIds(provider).isNotEmpty()") &&
+    widgetInstallCompletionDeviceTest.includes('awaitNode(instrumentation, "见微 · 今日")') &&
+    widgetInstallCompletionDeviceTest.includes("PHOTO_THUMBNAIL_UNAVAILABLE_LABEL") &&
+    widgetInstallCompletionDeviceTest.includes('countTextNodes(instrumentation.uiAutomation.rootInActiveWindow, "自行车")') &&
     widgetInstallCompletionDeviceTest.includes('awaitNodeWithScroll(instrumentation, "再添加一个桌面组件")') &&
     discoveryUiPolicy.includes("availableWidthDp < 360f || fontScale >= 1.5f") &&
     discoveryUiPolicy.includes("shouldUseCompactTabLabels"),

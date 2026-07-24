@@ -49,6 +49,7 @@ class WidgetInstallCompletionInstrumentedTest {
             awaitCondition("return to app") {
                 instrumentation.uiAutomation.rootInActiveWindow?.packageName?.toString() == context.packageName
             }
+
             expandPrivacyCenter(instrumentation)
             assertThat(awaitNodeWithScroll(instrumentation, "再添加一个桌面组件")).isNotNull()
 
@@ -58,6 +59,17 @@ class WidgetInstallCompletionInstrumentedTest {
                     .compress(Bitmap.CompressFormat.PNG, 100, stream)).isTrue()
             }
             assertThat(output.length()).isGreaterThan(0L)
+
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+            assertThat(awaitNode(instrumentation, "见微 · 今日")).isNotNull()
+            assertThat(awaitNode(instrumentation, PHOTO_THUMBNAIL_UNAVAILABLE_LABEL)).isNotNull()
+            assertThat(countTextNodes(instrumentation.uiAutomation.rootInActiveWindow, "自行车")).isEqualTo(1)
+            val widgetOutput = File(context.getExternalFilesDir(null), WIDGET_SCREENSHOT_NAME)
+            widgetOutput.outputStream().use { stream ->
+                assertThat(instrumentation.uiAutomation.takeScreenshot()
+                    .compress(Bitmap.CompressFormat.PNG, 100, stream)).isTrue()
+            }
+            assertThat(widgetOutput.length()).isGreaterThan(0L)
         } finally {
             scenario?.close()
             database.cards().clear()
@@ -184,6 +196,13 @@ class WidgetInstallCompletionInstrumentedTest {
         return null
     }
 
+    private fun countTextNodes(root: AccessibilityNodeInfo?, text: String): Int {
+        if (root == null) return 0
+        var count = if (root.text?.toString() == text) 1 else 0
+        for (index in 0 until root.childCount) count += countTextNodes(root.getChild(index), text)
+        return count
+    }
+
     private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {
         fun collect(node: AccessibilityNodeInfo?) {
             if (node == null || size >= 50) return
@@ -206,5 +225,6 @@ class WidgetInstallCompletionInstrumentedTest {
         const val CARD_BODY = "自行车链传动用不同大小的齿盘，在速度与省力之间切换。"
         const val CTA_TITLE = "每天在桌面遇见新知识"
         const val SCREENSHOT_NAME = "widget-install-completion.png"
+        const val WIDGET_SCREENSHOT_NAME = "widget-content-deduplicated.png"
     }
 }
