@@ -4,11 +4,17 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import cn.jianwei.domain.model.AnalysisPhase
+import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.AnalysisProgressScope
 import cn.jianwei.domain.model.PhotoAccess
+import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.data.control.AnalysisSessionGate
 import cn.jianwei.data.status.SharedPreferencesAnalysisStatusRepository
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 
 class AnalysisPauseInstrumentedTest {
@@ -18,10 +24,11 @@ class AnalysisPauseInstrumentedTest {
         val manager = WorkManager.getInstance(context)
         manager.cancelAllWork().result.get()
         manager.pruneWork().result.get()
+        val statuses = RecordingAnalysisStatusRepository()
         val scheduler = WorkManagerScheduler(
             context,
             AnalysisSessionGate(context),
-            SharedPreferencesAnalysisStatusRepository(context)
+            statuses
         )
 
         try {
@@ -38,6 +45,10 @@ class AnalysisPauseInstrumentedTest {
 
             assertThat(automaticTags).contains(PRIVACY_ORIGIN_TAG_PREFIX + UploadOriginScope.MEDIA_STORE.name)
             assertThat(importedTags).contains(PRIVACY_ORIGIN_TAG_PREFIX + UploadOriginScope.EXPLICIT_IMPORT.name)
+            assertThat(statuses.latest(AnalysisProgressScope.AUTOMATIC_DISCOVERY).phase)
+                .isEqualTo(AnalysisPhase.QUEUED)
+            assertThat(statuses.latest(AnalysisProgressScope.EXPLICIT_IMPORT).phase)
+                .isEqualTo(AnalysisPhase.QUEUED)
         } finally {
             scheduler.cancelAll()
             scheduler.setPaused(false)
@@ -101,5 +112,18 @@ class AnalysisPauseInstrumentedTest {
             scheduler.cancelAll()
             scheduler.setPaused(false)
         }
+    }
+
+    private class RecordingAnalysisStatusRepository : AnalysisStatusRepository {
+        private val values = AnalysisProgressScope.entries.associateWith { MutableStateFlow(AnalysisProgress()) }
+
+        override fun observeProgress(scope: AnalysisProgressScope): Flow<AnalysisProgress> =
+            requireNotNull(values[scope])
+
+        override fun publishProgress(scope: AnalysisProgressScope, progress: AnalysisProgress) {
+            requireNotNull(values[scope]).value = progress
+        }
+
+        fun latest(scope: AnalysisProgressScope): AnalysisProgress = requireNotNull(values[scope]).value
     }
 }

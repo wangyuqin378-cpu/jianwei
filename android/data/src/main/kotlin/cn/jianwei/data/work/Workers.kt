@@ -31,6 +31,7 @@ import cn.jianwei.domain.card.shouldRunPrivacyBatch
 import cn.jianwei.domain.card.shouldSyncCardsImmediately
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.AnalysisProgressScope
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.PhotoOrigin
@@ -60,26 +61,27 @@ class ScanWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.SCANNING))
+        status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.SCANNING))
         val requestedAccess = runCatching { PhotoAccess.valueOf(inputData.getString(KEY_ACCESS) ?: PhotoAccess.PICKER_ONLY.name) }
             .getOrDefault(PhotoAccess.PICKER_ONLY)
         val access = effectiveScanAccess(requestedAccess, permissionGate.currentAccess()) ?: run {
-            status.publishProgress(AnalysisProgress(phase = AnalysisPhase.IDLE))
+            status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
             return Result.success()
         }
         return runCatching {
             val result = photos.scanRecent(ScanRequest(Instant.now().minus(Duration.ofDays(90)), 500, access))
             status.publishProgress(
+                AUTOMATIC_PROGRESS,
                 AnalysisProgress(phase = AnalysisPhase.FILTERING, discoveredCount = result.discovered)
             )
             Result.success()
         }.getOrElse { error ->
             if (error is SecurityException) {
-                status.publishProgress(AnalysisProgress(phase = AnalysisPhase.IDLE))
+                status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
                 Result.success()
             } else {
                 val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
-                status.publishProgress(analysisFailureProgress(willRetry, null))
+                status.publishProgress(AUTOMATIC_PROGRESS, analysisFailureProgress(willRetry, null))
                 if (willRetry) Result.retry() else Result.failure()
             }
         }
@@ -110,7 +112,7 @@ class PrivacyScanWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
-            status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
+            status.publishInvalidScopeFailure()
             return Result.failure()
         }
         return privacyExecutionGate.run(originScope) { runPrivacyWork(originScope) }
@@ -118,6 +120,7 @@ class PrivacyScanWorker @AssistedInject constructor(
 
     private suspend fun runPrivacyWork(originScope: UploadOriginScope): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
+        val progressScope = originScope.analysisProgressScope()
         val supplyMode = when (originScope) {
             UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
             UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
@@ -128,10 +131,13 @@ class PrivacyScanWorker @AssistedInject constructor(
             0
         }
         if (!shouldRunPrivacyBatch(supplyMode, currentCachedCards)) {
-            status.publishProgress(completedAnalysisProgress(currentCachedCards, processedCount = 0))
+            status.publishProgress(
+                progressScope,
+                completedAnalysisProgress(currentCachedCards, processedCount = 0)
+            )
             return Result.success()
         }
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.FILTERING))
+        status.publishProgress(progressScope, AnalysisProgress(phase = AnalysisPhase.FILTERING))
         photos.purgeExpiredImportedCopies(Instant.now())
         val batchPlan = privacyBatchPlan(supplyMode)
         // Partial-photo grants are per item. Keep inaccessible rows out of the hot queue, while
@@ -167,7 +173,10 @@ class PrivacyScanWorker @AssistedInject constructor(
                     continue
                 }
                 if (shouldRetryPrivacyAnalysisFailure(runAttemptCount)) {
-                    status.publishProgress(analysisFailureProgress(retrying = true, statusCode = null))
+                    status.publishProgress(
+                        progressScope,
+                        analysisFailureProgress(retrying = true, statusCode = null)
+                    )
                     return Result.retry()
                 }
                 photos.updateAnalysis(entity.localId, AnalysisState.FAILED)
@@ -213,6 +222,7 @@ class PrivacyScanWorker @AssistedInject constructor(
         unique.filter { it.analysisState == AnalysisState.READY && it.localId !in selected }
             .forEach { photos.updateAnalysis(it.localId, AnalysisState.DEFERRED) }
         status.publishProgress(
+            progressScope,
             AnalysisProgress(phase = AnalysisPhase.SYNCING, eligibleCount = selected.size)
         )
         return Result.success()
@@ -241,12 +251,13 @@ class UploadWorker @AssistedInject constructor(
 
     private suspend fun runUploadWork(): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.SYNCING))
         photos.purgeExpiredImportedCopies(Instant.now())
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
-            status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
+            status.publishInvalidScopeFailure()
             return Result.failure()
         }
+        val progressScope = originScope.analysisProgressScope()
+        status.publishProgress(progressScope, AnalysisProgress(phase = AnalysisPhase.SYNCING))
         val includeMediaStore = if (permissionGate.canReadMediaStore()) 1 else 0
         return try {
             cards.syncCards()
@@ -323,7 +334,10 @@ class UploadWorker @AssistedInject constructor(
                         if (!disposition.keepImportedCopy) photos.discardImportedCopy(candidate.localId)
                         if (disposition.retryWork) {
                             val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
-                            status.publishProgress(analysisFailureProgress(willRetry, disposition.statusCode))
+                            status.publishProgress(
+                                progressScope,
+                                analysisFailureProgress(willRetry, disposition.statusCode)
+                            )
                             return if (willRetry) Result.retry() else Result.failure()
                         }
                     }
@@ -332,7 +346,7 @@ class UploadWorker @AssistedInject constructor(
                 cards.syncCards()
             }
             val cachedCards = cardDao.countFutureCards(ChinaCalendar.today().toString())
-            status.publishProgress(completedAnalysisProgress(cachedCards, processed))
+            status.publishProgress(progressScope, completedAnalysisProgress(cachedCards, processed))
             Result.success()
         } catch (error: CancellationException) {
             throw error
@@ -340,19 +354,25 @@ class UploadWorker @AssistedInject constructor(
             Result.success()
         } catch (_: IOException) {
             val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
-            status.publishProgress(analysisFailureProgress(willRetry, null))
+            status.publishProgress(progressScope, analysisFailureProgress(willRetry, null))
             if (willRetry) Result.retry() else Result.failure()
         } catch (error: HttpException) {
             if (shouldRetryHttpStatus(error.code())) {
                 val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
-                status.publishProgress(analysisFailureProgress(willRetry, error.code()))
+                status.publishProgress(progressScope, analysisFailureProgress(willRetry, error.code()))
                 if (willRetry) Result.retry() else Result.failure()
             } else {
-                status.publishProgress(analysisFailureProgress(retrying = false, statusCode = error.code()))
+                status.publishProgress(
+                    progressScope,
+                    analysisFailureProgress(retrying = false, statusCode = error.code())
+                )
                 Result.failure()
             }
         } catch (_: Exception) {
-            status.publishProgress(analysisFailureProgress(retrying = false, statusCode = null))
+            status.publishProgress(
+                progressScope,
+                analysisFailureProgress(retrying = false, statusCode = null)
+            )
             Result.failure()
         }
     }
@@ -364,6 +384,20 @@ class UploadWorker @AssistedInject constructor(
 }
 
 internal enum class UploadOriginScope { MEDIA_STORE, EXPLICIT_IMPORT }
+
+internal fun UploadOriginScope.analysisProgressScope(): AnalysisProgressScope = when (this) {
+    UploadOriginScope.MEDIA_STORE -> AnalysisProgressScope.AUTOMATIC_DISCOVERY
+    UploadOriginScope.EXPLICIT_IMPORT -> AnalysisProgressScope.EXPLICIT_IMPORT
+}
+
+internal fun invalidScopeFailureProgress(): Map<AnalysisProgressScope, AnalysisProgress> =
+    AnalysisProgressScope.entries.associateWith {
+        analysisFailureProgress(retrying = false, statusCode = null)
+    }
+
+private fun AnalysisStatusRepository.publishInvalidScopeFailure() {
+    invalidScopeFailureProgress().forEach { (scope, progress) -> publishProgress(scope, progress) }
+}
 
 internal fun parseUploadOriginScope(value: String?): UploadOriginScope? = value?.let {
     runCatching { UploadOriginScope.valueOf(it) }.getOrNull()
@@ -489,6 +523,7 @@ private const val IMPORTED_COPY_CLEANUP_NOW = "jianwei-imported-copy-cleanup-now
 private const val IMPORTED_COPY_CLEANUP_PERIODIC = "jianwei-imported-copy-cleanup-periodic"
 private const val MAX_PRIVACY_QUEUE_INSPECTIONS = 500
 private const val MAX_ACCESS_RECHECKS = 500
+private val AUTOMATIC_PROGRESS = AnalysisProgressScope.AUTOMATIC_DISCOVERY
 /**
  * Periodic work cannot be chained directly. This small worker starts an idempotent one-time
  * scan -> privacy -> upload chain so MediaStore changes are picked up even when the app is closed.

@@ -27,6 +27,12 @@ enum class AnalysisPhase {
     FAILED
 }
 
+/** Independent user-facing pipelines whose durable progress must never overwrite each other. */
+enum class AnalysisProgressScope {
+    AUTOMATIC_DISCOVERY,
+    EXPLICIT_IMPORT
+}
+
 /**
  * Durable, device-local product state for the photo-to-card pipeline.
  *

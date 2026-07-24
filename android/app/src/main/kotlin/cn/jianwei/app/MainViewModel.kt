@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import cn.jianwei.domain.card.FocusedCardStatus
 import cn.jianwei.domain.card.dailyCardPresentation
 import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.AnalysisProgressScope
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
@@ -90,12 +91,16 @@ class MainViewModel @Inject constructor(
         cards.observeFeedbackStates(),
         interestPreferences.observeSelected()
     ) { tracked, feedback, interests -> Triple(tracked, feedback, interests) }
+    private val scopedAnalysisProgress = combine(
+        analysisStatus.observeProgress(AnalysisProgressScope.AUTOMATIC_DISCOVERY),
+        analysisStatus.observeProgress(AnalysisProgressScope.EXPLICIT_IMPORT)
+    ) { automatic, explicitImport -> ScopedAnalysisProgress(automatic, explicitImport) }
     val uiState = combine(
         cards.observeCards(),
         cards.observeSavedCards(),
         cardLocalState,
         localState,
-        analysisStatus.observeProgress()
+        scopedAnalysisProgress
     ) { cardList, savedCards, cardState, state, progress ->
         val presentation = dailyCardPresentation(cardList, state.currentDay, state.focusedCardId)
         state.copy(
@@ -106,7 +111,11 @@ class MainViewModel @Inject constructor(
             trackedItems = cardState.first.associateBy(TrackedItem::cardId),
             feedbackStates = cardState.second.associateBy(CardFeedbackState::cardId),
             selectedInterests = cardState.third,
-            analysisProgress = progress
+            analysisProgress = analysisProgressForPresentation(
+                automatic = progress.automatic,
+                explicitImport = progress.explicitImport,
+                pendingImportCount = state.pendingImportCount
+            )
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MainUiState())
@@ -116,7 +125,7 @@ class MainViewModel @Inject constructor(
             combine(
                 cards.observeCards(),
                 pendingImportCandidates,
-                analysisStatus.observeProgress(),
+                analysisStatus.observeProgress(AnalysisProgressScope.EXPLICIT_IMPORT),
                 pendingImportTokens
             ) { cardList, candidates, progress, tokens ->
                 if (tokens.isEmpty()) null else resolveImportedPhotoResult(
@@ -371,3 +380,14 @@ class MainViewModel @Inject constructor(
     }
 
 }
+
+private data class ScopedAnalysisProgress(
+    val automatic: AnalysisProgress,
+    val explicitImport: AnalysisProgress
+)
+
+internal fun analysisProgressForPresentation(
+    automatic: AnalysisProgress,
+    explicitImport: AnalysisProgress,
+    pendingImportCount: Int
+): AnalysisProgress = if (pendingImportCount > 0) explicitImport else automatic

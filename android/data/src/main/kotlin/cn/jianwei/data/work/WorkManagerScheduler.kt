@@ -12,6 +12,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.AnalysisProgressScope
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
@@ -34,7 +35,7 @@ class WorkManagerScheduler @Inject constructor(
 
     override fun scheduleInitialScan(access: PhotoAccess) {
         if (isPaused()) return
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.QUEUED))
+        status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.QUEUED))
         preferences.edit()
             .putString(DailyPipelineKickWorker.KEY_ACCESS, access.name)
             .apply()
@@ -56,7 +57,7 @@ class WorkManagerScheduler @Inject constructor(
 
     override fun scheduleAccessReconciliation(access: PhotoAccess) {
         if (isPaused() || access == PhotoAccess.PICKER_ONLY) return
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.QUEUED))
+        status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.QUEUED))
         preferences.edit()
             .putString(DailyPipelineKickWorker.KEY_ACCESS, access.name)
             .apply()
@@ -78,7 +79,10 @@ class WorkManagerScheduler @Inject constructor(
 
     override fun scheduleImportedPhotos() {
         if (isPaused()) return
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.QUEUED))
+        status.publishProgress(
+            AnalysisProgressScope.EXPLICIT_IMPORT,
+            AnalysisProgress(phase = AnalysisPhase.QUEUED)
+        )
         workManager.beginUniqueWork(
             IMPORTED,
             ExistingWorkPolicy.APPEND_OR_REPLACE,
@@ -101,7 +105,7 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     override suspend fun stopAutomaticDiscovery() {
-        status.publishProgress(AnalysisProgress(phase = AnalysisPhase.IDLE))
+        status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
         preferences.edit()
             .putString(DailyPipelineKickWorker.KEY_ACCESS, PhotoAccess.PICKER_ONLY.name)
             .apply()
@@ -153,6 +157,8 @@ class WorkManagerScheduler @Inject constructor(
         internal const val DAILY = "jianwei-daily-card-sync"
     }
 }
+
+private val AUTOMATIC_PROGRESS = AnalysisProgressScope.AUTOMATIC_DISCOVERY
 
 internal const val PRIVACY_ORIGIN_TAG_PREFIX = "jianwei-privacy-origin:"
 

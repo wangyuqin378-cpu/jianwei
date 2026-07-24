@@ -1,6 +1,7 @@
 package cn.jianwei.domain.repository
 
 import cn.jianwei.domain.model.AnalysisProgress
+import cn.jianwei.domain.model.AnalysisProgressScope
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
@@ -66,8 +67,8 @@ interface AnalysisScheduler {
 }
 
 interface AnalysisStatusRepository {
-    fun observeProgress(): Flow<AnalysisProgress>
-    fun publishProgress(progress: AnalysisProgress)
+    fun observeProgress(scope: AnalysisProgressScope): Flow<AnalysisProgress>
+    fun publishProgress(scope: AnalysisProgressScope, progress: AnalysisProgress)
 }
 
 interface InterestPreferencesRepository {
