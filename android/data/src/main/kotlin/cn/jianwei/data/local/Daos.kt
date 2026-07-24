@@ -39,8 +39,11 @@ interface PhotoDao {
     @Query("SELECT * FROM photo_candidates WHERE analysisState = 'READY' AND (:includeMediaStore = 1 OR origin != 'MEDIA_STORE') AND ((:originScope = 'MEDIA_STORE' AND origin = 'MEDIA_STORE') OR (:originScope = 'EXPLICIT_IMPORT' AND origin != 'MEDIA_STORE')) ORDER BY qualityScore DESC, capturedAtMillis DESC LIMIT :limit")
     suspend fun eligibleCandidatesForAnalysis(limit: Int, includeMediaStore: Int, originScope: String): List<PhotoCandidateEntity>
 
-    @Query("UPDATE photo_candidates SET analysisState = 'READY' WHERE localId IN (SELECT localId FROM photo_candidates WHERE analysisState = 'DEFERRED' AND (:includeMediaStore = 1 OR origin != 'MEDIA_STORE') AND ((:originScope = 'MEDIA_STORE' AND origin = 'MEDIA_STORE') OR (:originScope = 'EXPLICIT_IMPORT' AND origin != 'MEDIA_STORE')) ORDER BY qualityScore DESC, capturedAtMillis DESC LIMIT :limit)")
-    suspend fun promoteDeferred(limit: Int, includeMediaStore: Int, originScope: String): Int
+    @Query("SELECT * FROM photo_candidates WHERE analysisState = 'DEFERRED' AND (:includeMediaStore = 1 OR origin != 'MEDIA_STORE') AND ((:originScope = 'MEDIA_STORE' AND origin = 'MEDIA_STORE') OR (:originScope = 'EXPLICIT_IMPORT' AND origin != 'MEDIA_STORE')) ORDER BY qualityScore DESC, capturedAtMillis DESC LIMIT :limit")
+    suspend fun deferredCandidatesForAnalysis(limit: Int, includeMediaStore: Int, originScope: String): List<PhotoCandidateEntity>
+
+    @Query("UPDATE photo_candidates SET analysisState = 'READY' WHERE analysisState = 'DEFERRED' AND localId IN (:localIds)")
+    suspend fun promoteDeferredById(localIds: List<Long>): Int
 
     @Query("SELECT * FROM photo_candidates WHERE analysisState = 'DISCOVERED' ORDER BY capturedAtMillis DESC LIMIT :limit")
     suspend fun discoveredForPrivacy(limit: Int): List<PhotoCandidateEntity>

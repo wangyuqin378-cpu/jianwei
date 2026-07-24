@@ -1126,7 +1126,7 @@ private fun InterestPreferenceCenter(
                             updatedInterestSelection(draft, interest, checked)
                         )
                     },
-                    supportingText = "正好保留 3 项。保存后从下一批新照片开始影响候选排序。"
+                    supportingText = "正好保留 3 项。保存后会影响下一次补充卡片的候选顺序。"
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(

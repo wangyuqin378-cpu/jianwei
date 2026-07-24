@@ -138,6 +138,8 @@ const localEntities = await readFile(path.join(root, "android", "data", "src", "
 const databaseMigrationDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "local", "DatabaseMigrationInstrumentedTest.kt"), "utf8");
 const deviceIdentity = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "network", "DeviceIdentity.kt"), "utf8");
 const workersSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "Workers.kt"), "utf8");
+const deferredCandidateSelector = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelector.kt"), "utf8");
+const deferredCandidateSelectorDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelectorInstrumentedTest.kt"), "utf8");
 const uploadExecutionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "UploadExecutionGate.kt"), "utf8");
 const workManagerScheduler = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "WorkManagerScheduler.kt"), "utf8");
 const jpegMetadataGuard = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "JpegMetadataGuard.kt"), "utf8");
@@ -474,7 +476,7 @@ check(
 for (const marker of ["生活设计", "物件历史", "科学原理", "实用技巧", "制造工艺", "REQUIRED_INTEREST_COUNT = 3", "canonicalInterestSelection", "expandedInterestTerms"]) {
   check(interestPreferencePolicy.includes(marker), `Interest preference policy is missing marker: ${marker}`);
 }
-for (const marker of ["你的推荐偏好", "调整推荐兴趣", "从下一批新照片开始影响候选排序", "onUpdateInterests"]) {
+for (const marker of ["你的推荐偏好", "调整推荐兴趣", "影响下一次补充卡片的候选顺序", "onUpdateInterests"]) {
   check(mainActivity.includes(marker), `User-controlled interest UI is missing marker: ${marker}`);
 }
 for (const marker of ["observeSelected()", "updateSelected(interests)", "selectedInterests = cardState.third"]) {
@@ -483,7 +485,27 @@ for (const marker of ["observeSelected()", "updateSelected(interests)", "selecte
 for (const marker of ["SharedPreferencesInterestPreferencesRepository", "isValidInterestSelection", "commit()", "distinctUntilChanged"]) {
   check(interestPreferenceRepository.includes(marker), `Persisted interest repository is missing marker: ${marker}`);
 }
-check(workersSource.includes("expandedInterestTerms(interestPreferences.selected())") && !workersSource.includes('getSharedPreferences("onboarding"'), "Candidate ranking does not consume the user-controlled interest repository");
+check(
+  workersSource.includes("expandedInterestTerms(interestPreferences.selected())") &&
+    workersSource.includes("deferredCandidates.promote(") &&
+    !workersSource.includes('getSharedPreferences("onboarding"'),
+  "Candidate ranking or deferred refill does not consume the user-controlled preference path"
+);
+for (const marker of [
+  "deferredCandidatesForAnalysis",
+  "CandidateRanker().rank(",
+  "expandedInterestTerms(interests.selected())",
+  "topicAffinities = affinities.signals()",
+  "promoteDeferredById"
+]) {
+  check(deferredCandidateSelector.includes(marker), `Feedback-driven deferred refill is missing marker: ${marker}`);
+}
+check(
+  deferredCandidateSelectorDeviceTest.includes("latestFeedbackReordersExistingDeferredPhotosBeforeRefill") &&
+    deferredCandidateSelectorDeviceTest.includes('topicId = "traffic_light"') &&
+    deferredCandidateSelectorDeviceTest.includes('"Traffic light"'),
+  "Feedback-driven deferred refill is missing its multi-word real-Room regression"
+);
 for (const marker of ["malformed values fail to defaults", "never exceeds three", "ranking terms derive only"]) {
   check(interestPreferencePolicyTest.includes(marker), `Interest preference policy test is missing marker: ${marker}`);
 }
@@ -1228,7 +1250,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

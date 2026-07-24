@@ -197,6 +197,7 @@ class UploadWorker @AssistedInject constructor(
     private val remote: RemoteAnalysisClient,
     private val cards: CardRepository,
     private val permissionGate: PhotoPermissionGate,
+    private val deferredCandidates: DeferredCandidateSelector,
     private val status: AnalysisStatusRepository,
     private val uploadExecutionGate: UploadExecutionGate
 ) : CoroutineWorker(context, params) {
@@ -234,10 +235,10 @@ class UploadWorker @AssistedInject constructor(
                     originScope.name
                 ).map { it.toDomain() }
                 if (candidates.isEmpty()) {
-                    val promoted = photoDao.promoteDeferred(
-                        minOf(BATCH_SIZE, remaining),
-                        includeMediaStore,
-                        originScope.name
+                    val promoted = deferredCandidates.promote(
+                        limit = minOf(BATCH_SIZE, remaining),
+                        includeMediaStore = includeMediaStore,
+                        originScope = originScope
                     )
                     if (promoted == 0) break
                     candidates = photoDao.eligibleCandidatesForAnalysis(

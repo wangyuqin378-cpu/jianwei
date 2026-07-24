@@ -83,11 +83,15 @@ class CandidateRanker {
         }.coerceIn(MIN_AFFINITY, MAX_AFFINITY)
     }
 
-    private fun normalize(value: String): String = value.trim().lowercase()
+    private fun normalize(value: String): String = value
+        .trim()
+        .lowercase()
+        .replace(TOPIC_SEPARATOR, "")
 
     private companion object {
         const val MAX_HASH_DISTANCE = 5
         const val MIN_AFFINITY = -2.0
         const val MAX_AFFINITY = 2.0
+        val TOPIC_SEPARATOR = Regex("[\\s_\\-/]+")
     }
 }

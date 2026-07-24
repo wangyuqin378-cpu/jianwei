@@ -79,6 +79,22 @@ class CandidateRankerTest {
         assertThat(result.first().localId).isEqualTo(other.localId)
     }
 
+    @Test
+    fun `multi word topic affinity matches labels across separators`() {
+        val preferred = candidate(1, hash = 0xFF, quality = 0.80, labels = listOf("Traffic light"))
+        val other = candidate(2, hash = 0xFF00, quality = 0.90, labels = listOf("Kettle"))
+
+        val result = CandidateRanker().rank(
+            listOf(other, preferred),
+            emptySet(),
+            now,
+            12,
+            listOf(TopicAffinitySignal("traffic_light", 2.0, emptySet()))
+        )
+
+        assertThat(result.first().localId).isEqualTo(preferred.localId)
+    }
+
     private fun candidate(
         id: Long,
         hash: Long,
