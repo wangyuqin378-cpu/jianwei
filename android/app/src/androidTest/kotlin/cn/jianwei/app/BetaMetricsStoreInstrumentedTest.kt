@@ -26,7 +26,8 @@ class BetaMetricsStoreInstrumentedTest {
             val completedAt = System.currentTimeMillis()
             val store = BetaMetricsStore(context)
             store.markOnboardingCompleted(completedAt)
-            store.markFirstCardObserved(completedAt + 89_999)
+            store.recordFirstCardAvailable(completedAt + 89_999)
+            store.recordFirstCardAvailable(completedAt + 120_000)
             store.markWidgetObserved()
 
             store.markEngaged(completedAt + 90_000)

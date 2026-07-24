@@ -214,14 +214,9 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 } else {
-                    val hasVisibleCard = state.cards.isNotEmpty() || state.focusedCard != null
                     LaunchedEffect(Unit) {
                         betaMetrics.markOnboardingCompleted()
                         viewModel.ensureDailyRefresh(photoAccess)
-                        if (hasVisibleCard) betaMetrics.markFirstCardObserved()
-                    }
-                    LaunchedEffect(hasVisibleCard) {
-                        if (hasVisibleCard) betaMetrics.markFirstCardObserved()
                     }
                     LaunchedEffect(state.focusedCard?.cardId) {
                         if (state.focusedCard != null) betaMetrics.markEngaged()

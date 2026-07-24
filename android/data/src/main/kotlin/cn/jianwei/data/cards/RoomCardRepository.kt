@@ -18,6 +18,7 @@ import cn.jianwei.data.network.SourceDto
 import cn.jianwei.data.network.TrackRequest
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.CardFeedbackState
+import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
@@ -46,7 +47,8 @@ class RoomCardRepository @Inject constructor(
     private val api: JianweiApi,
     private val identity: DeviceIdentity,
     private val sessionGate: AnalysisSessionGate,
-    private val affinities: LocalTopicAffinityStore
+    private val affinities: LocalTopicAffinityStore,
+    private val firstCardMetrics: FirstCardMetricRecorder
 ) : CardRepository {
     private val trackedItemMutex = Mutex()
     override fun observeCards(): Flow<List<KnowledgeCard>> = cards.observeAll().map { list -> list.map { it.toDomain() } }
@@ -124,6 +126,13 @@ class RoomCardRepository @Inject constructor(
         // Commit only after every page has passed validation. A later malformed page
         // must not leave the cache half-updated or acknowledge a privacy barrier.
         cards.upsertAll(downloaded)
+        if (downloaded.isNotEmpty()) {
+            try {
+                firstCardMetrics.recordFirstCardAvailable(System.currentTimeMillis())
+            } catch (_: Exception) {
+                // Product metrics must never turn a committed card sync into a retry or failure.
+            }
+        }
         acknowledgePrivacyFeedback(privacyFeedback)
         flushFeedback(session)
         flushTrackedItems(session)

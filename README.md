@@ -24,12 +24,12 @@
 10. Android 分享入口与照片选择器共用同一导入用例和进程级操作门。分享确认后先复制到 App 私有空间；分析暂停时不创建后台任务，冲突或不可读时停留原页并允许重试，成功后复用唯一主界面并展示经过边界校验的结果。
 
 2026-07-24 当前权威本地基线：Android 38 个 JVM 套件 146/146，Android 14/API 34 设备测试
-54/54（App 6、Data 48）；App Debug/Release Lint 均为 0 error、32 条非阻断 warning，Debug 与 R8 Release 均重建成功。
+56/56（App 6、Data 50）；App Debug/Release Lint 均为 0 error、32 条非阻断 warning，Debug 与 R8 Release 均重建成功。
 后端 TypeScript check/build 与 98/98 项基础测试通过；隔离 PostgreSQL 17.10 已三次执行全部 13 个迁移，
 13/13 项真实仓储/升级测试及编译服务 TCP E2E 通过。迁移 13 已验证旧卡片对象名回填、非空长度约束和
 `detectedObjectName` 持久化；证据位于 `.tooling/postgres-integration-results-macos/`。
 
-Beta 本地指标已修正为可用于真实 cohort 判定的语义：收藏只计“产生互动”，不再进入 LIKE 率的卡片反馈分母；只有组件或提醒携带的 card ID 成功解析到本地有效卡片后，才计一次回卡点击。`BetaMetricsStore` 对 `SAVE` 反馈失败关闭，导出继续排除照片路径、来源 URI 和候选令牌。API 34 合成卡片设备回归覆盖指标分离与有效精准回卡，源码守卫输出 `truthfulBetaMetrics=1`。审计位于 `.tooling/truthful-beta-metrics-audit/audit.json`，状态 `GO`、`releaseEvidence=false`，SHA-256 `28223cf0d8646df6309939244d018aa7308a5f9e18e025a9e8e2c939c57ec08a`；真实 7 日互动率和 LIKE 率仍必须由 Beta cohort 产生。
+Beta 本地指标已修正为可用于真实 cohort 判定的语义：收藏只计“产生互动”，不再进入 LIKE 率的卡片反馈分母；只有组件或提醒携带的 card ID 成功解析到本地有效卡片后，才计一次回卡点击。首卡时延不再等 App 页面“看到卡片”，而在服务端返回非空批次成功写入 Room 后立即、幂等记录；指标写入异常不会让已提交卡片同步失败。组件添加仍以 `AppWidgetManager` 查询到真实实例为准，不把系统仅接受 Pin 请求算作成功。导出继续排除照片路径、来源 URI 和候选令牌。API 34 合成卡片设备回归覆盖反馈分离、有效精准回卡、非空落库和故障隔离；源码守卫输出 `truthfulBetaMetrics=1` 与 `FIRST_CARD_COMMIT_METRIC_GATE=GO`。审计位于 `.tooling/truthful-beta-metrics-audit/audit.json`，状态 `GO`、`releaseEvidence=false`，SHA-256 `b39caf9435f0d1bcae1675ee6ae60fc488a3539271474c91b57c52895f4e4169`；真实首卡 P50/P95、组件添加率、7 日互动率和 LIKE 率仍必须由 Beta cohort 产生。
 
 Android 分享导入已在 API 34 标准布局与精确 320dp/2× 字体下实跑：冲突操作会阻止导入并提供原地重试；分析暂停时生成私有副本但 `jianwei-imported-analysis` 无活动 Work；Room 不持久化来源 URI；返回时复用原 `MainActivity`。源码守卫输出 `sharedImportFlow=1`。审计位于 `.tooling/shared-import-flow-audit/audit.json`，状态 `GO`、`releaseEvidence=false`，SHA-256 `2949ec0196268f59b36bd7276ce92c77bb1d53e184d72d0202aede4286c6eb8f`。
 

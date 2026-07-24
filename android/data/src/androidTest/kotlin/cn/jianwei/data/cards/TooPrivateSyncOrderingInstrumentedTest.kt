@@ -26,6 +26,7 @@ import cn.jianwei.data.network.CardDto
 import cn.jianwei.data.network.SourceDto
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.data.work.DailyPipelineKickWorker
+import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.PhotoOrigin
@@ -75,6 +76,38 @@ class TooPrivateSyncOrderingInstrumentedTest {
         } finally {
             database.close()
             context.deleteDatabase(databaseName)
+        }
+    }
+
+    @Test
+    fun firstCardMetricIsRecordedOnlyAfterNonEmptySyncCommit() = runBlocking {
+        val recordedAt = mutableListOf<Long>()
+        withRepository(
+            firstCardMetrics = FirstCardMetricRecorder { recordedAt += it }
+        ) { database, repository, _, api ->
+            api.cardsHandler = { CardsResponse(emptyList(), null) }
+            repository.syncCards()
+            assertThat(recordedAt).isEmpty()
+
+            api.cardsHandler = { CardsResponse(listOf(serverCard(title = "first-card")), null) }
+            repository.syncCards()
+
+            assertThat(recordedAt).hasSize(1)
+            assertThat(database.cards().findById(CARD_ID)?.title).isEqualTo("first-card")
+        }
+    }
+
+    @Test
+    fun firstCardMetricFailureDoesNotFailCommittedCardSync() = runBlocking {
+        withRepository(
+            firstCardMetrics = FirstCardMetricRecorder { error("synthetic metric failure") }
+        ) { database, repository, _, api ->
+            api.cardsHandler = { CardsResponse(listOf(serverCard(title = "committed-card")), null) }
+
+            val failure = runCatching { repository.syncCards() }.exceptionOrNull()
+
+            assertThat(failure).isNull()
+            assertThat(database.cards().findById(CARD_ID)?.title).isEqualTo("committed-card")
         }
     }
 
@@ -294,6 +327,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     private suspend fun withRepository(
+        firstCardMetrics: FirstCardMetricRecorder = FirstCardMetricRecorder {},
         block: suspend (
             JianweiDatabase,
             RoomCardRepository,
@@ -320,7 +354,8 @@ class TooPrivateSyncOrderingInstrumentedTest {
                 api,
                 identity,
                 AnalysisSessionGate(context),
-                LocalTopicAffinityStore(database.cards())
+                LocalTopicAffinityStore(database.cards()),
+                firstCardMetrics
             )
             block(database, repository, identity, api)
         } finally {

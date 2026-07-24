@@ -3,6 +3,7 @@ package cn.jianwei.app
 import android.content.Context
 import android.os.Build
 import androidx.core.content.edit
+import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.isCardFeedback
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -14,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BetaMetricsStore @Inject constructor(@ApplicationContext context: Context) {
+class BetaMetricsStore @Inject constructor(@ApplicationContext context: Context) : FirstCardMetricRecorder {
     private val appContext = context.applicationContext
     private val preferences = appContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
 
@@ -34,11 +35,11 @@ class BetaMetricsStore @Inject constructor(@ApplicationContext context: Context)
 
     fun markWidgetObserved() = preferences.edit { putBoolean(KEY_WIDGET_ADDED, true) }
 
-    fun markFirstCardObserved(now: Long = System.currentTimeMillis()) {
+    override fun recordFirstCardAvailable(nowMillis: Long) {
         if (preferences.contains(KEY_FIRST_CARD_SECONDS)) return
         val completedAt = preferences.getLong(KEY_ONBOARDING_COMPLETED, 0L)
         if (completedAt <= 0L) return
-        preferences.edit { putLong(KEY_FIRST_CARD_SECONDS, ((now - completedAt) / 1000L).coerceAtLeast(0L)) }
+        preferences.edit { putLong(KEY_FIRST_CARD_SECONDS, ((nowMillis - completedAt) / 1000L).coerceAtLeast(0L)) }
     }
 
     fun markEngaged(now: Long = System.currentTimeMillis()) {

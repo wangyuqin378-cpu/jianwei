@@ -1,5 +1,6 @@
 package cn.jianwei.app
 
+import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.usecase.ImportPhotosUseCase
@@ -18,4 +19,10 @@ object AppModule {
         photos: PhotoRepository,
         scheduler: AnalysisScheduler
     ): ImportPhotosUseCase = ImportPhotosUseCase(photos, scheduler)
+
+    @Provides
+    @Singleton
+    fun firstCardMetricRecorder(
+        metrics: BetaMetricsStore
+    ): FirstCardMetricRecorder = metrics
 }
