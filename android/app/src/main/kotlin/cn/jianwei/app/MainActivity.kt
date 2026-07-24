@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+        consumeNavigationIntent(intent)
         photoAccess = currentPhotoAccess(this)
         viewModel.refreshCurrentDay()
         if (getSharedPreferences("onboarding", MODE_PRIVATE).getBoolean("completed", false)) {
@@ -252,7 +252,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+        consumeNavigationIntent(intent)
     }
 
     override fun onResume() {
@@ -263,6 +263,16 @@ class MainActivity : ComponentActivity() {
             viewModel.reconcilePhotoAccess(photoAccess)
         }
         if (::betaMetrics.isInitialized && hasDailyWidget()) betaMetrics.markWidgetObserved()
+    }
+
+    private fun consumeNavigationIntent(intent: Intent) {
+        viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+        sharedImportNotice(
+            intent.getStringExtra(EXTRA_SHARED_IMPORT_DISPOSITION),
+            intent.getIntExtra(EXTRA_SHARED_IMPORT_COUNT, -1)
+        )?.let(viewModel::announceMessage)
+        intent.removeExtra(EXTRA_SHARED_IMPORT_DISPOSITION)
+        intent.removeExtra(EXTRA_SHARED_IMPORT_COUNT)
     }
 
     private fun hasDailyWidget(): Boolean = AppWidgetManager.getInstance(this)
@@ -288,6 +298,8 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"
+        const val EXTRA_SHARED_IMPORT_DISPOSITION = "cn.jianwei.app.extra.SHARED_IMPORT_DISPOSITION"
+        const val EXTRA_SHARED_IMPORT_COUNT = "cn.jianwei.app.extra.SHARED_IMPORT_COUNT"
     }
 }
 

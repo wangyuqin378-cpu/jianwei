@@ -21,12 +21,15 @@
 7. 用户可随时查看和调整五类推荐兴趣中的三项；显式选择从下一批新照片开始影响候选排序，反馈学习不会静默改写用户选择。
 8. 有通义和 OSS 配置时，可切换为真实云端视觉识别与临时对象存储。
 9. 收藏、反馈、提醒、扫描控制和数据删除等用户操作使用单一原子入口串行执行；操作期间冲突按钮禁用，顶部显示具体操作进度，后台照片分析状态不会冒充当前用户操作。
+10. Android 分享入口与照片选择器共用同一导入用例和进程级操作门。分享确认后先复制到 App 私有空间；分析暂停时不创建后台任务，冲突或不可读时停留原页并允许重试，成功后复用唯一主界面并展示经过边界校验的结果。
 
-2026-07-24 当前权威本地基线：Android 36 个 JVM 套件 139/139，Android 14/API 34 设备测试
-51/51（App 3、Data 48）；App Debug/Release Lint 均为 0 error、32 条非阻断 warning，Debug 与 R8 Release 均重建成功。
+2026-07-24 当前权威本地基线：Android 38 个 JVM 套件 145/145，Android 14/API 34 设备测试
+52/52（App 4、Data 48）；App Debug/Release Lint 均为 0 error、32 条非阻断 warning，Debug 与 R8 Release 均重建成功。
 后端 TypeScript check/build 与 98/98 项基础测试通过；隔离 PostgreSQL 17.10 已三次执行全部 13 个迁移，
 13/13 项真实仓储/升级测试及编译服务 TCP E2E 通过。迁移 13 已验证旧卡片对象名回填、非空长度约束和
 `detectedObjectName` 持久化；证据位于 `.tooling/postgres-integration-results-macos/`。
+
+Android 分享导入已在 API 34 标准布局与精确 320dp/2× 字体下实跑：冲突操作会阻止导入并提供原地重试；分析暂停时生成私有副本但 `jianwei-imported-analysis` 无活动 Work；Room 不持久化来源 URI；返回时复用原 `MainActivity`。源码守卫输出 `sharedImportFlow=1`。审计位于 `.tooling/shared-import-flow-audit/audit.json`，状态 `GO`、`releaseEvidence=false`，SHA-256 `2949ec0196268f59b36bd7276ce92c77bb1d53e184d72d0202aede4286c6eb8f`。
 
 用户操作串行化已在 API 34 标准布局与精确 320dp/2× 字体下实跑：受控云端删除期间页面显示“正在删除云端数据”，进度语义为“操作进度”，导入、暂停、清索引和再次删除均不可点击；并发单元测试证明 16 个同时入口只接纳一个操作，错误操作不能释放活动门。审计位于 `.tooling/serialized-user-operations-audit/`，明确 `releaseEvidence=false`。
 
@@ -45,8 +48,8 @@ EXIF/GPS/设备字段的 JPEG，经同源临时上传会话交给本地后端，
 Qwen、HTTPS、正式签名、真人内容审核或实体机 Beta 已完成。
 
 当前 Debug、未签名 Release SHA-256 分别为
-`99420560f24c5feafb4d779e8580c1333d1c7663316ab4b71f914627ced17deb`、
-`6b8f8189b3a4aa0462ebc511252300878ffa8e72435e548d0531bd5bfdc8e897`；未签名包和本地模拟器证据均不能作为 Beta 正式发布证据。
+`7cf23e0700f88ff997cf2bec4aeaffebdffcf8f9900abdc57b773cd0b15fd3c6`、
+`1f83474c1148b48e6ef1c3d5d7a7c9b42cbdf24b0127ea306d0b8109c2e998c3`；未签名包和本地模拟器证据均不能作为 Beta 正式发布证据。
 
 ## 后端启动
 

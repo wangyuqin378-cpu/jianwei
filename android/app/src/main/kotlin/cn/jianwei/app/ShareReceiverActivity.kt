@@ -4,19 +4,24 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
+import android.widget.ProgressBar
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import cn.jianwei.domain.repository.AnalysisScheduler
-import cn.jianwei.domain.repository.PhotoRepository
+import cn.jianwei.domain.usecase.ImportPhotosUseCase
+import cn.jianwei.domain.usecase.PhotoImportDisposition
+import cn.jianwei.domain.usecase.PhotoImportOutcome
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ShareReceiverActivity : ComponentActivity() {
-    @Inject lateinit var photos: PhotoRepository
+    @Inject lateinit var importPhotos: ImportPhotosUseCase
+    @Inject lateinit var operationGate: UserOperationGate
     @Inject lateinit var scheduler: AnalysisScheduler
+    private var progressDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,16 +40,87 @@ class ShareReceiverActivity : ComponentActivity() {
     }
 
     private fun importConfirmed(uris: List<Uri>) {
-        lifecycleScope.launch {
-            val imported = photos.importUris(uris.map(Uri::toString))
-            if (imported.isNotEmpty()) {
-                scheduler.scheduleImportedPhotos()
-                startActivity(Intent(this@ShareReceiverActivity, MainActivity::class.java))
-            } else {
-                Toast.makeText(this@ShareReceiverActivity, "未能读取所选图片", Toast.LENGTH_LONG).show()
-            }
-            finish()
+        if (!operationGate.tryStart(UserOperation.IMPORT_PHOTOS)) {
+            showRetryDialog(
+                title = "另一项操作还没完成",
+                message = "见微正在处理其他照片或数据操作。当前分享仍保留在这个页面，你可以稍后重试。",
+                uris = uris
+            )
+            return
         }
+        progressDialog = AlertDialog.Builder(this)
+            .setTitle("正在安全导入")
+            .setMessage(
+                if (scheduler.isPaused()) {
+                    "正在将所选图片复制到见微的私有空间。分析会保持暂停，恢复后再继续。"
+                } else {
+                    "正在将所选图片复制到见微的私有空间。此时还不会上传原图。"
+                }
+            )
+            .setView(ProgressBar(this))
+            .setCancelable(false)
+            .create()
+            .also(AlertDialog::show)
+        lifecycleScope.launch {
+            var outcome: PhotoImportOutcome? = null
+            var failed = false
+            try {
+                outcome = importPhotos(uris.map(Uri::toString))
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                failed = true
+            } finally {
+                progressDialog?.dismiss()
+                progressDialog = null
+                operationGate.finish(UserOperation.IMPORT_PHOTOS)
+            }
+            when {
+                failed -> showRetryDialog(
+                    title = "导入没有完成",
+                    message = "图片访问可能已失效，或本机存储暂时不可用。已安全写入的重复照片不会再次导入。",
+                    uris = uris
+                )
+                outcome?.disposition == PhotoImportDisposition.NO_READABLE_PHOTOS -> showRetryDialog(
+                    title = "未能读取分享图片",
+                    message = "图片访问可能已撤销或格式不受支持。可以重试，或返回来源应用重新分享。",
+                    uris = uris
+                )
+                outcome != null -> openMainActivity(outcome)
+            }
+        }
+    }
+
+    private fun openMainActivity(outcome: PhotoImportOutcome) {
+        startActivity(
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra(MainActivity.EXTRA_SHARED_IMPORT_DISPOSITION, outcome.disposition.name)
+                putExtra(MainActivity.EXTRA_SHARED_IMPORT_COUNT, outcome.importedCount)
+            }
+        )
+        finish()
+    }
+
+    private fun showRetryDialog(
+        title: String,
+        message: String,
+        uris: List<Uri>
+    ) {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setNegativeButton("取消") { _, _ -> finish() }
+            .setPositiveButton("重试") { _, _ -> importConfirmed(uris) }
+            .setOnCancelListener { finish() }
+            .show()
+    }
+
+    override fun onDestroy() {
+        progressDialog?.dismiss()
+        progressDialog = null
+        super.onDestroy()
     }
 
     @Suppress("DEPRECATION")
@@ -66,7 +142,7 @@ class ShareReceiverActivity : ComponentActivity() {
         ).map(Uri::parse)
     }
 
-    private companion object {
+    companion object {
         const val MAX_SHARED_IMAGES = 20
     }
 }

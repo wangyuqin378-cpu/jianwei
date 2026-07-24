@@ -17,6 +17,7 @@ import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
+import cn.jianwei.domain.usecase.ImportPhotosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -54,9 +55,10 @@ class MainViewModel @Inject constructor(
     private val analysisStatus: AnalysisStatusRepository,
     private val interestPreferences: InterestPreferencesRepository,
     private val betaMetrics: BetaMetricsStore,
-    private val itemReminders: ItemReminderScheduler
+    private val itemReminders: ItemReminderScheduler,
+    private val importPhotos: ImportPhotosUseCase,
+    private val operationGate: UserOperationGate
 ) : ViewModel() {
-    private val operationGate = UserOperationGate()
     private val localState = MutableStateFlow(MainUiState(paused = scheduler.isPaused()))
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
@@ -137,9 +139,7 @@ class MainViewModel @Inject constructor(
     fun importUris(uris: List<String>) {
         if (uris.isEmpty()) return
         runBusy(UserOperation.IMPORT_PHOTOS) {
-            val imported = photos.importUris(uris)
-            scheduler.scheduleImportedPhotos()
-            "已导入 ${imported.size} 张照片，原图不会长期上云"
+            photoImportResultMessage(importPhotos(uris), PhotoImportEntry.PHOTO_PICKER)
         }
     }
 
@@ -222,6 +222,10 @@ class MainViewModel @Inject constructor(
 
     fun clearMessage() {
         localState.value = localState.value.copy(message = null)
+    }
+
+    fun announceMessage(message: String) {
+        localState.update { it.copy(message = message) }
     }
 
     private fun runBusy(operation: UserOperation, block: suspend () -> String) {

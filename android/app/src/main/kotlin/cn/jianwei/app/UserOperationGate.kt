@@ -1,6 +1,8 @@
 package cn.jianwei.app
 
 import java.util.concurrent.atomic.AtomicReference
+import javax.inject.Inject
+import javax.inject.Singleton
 
 enum class UserOperation(val progressLabel: String) {
     START_DISCOVERY("正在安排照片扫描"),
@@ -21,7 +23,8 @@ enum class UserOperation(val progressLabel: String) {
  * boundary; this gate prevents conflicting UI commands from being launched before those boundaries
  * can publish their new state.
  */
-internal class UserOperationGate {
+@Singleton
+class UserOperationGate @Inject constructor() {
     private val active = AtomicReference<UserOperation?>(null)
 
     fun tryStart(operation: UserOperation): Boolean = active.compareAndSet(null, operation)

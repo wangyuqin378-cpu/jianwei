@@ -157,6 +157,9 @@ const widgetSwitchPolicy = await readFile(path.join(root, "android", "app", "src
 const widgetSwitchPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "widget", "WidgetSwitchPolicyTest.kt"), "utf8");
 const mainViewModel = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainViewModel.kt"), "utf8");
 const userOperationGate = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "UserOperationGate.kt"), "utf8");
+const shareReceiver = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ShareReceiverActivity.kt"), "utf8");
+const importPhotosUseCase = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportPhotosUseCase.kt"), "utf8");
+const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
 const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
 const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicy.kt"), "utf8");
@@ -751,6 +754,28 @@ check(
     mainActivity.includes("stateDescription = activityIndicator.stateDescription"),
   "User mutations are not serialized or the UI can still present conflicting actions and an untruthful progress state"
 );
+check(
+  userOperationGate.includes("@Singleton") &&
+    shareReceiver.includes("ImportPhotosUseCase") &&
+    shareReceiver.includes("operationGate.tryStart(UserOperation.IMPORT_PHOTOS)") &&
+    shareReceiver.includes('"另一项操作还没完成"') &&
+    shareReceiver.includes('"正在安全导入"') &&
+    shareReceiver.includes('"导入没有完成"') &&
+    shareReceiver.includes('"未能读取分享图片"') &&
+    shareReceiver.includes("operationGate.finish(UserOperation.IMPORT_PHOTOS)") &&
+    shareReceiver.includes("Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP") &&
+    androidManifest.includes('android:name=".MainActivity"') &&
+    androidManifest.includes('android:launchMode="singleTask"') &&
+    mainViewModel.includes("photoImportResultMessage(importPhotos(uris), PhotoImportEntry.PHOTO_PICKER)") &&
+    importPhotosUseCase.includes("PhotoImportDisposition.IMPORTED_WHILE_PAUSED") &&
+    importPhotosUseCase.includes("if (scheduler.isPaused())") &&
+    importPhotosUseCase.includes("scheduler.scheduleImportedPhotos()") &&
+    mainActivity.includes("sharedImportNotice(") &&
+    shareReceiverDeviceTest.includes("sharedImageRetriesAcrossProcessGateAndExplainsPausedImport") &&
+    shareReceiverDeviceTest.includes("assertThat(activeImportWork).isEmpty()") &&
+    shareReceiverDeviceTest.includes("assertThat(imported.contentUri).doesNotContain(sourceUri.toString())"),
+  "Android Sharesheet imports bypass the shared operation gate, lack retry/progress, or falsely queue while analysis is paused"
+);
 check(androidManifest.includes("android.permission.POST_NOTIFICATIONS"), "Item reminders are missing the Android notification permission declaration");
 check(mainActivity.includes("确认并开启提醒") && mainActivity.includes("datePicker.maxDate"), "Item tracking does not require an explicit non-future start-date confirmation");
 check(
@@ -1157,7 +1182,7 @@ check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 privateDeletionTransaction=1 persistentFeedbackState=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);
