@@ -70,14 +70,55 @@ class DeferredCandidateSelectorInstrumentedTest {
         Unit
     }
 
-    private fun candidate(id: Long, quality: Double, label: String) = PhotoCandidateEntity(
+    @Test
+    fun sameDayDeferredPoolFillsOnePromotionBatchAfterDiversityPass() = runBlocking {
+        val database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            JianweiDatabase::class.java
+        ).build()
+        try {
+            val photos = database.photos()
+            (1L..12L).forEach { id ->
+                photos.upsert(candidate(id, 0.90, "Object", perceptualHash = null))
+            }
+            val selector = DeferredCandidateSelector(
+                photos,
+                LocalTopicAffinityStore(database.cards()),
+                FakeInterestPreferences(setOf("生活设计", "物件历史", "制造工艺"))
+            )
+
+            assertThat(selector.promote(
+                limit = 12,
+                includeMediaStore = 1,
+                originScope = UploadOriginScope.MEDIA_STORE,
+                now = Instant.parse("2026-07-25T00:00:00Z")
+            )).isEqualTo(12)
+            assertThat(
+                photos.eligibleCandidatesForAnalysis(
+                    20,
+                    1,
+                    UploadOriginScope.MEDIA_STORE.name
+                )
+            ).hasSize(12)
+        } finally {
+            database.close()
+        }
+        Unit
+    }
+
+    private fun candidate(
+        id: Long,
+        quality: Double,
+        label: String,
+        perceptualHash: Long? = 0xFFL shl (id.toInt() * 8)
+    ) = PhotoCandidateEntity(
         localId = id,
         candidateToken = UUID.randomUUID().toString(),
         contentUri = "content://media/external/images/media/$id",
         capturedAtMillis = Instant.parse("2026-07-20T00:00:00Z").toEpochMilli() + id,
         modifiedAtMillis = id,
         sourceDigest = null,
-        perceptualHash = 0xFFL shl (id.toInt() * 8),
+        perceptualHash = perceptualHash,
         qualityScore = quality,
         localLabels = listOf(label),
         sensitiveFlags = emptySet(),

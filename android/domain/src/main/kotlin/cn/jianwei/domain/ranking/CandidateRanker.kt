@@ -37,6 +37,8 @@ class CandidateRanker {
         limit: Int = 12,
         topicAffinities: Collection<TopicAffinitySignal> = emptyList()
     ): List<PhotoCandidate> {
+        require(limit >= 0)
+        if (limit == 0) return emptyList()
         val accepted = candidates
             .asSequence()
             .filter { it.sensitiveFlags.isEmpty() && it.qualityScore >= 0.35 }
@@ -44,19 +46,28 @@ class CandidateRanker {
             .toList()
 
         val selected = mutableListOf<PhotoCandidate>()
+        val sameDayOverflow = mutableListOf<PhotoCandidate>()
         for (candidate in accepted) {
-            val duplicate = selected.any { other ->
-                candidate.perceptualHash != null && other.perceptualHash != null &&
-                    java.lang.Long.bitCount(candidate.perceptualHash xor other.perceptualHash) <= MAX_HASH_DISTANCE
-            }
+            val duplicate = selected.any { other -> isNearDuplicate(candidate, other) }
             val sameDayOverrepresented = selected.count {
                 ChinaCalendar.dateOf(it.capturedAt) == ChinaCalendar.dateOf(candidate.capturedAt)
             } >= 2
+            if (!duplicate && sameDayOverrepresented) sameDayOverflow += candidate
             if (!duplicate && !sameDayOverrepresented) selected += candidate
             if (selected.size == limit) break
         }
+        if (selected.size < limit) {
+            for (candidate in sameDayOverflow) {
+                if (selected.none { other -> isNearDuplicate(candidate, other) }) selected += candidate
+                if (selected.size == limit) break
+            }
+        }
         return selected
     }
+
+    private fun isNearDuplicate(candidate: PhotoCandidate, other: PhotoCandidate): Boolean =
+        candidate.perceptualHash != null && other.perceptualHash != null &&
+            java.lang.Long.bitCount(candidate.perceptualHash xor other.perceptualHash) <= MAX_HASH_DISTANCE
 
     private fun score(
         candidate: PhotoCandidate,

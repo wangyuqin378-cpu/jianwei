@@ -511,6 +511,7 @@ for (const marker of [
 }
 check(
   deferredCandidateSelectorDeviceTest.includes("latestFeedbackReordersExistingDeferredPhotosBeforeRefill") &&
+    deferredCandidateSelectorDeviceTest.includes("sameDayDeferredPoolFillsOnePromotionBatchAfterDiversityPass") &&
     deferredCandidateSelectorDeviceTest.includes('topicId = "traffic_light"') &&
     deferredCandidateSelectorDeviceTest.includes('"Traffic light"'),
   "Feedback-driven deferred refill is missing its multi-word real-Room regression"

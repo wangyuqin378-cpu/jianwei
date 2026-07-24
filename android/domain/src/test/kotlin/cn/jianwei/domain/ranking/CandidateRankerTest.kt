@@ -23,14 +23,34 @@ class CandidateRankerTest {
     }
 
     @Test
-    fun `limits each capture day to two photos`() {
+    fun `prefers other capture days before filling from an overrepresented day`() {
+        val result = CandidateRanker().rank(
+            listOf(
+                candidate(1, hash = 0xFF, quality = 0.95),
+                candidate(2, hash = 0xFF00, quality = 0.94),
+                candidate(3, hash = 0xFF0000, quality = 0.93),
+                candidate(4, hash = 0xFF000000, quality = 0.92),
+                candidate(5, hash = 0xFF00000000, quality = 0.60, capturedAt = now.minusSeconds(172_800)),
+                candidate(6, hash = 0xFF0000000000, quality = 0.55, capturedAt = now.minusSeconds(259_200))
+            ),
+            emptySet(),
+            now,
+            4
+        )
+
+        assertThat(result.map { it.localId }).containsExactly(1L, 2L, 5L, 6L).inOrder()
+    }
+
+    @Test
+    fun `fills requested supply when only one capture day is available`() {
         val result = CandidateRanker().rank(
             (1L..5L).map { candidate(it, hash = 0xFFL shl ((it.toInt() - 1) * 8), quality = 0.9) },
             emptySet(),
             now,
-            12
+            5
         )
-        assertThat(result).hasSize(2)
+
+        assertThat(result.map { it.localId }).containsExactly(1L, 2L, 3L, 4L, 5L).inOrder()
     }
 
     @Test
@@ -115,12 +135,13 @@ class CandidateRankerTest {
         hash: Long,
         quality: Double,
         flags: Set<String> = emptySet(),
-        labels: List<String> = listOf("object")
+        labels: List<String> = listOf("object"),
+        capturedAt: Instant = now.minusSeconds(86_400)
     ) = PhotoCandidate(
         localId = id,
         candidateToken = "candidate-$id",
         contentUri = "content://photo/$id",
-        capturedAt = now.minusSeconds(86_400),
+        capturedAt = capturedAt,
         modifiedAt = now,
         perceptualHash = hash,
         qualityScore = quality,
