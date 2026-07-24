@@ -417,6 +417,10 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
       )
     ));
     expect(completions.every(Boolean)).toBe(true);
+    const recentFactIds = await repositories[0].cardsRepository.listRecentFactIds(device.id, "broom", 4);
+    expect(recentFactIds).toHaveLength(4);
+    expect(new Set(recentFactIds).size).toBe(4);
+    expect(recentFactIds.every((factId) => factId.startsWith("schedule-fact-"))).toBe(true);
     const dates = completions.map((completion) => completion!.card.scheduledDate).sort();
     const expectedDates = Array.from({ length: 32 }, (_, index) =>
       new Date(Date.UTC(2026, 6, 20 + index)).toISOString().slice(0, 10)

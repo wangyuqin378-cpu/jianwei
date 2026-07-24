@@ -52,14 +52,27 @@ export class KnowledgeCatalogService {
   selectApprovedFact(
     topic: KnowledgeTopic,
     seed: string,
-    allowUnattested = false
+    allowUnattested = false,
+    recentFactIds: readonly string[] = []
   ): { fact: KnowledgeFact; sources: KnowledgeSource[] } | null {
     const facts = topic.facts.filter((fact) =>
       fact.reviewStatus === "approved" && (allowUnattested || fact.review !== undefined)
     );
     if (!facts.length) return null;
+    const recent = [...new Set(recentFactIds)];
+    const recentSet = new Set(recent);
+    const unseenFacts = facts.filter((fact) => !recentSet.has(fact.factId));
+    const pool = unseenFacts.length > 0
+      ? unseenFacts
+      : [...facts].sort((left, right) => {
+          const leftIndex = recent.indexOf(left.factId);
+          const rightIndex = recent.indexOf(right.factId);
+          const leftAge = leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex;
+          const rightAge = rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex;
+          return rightAge - leftAge;
+        });
     const hash = [...seed].reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0);
-    const fact = facts[hash % facts.length] as KnowledgeFact;
+    const fact = pool[unseenFacts.length > 0 ? hash % pool.length : 0] as KnowledgeFact;
     const sources = fact.sourceIds.map((id) => this.sourcesById.get(id)).filter(Boolean) as KnowledgeSource[];
     return { fact, sources };
   }

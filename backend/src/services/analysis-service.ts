@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type {
   AnalysisJob,
   AnalysisJobRepository,
+  CardRepository,
   CardWriter,
   Device,
   EvaluationJobAuthorization,
@@ -22,6 +23,7 @@ const BLOCKING_FLAGS = new Set([
 
 export const UPLOAD_SESSION_TTL_MS = 10 * 60 * 1000;
 export const PROCESSING_LEASE_MS = 210_000;
+const RECENT_FACT_LOOKBACK_PER_TOPIC = 4;
 
 export interface CreateJobInput {
   candidateToken: string;
@@ -35,6 +37,7 @@ export interface CreateJobInput {
 export class AnalysisService {
   constructor(
     private readonly jobs: AnalysisJobRepository,
+    private readonly cards: CardRepository,
     private readonly objects: ObjectStore,
     private readonly objectDeletions: ObjectDeletionRepository,
     private readonly vision: VisionProvider,
@@ -308,16 +311,24 @@ export class AnalysisService {
         return { job: needsContent, card: null };
       }
 
-      const selection = this.knowledge.selectApprovedFact(topic, job.candidateToken, this.allowUnattestedFacts);
+      const recentFactIds = await this.cards.listRecentFactIds(
+        device.id,
+        topic.topicId,
+        RECENT_FACT_LOOKBACK_PER_TOPIC
+      );
+      const selection = this.knowledge.selectApprovedFact(
+        topic,
+        job.candidateToken,
+        this.allowUnattestedFacts,
+        recentFactIds
+      );
       if (!selection) {
         const needsContent = await this.finishClaim(job.id, claimToken, "needs_content", "no_approved_fact");
         deleteWhenDone = true;
         return { job: needsContent, card: null };
       }
 
-      const personalContext = job.capturedAtBucket
-        ? `因为你在 ${job.capturedAtBucket} 拍过它`
-        : "因为它出现在你授权分析的照片中";
+      const personalContext = personalContextForPhoto(job.capturedAtBucket, topic.displayName);
       const draft = await this.writer.write({
         entity: { ...entity, canonicalTopicId: topic.topicId, displayName: topic.displayName },
         fact: selection.fact,
@@ -415,6 +426,21 @@ export class AnalysisService {
     if (!job || job.deviceId !== device.id) throw new AppError("job_not_found", "分析任务不存在", 404);
     return job;
   }
+}
+
+export function personalContextForPhoto(capturedAtBucket: string | null, topicDisplayName: string): string {
+  const topic = topicDisplayName.trim() || "这个日常物件";
+  if (!capturedAtBucket) return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(capturedAtBucket);
+  if (!match) return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  const [, year, month, day] = match;
+  const numericMonth = Number(month);
+  const numericDay = Number(day);
+  if (!Number.isInteger(numericMonth) || numericMonth < 1 || numericMonth > 12 ||
+      !Number.isInteger(numericDay) || numericDay < 1 || numericDay > 31) {
+    return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  }
+  return `你在 ${year} 年 ${numericMonth} 月 ${numericDay} 日拍下了「${topic}」，所以今天从它讲起。`;
 }
 
 export function scheduledDateInChina(now: Date, daysFromToday: number): string {

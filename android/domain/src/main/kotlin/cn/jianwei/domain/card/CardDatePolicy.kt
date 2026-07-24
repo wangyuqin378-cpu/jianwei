@@ -28,10 +28,10 @@ fun cardDatePresentation(
         else -> CardDateSection.TODAY
     }
     val visibleLabel = when {
-        scheduledDate == today -> "今日识物"
-        scheduledDate == today.minusDays(1) -> "昨日识物"
-        scheduledDate.year == today.year -> "${scheduledDate.monthValue}月${scheduledDate.dayOfMonth}日识物"
-        else -> "${scheduledDate.year}年${scheduledDate.monthValue}月${scheduledDate.dayOfMonth}日识物"
+        scheduledDate == today -> "今日一知"
+        scheduledDate == today.minusDays(1) -> "昨日一知"
+        scheduledDate.year == today.year -> "${scheduledDate.monthValue}月${scheduledDate.dayOfMonth}日一知"
+        else -> "${scheduledDate.year}年${scheduledDate.monthValue}月${scheduledDate.dayOfMonth}日一知"
     }
     return CardDatePresentation(visibleLabel, "卡片日期：$visibleLabel", section)
 }

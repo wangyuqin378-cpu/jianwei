@@ -240,6 +240,7 @@ export interface CardRepository {
   create(card: Omit<KnowledgeCard, "cardId" | "createdAt">): Promise<KnowledgeCard>;
   findById(cardId: string): Promise<KnowledgeCard | null>;
   list(deviceId: string, cursor: string | null, limit: number): Promise<{ items: KnowledgeCard[]; nextCursor: string | null }>;
+  listRecentFactIds(deviceId: string, topicId: string, limit: number): Promise<string[]>;
   addFeedback(
     input: Omit<CardFeedback, "id" | "createdAt"> & { topicId: string }
   ): Promise<FeedbackPreferenceResult>;

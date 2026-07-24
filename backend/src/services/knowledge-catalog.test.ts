@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { KnowledgeCatalog } from "../domain/types.js";
@@ -203,6 +205,31 @@ describe("knowledge catalog safety gates", () => {
     await expect(KnowledgeCatalogService.fromFile(path.join(root, "knowledge/catalog.json"), {
       expectedSha256: "0".repeat(64)
     })).rejects.toMatchObject({ code: "catalog_integrity_mismatch" });
+  });
+
+  it("uses every approved fact before repeating a recent one", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "jianwei-fact-rotation-"));
+    const file = path.join(directory, "catalog.json");
+    const catalog = reviewedCatalog("human-editor-01");
+    catalog.topics[0]!.facts = ["one", "two", "three"].map((suffix, index) => ({
+      ...catalog.topics[0]!.facts[0]!,
+      factId: `broom-${suffix}`,
+      factText: `这是第${index + 1}条已经由受控人工审核者核验并批准发布的普通物件测试事实。`
+    }));
+    await writeFile(file, JSON.stringify(catalog), "utf8");
+    try {
+      const service = await KnowledgeCatalogService.fromFile(file);
+      const topic = service.findTopic("broom")!;
+      const first = service.selectApprovedFact(topic, "same-seed")!.fact.factId;
+      const second = service.selectApprovedFact(topic, "same-seed", false, [first])!.fact.factId;
+      const third = service.selectApprovedFact(topic, "same-seed", false, [second, first])!.fact.factId;
+      const recycled = service.selectApprovedFact(topic, "same-seed", false, [third, second, first])!.fact.factId;
+
+      expect(new Set([first, second, third])).toEqual(new Set(["broom-one", "broom-two", "broom-three"]));
+      expect(recycled).toBe(first);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("requires attested approvals from a controlled human reviewer", () => {

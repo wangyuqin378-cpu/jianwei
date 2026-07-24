@@ -11,8 +11,8 @@ class CardDatePolicyTest {
     fun `current card is identified as today`() {
         val presentation = cardDatePresentation(today, today)
 
-        assertThat(presentation.visibleLabel).isEqualTo("今日识物")
-        assertThat(presentation.accessibilityLabel).isEqualTo("卡片日期：今日识物")
+        assertThat(presentation.visibleLabel).isEqualTo("今日一知")
+        assertThat(presentation.accessibilityLabel).isEqualTo("卡片日期：今日一知")
         assertThat(presentation.section).isEqualTo(CardDateSection.TODAY)
     }
 
@@ -22,7 +22,7 @@ class CardDatePolicyTest {
 
         val presentation = cardDatePresentation(LocalDate.parse("2026-12-31"), newYear)
 
-        assertThat(presentation.visibleLabel).isEqualTo("昨日识物")
+        assertThat(presentation.visibleLabel).isEqualTo("昨日一知")
         assertThat(presentation.section).isEqualTo(CardDateSection.HISTORY)
     }
 
@@ -30,7 +30,7 @@ class CardDatePolicyTest {
     fun `older card in the current year shows month and day`() {
         val presentation = cardDatePresentation(LocalDate.parse("2026-06-02"), today)
 
-        assertThat(presentation.visibleLabel).isEqualTo("6月2日识物")
+        assertThat(presentation.visibleLabel).isEqualTo("6月2日一知")
         assertThat(presentation.section).isEqualTo(CardDateSection.HISTORY)
     }
 
@@ -38,7 +38,7 @@ class CardDatePolicyTest {
     fun `older card from another year includes the year`() {
         val presentation = cardDatePresentation(LocalDate.parse("2025-12-31"), today)
 
-        assertThat(presentation.visibleLabel).isEqualTo("2025年12月31日识物")
+        assertThat(presentation.visibleLabel).isEqualTo("2025年12月31日一知")
         assertThat(presentation.section).isEqualTo(CardDateSection.HISTORY)
     }
 
@@ -46,8 +46,8 @@ class CardDatePolicyTest {
     fun `focused future cache shows its scheduled date instead of today`() {
         val presentation = cardDatePresentation(LocalDate.parse("2026-07-25"), today)
 
-        assertThat(presentation.visibleLabel).isEqualTo("7月25日识物")
-        assertThat(presentation.accessibilityLabel).isEqualTo("卡片日期：7月25日识物")
+        assertThat(presentation.visibleLabel).isEqualTo("7月25日一知")
+        assertThat(presentation.accessibilityLabel).isEqualTo("卡片日期：7月25日一知")
         assertThat(presentation.section).isEqualTo(CardDateSection.UPCOMING)
     }
 }

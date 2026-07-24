@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scheduledDateInChina } from "./analysis-service.js";
+import { personalContextForPhoto, scheduledDateInChina } from "./analysis-service.js";
 import { InMemoryRepositories } from "../infrastructure/in-memory-repositories.js";
 import { nextAvailableScheduledDate } from "../domain/card-scheduling.js";
 
@@ -39,6 +39,20 @@ describe("China-local card scheduling", () => {
 
   it("rejects an invalid schedule base date", () => {
     expect(() => nextAvailableScheduledDate("2026-02-30", [])).toThrow("valid ISO calendar date");
+  });
+});
+
+describe("photo provenance copy", () => {
+  it("turns an ISO capture bucket into a human explanation", () => {
+    expect(personalContextForPhoto("2026-07-23", "自行车"))
+      .toBe("你在 2026 年 7 月 23 日拍下了「自行车」，所以今天从它讲起。");
+  });
+
+  it("does not expose malformed metadata as display copy", () => {
+    expect(personalContextForPhoto("not-a-date", " 扫帚 "))
+      .toBe("它来自你主动授权的照片，所以今天从「扫帚」讲起。");
+    expect(personalContextForPhoto(null, ""))
+      .toBe("它来自你主动授权的照片，所以今天从「这个日常物件」讲起。");
   });
 });
 

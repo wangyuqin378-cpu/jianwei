@@ -228,6 +228,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   }
   const analysis = new AnalysisService(
     jobs,
+    cards,
     objects,
     objectDeletions,
     vision,

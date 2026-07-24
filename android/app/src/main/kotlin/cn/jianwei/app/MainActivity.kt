@@ -1322,6 +1322,11 @@ private fun KnowledgeCardView(
                         }
                     }
                 }
+                Text(
+                    card.body,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer,
                     shape = RoundedCornerShape(20.dp)
@@ -1331,15 +1336,10 @@ private fun KnowledgeCardView(
                         modifier = Modifier
                             .padding(horizontal = 12.dp, vertical = 7.dp)
                             .semantics { contentDescription = recognition.accessibilityLabel },
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-                Text(
-                    card.body,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(16.dp)
@@ -1349,11 +1349,12 @@ private fun KnowledgeCardView(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "为什么是这张照片",
+                            "从你的照片说起",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         safeSources.forEach { source ->
                             TextButton(
                                 onClick = {
@@ -1364,9 +1365,8 @@ private fun KnowledgeCardView(
                                         Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("查看来源 · ${source.publisher} · ${source.title}")
+                                Text("来源 · ${source.publisher} · ${source.title}")
                             }
                         }
                         if (safeSources.isEmpty()) {

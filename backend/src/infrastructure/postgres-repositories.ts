@@ -502,6 +502,15 @@ export class PostgresRepositories {
       const items = rows.slice(0, limit).map(cardFrom);
       return { items, nextCursor: hasMore ? items.at(-1)?.cardId ?? null : null };
     },
+    listRecentFactIds: async (deviceId, topicId, limit) => {
+      if (limit <= 0) return [];
+      const rows = await this.sql<{ fact_id: string }[]>`
+        SELECT fact_id FROM cards
+        WHERE device_id = ${deviceId} AND topic_id = ${topicId}
+        ORDER BY created_at DESC, id DESC
+        LIMIT ${limit}`;
+      return rows.map((row) => String(row.fact_id));
+    },
     addFeedback: async (input) => {
       return this.sql.begin(async (transaction) => {
         const id = randomUUID();

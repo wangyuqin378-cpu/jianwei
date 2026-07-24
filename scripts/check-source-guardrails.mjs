@@ -444,9 +444,9 @@ check(
 check(
   mainActivity.includes("datePresentation.visibleLabel") &&
     mainActivity.includes("DailyCardSectionHeader(datePresentation.section)") &&
-    mainActivity.includes('"为什么是这张照片"') &&
+    mainActivity.includes('"从你的照片说起"') &&
     mainActivity.includes('"这张卡对你有用吗？"') &&
-    mainActivity.indexOf('"为什么是这张照片"') < mainActivity.indexOf('"收藏这张知识卡"') &&
+    mainActivity.indexOf('"从你的照片说起"') < mainActivity.indexOf('"收藏这张知识卡"') &&
     mainActivity.indexOf('"收藏这张知识卡"') < mainActivity.indexOf('"这张卡对你有用吗？"') &&
     mainActivity.includes("shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)") &&
     discoveryUiPolicy.includes("availableWidthDp < 340f || fontScale >= 1.5f") &&

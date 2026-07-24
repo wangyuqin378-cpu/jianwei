@@ -385,6 +385,15 @@ export class InMemoryRepositories {
     return { items, nextCursor };
   }
 
+  async listRecentFactIds(deviceId: string, topicId: string, limit: number): Promise<string[]> {
+    if (limit <= 0) return [];
+    return [...this.cards.values()]
+      .filter((card) => card.deviceId === deviceId && card.topicId === topicId)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.cardId.localeCompare(left.cardId))
+      .slice(0, limit)
+      .map((card) => card.factId);
+  }
+
   async addFeedback(input: Omit<CardFeedback, "id" | "createdAt"> & { topicId: string }) {
     const existing = [...this.feedback.values()].find(
       (item) => item.deviceId === input.deviceId && item.cardId === input.cardId && item.action === input.action
@@ -522,6 +531,7 @@ export class InMemoryRepositories {
     create: (card) => this.createCard(card),
     findById: (cardId) => this.findCardById(cardId),
     list: (deviceId, cursor, limit) => this.list(deviceId, cursor, limit),
+    listRecentFactIds: (deviceId, topicId, limit) => this.listRecentFactIds(deviceId, topicId, limit),
     addFeedback: (input) => this.addFeedback(input),
     deleteTooPrivate: (deviceId, cardId) => this.deleteTooPrivate(deviceId, cardId),
     listPreferences: (deviceId) => this.listPreferences(deviceId),
