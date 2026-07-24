@@ -40,7 +40,11 @@ class KnowledgeCardHierarchyInstrumentedTest {
             assertThat(topOf(body)).isLessThan(topOf(recognition))
             assertThat(topOf(recognition)).isLessThan(topOf(provenance))
             assertThat(awaitNode(instrumentation, "今日一知")).isNotNull()
-            assertThat(awaitNode(instrumentation, PERSONAL_CONTEXT)).isNotNull()
+            assertThat(awaitNode(instrumentation, BRAND_PROMISE)).isNotNull()
+            assertThat(findTextNode(instrumentation.uiAutomation.rootInActiveWindow, "照片权限：仅手动选择")).isNull()
+            if (context.resources.configuration.screenWidthDp >= 360) {
+                assertThat(awaitNode(instrumentation, PERSONAL_CONTEXT)).isNotNull()
+            }
 
             val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
             output.outputStream().use { stream ->
@@ -109,6 +113,7 @@ class KnowledgeCardHierarchyInstrumentedTest {
         const val RECOGNITION = "识别对象：自行车 · 把握较高"
         const val PROVENANCE_TITLE = "从你的照片说起"
         const val PERSONAL_CONTEXT = "你在 2026 年 7 月 23 日拍下了「自行车」，所以今天从它讲起。"
+        const val BRAND_PROMISE = "从你的照片里，每天认识一件小事"
         const val SCREENSHOT_NAME = "knowledge-card-hierarchy.png"
     }
 }

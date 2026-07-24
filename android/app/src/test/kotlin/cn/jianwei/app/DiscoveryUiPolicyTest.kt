@@ -26,6 +26,20 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
+    fun `photo access summary explains behavior without sounding like a permission screen`() {
+        assertThat(photoAccessSummary(PhotoAccess.FULL)).isEqualTo("自动发现已开启 · 全部授权照片")
+        assertThat(photoAccessSummary(PhotoAccess.PARTIAL)).contains("仅限你选中的照片")
+        assertThat(photoAccessSummary(PhotoAccess.PICKER_ONLY)).isEqualTo("仅分析你选择或分享的照片")
+    }
+
+    @Test
+    fun `paused analysis is surfaced when existing cards would otherwise hide it`() {
+        assertThat(shouldShowPausedAnalysisBanner(paused = true, hasCards = true)).isTrue()
+        assertThat(shouldShowPausedAnalysisBanner(paused = true, hasCards = false)).isFalse()
+        assertThat(shouldShowPausedAnalysisBanner(paused = false, hasCards = true)).isFalse()
+    }
+
+    @Test
     fun `paused empty state takes priority over permission state`() {
         val copy = emptyDiscoveryCopy(paused = true, access = PhotoAccess.PICKER_ONLY, progress = AnalysisProgress(phase = AnalysisPhase.FAILED))
 

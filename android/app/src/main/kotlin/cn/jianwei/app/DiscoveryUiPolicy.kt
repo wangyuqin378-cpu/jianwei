@@ -18,6 +18,15 @@ internal data class HomeActivityIndicator(
     val stateDescription: String
 )
 
+internal fun photoAccessSummary(access: PhotoAccess): String = when (access) {
+    PhotoAccess.FULL -> "自动发现已开启 · 全部授权照片"
+    PhotoAccess.PARTIAL -> "自动发现已开启 · 仅限你选中的照片"
+    PhotoAccess.PICKER_ONLY -> "仅分析你选择或分享的照片"
+}
+
+internal fun shouldShowPausedAnalysisBanner(paused: Boolean, hasCards: Boolean): Boolean =
+    paused && hasCards
+
 internal fun shouldScheduleAutomaticDiscovery(access: PhotoAccess): Boolean =
     access != PhotoAccess.PICKER_ONLY
 

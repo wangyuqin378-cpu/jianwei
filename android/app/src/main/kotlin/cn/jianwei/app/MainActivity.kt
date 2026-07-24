@@ -729,7 +729,7 @@ private fun HomeScreen(
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("见微", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("照片权限：${accessLabel(access)}", style = MaterialTheme.typography.labelMedium)
+                    Text("从你的照片里，每天认识一件小事", style = MaterialTheme.typography.labelMedium)
                     state.activeOperation?.let { operation ->
                         Text(
                             operation.progressLabel,
@@ -826,6 +826,11 @@ private fun HomeScreen(
                         }
                     }
                 }
+                if (shouldShowPausedAnalysisBanner(state.paused, state.cards.isNotEmpty() || state.savedCards.isNotEmpty())) {
+                    item {
+                        PausedAnalysisBanner(actionsEnabled = actionsEnabled, onResume = onResume)
+                    }
+                }
                 if (state.pendingImportCount > 0) {
                     item {
                         ImportedPhotoProgressCard(
@@ -908,9 +913,37 @@ private fun HomeScreen(
                     InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
                 }
                 item {
-                    PrivacyCenter(state.paused, actionsEnabled, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
+                    PrivacyCenter(access, state.paused, actionsEnabled, onPick, onAddWidget, onPause, onResume, onClearIndex, onDeleteCloud, onExportMetrics)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PausedAnalysisBanner(
+    actionsEnabled: Boolean,
+    onResume: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                "照片分析已暂停",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "已有卡片仍可查看；恢复后才会继续处理新照片。",
+                style = MaterialTheme.typography.bodySmall
+            )
+            TextButton(
+                onClick = onResume,
+                enabled = actionsEnabled,
+                modifier = Modifier.align(Alignment.End)
+            ) { Text("恢复分析") }
         }
     }
 }
@@ -1591,6 +1624,7 @@ private fun ItemReminderDialog(
 
 @Composable
 private fun PrivacyCenter(
+    access: PhotoAccess,
     paused: Boolean,
     actionsEnabled: Boolean,
     onPick: () -> Unit,
@@ -1611,9 +1645,16 @@ private fun PrivacyCenter(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("你的数据与隐私", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(
-                    if (paused) "分析已暂停，你仍可管理本地与云端数据" else "管理照片访问、分析状态与云端数据",
+                    photoAccessSummary(access),
                     style = MaterialTheme.typography.bodySmall
                 )
+                if (paused) {
+                    Text(
+                        "分析已暂停，不会继续扫描、上传或同步",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
             OutlinedButton(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth()) {
                 Text(if (expanded) "收起隐私与数据" else "管理隐私与数据")
@@ -1672,12 +1713,6 @@ private fun PhotoThumbnail(uri: String, contentDescription: String, modifier: Mo
 }
 
 private const val DETAIL_THUMBNAIL_MAX_SIDE_PX = 1280
-
-private fun accessLabel(access: PhotoAccess) = when (access) {
-    PhotoAccess.FULL -> "全部照片"
-    PhotoAccess.PARTIAL -> "部分照片"
-    PhotoAccess.PICKER_ONLY -> "仅手动选择"
-}
 
 private fun requestPinDailyWidget(context: android.content.Context) {
     val manager = AppWidgetManager.getInstance(context)
