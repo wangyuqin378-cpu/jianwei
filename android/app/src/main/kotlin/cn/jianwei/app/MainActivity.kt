@@ -121,11 +121,13 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     @Inject lateinit var betaMetrics: BetaMetricsStore
     private var photoAccess by mutableStateOf(PhotoAccess.PICKER_ONLY)
+    private var dailyWidgetInstalled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         consumeNavigationIntent(intent)
         photoAccess = currentPhotoAccess(this)
+        dailyWidgetInstalled = hasDailyWidget()
         viewModel.refreshCurrentDay()
         if (getSharedPreferences("onboarding", MODE_PRIVATE).getBoolean("completed", false)) {
             betaMetrics.markOnboardingCompleted()
@@ -225,6 +227,7 @@ class MainActivity : ComponentActivity() {
                     HomeScreen(
                         state = state,
                         access = photoAccess,
+                        widgetInstalled = dailyWidgetInstalled,
                         onPick = choosePhotos,
                         onManageAutomaticDiscovery = {
                             photoPermission.launch(requiredPhotoPermissions())
@@ -265,7 +268,17 @@ class MainActivity : ComponentActivity() {
         if (getSharedPreferences("onboarding", MODE_PRIVATE).getBoolean("completed", false)) {
             viewModel.reconcilePhotoAccess(photoAccess)
         }
-        if (::betaMetrics.isInitialized && hasDailyWidget()) betaMetrics.markWidgetObserved()
+        refreshDailyWidgetInstallation()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) refreshDailyWidgetInstallation()
+    }
+
+    private fun refreshDailyWidgetInstallation() {
+        dailyWidgetInstalled = hasDailyWidget()
+        if (::betaMetrics.isInitialized && dailyWidgetInstalled) betaMetrics.markWidgetObserved()
     }
 
     private fun consumeNavigationIntent(intent: Intent) {
@@ -684,6 +697,7 @@ private fun OnboardingEntryChoice(
 private fun HomeScreen(
     state: MainUiState,
     access: PhotoAccess,
+    widgetInstalled: Boolean,
     onPick: () -> Unit,
     onManageAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
@@ -908,7 +922,7 @@ private fun HomeScreen(
                             onCancelReminder,
                             onEngagement
                         )
-                        if (shouldShowWidgetCallToAction(showSavedCards, index)) {
+                        if (shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)) {
                             WidgetCallToAction(onAddWidget)
                         }
                     }
@@ -919,6 +933,7 @@ private fun HomeScreen(
                 item {
                     PrivacyCenter(
                         access,
+                        widgetInstalled,
                         state.paused,
                         actionsEnabled,
                         onPick,
@@ -1641,6 +1656,7 @@ private fun ItemReminderDialog(
 @Composable
 private fun PrivacyCenter(
     access: PhotoAccess,
+    widgetInstalled: Boolean,
     paused: Boolean,
     actionsEnabled: Boolean,
     onPick: () -> Unit,
@@ -1701,7 +1717,9 @@ private fun PrivacyCenter(
                         }
                     }
                     OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
-                    OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("添加桌面组件") }
+                    OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
+                        Text(widgetManagementActionLabel(widgetInstalled))
+                    }
                     OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                         Text(if (paused) "恢复分析" else "暂停分析")
                     }

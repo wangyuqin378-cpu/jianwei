@@ -50,8 +50,14 @@ internal fun shouldShowPausedAnalysisBanner(paused: Boolean, hasCards: Boolean):
 internal fun shouldScheduleAutomaticDiscovery(access: PhotoAccess): Boolean =
     access != PhotoAccess.PICKER_ONLY
 
-internal fun shouldShowWidgetCallToAction(showSavedCards: Boolean, cardIndex: Int): Boolean =
-    !showSavedCards && cardIndex == 0
+internal fun shouldShowWidgetCallToAction(
+    showSavedCards: Boolean,
+    cardIndex: Int,
+    widgetInstalled: Boolean
+): Boolean = !widgetInstalled && !showSavedCards && cardIndex == 0
+
+internal fun widgetManagementActionLabel(widgetInstalled: Boolean): String =
+    if (widgetInstalled) "再添加一个桌面组件" else "添加桌面组件"
 
 internal fun shouldStackWidgetCallToAction(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 360f || fontScale >= 1.5f

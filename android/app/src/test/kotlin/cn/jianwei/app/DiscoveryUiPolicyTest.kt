@@ -61,10 +61,37 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
-    fun `widget prompt follows first daily card without repeating in saved collection`() {
-        assertThat(shouldShowWidgetCallToAction(showSavedCards = false, cardIndex = 0)).isTrue()
-        assertThat(shouldShowWidgetCallToAction(showSavedCards = false, cardIndex = 1)).isFalse()
-        assertThat(shouldShowWidgetCallToAction(showSavedCards = true, cardIndex = 0)).isFalse()
+    fun `widget prompt follows first daily card until installation is complete`() {
+        assertThat(
+            shouldShowWidgetCallToAction(
+                showSavedCards = false,
+                cardIndex = 0,
+                widgetInstalled = false
+            )
+        ).isTrue()
+        assertThat(
+            shouldShowWidgetCallToAction(
+                showSavedCards = false,
+                cardIndex = 1,
+                widgetInstalled = false
+            )
+        ).isFalse()
+        assertThat(
+            shouldShowWidgetCallToAction(
+                showSavedCards = true,
+                cardIndex = 0,
+                widgetInstalled = false
+            )
+        ).isFalse()
+        assertThat(
+            shouldShowWidgetCallToAction(
+                showSavedCards = false,
+                cardIndex = 0,
+                widgetInstalled = true
+            )
+        ).isFalse()
+        assertThat(widgetManagementActionLabel(widgetInstalled = false)).isEqualTo("添加桌面组件")
+        assertThat(widgetManagementActionLabel(widgetInstalled = true)).isEqualTo("再添加一个桌面组件")
     }
 
     @Test
