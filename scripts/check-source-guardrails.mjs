@@ -474,9 +474,13 @@ check(
     mainActivity.includes("DailyCardSectionHeader(datePresentation.section)") &&
     mainActivity.includes('"为什么推给你"') &&
     mainActivity.includes('Text("查看来源 · ${source.publisher}")') &&
-    mainActivity.includes('"这张卡对你有用吗？"') &&
+    mainActivity.includes('"这条知识怎么样？"') &&
     mainActivity.indexOf('"为什么推给你"') < mainActivity.indexOf('Text(if (isSaved) "取消收藏" else "收藏")') &&
-    mainActivity.indexOf('Text(if (isSaved) "取消收藏" else "收藏")') < mainActivity.indexOf('"这张卡对你有用吗？"') &&
+    mainActivity.indexOf('Text(if (isSaved) "取消收藏" else "收藏")') < mainActivity.indexOf('"这条知识怎么样？"') &&
+    mainActivity.includes("private fun FeedbackChoiceButton(") &&
+    mainActivity.includes("action = FeedbackAction.TOO_PRIVATE") &&
+    mainActivity.includes("shouldStackFeedbackChoices(") &&
+    feedbackUiPolicy.includes("availableWidthDp < 260f || fontScale >= 1.5f") &&
     mainActivity.includes("shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)") &&
     discoveryUiPolicy.includes("availableWidthDp < 340f || fontScale >= 1.5f") &&
     discoveryUiPolicyTest.includes("knowledge card actions stack before labels become cramped"),
@@ -592,7 +596,7 @@ check(
     postgresRepositories.includes("hashtextextended(${`${input.deviceId}:${input.cardId}`}, 0)") &&
     postgresRepositories.includes("UPDATE cards SET status = 'archived'") &&
     feedbackUiPolicy.includes("已隐藏这张识别有误的卡片") &&
-    mainActivity.includes("有意思/没意思会改进推荐；识错了会隐藏这张卡") &&
+    mainActivity.includes("有意思/没意思会调准推荐；识错了会隐藏，太私人会删除并停止分析") &&
     mainViewModel.includes("action == FeedbackAction.TOO_PRIVATE || action == FeedbackAction.WRONG_OBJECT"),
   "WRONG_OBJECT is not a crash-safe terminal display barrier or can keep training stale interest signals"
 );

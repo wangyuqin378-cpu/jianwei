@@ -1502,41 +1502,84 @@ private fun KnowledgeCardView(
                 }
                 HorizontalDivider()
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("这张卡对你有用吗？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("这条知识怎么样？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         if (shouldOfferOrdinaryFeedback(feedbackState)) {
                             Text(
-                                "有意思/没意思会改进推荐；识错了会隐藏这张卡。",
-                                style = MaterialTheme.typography.bodySmall
+                                "有意思/没意思会调准推荐；识错了会隐藏，太私人会删除并停止分析。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(
-                                    onClick = { onFeedback(card.cardId, FeedbackAction.LIKE) },
-                                    enabled = actionsEnabled,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(FeedbackAction.LIKE.userLabel())
+                            BoxWithConstraints {
+                                val stacked = shouldStackFeedbackChoices(
+                                    maxWidth.value,
+                                    LocalDensity.current.fontScale
+                                )
+                                if (stacked) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        FeedbackChoiceButton(
+                                            action = FeedbackAction.LIKE,
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onSelect = { onFeedback(card.cardId, it) }
+                                        )
+                                        FeedbackChoiceButton(
+                                            action = FeedbackAction.DISLIKE,
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onSelect = { onFeedback(card.cardId, it) }
+                                        )
+                                        FeedbackChoiceButton(
+                                            action = FeedbackAction.WRONG_OBJECT,
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onSelect = { onFeedback(card.cardId, it) }
+                                        )
+                                        FeedbackChoiceButton(
+                                            action = FeedbackAction.TOO_PRIVATE,
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            onSelect = { showPrivateFeedbackDialog = true }
+                                        )
+                                    }
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            FeedbackChoiceButton(
+                                                action = FeedbackAction.LIKE,
+                                                enabled = actionsEnabled,
+                                                modifier = Modifier.weight(1f),
+                                                onSelect = { onFeedback(card.cardId, it) }
+                                            )
+                                            FeedbackChoiceButton(
+                                                action = FeedbackAction.DISLIKE,
+                                                enabled = actionsEnabled,
+                                                modifier = Modifier.weight(1f),
+                                                onSelect = { onFeedback(card.cardId, it) }
+                                            )
+                                        }
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            FeedbackChoiceButton(
+                                                action = FeedbackAction.WRONG_OBJECT,
+                                                enabled = actionsEnabled,
+                                                modifier = Modifier.weight(1f),
+                                                onSelect = { onFeedback(card.cardId, it) }
+                                            )
+                                            FeedbackChoiceButton(
+                                                action = FeedbackAction.TOO_PRIVATE,
+                                                enabled = actionsEnabled,
+                                                modifier = Modifier.weight(1f),
+                                                onSelect = { showPrivateFeedbackDialog = true }
+                                            )
+                                        }
+                                    }
                                 }
-                                OutlinedButton(
-                                    onClick = { onFeedback(card.cardId, FeedbackAction.DISLIKE) },
-                                    enabled = actionsEnabled,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(FeedbackAction.DISLIKE.userLabel())
-                                }
-                            }
-                            OutlinedButton(
-                                onClick = { onFeedback(card.cardId, FeedbackAction.WRONG_OBJECT) },
-                                enabled = actionsEnabled,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(FeedbackAction.WRONG_OBJECT.userLabel())
                             }
                         } else {
                             Surface(
@@ -1564,18 +1607,34 @@ private fun KnowledgeCardView(
                                     )
                                 }
                             }
-                        }
-                        TextButton(
-                            onClick = { showPrivateFeedbackDialog = true },
-                            enabled = actionsEnabled,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(FeedbackAction.TOO_PRIVATE.userLabel())
+                            TextButton(
+                                onClick = { showPrivateFeedbackDialog = true },
+                                enabled = actionsEnabled,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(FeedbackAction.TOO_PRIVATE.userLabel())
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FeedbackChoiceButton(
+    action: FeedbackAction,
+    enabled: Boolean,
+    modifier: Modifier,
+    onSelect: (FeedbackAction) -> Unit
+) {
+    OutlinedButton(
+        onClick = { onSelect(action) },
+        enabled = enabled,
+        modifier = modifier
+    ) {
+        Text(action.userLabel())
     }
 }
 

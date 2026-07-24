@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 卡片反馈区产品化（当前最新权威摘要）：旧反馈区把四种语义拆成不同层级，正常手机上也会因为复用主操作阈值而纵向显示四个全宽按钮，形成问卷感。当前反馈标题为“这条知识怎么样？”，中性 `surfaceVariant` 承载后果说明；标准净宽以 2×2 网格平等展示有意思、没意思、识错了、太私人，只有净宽 `<260dp` 或字体 `>=1.5×` 才纵排。布局判断留在 app 的纯 UI policy，反馈业务状态仍由现有 ViewModel/domain/data 链路处理。
+
+API 34 标准宽度与精确 320dp/2× 字体均逐项滚动确认四个选择可达；设备测试还真实点击“太私人”，确认删除与停止分析对话框出现，并点击“保留卡片”返回。全新 `-wipe-data` AVD 最终 App instrumentation 11/11，Android JVM 179/179（Domain 56、App 45、Data 78），Lint 0 issue，Debug、R8 Release 与源码门禁通过。Debug/未签名 Release APK SHA-256 为 `8ad3f758dbeb8db5fc352b6165574ce574d336fad8cf43b10a56005c6133b2b7` / `8f946d975b1b41425e2ac61dd9565e4ba464046784a2c4862627e6a745036fae`；标准/大字反馈截图 SHA-256 为 `da30950353e546903d615acab68120e6f4dbe2e39c32f44a31802799ba6a5b76` / `942bd8f8557be17992bc33590be5aaafd9a637159897d35e37c697738b6e6c63`，仅属本地工程证据。Beta 外部阻断不变，保持 `NO_GO`。
+
 2026-07-25 每日知识卡视觉层级与大字可达性（当前最新权威摘要）：API 34 真实截图确认旧卡片虽已知识优先，但来源卡和绿色“收藏这张知识卡”仍把阅读流拉回操作表单。当前继续保留对象把握、个性化缘由和来源可信链路；“为什么推给你”直接解释推荐，来源主视觉只显示发布者，完整来源标题进入 TalkBack 描述。收藏与物品提醒统一降为描边次级操作并使用短标签，反馈学习仍位于其后。
 
 标准 1080×2400 与精确 320dp/2× 字体均由 API 34 instrumentation 生成真实截图；大字路径会实际滚动并确认识别、来源和收藏可达，短操作标签不再被拆成多行大圆按钮。Pixel Launcher 组件闭环同时把返回 App 后的隐私管理点击改为屏幕坐标输入，避免窗口焦点竞态造成假失败。全新 `-wipe-data` AVD 最终 App instrumentation 11/11；Android JVM 178/178（Domain 56、App 44、Data 78），Lint 0 issue，Debug 与 R8 Release 全部通过。Debug/未签名 Release APK SHA-256 为 `bdf7c425671def3fc7abcf24933ce7aedda7ec55ba54f9b10787645a2ed9647b` / `96a14430b77bc07ff1e7e3441396d3e2f83d8ee48a487e0b45acdf36f324a5bb`。标准/大字截图 SHA-256 为 `181a5abbea25ce0c15d707e1621a1954dc2bcf71c70259180241a61c906822f2` / `8b23e6d0d9de54f8d5d63d9d041aec05edd763eb4fd15e2e5b814282dd4394e8`，仅属本地工程证据；Beta 外部阻断不变，保持 `NO_GO`。

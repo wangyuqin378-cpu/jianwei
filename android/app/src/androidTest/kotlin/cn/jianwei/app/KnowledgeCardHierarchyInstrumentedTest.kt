@@ -66,6 +66,21 @@ class KnowledgeCardHierarchyInstrumentedTest {
                     .compress(Bitmap.CompressFormat.PNG, 100, stream)).isTrue()
             }
             assertThat(output.length()).isGreaterThan(0L)
+
+            assertThat(awaitNodeWithScroll(instrumentation, FEEDBACK_TITLE)).isNotNull()
+            listOf("有意思", "没意思", "识错了", "太私人").forEach { choice ->
+                assertThat(awaitNodeWithScroll(instrumentation, choice)).isNotNull()
+            }
+            val feedbackOutput = File(context.getExternalFilesDir(null), FEEDBACK_SCREENSHOT_NAME)
+            feedbackOutput.outputStream().use { stream ->
+                assertThat(instrumentation.uiAutomation.takeScreenshot()
+                    .compress(Bitmap.CompressFormat.PNG, 100, stream)).isTrue()
+            }
+            assertThat(feedbackOutput.length()).isGreaterThan(0L)
+            click(awaitNodeWithScroll(instrumentation, "太私人"))
+            assertThat(awaitNode(instrumentation, PRIVATE_DIALOG_TITLE)).isNotNull()
+            click(awaitNode(instrumentation, "保留卡片"))
+            assertThat(awaitNodeWithScroll(instrumentation, FEEDBACK_TITLE)).isNotNull()
         } finally {
             scenario?.close()
             database.cards().clear()
@@ -99,6 +114,13 @@ class KnowledgeCardHierarchyInstrumentedTest {
     )
 
     private fun topOf(node: AccessibilityNodeInfo): Int = Rect().also(node::getBoundsInScreen).top
+
+    private fun click(node: AccessibilityNodeInfo) {
+        val clickable = generateSequence(node) { current -> current.parent }
+            .firstOrNull { current -> current.isClickable }
+        assertThat(clickable).isNotNull()
+        assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
+    }
 
     private fun awaitNode(
         instrumentation: android.app.Instrumentation,
@@ -150,6 +172,9 @@ class KnowledgeCardHierarchyInstrumentedTest {
         const val SAVE_ACTION = "收藏"
         const val PERSONAL_CONTEXT = "你在 2026 年 7 月 23 日拍下了「自行车」，所以今天从它讲起。"
         const val BRAND_PROMISE = "从你的照片里，每天认识一件小事"
+        const val FEEDBACK_TITLE = "这条知识怎么样？"
+        const val PRIVATE_DIALOG_TITLE = "将这张照片标记为太私人？"
         const val SCREENSHOT_NAME = "knowledge-card-hierarchy.png"
+        const val FEEDBACK_SCREENSHOT_NAME = "knowledge-card-feedback.png"
     }
 }

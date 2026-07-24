@@ -14,6 +14,9 @@ internal fun FeedbackAction.userLabel(): String = when (this) {
 
 internal fun shouldOfferOrdinaryFeedback(state: CardFeedbackState?): Boolean = state == null
 
+internal fun shouldStackFeedbackChoices(availableWidthDp: Float, fontScale: Float): Boolean =
+    availableWidthDp < 260f || fontScale >= 1.5f
+
 internal fun feedbackResultMessage(result: FeedbackSubmissionResult): String = when {
     !result.accepted && result.cardRemoved -> "这张卡已经删除，不会再次分析对应照片"
     !result.accepted -> "这张卡已记录「${result.effectiveAction.userLabel()}」，不会重复计入推荐"

@@ -8,6 +8,13 @@ import org.junit.Test
 
 class FeedbackUiPolicyTest {
     @Test
+    fun `feedback choices use a compact grid until width or text scale needs stacking`() {
+        assertThat(shouldStackFeedbackChoices(availableWidthDp = 315f, fontScale = 1f)).isFalse()
+        assertThat(shouldStackFeedbackChoices(availableWidthDp = 259f, fontScale = 1f)).isTrue()
+        assertThat(shouldStackFeedbackChoices(availableWidthDp = 315f, fontScale = 1.5f)).isTrue()
+    }
+
+    @Test
     fun `ordinary choices disappear after one persisted selection`() {
         assertThat(shouldOfferOrdinaryFeedback(null)).isTrue()
         assertThat(
