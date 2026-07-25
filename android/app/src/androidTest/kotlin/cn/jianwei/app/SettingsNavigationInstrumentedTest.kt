@@ -23,11 +23,14 @@ class SettingsNavigationInstrumentedTest {
         val context = instrumentation.targetContext
         val database = buildJianweiDatabase(context)
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
+        val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             database.cards().clear()
             preferences.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().remove(AUTOMATIC_CARD_MODE_KEY).commit()
             database.cards().upsertAll(listOf(todayCard()))
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
@@ -41,12 +44,30 @@ class SettingsNavigationInstrumentedTest {
             click(awaitNode(instrumentation, "设置与隐私"))
             assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
             assertThat(awaitTextNode(instrumentation, "设置与隐私")).isNotNull()
-            assertThat(awaitTextNode(instrumentation, "你的推荐偏好")).isNotNull()
+            assertThat(awaitTextNode(instrumentation, "照片处理节奏")).isNotNull()
+            assertThat(awaitDescriptionPrefix(instrumentation, "提前准备（推荐）。").stateDescription)
+                .isEqualTo("已选择")
+            click(awaitDescriptionPrefix(instrumentation, "每天一张。"))
+            assertThat(awaitDescriptionPrefixWithState(
+                instrumentation,
+                "每天一张。",
+                "已选择"
+            ).stateDescription).isEqualTo("已选择")
+            assertThat(schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null))
+                .isEqualTo("DAILY_ONE")
+            screenshot(context, instrumentation, SETTINGS_SCREENSHOT_NAME)
+            requireNotNull(scenario).recreate()
+            assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
+            assertThat(awaitDescriptionPrefixWithState(
+                instrumentation,
+                "每天一张。",
+                "已选择"
+            ).stateDescription).isEqualTo("已选择")
+            assertThat(awaitTextNodeWithScroll(instrumentation, "你的推荐偏好")).isNotNull()
             assertThat(findTextNode(
                 instrumentation.uiAutomation.rootInActiveWindow,
                 TODAY_TITLE
             )).isNull()
-            screenshot(context, instrumentation, SETTINGS_SCREENSHOT_NAME)
 
             assertThat(awaitTextNodeWithScroll(instrumentation, "你的数据与隐私")).isNotNull()
             click(awaitTextNodeWithScroll(instrumentation, "管理隐私与数据"))
@@ -72,6 +93,10 @@ class SettingsNavigationInstrumentedTest {
             database.cards().clear()
             database.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().apply {
+                if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
+                else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+            }.commit()
         }
     }
 
@@ -157,6 +182,23 @@ class SettingsNavigationInstrumentedTest {
         findTextNode(root, text)
     }
 
+    private fun awaitDescriptionPrefix(
+        instrumentation: android.app.Instrumentation,
+        prefix: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo = awaitMatchingNode(instrumentation, timeoutMillis) { root ->
+        findDescriptionPrefix(root, prefix)
+    }
+
+    private fun awaitDescriptionPrefixWithState(
+        instrumentation: android.app.Instrumentation,
+        prefix: String,
+        state: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo = awaitMatchingNode(instrumentation, timeoutMillis) { root ->
+        findDescriptionPrefix(root, prefix)?.takeIf { it.stateDescription?.toString() == state }
+    }
+
     private fun awaitAnyTextNode(
         instrumentation: android.app.Instrumentation,
         texts: List<String>,
@@ -222,6 +264,15 @@ class SettingsNavigationInstrumentedTest {
         return null
     }
 
+    private fun findDescriptionPrefix(root: AccessibilityNodeInfo?, prefix: String): AccessibilityNodeInfo? {
+        if (root == null) return null
+        if (root.contentDescription?.toString()?.startsWith(prefix) == true) return root
+        for (index in 0 until root.childCount) {
+            findDescriptionPrefix(root.getChild(index), prefix)?.let { return it }
+        }
+        return null
+    }
+
     private fun visibleNodeSummary(root: AccessibilityNodeInfo?): List<String> = buildList {
         fun collect(node: AccessibilityNodeInfo?) {
             if (node == null || size >= 60) return
@@ -239,6 +290,7 @@ class SettingsNavigationInstrumentedTest {
         const val TODAY_CARD_ID = "settings-navigation-today"
         const val TODAY_TITLE = "杯子把手为什么留出一个圆环"
         const val SETTINGS_SCREENSHOT_NAME = "settings-overview.png"
+        const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
         val DEEP_SETTINGS_MARKERS = listOf(
             "导出内测报告",
             "系统相册权限只控制自动发现；你曾逐次选择或分享导入的照片是独立同意。如需终止所有待处理任务，请点“暂停分析”。",

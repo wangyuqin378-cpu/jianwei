@@ -23,6 +23,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -103,6 +105,7 @@ import cn.jianwei.app.widget.DailyWidgetReceiver
 import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
 import cn.jianwei.domain.card.cardRecognitionPresentation
+import cn.jianwei.domain.card.AutomaticCardMode
 import cn.jianwei.domain.card.cardDatePresentation
 import cn.jianwei.domain.card.CardDatePresentation
 import cn.jianwei.domain.card.CardDateSection
@@ -256,6 +259,9 @@ class MainActivity : ComponentActivity() {
                         onDeleteCloud = viewModel::deleteCloudData,
                         onExportMetrics = ::shareBetaMetrics,
                         onUpdateInterests = { viewModel.updateInterests(it) },
+                        onUpdateAutomaticCardMode = { mode ->
+                            viewModel.updateAutomaticCardMode(mode, photoAccess)
+                        },
                         onCloseFocusedCard = { viewModel.focusCard(null) },
                         onDismissImportedPhotoResult = viewModel::clearImportedPhotoResultNotice,
                         onMessageShown = viewModel::clearMessage
@@ -750,6 +756,7 @@ private fun HomeScreen(
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit,
     onUpdateInterests: (Set<String>) -> Boolean,
+    onUpdateAutomaticCardMode: (AutomaticCardMode) -> Unit,
     onCloseFocusedCard: () -> Unit,
     onDismissImportedPhotoResult: () -> Unit,
     onMessageShown: () -> Unit
@@ -1042,6 +1049,13 @@ private fun HomeScreen(
                 if (homeSection == HomeSection.SETTINGS) {
                     item {
                         SettingsHeader()
+                    }
+                    item {
+                        AutomaticCardModeCenter(
+                            selectedMode = state.automaticCardMode,
+                            actionsEnabled = actionsEnabled,
+                            onSelect = onUpdateAutomaticCardMode
+                        )
                     }
                     item {
                         InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
@@ -1676,6 +1690,95 @@ private fun InterestPreferenceCenter(
                 OutlinedButton(onClick = { editing = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                     Text("调整推荐兴趣")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AutomaticCardModeCenter(
+    selectedMode: AutomaticCardMode,
+    actionsEnabled: Boolean,
+    onSelect: (AutomaticCardMode) -> Unit
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("照片处理节奏", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "决定自动发现何时理解新照片。两种方式都先在本地排除模糊、重复和私人内容。",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            AutomaticCardModeOption(
+                title = "提前准备（推荐）",
+                body = "联网时补足 7–14 张卡片，桌面组件断网也能继续更新。",
+                selected = selectedMode == AutomaticCardMode.PREPARED_POOL,
+                enabled = actionsEnabled,
+                onClick = { onSelect(AutomaticCardMode.PREPARED_POOL) }
+            )
+            AutomaticCardModeOption(
+                title = "每天一张",
+                body = "每个周期最多上传分析 1 张；没命中可靠知识或系统延迟时，继续显示上一张。",
+                selected = selectedMode == AutomaticCardMode.DAILY_ONE,
+                enabled = actionsEnabled,
+                onClick = { onSelect(AutomaticCardMode.DAILY_ONE) }
+            )
+            Text(
+                "切换不会删除已经生成的卡片；新设置从下一次自动发现开始生效。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun AutomaticCardModeOption(
+    title: String,
+    body: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(14.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(
+                width = 1.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                shape = shape
+            )
+            .selectable(
+                selected = selected,
+                enabled = enabled,
+                role = Role.RadioButton,
+                onClick = onClick
+            )
+            .clearAndSetSemantics {
+                contentDescription = "$title。$body"
+                role = Role.RadioButton
+                this.selected = selected
+                stateDescription = if (selected) "已选择" else "未选择"
+                if (enabled) onClick(label = "选择$title") {
+                    onClick()
+                    true
+                }
+            },
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        shape = shape
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(selected = selected, onClick = null, enabled = enabled)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(body, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

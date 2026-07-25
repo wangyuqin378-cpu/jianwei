@@ -3,6 +3,7 @@ package cn.jianwei.app
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.jianwei.domain.card.FocusedCardStatus
+import cn.jianwei.domain.card.AutomaticCardMode
 import cn.jianwei.domain.card.dailyCardPresentation
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisProgressScope
@@ -14,6 +15,7 @@ import cn.jianwei.domain.model.TrackedItem
 import cn.jianwei.domain.preferences.DEFAULT_INTEREST_SELECTION
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
+import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
@@ -44,6 +46,7 @@ data class MainUiState(
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
     val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
     val selectedInterests: Set<String> = DEFAULT_INTEREST_SELECTION,
+    val automaticCardMode: AutomaticCardMode = AutomaticCardMode.PREPARED_POOL,
     val activeOperation: UserOperation? = null,
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
@@ -64,6 +67,7 @@ class MainViewModel @Inject constructor(
     private val scheduler: AnalysisScheduler,
     private val analysisStatus: AnalysisStatusRepository,
     private val interestPreferences: InterestPreferencesRepository,
+    private val automaticCardModePreferences: AutomaticCardModeRepository,
     private val betaMetrics: BetaMetricsStore,
     private val itemReminders: ItemReminderScheduler,
     private val importPhotos: ImportPhotosUseCase,
@@ -89,8 +93,11 @@ class MainViewModel @Inject constructor(
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
         cards.observeFeedbackStates(),
-        interestPreferences.observeSelected()
-    ) { tracked, feedback, interests -> Triple(tracked, feedback, interests) }
+        interestPreferences.observeSelected(),
+        automaticCardModePreferences.observeMode()
+    ) { tracked, feedback, interests, automaticCardMode ->
+        CardLocalState(tracked, feedback, interests, automaticCardMode)
+    }
     private val scopedAnalysisProgress = combine(
         analysisStatus.observeProgress(AnalysisProgressScope.AUTOMATIC_DISCOVERY),
         analysisStatus.observeProgress(AnalysisProgressScope.EXPLICIT_IMPORT)
@@ -108,9 +115,10 @@ class MainViewModel @Inject constructor(
             savedCards = savedCards,
             focusedCard = presentation.focusedCard,
             focusedCardStatus = presentation.focusedCardStatus,
-            trackedItems = cardState.first.associateBy(TrackedItem::cardId),
-            feedbackStates = cardState.second.associateBy(CardFeedbackState::cardId),
-            selectedInterests = cardState.third,
+            trackedItems = cardState.tracked.associateBy(TrackedItem::cardId),
+            feedbackStates = cardState.feedback.associateBy(CardFeedbackState::cardId),
+            selectedInterests = cardState.interests,
+            automaticCardMode = cardState.automaticCardMode,
             analysisProgress = analysisProgressForPresentation(
                 automatic = progress.automatic,
                 explicitImport = progress.explicitImport,
@@ -178,6 +186,23 @@ class MainViewModel @Inject constructor(
             message = error.message ?: "推荐兴趣保存失败，请重试"
         )
         false
+    }
+
+    fun updateAutomaticCardMode(mode: AutomaticCardMode, access: PhotoAccess) {
+        if (automaticCardModePreferences.mode() == mode) return
+        runBusy(UserOperation.UPDATE_CARD_MODE) {
+            automaticCardModePreferences.updateMode(mode)
+            if (!scheduler.isPaused() && shouldScheduleAutomaticDiscovery(access)) {
+                scheduler.scheduleAccessReconciliation(access)
+                scheduler.scheduleDailyRefresh()
+            }
+            when (mode) {
+                AutomaticCardMode.PREPARED_POOL ->
+                    "已改为提前准备；联网时会逐步补足 7–14 张卡片"
+                AutomaticCardMode.DAILY_ONE ->
+                    "已改为每天一张；已准备卡片保留，之后每个周期最多分析 1 张"
+            }
+        }
     }
 
     fun startDiscovery(access: PhotoAccess) = runBusy(UserOperation.START_DISCOVERY) {
@@ -386,6 +411,13 @@ class MainViewModel @Inject constructor(
 private data class ScopedAnalysisProgress(
     val automatic: AnalysisProgress,
     val explicitImport: AnalysisProgress
+)
+
+private data class CardLocalState(
+    val tracked: List<TrackedItem>,
+    val feedback: List<CardFeedbackState>,
+    val interests: Set<String>,
+    val automaticCardMode: AutomaticCardMode
 )
 
 internal fun analysisProgressForPresentation(

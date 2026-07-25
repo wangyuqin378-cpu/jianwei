@@ -11,6 +11,7 @@ import cn.jianwei.domain.model.PhotoCandidate
 import cn.jianwei.domain.model.ScanRequest
 import cn.jianwei.domain.model.ScanResult
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.card.AutomaticCardMode
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 
@@ -75,4 +76,10 @@ interface InterestPreferencesRepository {
     fun observeSelected(): Flow<Set<String>>
     fun selected(): Set<String>
     fun updateSelected(selection: Set<String>)
+}
+
+interface AutomaticCardModeRepository {
+    fun observeMode(): Flow<AutomaticCardMode>
+    fun mode(): AutomaticCardMode
+    fun updateMode(mode: AutomaticCardMode)
 }

@@ -24,11 +24,14 @@ import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
 import cn.jianwei.domain.card.CardSupplyMode
 import cn.jianwei.domain.card.cardSupplyPlan
+import cn.jianwei.domain.card.isAutomatic
 import cn.jianwei.domain.card.privacyBatchPlan
+import cn.jianwei.domain.card.privacySelectionLimit
 import cn.jianwei.domain.card.shouldContinueCardSupply
 import cn.jianwei.domain.card.shouldContinuePrivacyBatch
 import cn.jianwei.domain.card.shouldRunPrivacyBatch
 import cn.jianwei.domain.card.shouldSyncCardsImmediately
+import cn.jianwei.domain.card.toSupplyMode
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisProgressScope
@@ -41,6 +44,7 @@ import cn.jianwei.domain.ranking.CandidateRanker
 import cn.jianwei.domain.time.ChinaCalendar
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.AnalysisStatusRepository
+import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import dagger.assisted.Assisted
@@ -107,6 +111,7 @@ class PrivacyScanWorker @AssistedInject constructor(
     private val permissionGate: PhotoPermissionGate,
     private val affinities: LocalTopicAffinityStore,
     private val interestPreferences: InterestPreferencesRepository,
+    private val automaticCardMode: AutomaticCardModeRepository,
     private val status: AnalysisStatusRepository,
     private val privacyExecutionGate: PrivacyExecutionGate
 ) : CoroutineWorker(context, params) {
@@ -122,10 +127,10 @@ class PrivacyScanWorker @AssistedInject constructor(
         if (applicationContext.analysisIsPaused()) return Result.success()
         val progressScope = originScope.analysisProgressScope()
         val supplyMode = when (originScope) {
-            UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
+            UploadOriginScope.MEDIA_STORE -> automaticCardMode.mode().toSupplyMode()
             UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
         }
-        val currentCachedCards = if (supplyMode == CardSupplyMode.AUTOMATIC_DISCOVERY) {
+        val currentCachedCards = if (supplyMode.isAutomatic()) {
             cardDao.countFutureCards(ChinaCalendar.today().toString())
         } else {
             0
@@ -218,7 +223,7 @@ class PrivacyScanWorker @AssistedInject constructor(
             unique,
             interests,
             now = rankingNow,
-            limit = 12,
+            limit = privacySelectionLimit(supplyMode),
             topicAffinities = affinities.signals(),
             serendipitySeed = automaticSerendipitySeed(originScope, rankingNow)
         ).map { it.localId }.toSet()
@@ -246,6 +251,7 @@ class UploadWorker @AssistedInject constructor(
     private val permissionGate: PhotoPermissionGate,
     private val deferredCandidates: DeferredCandidateSelector,
     private val status: AnalysisStatusRepository,
+    private val automaticCardMode: AutomaticCardModeRepository,
     private val uploadExecutionGate: UploadExecutionGate
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result = uploadExecutionGate.runExclusive {
@@ -266,7 +272,7 @@ class UploadWorker @AssistedInject constructor(
             cards.syncCards()
             val today = ChinaCalendar.today().toString()
             val supplyMode = when (originScope) {
-                UploadOriginScope.MEDIA_STORE -> CardSupplyMode.AUTOMATIC_DISCOVERY
+                UploadOriginScope.MEDIA_STORE -> automaticCardMode.mode().toSupplyMode()
                 UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
             }
             val hadAnyLocalCardAtStart = cardDao.countCards() > 0

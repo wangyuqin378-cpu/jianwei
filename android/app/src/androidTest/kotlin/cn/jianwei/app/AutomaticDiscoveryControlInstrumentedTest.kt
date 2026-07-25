@@ -72,7 +72,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
         while (SystemClock.uptimeMillis() < deadline) {
             val root = instrumentation.uiAutomation.rootInActiveWindow
             findTextNode(root, text)?.let { return it }
-            findScrollableNode(root)?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+            swipeForward(instrumentation)
             SystemClock.sleep(250)
         }
         val root = instrumentation.uiAutomation.rootInActiveWindow
@@ -84,20 +84,23 @@ class AutomaticDiscoveryControlInstrumentedTest {
 
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
-        if (root.text?.toString() == text || root.contentDescription?.toString() == text) return root
+        if (
+            root.isVisibleToUser &&
+            (root.text?.toString() == text || root.contentDescription?.toString() == text)
+        ) return root
         for (index in 0 until root.childCount) {
             findTextNode(root.getChild(index), text)?.let { return it }
         }
         return null
     }
 
-    private fun findScrollableNode(root: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
-        if (root == null) return null
-        if (root.isScrollable) return root
-        for (index in 0 until root.childCount) {
-            findScrollableNode(root.getChild(index))?.let { return it }
-        }
-        return null
+    private fun swipeForward(instrumentation: android.app.Instrumentation) {
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        instrumentation.uiAutomation.executeShellCommand(
+            "input swipe $centerX ${(metrics.heightPixels * 0.78f).toInt()} " +
+                "$centerX ${(metrics.heightPixels * 0.32f).toInt()} 250"
+        ).close()
     }
 
     private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {

@@ -15,10 +15,12 @@ import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.work.WorkManagerScheduler
 import cn.jianwei.data.status.SharedPreferencesAnalysisStatusRepository
 import cn.jianwei.data.preferences.SharedPreferencesInterestPreferencesRepository
+import cn.jianwei.data.preferences.SharedPreferencesAutomaticCardModeRepository
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.InterestPreferencesRepository
+import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import dagger.Binds
 import dagger.Module
@@ -79,4 +81,5 @@ abstract class DataBindings {
     @Binds abstract fun scheduler(value: WorkManagerScheduler): AnalysisScheduler
     @Binds abstract fun analysisStatus(value: SharedPreferencesAnalysisStatusRepository): AnalysisStatusRepository
     @Binds abstract fun interestPreferences(value: SharedPreferencesInterestPreferencesRepository): InterestPreferencesRepository
+    @Binds abstract fun automaticCardMode(value: SharedPreferencesAutomaticCardModeRepository): AutomaticCardModeRepository
 }

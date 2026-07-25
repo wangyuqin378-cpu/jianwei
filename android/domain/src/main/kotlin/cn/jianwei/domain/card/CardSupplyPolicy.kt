@@ -1,9 +1,22 @@
 package cn.jianwei.domain.card
 
 enum class CardSupplyMode {
-    AUTOMATIC_DISCOVERY,
+    AUTOMATIC_PREPARED_POOL,
+    AUTOMATIC_DAILY_ONE,
     EXPLICIT_IMPORT
 }
+
+enum class AutomaticCardMode {
+    PREPARED_POOL,
+    DAILY_ONE
+}
+
+fun AutomaticCardMode.toSupplyMode(): CardSupplyMode = when (this) {
+    AutomaticCardMode.PREPARED_POOL -> CardSupplyMode.AUTOMATIC_PREPARED_POOL
+    AutomaticCardMode.DAILY_ONE -> CardSupplyMode.AUTOMATIC_DAILY_ONE
+}
+
+fun CardSupplyMode.isAutomatic(): Boolean = this != CardSupplyMode.EXPLICIT_IMPORT
 
 data class CardSupplyPlan(
     val mode: CardSupplyMode,
@@ -25,7 +38,7 @@ data class PrivacyBatchPlan(
 fun cardSupplyPlan(mode: CardSupplyMode, currentCachedCards: Int): CardSupplyPlan? {
     require(currentCachedCards >= 0)
     return when (mode) {
-        CardSupplyMode.AUTOMATIC_DISCOVERY -> {
+        CardSupplyMode.AUTOMATIC_PREPARED_POOL -> {
             if (currentCachedCards >= CARD_CACHE_LOW_WATER_MARK) {
                 null
             } else {
@@ -33,6 +46,17 @@ fun cardSupplyPlan(mode: CardSupplyMode, currentCachedCards: Int): CardSupplyPla
                     mode = mode,
                     targetCachedCards = CARD_CACHE_REFILL_TARGET,
                     maxCandidates = MAX_AUTOMATIC_CANDIDATES_PER_RUN
+                )
+            }
+        }
+        CardSupplyMode.AUTOMATIC_DAILY_ONE -> {
+            if (currentCachedCards >= DAILY_ONE_CACHE_TARGET) {
+                null
+            } else {
+                CardSupplyPlan(
+                    mode = mode,
+                    targetCachedCards = DAILY_ONE_CACHE_TARGET,
+                    maxCandidates = MAX_DAILY_ONE_CANDIDATES_PER_RUN
                 )
             }
         }
@@ -57,8 +81,7 @@ fun shouldContinueCardSupply(
 
 fun shouldRunPrivacyBatch(mode: CardSupplyMode, currentCachedCards: Int): Boolean {
     require(currentCachedCards >= 0)
-    return mode == CardSupplyMode.EXPLICIT_IMPORT ||
-        cardSupplyPlan(mode, currentCachedCards) != null
+    return mode == CardSupplyMode.EXPLICIT_IMPORT || cardSupplyPlan(mode, currentCachedCards) != null
 }
 
 /**
@@ -82,14 +105,24 @@ fun shouldSyncCardsImmediately(
  * inspected before the next stage.
  */
 fun privacyBatchPlan(mode: CardSupplyMode): PrivacyBatchPlan = when (mode) {
-    CardSupplyMode.AUTOMATIC_DISCOVERY -> PrivacyBatchPlan(
+    CardSupplyMode.AUTOMATIC_PREPARED_POOL -> PrivacyBatchPlan(
         maxInspections = MAX_AUTOMATIC_CANDIDATES_PER_RUN,
         targetUniqueEligibleCandidates = INITIAL_UNIQUE_ELIGIBLE_TARGET
+    )
+    CardSupplyMode.AUTOMATIC_DAILY_ONE -> PrivacyBatchPlan(
+        maxInspections = MAX_DAILY_ONE_PRIVACY_INSPECTIONS,
+        targetUniqueEligibleCandidates = DAILY_ONE_CACHE_TARGET
     )
     CardSupplyMode.EXPLICIT_IMPORT -> PrivacyBatchPlan(
         maxInspections = MAX_EXPLICIT_IMPORTS_PER_RUN,
         targetUniqueEligibleCandidates = null
     )
+}
+
+fun privacySelectionLimit(mode: CardSupplyMode): Int = when (mode) {
+    CardSupplyMode.AUTOMATIC_PREPARED_POOL -> INITIAL_UNIQUE_ELIGIBLE_TARGET
+    CardSupplyMode.AUTOMATIC_DAILY_ONE -> DAILY_ONE_CACHE_TARGET
+    CardSupplyMode.EXPLICIT_IMPORT -> INITIAL_UNIQUE_ELIGIBLE_TARGET
 }
 
 fun shouldContinuePrivacyBatch(
@@ -108,5 +141,8 @@ fun shouldContinuePrivacyBatch(
 const val CARD_CACHE_LOW_WATER_MARK = 7
 const val CARD_CACHE_REFILL_TARGET = 14
 const val MAX_AUTOMATIC_CANDIDATES_PER_RUN = 24
+const val DAILY_ONE_CACHE_TARGET = 1
+const val MAX_DAILY_ONE_CANDIDATES_PER_RUN = 1
+const val MAX_DAILY_ONE_PRIVACY_INSPECTIONS = 4
 const val MAX_EXPLICIT_IMPORTS_PER_RUN = 20
 const val INITIAL_UNIQUE_ELIGIBLE_TARGET = 12

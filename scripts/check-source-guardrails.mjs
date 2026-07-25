@@ -211,6 +211,7 @@ const analysisStatusRepository = await readFile(path.join(root, "android", "data
 const analysisStatusPort = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "repository", "Repositories.kt"), "utf8");
 const interestPreferencePolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "preferences", "InterestPreferences.kt"), "utf8");
 const interestPreferenceRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "preferences", "SharedPreferencesInterestPreferencesRepository.kt"), "utf8");
+const automaticCardModeRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "preferences", "SharedPreferencesAutomaticCardModeRepository.kt"), "utf8");
 const interestPreferencePolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "preferences", "InterestPreferencesTest.kt"), "utf8");
 const interestPreferenceDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "preferences", "InterestPreferencesRepositoryInstrumentedTest.kt"), "utf8");
 const analysisStatusDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "status", "AnalysisStatusRepositoryInstrumentedTest.kt"), "utf8");
@@ -439,7 +440,7 @@ check(
   cardRepository.includes("override fun observeFeedbackStates()") &&
     cardRepository.includes("cards.commitOrdinaryFeedback(") &&
     cardRepository.includes("FeedbackSubmissionResult(") &&
-    mainViewModel.includes("feedbackStates = cardState.second.associateBy") &&
+    mainViewModel.includes("feedbackStates = cardState.feedback.associateBy") &&
     mainViewModel.includes("feedbackResultMessage(result)"),
   "Persistent feedback state is not exposed through repository and presentation state"
 );
@@ -567,7 +568,7 @@ for (const marker of ["生活设计", "物件历史", "科学原理", "实用技
 for (const marker of ["你的推荐偏好", "调整推荐兴趣", "影响下一次补充卡片的候选顺序", "onUpdateInterests"]) {
   check(mainActivity.includes(marker), `User-controlled interest UI is missing marker: ${marker}`);
 }
-for (const marker of ["observeSelected()", "updateSelected(interests)", "selectedInterests = cardState.third"]) {
+for (const marker of ["observeSelected()", "updateSelected(interests)", "selectedInterests = cardState.interests"]) {
   check(mainViewModel.includes(marker), `MainViewModel interest state is missing marker: ${marker}`);
 }
 for (const marker of ["SharedPreferencesInterestPreferencesRepository", "isValidInterestSelection", "commit()", "distinctUntilChanged"]) {
@@ -578,6 +579,29 @@ check(
     workersSource.includes("deferredCandidates.promote(") &&
     !workersSource.includes('getSharedPreferences("onboarding"'),
   "Candidate ranking or deferred refill does not consume the user-controlled preference path"
+);
+check(
+  cardSupplyPolicy.includes("AUTOMATIC_PREPARED_POOL") &&
+    cardSupplyPolicy.includes("AUTOMATIC_DAILY_ONE") &&
+    cardSupplyPolicy.includes("MAX_DAILY_ONE_CANDIDATES_PER_RUN = 1") &&
+    cardSupplyPolicy.includes("targetUniqueEligibleCandidates = DAILY_ONE_CACHE_TARGET") &&
+    cardSupplyPolicy.includes("fun privacySelectionLimit(mode: CardSupplyMode)") &&
+    workersSource.includes("automaticCardMode.mode().toSupplyMode()") &&
+    workersSource.includes("limit = privacySelectionLimit(supplyMode)") &&
+    cardSupplyPolicyTest.includes("daily one mode attempts at most one upload") &&
+    cardSupplyPolicyTest.includes("daily one mode inspects a bounded local batch but queues one candidate"),
+  "Daily-one mode is missing its independent one-upload and one-candidate hard boundaries"
+);
+check(
+  automaticCardModeRepository.includes("AutomaticCardMode.PREPARED_POOL") &&
+    automaticCardModeRepository.includes("AutomaticCardMode.valueOf") &&
+    automaticCardModeRepository.includes("commit()") &&
+    automaticCardModeRepository.includes("distinctUntilChanged()") &&
+    mainActivity.includes("照片处理节奏") &&
+    mainActivity.includes("提前准备（推荐）") &&
+    mainActivity.includes("每天一张") &&
+    mainViewModel.includes("automaticCardModePreferences.updateMode(mode)"),
+  "Automatic card mode is not durably user-controlled from the settings presentation"
 );
 for (const marker of [
   "deferredCandidatesForAnalysis",
