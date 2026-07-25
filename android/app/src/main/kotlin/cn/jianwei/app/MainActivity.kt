@@ -1694,7 +1694,7 @@ private fun WidgetCallToAction(onAddWidget: () -> Unit) {
 private fun WidgetCallToActionCopy(modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text("每天在桌面遇见新知识", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-        Text("添加组件后，无需打开 App 也能看到。", style = MaterialTheme.typography.bodySmall)
+        Text(WIDGET_RESIZE_DISCOVERY_COPY, style = MaterialTheme.typography.bodySmall)
     }
 }
 

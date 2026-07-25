@@ -80,6 +80,9 @@ internal fun shouldShowWidgetCallToAction(
 internal fun widgetManagementActionLabel(widgetInstalled: Boolean): String =
     if (widgetInstalled) "再添加一个桌面组件" else "添加桌面组件"
 
+internal const val WIDGET_RESIZE_DISCOVERY_COPY =
+    "添加后可长按调整为 4×2，查看来源并换一条。"
+
 internal fun shouldStackWidgetCallToAction(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 360f || fontScale >= 1.5f
 
