@@ -104,13 +104,6 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
-    fun `tabs use compact labels only when reflow needs them`() {
-        assertThat(shouldUseCompactTabLabels(availableWidthDp = 320f, fontScale = 1f)).isTrue()
-        assertThat(shouldUseCompactTabLabels(availableWidthDp = 411f, fontScale = 2f)).isTrue()
-        assertThat(shouldUseCompactTabLabels(availableWidthDp = 411f, fontScale = 1f)).isFalse()
-    }
-
-    @Test
     fun `knowledge card actions stack before labels become cramped`() {
         assertThat(shouldStackKnowledgeCardActions(availableWidthDp = 320f, fontScale = 1f)).isTrue()
         assertThat(shouldStackKnowledgeCardActions(availableWidthDp = 411f, fontScale = 2f)).isTrue()

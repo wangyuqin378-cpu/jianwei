@@ -64,9 +64,6 @@ internal fun widgetManagementActionLabel(widgetInstalled: Boolean): String =
 internal fun shouldStackWidgetCallToAction(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 360f || fontScale >= 1.5f
 
-internal fun shouldUseCompactTabLabels(availableWidthDp: Float, fontScale: Float): Boolean =
-    availableWidthDp < 360f || fontScale >= 1.5f
-
 internal fun shouldStackKnowledgeCardActions(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 340f || fontScale >= 1.5f
 

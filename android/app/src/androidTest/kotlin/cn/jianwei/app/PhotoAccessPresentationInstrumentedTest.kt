@@ -43,6 +43,7 @@ class PhotoAccessPresentationInstrumentedTest {
                         ).isTrue()
                     }
                     assertThat(output.length()).isGreaterThan(0L)
+                    clickNode(instrumentation, "设置与隐私")
                     clickNode(instrumentation, "管理隐私与数据")
                     assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
                 }
@@ -51,6 +52,7 @@ class PhotoAccessPresentationInstrumentedTest {
                         instrumentation,
                         "自动发现已开启 · 仅限你选中的照片"
                     )).isNotNull()
+                    clickNode(instrumentation, "设置与隐私")
                     clickNode(instrumentation, "管理隐私与数据")
                     assertThat(awaitNodeWithScroll(instrumentation, "调整可访问照片")).isNotNull()
                 }
@@ -67,6 +69,8 @@ class PhotoAccessPresentationInstrumentedTest {
                         instrumentation.uiAutomation.rootInActiveWindow,
                         "调整可访问照片"
                     )).isNull()
+                    clickNode(instrumentation, "设置与隐私")
+                    assertThat(awaitNodeWithScroll(instrumentation, "你的数据与隐私")).isNotNull()
                 }
             }
         } finally {
@@ -105,7 +109,7 @@ class PhotoAccessPresentationInstrumentedTest {
 
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
-        if (root.text?.toString() == text) return root
+        if (root.text?.toString() == text || root.contentDescription?.toString() == text) return root
         for (index in 0 until root.childCount) {
             findTextNode(root.getChild(index), text)?.let { return it }
         }

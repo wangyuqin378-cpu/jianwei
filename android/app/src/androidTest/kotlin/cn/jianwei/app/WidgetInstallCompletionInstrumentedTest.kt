@@ -125,6 +125,7 @@ class WidgetInstallCompletionInstrumentedTest {
     }
 
     private fun expandPrivacyCenter(instrumentation: android.app.Instrumentation) {
+        clickNode(instrumentation, "设置与隐私")
         repeat(3) {
             val node = awaitNodeWithScroll(instrumentation, "管理隐私与数据")
             val bounds = Rect().also(node::getBoundsInScreen)
@@ -188,7 +189,7 @@ class WidgetInstallCompletionInstrumentedTest {
 
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
-        if (root.text?.toString() == text) return root
+        if (root.text?.toString() == text || root.contentDescription?.toString() == text) return root
         for (index in 0 until root.childCount) {
             findTextNode(root.getChild(index), text)?.let { return it }
         }

@@ -185,6 +185,7 @@ const automaticDiscoveryControlDeviceTest = await readFile(path.join(root, "andr
 const photoAccessPresentationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "PhotoAccessPresentationInstrumentedTest.kt"), "utf8");
 const savedTabNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SavedTabNavigationInstrumentedTest.kt"), "utf8");
 const dailyHistoryNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "DailyHistoryNavigationInstrumentedTest.kt"), "utf8");
+const settingsNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SettingsNavigationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
@@ -466,7 +467,7 @@ check(
   "Card repository does not expose collection state or compact it at the privacy barrier"
 );
 check(
-  mainActivity.includes("收藏 ${state.savedCards.size}") &&
+  mainActivity.includes('label = "收藏 $savedCount"') &&
     mainActivity.includes("private fun SavedEmptyState(") &&
     mainActivity.includes("private fun SavedKnowledgeCardPreview(") &&
     mainActivity.includes("private fun SavedCardDetailHeader(") &&
@@ -475,7 +476,7 @@ check(
     mainActivity.includes('"查看完整知识"') &&
     mainActivity.includes('Text("返回收藏")') &&
     mainActivity.includes("SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX = 320") &&
-    mainActivity.includes("BackHandler(enabled = !focusedEntry && showSavedCards)") &&
+    mainActivity.includes("BackHandler(enabled = !focusedEntry && homeSection != HomeSection.DAILY)") &&
     !mainActivity.includes("收藏这张知识卡") &&
     mainActivity.includes('Text(if (isSaved) "取消收藏" else "收藏")') &&
     mainActivity.includes('Text(if (trackedItem == null) "物品提醒" else "更新提醒")') &&
@@ -501,6 +502,23 @@ check(
     dailyHistoryNavigationDeviceTest.includes('COLLECTION_SCREENSHOT_NAME = "daily-history-collection.png"') &&
     dailyHistoryNavigationDeviceTest.includes('DETAIL_SCREENSHOT_NAME = "daily-history-detail.png"'),
   "Daily-card history does not stay compact or reopen complete knowledge in context"
+);
+check(
+  mainActivity.includes("private enum class HomeSection") &&
+    mainActivity.includes("private fun HomeSectionTabs(") &&
+    mainActivity.includes("private fun HomeSectionTab(") &&
+    mainActivity.includes("private fun SettingsHeader(") &&
+    mainActivity.includes('"设置与隐私"') &&
+    mainActivity.includes("homeSection == HomeSection.SETTINGS") &&
+    mainActivity.includes("val settingsListState = rememberLazyListState()") &&
+    mainActivity.includes("Modifier.fillMaxWidth().weight(1f)") &&
+    mainActivity.includes("clearAndSetSemantics") &&
+    mainActivity.includes("this.selected = selected") &&
+    settingsNavigationDeviceTest.includes("settingsStaySeparateAndPersistentNavigationReturnsToDailyContent") &&
+    settingsNavigationDeviceTest.includes('awaitSelectedNode(instrumentation, "设置与隐私")') &&
+    settingsNavigationDeviceTest.includes("DEEP_SETTINGS_MARKERS") &&
+    settingsNavigationDeviceTest.includes('SETTINGS_SCREENSHOT_NAME = "settings-overview.png"'),
+  "Daily content, saved knowledge, and settings do not have persistent accessible navigation or isolated content"
 );
 check(
   mainActivity.includes("datePresentation.visibleLabel") &&
@@ -928,9 +946,11 @@ check(
 check(
   mainActivity.includes("val dailyListState = rememberLazyListState()") &&
     mainActivity.includes("val savedListState = rememberLazyListState()") &&
+    mainActivity.includes("val settingsListState = rememberLazyListState()") &&
     mainActivity.includes("val focusedListState = rememberLazyListState()") &&
     mainActivity.includes("focusedEntry -> focusedListState") &&
-    mainActivity.includes("showSavedCards -> savedListState") &&
+    mainActivity.includes("homeSection == HomeSection.SAVED -> savedListState") &&
+    mainActivity.includes("homeSection == HomeSection.SETTINGS -> settingsListState") &&
     mainActivity.includes("else -> dailyListState") &&
     mainActivity.includes("LaunchedEffect(state.focusedCardId)") &&
     mainActivity.includes("focusedListState.scrollToItem(0)") &&
@@ -1048,13 +1068,14 @@ check(
     mainActivity.includes('Text("添加桌面组件")') &&
     mainActivity.includes("dailyWidgetInstalled = hasDailyWidget()") &&
     mainActivity.includes("refreshDailyWidgetInstallation()") &&
-    mainActivity.includes("shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)") &&
+    mainActivity.includes("shouldShowWidgetCallToAction(") &&
+    mainActivity.includes("showSavedCards = homeSection == HomeSection.SAVED") &&
     mainActivity.includes("widgetManagementActionLabel(widgetInstalled)") &&
     mainActivity.includes("shouldStackWidgetCallToAction(maxWidth.value, fontScale)") &&
-    mainActivity.includes("shouldUseCompactTabLabels(maxWidth.value, fontScale)") &&
+    mainActivity.includes("private fun HomeSectionTabs(") &&
     mainActivity.includes("role = Role.Tab") &&
-    mainActivity.includes("selected = true") &&
-    mainActivity.includes('contentDescription = "每日卡片"') &&
+    mainActivity.includes("this.selected = selected") &&
+    mainActivity.includes('accessibilityLabel = "每日卡片"') &&
     discoveryUiPolicy.includes("!widgetInstalled && !showSavedCards && cardIndex == 0") &&
     discoveryUiPolicyTest.includes("widgetInstalled = true") &&
     discoveryUiPolicyTest.includes('isEqualTo("再添加一个桌面组件")') &&
@@ -1063,8 +1084,7 @@ check(
     widgetInstallCompletionDeviceTest.includes("PHOTO_THUMBNAIL_UNAVAILABLE_LABEL") &&
     widgetInstallCompletionDeviceTest.includes('countTextNodes(instrumentation.uiAutomation.rootInActiveWindow, "自行车")') &&
     widgetInstallCompletionDeviceTest.includes('awaitNodeWithScroll(instrumentation, "再添加一个桌面组件")') &&
-    discoveryUiPolicy.includes("availableWidthDp < 360f || fontScale >= 1.5f") &&
-    discoveryUiPolicy.includes("shouldUseCompactTabLabels"),
+    discoveryUiPolicy.includes("availableWidthDp < 360f || fontScale >= 1.5f"),
   "The post-card widget conversion CTA is missing or can repeat in the saved collection"
 );
 check(mainActivity.includes("notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)"), "Notification permission is not tied to the explicit reminder flow");

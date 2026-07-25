@@ -19,6 +19,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
@@ -38,6 +40,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -80,6 +83,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
@@ -751,8 +755,7 @@ private fun HomeScreen(
     onMessageShown: () -> Unit
 ) {
     val snackbar = remember { SnackbarHostState() }
-    val fontScale = LocalDensity.current.fontScale
-    var showSavedCards by rememberSaveable { mutableStateOf(false) }
+    var homeSection by rememberSaveable { mutableStateOf(HomeSection.DAILY) }
     var openedSavedCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var openedHistoryCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEnabled = areUserMutationsEnabled(state.activeOperation)
@@ -765,13 +768,19 @@ private fun HomeScreen(
     val focusedEntry = externalFocusedEntry || openedSavedCard != null || openedHistoryCard != null
     val dailyListState = rememberLazyListState()
     val savedListState = rememberLazyListState()
+    val settingsListState = rememberLazyListState()
     val focusedListState = rememberLazyListState()
     val activeListState = when {
         focusedEntry -> focusedListState
-        showSavedCards -> savedListState
+        homeSection == HomeSection.SAVED -> savedListState
+        homeSection == HomeSection.SETTINGS -> settingsListState
         else -> dailyListState
     }
-    val visibleCards = if (showSavedCards) state.savedCards else state.cards
+    val visibleCards = when (homeSection) {
+        HomeSection.DAILY -> state.cards
+        HomeSection.SAVED -> state.savedCards
+        HomeSection.SETTINGS -> emptyList()
+    }
     val savedCardIds = state.savedCards.mapTo(remember(state.savedCards) { mutableSetOf() }) { it.cardId }
     BackHandler(enabled = externalFocusedEntry) { onCloseFocusedCard() }
     BackHandler(enabled = !externalFocusedEntry && openedSavedCard != null) {
@@ -782,12 +791,15 @@ private fun HomeScreen(
     ) {
         openedHistoryCardId = null
     }
-    BackHandler(enabled = !focusedEntry && showSavedCards) { showSavedCards = false }
+    BackHandler(enabled = !focusedEntry && homeSection != HomeSection.DAILY) {
+        homeSection = HomeSection.DAILY
+    }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
     }
     LaunchedEffect(state.focusedCardId) {
         if (state.focusedCardId != null) {
+            homeSection = HomeSection.DAILY
             openedSavedCardId = null
             openedHistoryCardId = null
             focusedListState.scrollToItem(0)
@@ -837,12 +849,20 @@ private fun HomeScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            state = activeListState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            if (!focusedEntry) {
+                HomeSectionTabs(
+                    selectedSection = homeSection,
+                    savedCount = state.savedCards.size,
+                    onSelect = { homeSection = it }
+                )
+            }
+            LazyColumn(
+                state = activeListState,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
             if (focusedEntry) {
                 if (openedSavedCard != null) {
                     item {
@@ -907,51 +927,7 @@ private fun HomeScreen(
                     }
                 }
             } else {
-                item {
-                    BoxWithConstraints {
-                        val compactLabels = shouldUseCompactTabLabels(maxWidth.value, fontScale)
-                        val dailyTabLabel = if (compactLabels) "每日" else "每日卡片"
-                        val savedTabLabel = "收藏 ${state.savedCards.size}"
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (showSavedCards) {
-                                OutlinedButton(
-                                    onClick = { showSavedCards = false },
-                                    modifier = Modifier.weight(1f).semantics {
-                                        role = Role.Tab
-                                        selected = false
-                                        contentDescription = "每日卡片"
-                                    }
-                                ) { Text(dailyTabLabel) }
-                                Button(
-                                    onClick = { },
-                                    modifier = Modifier.weight(1f).semantics {
-                                        role = Role.Tab
-                                        selected = true
-                                        contentDescription = savedTabLabel
-                                    }
-                                ) { Text(savedTabLabel) }
-                            } else {
-                                Button(
-                                    onClick = { },
-                                    modifier = Modifier.weight(1f).semantics {
-                                        role = Role.Tab
-                                        selected = true
-                                        contentDescription = "每日卡片"
-                                    }
-                                ) { Text(dailyTabLabel) }
-                                OutlinedButton(
-                                    onClick = { showSavedCards = true },
-                                    modifier = Modifier.weight(1f).semantics {
-                                        role = Role.Tab
-                                        selected = false
-                                        contentDescription = savedTabLabel
-                                    }
-                                ) { Text(savedTabLabel) }
-                            }
-                        }
-                    }
-                }
-                if (!showSavedCards) {
+                if (homeSection == HomeSection.DAILY) {
                     if (shouldShowPausedAnalysisBanner(state.paused, state.cards.isNotEmpty() || state.savedCards.isNotEmpty())) {
                         item {
                             PausedAnalysisBanner(actionsEnabled = actionsEnabled, onResume = onResume)
@@ -991,24 +967,24 @@ private fun HomeScreen(
                 }
                 item {
                     if (
-                        !showSavedCards &&
+                        homeSection == HomeSection.DAILY &&
                         state.cards.isEmpty() &&
                         state.pendingImportCount == 0 &&
                         state.importedPhotoResultNotice == null
                     ) {
                         EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
                     }
-                    if (showSavedCards && state.savedCards.isEmpty()) {
-                        SavedEmptyState(onShowDaily = { showSavedCards = false })
+                    if (homeSection == HomeSection.SAVED && state.savedCards.isEmpty()) {
+                        SavedEmptyState(onShowDaily = { homeSection = HomeSection.DAILY })
                     }
                 }
-                if (showSavedCards && state.savedCards.isNotEmpty()) {
+                if (homeSection == HomeSection.SAVED && state.savedCards.isNotEmpty()) {
                     item {
                         SavedCollectionHeader(state.savedCards.size)
                     }
                 }
                 itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
-                    if (showSavedCards) {
+                    if (homeSection == HomeSection.SAVED) {
                         SavedKnowledgeCardPreview(
                             card = card,
                             currentDay = state.currentDay,
@@ -1051,13 +1027,22 @@ private fun HomeScreen(
                                     onEngagement
                                 )
                             }
-                            if (shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)) {
+                            if (
+                                shouldShowWidgetCallToAction(
+                                    showSavedCards = homeSection == HomeSection.SAVED,
+                                    cardIndex = index,
+                                    widgetInstalled = widgetInstalled
+                                )
+                            ) {
                                 WidgetCallToAction(onAddWidget)
                             }
                         }
                     }
                 }
-                if (!showSavedCards) {
+                if (homeSection == HomeSection.SETTINGS) {
+                    item {
+                        SettingsHeader()
+                    }
                     item {
                         InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
                     }
@@ -1079,7 +1064,115 @@ private fun HomeScreen(
                     }
                 }
             }
+            }
         }
+    }
+}
+
+private enum class HomeSection {
+    DAILY,
+    SAVED,
+    SETTINGS
+}
+
+@Composable
+private fun HomeSectionTabs(
+    selectedSection: HomeSection,
+    savedCount: Int,
+    onSelect: (HomeSection) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        HomeSectionTab(
+            label = "每日",
+            accessibilityLabel = "每日卡片",
+            selected = selectedSection == HomeSection.DAILY,
+            onSelect = { onSelect(HomeSection.DAILY) },
+            modifier = Modifier.weight(1f)
+        )
+        HomeSectionTab(
+            label = "收藏 $savedCount",
+            accessibilityLabel = "收藏 $savedCount",
+            selected = selectedSection == HomeSection.SAVED,
+            onSelect = { onSelect(HomeSection.SAVED) },
+            modifier = Modifier.weight(1f)
+        )
+        HomeSectionTab(
+            label = "设置",
+            accessibilityLabel = "设置与隐私",
+            selected = selectedSection == HomeSection.SETTINGS,
+            onSelect = { onSelect(HomeSection.SETTINGS) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun HomeSectionTab(
+    label: String,
+    accessibilityLabel: String,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(20.dp)
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    Box(
+        modifier = modifier
+            .height(48.dp)
+            .clip(shape)
+            .background(containerColor)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+            .clickable(onClick = onSelect)
+            .clearAndSetSemantics {
+                role = Role.Tab
+                this.selected = selected
+                contentDescription = accessibilityLabel
+                onClick(action = {
+                    onSelect()
+                    true
+                })
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = contentColor,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun SettingsHeader() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(
+            "设置与隐私",
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            "调整推荐兴趣、照片发现方式、桌面组件和数据管理。",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

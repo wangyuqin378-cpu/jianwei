@@ -48,12 +48,16 @@ class SavedTabNavigationInstrumentedTest {
             assertThat(output.length()).isGreaterThan(0L)
 
             click(awaitNodeWithScroll(instrumentation, "查看每日卡片"))
-            assertThat(awaitNodeWithScroll(instrumentation, "你的推荐偏好")).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, "从一件日常物品开始")).isNotNull()
+            assertThat(findTextNode(
+                instrumentation.uiAutomation.rootInActiveWindow,
+                "你的推荐偏好"
+            )).isNull()
 
             click(awaitNodeWithBackwardScroll(instrumentation, "收藏 0"))
             assertThat(awaitNode(instrumentation, EMPTY_TITLE)).isNotNull()
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
-            assertThat(awaitNodeWithScroll(instrumentation, "你的推荐偏好")).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, "从一件日常物品开始")).isNotNull()
             assertThat(findTextNode(
                 instrumentation.uiAutomation.rootInActiveWindow,
                 EMPTY_TITLE
@@ -222,7 +226,7 @@ class SavedTabNavigationInstrumentedTest {
 
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
-        if (root.text?.toString() == text) return root
+        if (root.text?.toString() == text || root.contentDescription?.toString() == text) return root
         for (index in 0 until root.childCount) {
             findTextNode(root.getChild(index), text)?.let { return it }
         }

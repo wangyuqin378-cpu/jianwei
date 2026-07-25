@@ -29,6 +29,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
             preferences.edit().putBoolean("completed", true).commit()
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
+            clickNode(instrumentation, "设置与隐私")
             assertThat(awaitNodeWithScroll(instrumentation, "管理隐私与数据")).isNotNull()
             clickNode(instrumentation, "管理隐私与数据")
             assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
@@ -83,7 +84,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
 
     private fun findTextNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
         if (root == null) return null
-        if (root.text?.toString() == text) return root
+        if (root.text?.toString() == text || root.contentDescription?.toString() == text) return root
         for (index in 0 until root.childCount) {
             findTextNode(root.getChild(index), text)?.let { return it }
         }
