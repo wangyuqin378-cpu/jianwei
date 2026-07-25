@@ -17,7 +17,9 @@ class PhotoAccessPresentationInstrumentedTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
+        val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
         val expectedAccess = InstrumentationRegistry.getArguments()
             .getString(EXPECTED_ACCESS_ARGUMENT)
             ?.let(PhotoAccess::valueOf)
@@ -27,6 +29,7 @@ class PhotoAccessPresentationInstrumentedTest {
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             preferences.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().putString(AUTOMATIC_CARD_MODE_KEY, "PREPARED_POOL").commit()
             scenario = ActivityScenario.launch(MainActivity::class.java)
             when (actualAccess) {
                 PhotoAccess.PICKER_ONLY -> {
@@ -50,7 +53,7 @@ class PhotoAccessPresentationInstrumentedTest {
                 PhotoAccess.PARTIAL -> {
                     assertThat(awaitNodeWithScroll(
                         instrumentation,
-                        "自动发现已开启 · 仅限你选中的照片"
+                        "自动发现已开启 · 提前准备 · 仅限你选中的照片"
                     )).isNotNull()
                     clickNode(instrumentation, "设置与隐私")
                     clickNode(instrumentation, "管理隐私与数据")
@@ -59,7 +62,7 @@ class PhotoAccessPresentationInstrumentedTest {
                 PhotoAccess.FULL -> {
                     assertThat(awaitNodeWithScroll(
                         instrumentation,
-                        "自动发现已开启 · 全部授权照片"
+                        "自动发现已开启 · 提前准备 · 全部授权照片"
                     )).isNotNull()
                     assertThat(findTextNode(
                         instrumentation.uiAutomation.rootInActiveWindow,
@@ -76,6 +79,10 @@ class PhotoAccessPresentationInstrumentedTest {
         } finally {
             scenario?.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().apply {
+                if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
+                else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+            }.commit()
         }
     }
 
@@ -119,5 +126,6 @@ class PhotoAccessPresentationInstrumentedTest {
     private companion object {
         const val EXPECTED_ACCESS_ARGUMENT = "expectedAccess"
         const val PICKER_EMPTY_SCREENSHOT_NAME = "picker-only-empty-state.png"
+        const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
     }
 }

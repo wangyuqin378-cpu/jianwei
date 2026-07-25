@@ -19,7 +19,9 @@ class AutomaticDiscoveryControlInstrumentedTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
+        val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
         assumeTrue(
             "System permission prompt evidence requires a picker-only installation",
             currentPhotoAccess(context) == PhotoAccess.PICKER_ONLY
@@ -27,17 +29,18 @@ class AutomaticDiscoveryControlInstrumentedTest {
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             preferences.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().putString(AUTOMATIC_CARD_MODE_KEY, "DAILY_ONE").commit()
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
             clickNode(instrumentation, "设置与隐私")
             assertThat(awaitNodeWithScroll(instrumentation, "管理隐私与数据")).isNotNull()
             clickNode(instrumentation, "管理隐私与数据")
-            assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
             assertThat(awaitNodeWithScroll(instrumentation, "照片发现方式")).isNotNull()
             assertThat(awaitNodeWithScroll(
                 instrumentation,
-                "开启后，见微会先在本机筛选最近照片，并持续补充未来卡片。"
+                "开启后先在本机筛选最近照片，每个自动周期最多上传分析 1 张；没有可靠命中时不会凑数。"
             )).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
 
             val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
             output.outputStream().use { stream ->
@@ -46,22 +49,36 @@ class AutomaticDiscoveryControlInstrumentedTest {
             }
             assertThat(output.length()).isGreaterThan(0L)
 
-            clickNode(instrumentation, "开启自动发现")
-            awaitPermissionController(instrumentation)
+            if (context.resources.configuration.fontScale >= 1.5f) {
+                val enableNode = awaitNodeWithScroll(instrumentation, "开启自动发现")
+                val clickable = clickableAncestor(enableNode)
+                assertThat(clickable).isNotNull()
+                assertThat(clickable!!.isEnabled).isTrue()
+            } else {
+                clickNode(instrumentation, "开启自动发现")
+                awaitPermissionController(instrumentation)
+            }
         } finally {
             instrumentation.uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
             scenario?.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().apply {
+                if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
+                else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+            }.commit()
         }
     }
 
     private fun clickNode(instrumentation: android.app.Instrumentation, text: String) {
         val node = awaitNodeWithScroll(instrumentation, text)
-        val clickable = generateSequence(node) { current -> current.parent }
-            .firstOrNull { current -> current.isClickable }
+        val clickable = clickableAncestor(node)
         assertThat(clickable).isNotNull()
         assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
     }
+
+    private fun clickableAncestor(node: AccessibilityNodeInfo): AccessibilityNodeInfo? =
+        generateSequence(node) { current -> current.parent }
+            .firstOrNull { current -> current.isClickable }
 
     private fun awaitNodeWithScroll(
         instrumentation: android.app.Instrumentation,
@@ -129,5 +146,6 @@ class AutomaticDiscoveryControlInstrumentedTest {
 
     private companion object {
         const val SCREENSHOT_NAME = "automatic-discovery-control.png"
+        const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
     }
 }

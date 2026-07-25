@@ -1033,7 +1033,16 @@ private fun HomeScreen(
                         state.pendingImportCount == 0 &&
                         state.importedPhotoResultNotice == null
                     ) {
-                        EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
+                        EmptyState(
+                            state.paused,
+                            access,
+                            state.automaticCardMode,
+                            state.analysisProgress,
+                            actionsEnabled,
+                            onPick,
+                            onResume,
+                            onRetry
+                        )
                     }
                     if (homeSection == HomeSection.SAVED && state.savedCards.isEmpty()) {
                         SavedEmptyState(onShowDaily = { homeSection = HomeSection.DAILY })
@@ -1117,6 +1126,7 @@ private fun HomeScreen(
                     item {
                         PrivacyCenter(
                             access,
+                            state.automaticCardMode,
                             widgetInstalled,
                             state.paused,
                             actionsEnabled,
@@ -1850,13 +1860,14 @@ private fun decodeInterestSelection(encoded: String): Set<String> =
 private fun EmptyState(
     paused: Boolean,
     access: PhotoAccess,
+    automaticMode: AutomaticCardMode,
     progress: cn.jianwei.domain.model.AnalysisProgress,
     actionsEnabled: Boolean,
     onPick: () -> Unit,
     onResume: () -> Unit,
     onRetry: () -> Unit
 ) {
-    val copy = emptyDiscoveryCopy(paused, access, progress)
+    val copy = emptyDiscoveryCopy(paused, access, automaticMode, progress)
     val isStarterState = copy.starterSuggestions.isNotEmpty()
     Card(
         colors = CardDefaults.cardColors(
@@ -2484,6 +2495,7 @@ private fun LocalDate.chineseDateLabel(): String = "$year 年 $monthValue 月 $d
 @Composable
 private fun PrivacyCenter(
     access: PhotoAccess,
+    automaticMode: AutomaticCardMode,
     widgetInstalled: Boolean,
     paused: Boolean,
     actionsEnabled: Boolean,
@@ -2496,7 +2508,7 @@ private fun PrivacyCenter(
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit
 ) {
-    val automaticControl = automaticDiscoveryControl(access)
+    val automaticControl = automaticDiscoveryControl(access, automaticMode)
     var showCloudDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     Card(
@@ -2507,7 +2519,7 @@ private fun PrivacyCenter(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("你的数据与隐私", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(
-                    photoAccessSummary(access),
+                    photoAccessSummary(access, automaticMode),
                     style = MaterialTheme.typography.bodySmall
                 )
                 if (paused) {

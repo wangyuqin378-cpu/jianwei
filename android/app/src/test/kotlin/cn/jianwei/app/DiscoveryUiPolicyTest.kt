@@ -1,5 +1,6 @@
 package cn.jianwei.app
 
+import cn.jianwei.domain.card.AutomaticCardMode
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.PhotoAccess
@@ -10,10 +11,17 @@ class DiscoveryUiPolicyTest {
     @Test
     fun `denied broad access never claims or schedules automatic scanning`() {
         assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PICKER_ONLY)).isFalse()
-        assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY)).contains("不会自动扫描")
-        assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY)).doesNotContain("已开始扫描")
+        assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY, AutomaticCardMode.DAILY_ONE))
+            .contains("不会自动扫描")
+        assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY, AutomaticCardMode.PREPARED_POOL))
+            .doesNotContain("已开始扫描")
 
-        val copy = emptyDiscoveryCopy(paused = false, access = PhotoAccess.PICKER_ONLY, progress = AnalysisProgress())
+        val copy = emptyDiscoveryCopy(
+            paused = false,
+            access = PhotoAccess.PICKER_ONLY,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress()
+        )
         assertThat(copy.title).isEqualTo("从一件日常物品开始")
         assertThat(copy.actionLabel).isEqualTo("选择一张照片")
         assertThat(copy.starterSuggestions).containsExactly("杯子与餐具", "清洁工具", "数码小物").inOrder()
@@ -24,27 +32,45 @@ class DiscoveryUiPolicyTest {
     fun `full and partial access can schedule automatic discovery`() {
         assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.FULL)).isTrue()
         assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PARTIAL)).isTrue()
-        assertThat(discoveryStartMessage(PhotoAccess.FULL)).contains("已开始扫描")
+        assertThat(discoveryStartMessage(PhotoAccess.FULL, AutomaticCardMode.PREPARED_POOL))
+            .contains("已开始本机扫描")
     }
 
     @Test
     fun `photo access summary explains behavior without sounding like a permission screen`() {
-        assertThat(photoAccessSummary(PhotoAccess.FULL)).isEqualTo("自动发现已开启 · 全部授权照片")
-        assertThat(photoAccessSummary(PhotoAccess.PARTIAL)).contains("仅限你选中的照片")
-        assertThat(photoAccessSummary(PhotoAccess.PICKER_ONLY)).isEqualTo("仅分析你选择或分享的照片")
+        assertThat(photoAccessSummary(PhotoAccess.FULL, AutomaticCardMode.PREPARED_POOL))
+            .isEqualTo("自动发现已开启 · 提前准备 · 全部授权照片")
+        assertThat(photoAccessSummary(PhotoAccess.PARTIAL, AutomaticCardMode.DAILY_ONE))
+            .isEqualTo("自动发现已开启 · 每天一张 · 仅限你选中的照片")
+        assertThat(photoAccessSummary(PhotoAccess.PICKER_ONLY, AutomaticCardMode.DAILY_ONE))
+            .isEqualTo("仅分析你选择或分享的照片")
     }
 
     @Test
     fun `automatic discovery can be enabled or adjusted after onboarding`() {
-        assertThat(automaticDiscoveryControl(PhotoAccess.FULL)).isNull()
-        assertThat(automaticDiscoveryControl(PhotoAccess.PARTIAL)?.actionLabel)
+        assertThat(automaticDiscoveryControl(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE)).isNull()
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.PARTIAL,
+            AutomaticCardMode.PREPARED_POOL
+        )?.actionLabel)
             .isEqualTo("调整可访问照片")
-        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.actionLabel)
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.PICKER_ONLY,
+            AutomaticCardMode.DAILY_ONE
+        )?.actionLabel)
             .isEqualTo("开启自动发现")
-        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.explanation)
-            .contains("持续补充未来卡片")
-        assertThat(automaticDiscoveryControl(PhotoAccess.PICKER_ONLY)?.emphasized).isTrue()
-        assertThat(automaticDiscoveryControl(PhotoAccess.PARTIAL)?.emphasized).isFalse()
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.PICKER_ONLY,
+            AutomaticCardMode.DAILY_ONE
+        )?.explanation).contains("最多上传分析 1 张")
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.PICKER_ONLY,
+            AutomaticCardMode.DAILY_ONE
+        )?.emphasized).isTrue()
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.PARTIAL,
+            AutomaticCardMode.PREPARED_POOL
+        )?.emphasized).isFalse()
     }
 
     @Test
@@ -56,7 +82,12 @@ class DiscoveryUiPolicyTest {
 
     @Test
     fun `paused empty state takes priority over permission state`() {
-        val copy = emptyDiscoveryCopy(paused = true, access = PhotoAccess.PICKER_ONLY, progress = AnalysisProgress(phase = AnalysisPhase.FAILED))
+        val copy = emptyDiscoveryCopy(
+            paused = true,
+            access = PhotoAccess.PICKER_ONLY,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress(phase = AnalysisPhase.FAILED)
+        )
 
         assertThat(copy.title).isEqualTo("分析已暂停")
         assertThat(copy.actionLabel).isEqualTo("恢复分析")
@@ -129,16 +160,19 @@ class DiscoveryUiPolicyTest {
         val filtering = emptyDiscoveryCopy(
             paused = false,
             access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.PREPARED_POOL,
             progress = AnalysisProgress(phase = AnalysisPhase.FILTERING)
         )
         val noMatch = emptyDiscoveryCopy(
             paused = false,
             access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.PREPARED_POOL,
             progress = AnalysisProgress(phase = AnalysisPhase.NO_MATCH)
         )
         val failed = emptyDiscoveryCopy(
             paused = false,
             access = PhotoAccess.PICKER_ONLY,
+            mode = AutomaticCardMode.PREPARED_POOL,
             progress = AnalysisProgress(phase = AnalysisPhase.FAILED, detail = "候选未发布")
         )
 
@@ -149,6 +183,49 @@ class DiscoveryUiPolicyTest {
         assertThat(failed.body).isEqualTo("候选未发布")
         assertThat(failed.action).isEqualTo(EmptyDiscoveryAction.RETRY)
         assertThat(isAnalysisActive(AnalysisProgress(phase = AnalysisPhase.FAILED))).isFalse()
+    }
+
+    @Test
+    fun `daily one status copy preserves its hard limits without promising a card pool`() {
+        val start = discoveryStartMessage(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE)
+        val control = automaticDiscoveryControl(
+            PhotoAccess.PICKER_ONLY,
+            AutomaticCardMode.DAILY_ONE
+        )
+        val scanning = emptyDiscoveryCopy(
+            paused = false,
+            access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress(phase = AnalysisPhase.SCANNING)
+        )
+        val filtering = emptyDiscoveryCopy(
+            paused = false,
+            access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress(phase = AnalysisPhase.FILTERING)
+        )
+        val syncing = emptyDiscoveryCopy(
+            paused = false,
+            access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress(phase = AnalysisPhase.SYNCING)
+        )
+        val noMatch = emptyDiscoveryCopy(
+            paused = false,
+            access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.DAILY_ONE,
+            progress = AnalysisProgress(phase = AnalysisPhase.NO_MATCH)
+        )
+
+        assertThat(start).contains("最多上传分析 1 张")
+        assertThat(control?.explanation).contains("最多上传分析 1 张")
+        assertThat(scanning.body).contains("最多深入筛选 4 张")
+        assertThat(filtering.body).contains("最多选择 1 张")
+        assertThat(syncing.body).contains("最多上传分析 1 张")
+        assertThat(noMatch.title).isEqualTo("今天没有生成新卡片")
+        assertThat(noMatch.body).contains("不会为了凑数生成")
+        listOf(start, control?.explanation.orEmpty(), scanning.body, filtering.body, syncing.body, noMatch.body)
+            .forEach { copy -> assertThat(copy).doesNotContain("7–14") }
     }
 
     @Test

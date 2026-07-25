@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-25 双模式使用状态闭环（当前最新权威摘要）：上一版已经让用户在首次体验和设置中选择“提前准备”或“每天一张”，但选择完成后的首页状态仍有卡池模式残留文案。用户选择“每天一张”后，隐私中心可能承诺“持续补充未来卡片”，分析中的空状态也没有告诉用户本轮硬上限，产品决策没有真正贯穿完整闭环。
+
+当前纯 UI policy 读取持久化 `AutomaticCardMode`，统一生成自动发现控制、相册范围摘要、启动反馈与 QUEUED/SCANNING/FILTERING/SYNCING/NO_MATCH 文案。“提前准备”继续说明逐步准备 7–14 张；“每天一张”说明每个自动周期最多上传分析 1 张、本机最多深度检查 4 张、筛选阶段最多选出 1 张，未命中时明确“今天没有生成新卡片”并承诺不凑数。Picker-only 不冒充自动扫描，部分授权明确只在已选照片中工作，完整授权也会展示当前处理节奏。ViewModel 只负责把当前 mode 交给 policy，扫描、供给、Room 和 Worker 的既有业务上限未改变。
+
+API 34 标准字号测试以 `DAILY_ONE` 打开设置，验证精确说明并真实点击“开启自动发现”进入 Permission Controller；840×1867/2× 字体下验证相同说明、按钮 enabled 且存在可点击祖先，避免重复触发系统权限弹窗。`PREPARED_POOL` 的完整/部分授权摘要由独立设备测试验证。完整 App instrumentation 18/18；Android JVM 183/183（Domain 59、App 46、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。标准/大字截图均为 1080×2400，SHA-256 分别为 `0bc51946e9c7f4932e057765045c7af8a12d2eac97d777a48024d54e9eb491f4` / `afcc9c86dac584c8b4bb82059bb6bc7dae417652c9aa0497b53791f252c9a38b`；当前工作区图片查看器无法挂载该路径，因此未把截图生成冒充为人工视觉复核。Debug/未签名 Release APK SHA-256 为 `e314bc83bcbcaa45787230f5400a6cd2543704cab6db2d1d94bb964eb87bf374` / `8121a876b7ede39b285728dda8ed916cd73fc38fdbea1eec24e2cdd71d5f2b9a`。以上仍是模拟器与本地工程证据，Beta 保持 `NO_GO`。
+
 2026-07-25 首次体验双模式选择（当前最新权威摘要）：上一版两种自动节奏已经在设置中真实可用，但新用户授权前仍只能看到“自动发现/仅选择照片”，无法知道自动发现会提前批量准备还是每天只处理一张。当前保持原三屏，不增加 onboarding 摩擦；第三屏在同一决策上下文中完成 3 个兴趣、自动节奏和授权方式。两种模式的限额、离线收益和未命中行为在授权前明确可见，并明确 Picker/分享不受自动节奏约束。
 
 Compose 只保存尚未提交的引导页码、兴趣和模式，并使用 `rememberSaveable` 跨 Activity 重建；两个离开引导的入口都调用 ViewModel，由既有 domain Repository 边界共同持久化兴趣和模式后再请求相册权限或打开系统 Picker。API 34 测试真实把“生活设计”替换为“实用技巧”、选择“每天一张”、重建 Activity，验证仍停留在 3/3、兴趣勾选和 RadioButton 状态保留；随后点击可交互的“仅选择照片”按钮进入系统 Picker，并从共享偏好确认 `DAILY_ONE`。标准 1080×2400 与 840×1867/2× 字体两条路径均通过。完整 App instrumentation 18/18；Android JVM 182/182（Domain 59、App 45、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。标准/大字截图 SHA-256 为 `db7315d80cb994defcdb5b3cac294c96f65e798ee621044ca32a899d88c73f8d` / `4b15aeb846f12ceffbe10a6c0bc9807c78bdbd2cace382fc6c063c7e0a10421b`；Debug/未签名 Release APK SHA-256 为 `542e08dd73730235bd441ed51315c65939920cc10b79ee79d2326b947a894565` / `b9b634f56f49cdee5798dd4557167e0afad805e2e5dcf086fd45332b46e6ffd6`。这些仍是模拟器与本地工程证据，Beta 保持 `NO_GO`。

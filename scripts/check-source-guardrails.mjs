@@ -1199,6 +1199,17 @@ for (const marker of ["awaitPermissionController", "开启自动发现", "照片
 for (const marker of ["PhotoAccess.PICKER_ONLY", "PhotoAccess.PARTIAL", "PhotoAccess.FULL", "调整可访问照片", "全部授权照片"]) {
   check(photoAccessPresentationDeviceTest.includes(marker), `Photo-access presentation evidence is missing marker: ${marker}`);
 }
+check(
+  discoveryUiPolicy.includes("AutomaticCardMode") &&
+    discoveryUiPolicy.includes("每个自动周期最多上传分析 1 张") &&
+    discoveryUiPolicy.includes("逐步准备 7–14 张卡片") &&
+    discoveryUiPolicyTest.includes("daily one status copy preserves its hard limits without promising a card pool") &&
+    automaticDiscoveryControlDeviceTest.includes('"DAILY_ONE"') &&
+    automaticDiscoveryControlDeviceTest.includes("每个自动周期最多上传分析 1 张") &&
+    photoAccessPresentationDeviceTest.includes('"PREPARED_POOL"') &&
+    photoAccessPresentationDeviceTest.includes("自动发现已开启 · 提前准备 · 全部授权照片"),
+  "Automatic processing mode does not remain explicit and truthful after onboarding"
+);
 for (const marker of ["AnalysisPhase.QUEUED", "AnalysisPhase.SCANNING", "AnalysisPhase.FILTERING", "AnalysisPhase.SYNCING", "AnalysisPhase.NO_MATCH", "AnalysisPhase.RETRYING", "AnalysisPhase.FAILED", "EmptyDiscoveryAction.RETRY"]) {
   check(discoveryUiPolicy.includes(marker), "Truthful first-card UI state is missing marker: " + marker);
 }

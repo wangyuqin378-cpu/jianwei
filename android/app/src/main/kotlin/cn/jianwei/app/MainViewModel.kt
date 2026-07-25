@@ -228,7 +228,7 @@ class MainViewModel @Inject constructor(
                 "自动发现已关闭；分析仍处于暂停状态"
             }
         } else {
-            discoveryStartMessage(access)
+            discoveryStartMessage(access, automaticCardModePreferences.mode())
         }
     }
 
@@ -323,7 +323,7 @@ class MainViewModel @Inject constructor(
         localState.update { it.copy(paused = false) }
         if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
         scheduleAvailableAnalysis(access)
-        discoveryStartMessage(access)
+        discoveryStartMessage(access, automaticCardModePreferences.mode())
     }
 
     fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
