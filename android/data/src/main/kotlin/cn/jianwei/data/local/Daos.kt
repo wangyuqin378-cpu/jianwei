@@ -374,6 +374,7 @@ interface CardDao {
         val priorFeedback = findFeedbackState(cardId)
         val priorSave = findSavedCard(cardId)
         val photo = card?.let { findPhotoForPrivateCleanup(it.candidateToken) }
+        val photoLocalId = photo?.localId ?: card?.privacyPhotoLocalId
         // This transaction is the local privacy commit point. After it returns, a process death
         // can leave only a private-storage file awaiting cleanup; the photo cannot be scanned or
         // uploaded, the card cannot be displayed, and the server barrier cannot be lost.
@@ -409,14 +410,14 @@ interface CardDao {
                 createdAtMillis = nowMillis
             )
         )
-        if (photo != null) {
-            suppressPhotoForPrivateCleanup(SuppressedPhotoEntity(photo.localId, nowMillis))
-            markPhotoNeverAnalyzeForPrivateCleanup(photo.localId)
+        if (photoLocalId != null) {
+            suppressPhotoForPrivateCleanup(SuppressedPhotoEntity(photoLocalId, nowMillis))
+            markPhotoNeverAnalyzeForPrivateCleanup(photoLocalId)
         }
         removeTrackedItem(cardId)
         removeNonPrivateFeedbackForCard(cardId)
         deleteById(cardId)
-        return PrivateCardCleanup(photo?.localId, cardRemoved = card != null)
+        return PrivateCardCleanup(photoLocalId, cardRemoved = card != null)
     }
 
     @Transaction

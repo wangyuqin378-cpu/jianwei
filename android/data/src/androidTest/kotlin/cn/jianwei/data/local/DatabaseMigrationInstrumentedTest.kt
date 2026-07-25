@@ -245,6 +245,43 @@ class DatabaseMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion10To11BackfillsMinimalCardPrivacyReference() {
+        helper.createDatabase(PRIVACY_REFERENCE_DATABASE, 10).apply {
+            execSQL(
+                "INSERT INTO photo_candidates " +
+                    "(localId, candidateToken, contentUri, capturedAtMillis, modifiedAtMillis, " +
+                    "sourceDigest, perceptualHash, qualityScore, localLabels, sensitiveFlags, " +
+                    "analysisState, origin, width, height) VALUES " +
+                    "(42, 'candidate-private', 'content://media/external/images/media/42', " +
+                    "1, 1, NULL, NULL, 0.9, '[]', '[]', 'COMPLETED', 'MEDIA_STORE', 100, 100)"
+            )
+            execSQL(
+                "INSERT INTO knowledge_cards " +
+                    "(cardId, candidateToken, photoUri, topicId, factId, title, detectedObjectName, body, " +
+                    "personalContext, confidence, sources, status, scheduledDate, createdAtMillis) VALUES " +
+                    "('card-private', 'candidate-private', '', 'broom', 'broom-001', '扫帚的设计', " +
+                    "'扫帚', 'Fact', 'Context', 0.9, '[]', 'scheduled', '2026-07-26', 1)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            PRIVACY_REFERENCE_DATABASE,
+            11,
+            true,
+            MIGRATION_10_11
+        ).use { database ->
+            database.query(
+                "SELECT privacyPhotoLocalId FROM knowledge_cards WHERE cardId = 'card-private'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getLong(0)).isEqualTo(42L)
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-2-3-test"
         const val CURSOR_DATABASE = "migration-3-4-cursor-test"
@@ -254,5 +291,6 @@ class DatabaseMigrationInstrumentedTest {
         const val SAVED_CARDS_DATABASE = "migration-7-8-saved-cards-test"
         const val OBJECT_NAME_DATABASE = "migration-8-9-object-name-test"
         const val FEEDBACK_STATE_DATABASE = "migration-9-10-feedback-state-test"
+        const val PRIVACY_REFERENCE_DATABASE = "migration-10-11-privacy-reference-test"
     }
 }

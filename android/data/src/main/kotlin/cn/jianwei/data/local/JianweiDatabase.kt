@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MediaScanCursorEntity::class,
         TopicAffinityEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -158,6 +158,17 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
     }
 }
 
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `knowledge_cards` ADD COLUMN `privacyPhotoLocalId` INTEGER")
+        db.execSQL(
+            "UPDATE `knowledge_cards` SET `privacyPhotoLocalId` = (" +
+                "SELECT photo.localId FROM `photo_candidates` AS photo " +
+                "WHERE photo.candidateToken = `knowledge_cards`.candidateToken LIMIT 1)"
+        )
+    }
+}
+
 fun buildJianweiDatabase(context: Context): JianweiDatabase =
     Room.databaseBuilder(context.applicationContext, JianweiDatabase::class.java, "jianwei.db")
         .addMigrations(
@@ -169,7 +180,8 @@ fun buildJianweiDatabase(context: Context): JianweiDatabase =
             MIGRATION_6_7,
             MIGRATION_7_8,
             MIGRATION_8_9,
-            MIGRATION_9_10
+            MIGRATION_9_10,
+            MIGRATION_10_11
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()

@@ -115,6 +115,26 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun privateBarrierCanStillSuppressPhotoAfterLocalIndexWasCleared() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        try {
+            database.photos().upsert(candidate())
+            database.cards().upsertAll(listOf(localCard().copy(privacyPhotoLocalId = 42L)))
+
+            database.cards().clearPhotoUris()
+            database.photos().clear()
+            assertThat(database.cards().findById(CARD_ID)?.photoUri).isEmpty()
+            val cleanup = database.cards().stagePrivateFeedbackAndDelete(CARD_ID, 4L)
+
+            assertThat(cleanup.photoLocalId).isEqualTo(42L)
+            assertThat(database.photos().isSuppressed(42L)).isTrue()
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
     fun firstCardMetricIsRecordedOnlyAfterNonEmptySyncCommit() = runBlocking {
         val recordedAt = mutableListOf<Long>()
         withRepository(
@@ -167,6 +187,22 @@ class TooPrivateSyncOrderingInstrumentedTest {
             assertThat(repository.observeSavedCards().first().single().title).isEqualTo("server-refreshed")
             assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.SAVE.name)).isEmpty()
             assertThat(api.events.count { it == "feedback:SAVE" }).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun syncedPrivacyReferenceSurvivesIndexClearAndServerRefresh() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.syncCards()
+            assertThat(database.cards().findById(CARD_ID)?.privacyPhotoLocalId).isEqualTo(42L)
+
+            database.photos().clear()
+            api.cardsHandler = { CardsResponse(listOf(serverCard(title = "server-refreshed")), null) }
+            repository.syncCards()
+
+            assertThat(database.cards().findById(CARD_ID)?.privacyPhotoLocalId).isEqualTo(42L)
+            repository.sendFeedback(CARD_ID, FeedbackAction.TOO_PRIVATE)
+            assertThat(database.photos().isSuppressed(42L)).isTrue()
         }
     }
 

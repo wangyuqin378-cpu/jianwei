@@ -35,6 +35,9 @@ data class CardEntity(
     @PrimaryKey val cardId: String,
     val candidateToken: String,
     val photoUri: String,
+    // Minimal local-only linkage retained after clearing the photo index so a later
+    // TOO_PRIVATE action can still suppress this exact MediaStore/import identity.
+    val privacyPhotoLocalId: Long? = null,
     val topicId: String,
     val factId: String,
     val title: String,

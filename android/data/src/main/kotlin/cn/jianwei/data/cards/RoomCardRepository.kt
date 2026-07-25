@@ -99,11 +99,14 @@ class RoomCardRepository @Inject constructor(
                     val candidate = photos.findByToken(dto.candidateToken)
                     if (candidate?.analysisState == AnalysisState.NEVER_ANALYZE.name) return@forEach
                     val photoUri = candidate?.contentUri.orEmpty()
+                    val privacyPhotoLocalId = candidate?.localId
+                        ?: cards.findById(dto.cardId)?.privacyPhotoLocalId
                     val sources = dto.sources.validatedSources()
                     val entity = CardEntity(
                         cardId = dto.cardId,
                         candidateToken = dto.candidateToken,
                         photoUri = photoUri,
+                        privacyPhotoLocalId = privacyPhotoLocalId,
                         topicId = dto.topicId,
                         factId = dto.factId,
                         title = dto.title,

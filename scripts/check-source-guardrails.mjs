@@ -732,18 +732,29 @@ check(
   "WRONG_OBJECT is not a crash-safe terminal display barrier or can keep training stale interest signals"
 );
 check(
-  databaseSource.includes("version = 10") &&
+  databaseSource.includes("version = 11") &&
     databaseSource.includes("MIGRATION_9_10") &&
     databaseMigrationDeviceTest.includes("migratesVersion9To10CompactsLegacyFeedbackAndCascadesState") &&
     databaseMigrationDeviceTest.includes("card_feedback_states"),
   "Room 9-to-10 persistent feedback migration or cascade evidence is missing"
 );
 check(
-  databaseSource.includes("version = 10") &&
+  databaseSource.includes("version = 11") &&
     databaseSource.includes("MIGRATION_6_7") &&
     databaseSource.includes("MIGRATION_7_8") &&
     databaseMigrationDeviceTest.includes("migratesVersion7To8PreservesCardsAndCascadesSavedState"),
   "Room 7-to-8 saved-card migration or cascade evidence is missing"
+);
+check(
+  databaseSource.includes("MIGRATION_10_11") &&
+    databaseSource.includes("privacyPhotoLocalId") &&
+    localEntities.includes("val privacyPhotoLocalId: Long? = null") &&
+    cardRepository.includes("cards.findById(dto.cardId)?.privacyPhotoLocalId") &&
+    cardDaos.includes("photo?.localId ?: card?.privacyPhotoLocalId") &&
+    databaseMigrationDeviceTest.includes("migratesVersion10To11BackfillsMinimalCardPrivacyReference") &&
+    sourceSyncDeviceTest.includes("privateBarrierCanStillSuppressPhotoAfterLocalIndexWasCleared") &&
+    sourceSyncDeviceTest.includes("syncedPrivacyReferenceSurvivesIndexClearAndServerRefresh"),
+  "Clearing the local photo index can break the later TOO_PRIVATE suppression promise"
 );
 for (const marker of ["deleteExistingDeviceData", "DELETION_STATE", "DELETION_PENDING", "DELETION_CONFIRMED", "expectedDeviceId", "registered.created", "RegisterRequest(installationId)", "AuthenticationExpiredException", "DEVICE_ID"]) {
   check(deviceIdentity.includes(marker), `Android stale-token deletion recovery is missing marker: ${marker}`);
@@ -989,7 +1000,7 @@ for (const marker of ["val detectedObjectName: String", "detectedObjectName = dt
     `Android card pipeline is missing explicit object identity marker: ${marker}`
   );
 }
-for (const marker of ["version = 10", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
+for (const marker of ["version = 11", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
   check(databaseSource.includes(marker), `Room object-name migration is missing marker: ${marker}`);
 }
 for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "HIGH_OBJECT_CONFIDENCE = 0.90", "titleAlreadyCarriesIdentity", "识别把握较低", "未知物件"]) {
@@ -1331,7 +1342,7 @@ check(trackApiCall >= 0 && trackAck > trackApiCall, "Pending item tracking can b
 check(untrackApiCall >= 0 && untrackAck > untrackApiCall, "Pending item cancellation can be removed before a successful API response");
 check(cardRepository.includes("expectedUpdatedAtMillis") || cardRepository.includes("pending.updatedAtMillis"), "Reminder outbox acknowledgements are not version-guarded");
 check(androidApiSource.includes('@DELETE("v1/items/{cardId}/track")') && serverSource.includes('app.delete("/v1/items/:cardId/track"'), "Reminder cancellation API is missing on Android or backend");
-check(databaseSource.includes("version = 10") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
+check(databaseSource.includes("version = 11") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
 check(mainActivity.includes("物品提醒已开启") && mainActivity.includes("取消物品提醒") && mainActivity.includes("确认取消"), "Reminder visible state/update/cancel UI is incomplete");
 check(mediaIndexPolicy.includes("if (access == PhotoAccess.FULL) stored else null"), "Partial-photo scans still trust a stale MediaStore authorization watermark");
 check(mediaRepository.includes("catch (_: SecurityException)") && !mediaRepository.includes("catch (_: Exception)"), "MediaStore query defects can still be silently reported as an empty successful scan");
