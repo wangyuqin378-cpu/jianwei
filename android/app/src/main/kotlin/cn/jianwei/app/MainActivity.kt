@@ -218,15 +218,19 @@ class MainActivity : ComponentActivity() {
 
                 if (!onboarded) {
                     Onboarding(
-                        onAutomatic = { interests ->
-                            if (viewModel.updateInterests(interests, announce = false)) {
+                        onAutomatic = { interests, automaticMode ->
+                            if (viewModel.saveOnboardingPreferences(interests, automaticMode)) {
                                 photoPermission.launch(requiredPhotoPermissions())
+                            } else {
+                                Toast.makeText(context, "首次设置保存失败，请重试", Toast.LENGTH_LONG).show()
                             }
                         },
-                        onPick = { interests ->
-                            if (viewModel.updateInterests(interests, announce = false)) {
+                        onPick = { interests, automaticMode ->
+                            if (viewModel.saveOnboardingPreferences(interests, automaticMode)) {
                                 completeOnboarding()
                                 choosePhotos()
+                            } else {
+                                Toast.makeText(context, "首次设置保存失败，请重试", Toast.LENGTH_LONG).show()
                             }
                         }
                     )
@@ -368,8 +372,20 @@ private fun JianweiTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>) -> Unit) {
-    var step by remember { mutableIntStateOf(0) }
+private fun Onboarding(
+    onAutomatic: (Set<String>, AutomaticCardMode) -> Unit,
+    onPick: (Set<String>, AutomaticCardMode) -> Unit
+) {
+    var step by rememberSaveable { mutableIntStateOf(0) }
+    var encodedInterests by rememberSaveable {
+        mutableStateOf(encodeInterestSelection(DEFAULT_INTEREST_SELECTION))
+    }
+    var automaticModeName by rememberSaveable {
+        mutableStateOf(AutomaticCardMode.PREPARED_POOL.name)
+    }
+    val interests = decodeInterestSelection(encodedInterests)
+    val automaticMode = runCatching { AutomaticCardMode.valueOf(automaticModeName) }
+        .getOrDefault(AutomaticCardMode.PREPARED_POOL)
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     LaunchedEffect(step) {
@@ -380,9 +396,8 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
     val pages = listOf(
         "让日常照片重新开口" to "从你授权的照片里，挑一件普通物品，讲一个今天值得知道的细节。",
         "先在手机里筛选，再寻找知识" to "大多数照片不会离开手机；只有通过隐私和质量筛选的少量候选，才会进入可靠知识匹配。",
-        "决定你想看什么" to "先选 3 个兴趣，再选择自动发现或逐次挑选照片。以后可以在推荐偏好中调整。"
+        "决定你想怎么看" to "选 3 个兴趣，再决定自动发现是提前准备，还是每天只处理一张。以后都可以在设置中调整。"
     )
-    val interests = remember { mutableStateOf(DEFAULT_INTEREST_SELECTION) }
     BackHandler(enabled = step > 0) {
         focusManager.clearFocus(force = true)
         step--
@@ -437,10 +452,14 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
                 0 -> OnboardingValuePreview()
                 1 -> OnboardingPrivacyPreview()
                 else -> OnboardingPreferences(
-                    interests = interests.value,
+                    interests = interests,
                     onInterestChanged = { interest, checked ->
-                        interests.value = updatedInterestSelection(interests.value, interest, checked)
-                    }
+                        encodedInterests = encodeInterestSelection(
+                            updatedInterestSelection(interests, interest, checked)
+                        )
+                    },
+                    automaticMode = automaticMode,
+                    onAutomaticModeChanged = { automaticModeName = it.name }
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -460,17 +479,17 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
                         title = "自动发现",
                         body = "授权后扫描近 90 天、最多 500 张照片；先在本机筛选，再上传少量候选。",
                         badge = "推荐",
-                        buttonLabel = "自动发现（推荐）",
-                        enabled = interests.value.size == 3,
-                        onClick = { onAutomatic(interests.value) }
+                        buttonLabel = "开启自动发现",
+                        enabled = interests.size == 3,
+                        onClick = { onAutomatic(interests, automaticMode) }
                     )
                     OnboardingEntryChoice(
                         title = "仅选择照片",
                         body = "不授予持续相册访问；每次使用系统选择器挑选，也可以从其他 App 分享。",
                         buttonLabel = "仅选择照片",
-                        enabled = interests.value.size == 3,
+                        enabled = interests.size == 3,
                         outlined = true,
-                        onClick = { onPick(interests.value) }
+                        onClick = { onPick(interests, automaticMode) }
                     )
                     TextButton(onClick = { step-- }, modifier = Modifier.fillMaxWidth()) {
                         Text("返回上一步")
@@ -614,18 +633,53 @@ private fun OnboardingPipelineStep(number: String, title: String, body: String) 
 @Composable
 private fun OnboardingPreferences(
     interests: Set<String>,
-    onInterestChanged: (String, Boolean) -> Unit
+    onInterestChanged: (String, Boolean) -> Unit,
+    automaticMode: AutomaticCardMode,
+    onAutomaticModeChanged: (AutomaticCardMode) -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        InterestSelectionPanel(
-            interests = interests,
-            onInterestChanged = onInterestChanged,
-            supportingText = "正好选择 3 项；它们只用于本次安装的推荐排序。",
-            modifier = Modifier.padding(16.dp)
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            InterestSelectionPanel(
+                interests = interests,
+                onInterestChanged = onInterestChanged,
+                supportingText = "正好选择 3 项；它们只用于本次安装的推荐排序。",
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "自动发现的处理节奏",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    "只影响自动发现；系统选择器和分享仍按你每次选中的照片处理。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                AutomaticCardModeOption(
+                    title = "提前准备（推荐）",
+                    body = "联网时准备 7–14 张，断网也能每天看到新卡。",
+                    selected = automaticMode == AutomaticCardMode.PREPARED_POOL,
+                    enabled = true,
+                    onClick = { onAutomaticModeChanged(AutomaticCardMode.PREPARED_POOL) }
+                )
+                AutomaticCardModeOption(
+                    title = "每天一张",
+                    body = "每天最多上传分析 1 张；没命中时继续显示上一张。",
+                    selected = automaticMode == AutomaticCardMode.DAILY_ONE,
+                    enabled = true,
+                    onClick = { onAutomaticModeChanged(AutomaticCardMode.DAILY_ONE) }
+                )
+            }
+        }
     }
 }
 

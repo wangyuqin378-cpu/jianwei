@@ -517,7 +517,7 @@ check(
     mainActivity.includes("this.selected = selected") &&
     settingsNavigationDeviceTest.includes("settingsStaySeparateAndPersistentNavigationReturnsToDailyContent") &&
     settingsNavigationDeviceTest.includes('awaitSelectedNode(instrumentation, "设置与隐私")') &&
-    settingsNavigationDeviceTest.includes("DEEP_SETTINGS_MARKERS") &&
+    settingsNavigationDeviceTest.includes('awaitTextNode(instrumentation, "导出内测报告")') &&
     settingsNavigationDeviceTest.includes('SETTINGS_SCREENSHOT_NAME = "settings-overview.png"'),
   "Daily content, saved knowledge, and settings do not have persistent accessible navigation or isolated content"
 );
@@ -557,6 +557,14 @@ check(
     mainActivity.includes("scrollState.scrollTo(0)") &&
     mainActivity.includes("BackHandler(enabled = step > 0)") &&
     mainActivity.includes('Text("返回上一步")') &&
+    mainActivity.includes("var step by rememberSaveable") &&
+    mainActivity.includes("var encodedInterests by rememberSaveable") &&
+    mainActivity.includes("var automaticModeName by rememberSaveable") &&
+    mainActivity.includes('"自动发现的处理节奏"') &&
+    mainActivity.includes('buttonLabel = "开启自动发现"') &&
+    mainActivity.includes("onAutomatic(interests, automaticMode)") &&
+    mainActivity.includes("onPick(interests, automaticMode)") &&
+    mainActivity.includes('Toast.makeText(context, "首次设置保存失败，请重试"') &&
     discoveryUiPolicy.includes("fun shouldStackOnboardingInterests") &&
     discoveryUiPolicy.includes("availableWidthDp < 300f || fontScale >= 1.5f") &&
     discoveryUiPolicyTest.includes("onboarding interests reflow before choices become cramped"),
@@ -1114,7 +1122,7 @@ check(
 check(mainActivity.includes("notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)"), "Notification permission is not tied to the explicit reminder flow");
 check(
   mainActivity.includes("val completeOnboarding = {") &&
-    mainActivity.includes("viewModel.updateInterests(interests, announce = false)") &&
+    mainActivity.includes("viewModel.saveOnboardingPreferences(interests, automaticMode)") &&
     mainActivity.includes("completeOnboarding()\n                                choosePhotos()") &&
     !mainActivity.slice(
       mainActivity.indexOf("val picker = rememberLauncherForActivityResult"),

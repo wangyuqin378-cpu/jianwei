@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 首次体验双模式选择（当前最新权威摘要）：上一版两种自动节奏已经在设置中真实可用，但新用户授权前仍只能看到“自动发现/仅选择照片”，无法知道自动发现会提前批量准备还是每天只处理一张。当前保持原三屏，不增加 onboarding 摩擦；第三屏在同一决策上下文中完成 3 个兴趣、自动节奏和授权方式。两种模式的限额、离线收益和未命中行为在授权前明确可见，并明确 Picker/分享不受自动节奏约束。
+
+Compose 只保存尚未提交的引导页码、兴趣和模式，并使用 `rememberSaveable` 跨 Activity 重建；两个离开引导的入口都调用 ViewModel，由既有 domain Repository 边界共同持久化兴趣和模式后再请求相册权限或打开系统 Picker。API 34 测试真实把“生活设计”替换为“实用技巧”、选择“每天一张”、重建 Activity，验证仍停留在 3/3、兴趣勾选和 RadioButton 状态保留；随后点击可交互的“仅选择照片”按钮进入系统 Picker，并从共享偏好确认 `DAILY_ONE`。标准 1080×2400 与 840×1867/2× 字体两条路径均通过。完整 App instrumentation 18/18；Android JVM 182/182（Domain 59、App 45、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。标准/大字截图 SHA-256 为 `db7315d80cb994defcdb5b3cac294c96f65e798ee621044ca32a899d88c73f8d` / `4b15aeb846f12ceffbe10a6c0bc9807c78bdbd2cace382fc6c063c7e0a10421b`；Debug/未签名 Release APK SHA-256 为 `542e08dd73730235bd441ed51315c65939920cc10b79ee79d2326b947a894565` / `b9b634f56f49cdee5798dd4557167e0afad805e2e5dcf086fd45332b46e6ffd6`。这些仍是模拟器与本地工程证据，Beta 保持 `NO_GO`。
+
 2026-07-25 双照片处理模式（当前最新权威摘要）：用户现在可以在设置中选择真实不同的自动处理节奏，而不是只改变排序文案。默认“提前准备（推荐）”维持低于 7 张时补到最多 14 张未来/当日卡的离线卡池，单轮最多上传 24 个自动候选；“每天一张”在 domain 供给策略和两个 Worker 执行层共同硬限制每次自动周期最多上传并分析 1 个候选，本机隐私阶段最多检查 4 张照片来寻找 1 张安全且不重复的候选。Picker 与分享属于逐项同意的显式导入，不受自动模式限额影响。
 
 模式通过 Repository 持久化并由 Worker 运行时读取；默认兼容原卡池行为，非法旧值失败关闭到推荐默认值。设置页以 RadioButton 语义显示“已选择/未选择”，明确每天一张仍会先在本机筛选、没有可靠事实或后台延迟时继续展示已有卡。切换不会删除已有卡；重复选择当前值不产生新任务；暂停或 picker-only 时只保存。API 34 标准/2× 字体测试验证模式切换、持久化、Activity 重建和设置导航；完整 App instrumentation 17/17、Data instrumentation 60/60、Android JVM 182/182，App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。标准/大字截图 SHA-256 为 `8f7076ccca925a7ed160278d845b7a9e4e0522979c1ccd4f4d4a84055dfdef25` / `ea2c58f2008cd9999f04a02b2d7c7bc8c14716287acc70a3e4b3674da17a6eb8`；Debug/未签名 Release APK SHA-256 为 `f89b63b1cf2a096e2e1a5da0e7f87f771bd25dac6c3876b348339d99548f8e70` / `fbb4f144b670cc7ada57f6015685e2d6eb205ba37a326cfd1ac9d380f6711453`。这些仍是模拟器与本地工程证据，Beta 保持 `NO_GO`。
@@ -333,7 +337,7 @@ QA 装配签名绑定批准清单及固定八工件的精确 SHA-256/长度；�
 
 | 要求 | 状态 | 证据或缺口 |
 |---|---|---|
-| 三屏引导、3 个兴趣、自动发现/仅选择照片 | PROVEN | Compose 引导、权限请求与 Photo Picker 已连接；选择“仅选择照片”会先持久化模式与兴趣，取消系统 Picker 后仍进入仅手动选择首页，不要求本次必须选图；API 34、320dp/2× 实跑及 Windows accessibility smoke 证明 `completed=true` 且照片分析 WorkManager 任务为 0。自动发现的系统权限弹窗烟测同样通过；同意前或拒绝后不会安排自动分析，也不声称已开始扫描 |
+| 三屏引导、3 个兴趣、双自动节奏、自动发现/仅选择照片 | PROVEN | Compose 三屏、权限请求与 Photo Picker 已连接；第三屏在授权前选择恰好 3 个兴趣及“提前准备/每天一张”，并说明自动节奏不约束逐项 Picker/分享。页码、兴趣、模式跨 Activity 重建保留；自动发现与仅选择照片入口都会先经 ViewModel/Repository 持久化两类偏好。API 34 标准与 840×1867/2× 字体实跑兴趣替换、`DAILY_ONE`、Activity 重建和系统 Picker；取消 Picker 后仍进入仅手动选择首页，不要求本次必须选图且自动分析 Work 为 0。自动发现权限弹窗烟测同样通过；同意前或拒绝后不会安排自动分析，也不声称已开始扫描 |
 | Android 完整/部分/拒绝权限 | PARTIAL | 官方 Android 14/API 34 AVD 三种状态与原生部分照片选择流程通过；MediaStore PUT 每 64 KiB 重验精确 URI；仍缺实体机/OEM 与真实网络撤权故障注入 |
 | 近 90 天、最多 500 张、增量扫描 | PROVEN（参考设备）/ EXTERNAL（OEM） | Android 14/API 34 真实 MediaStore 测试发布 503 条测试媒体：首轮 501 条严格只索引最新 500，第二轮未变化为 0，新增照片为 1，pending→重写 JPEG→重新发布的内容修改为 1 且重置到隐私分析；部分授权即使已有未来旧游标仍会 bounded reconciliation 并发现后来可见照片。另一个真实 MediaProvider 回归覆盖新旧 `DATE_TAKEN` 与新旧 `DATE_ADDED/DATE_MODIFIED` 四种组合：有效拍摄时间优先，缺失拍摄时间时回退元数据仍必须在窗口内，旧图不能逃逸 90 天边界。完整授权使用基础列比较的复合水位，避免 Android 14 MediaProvider 拒绝 `CASE` WHERE；非撤权查询错误不再静默返回空成功。仍缺国产 OEM 500+ 相册执行证据 |
 | 两种自动处理节奏、卡池与每日单候选上限 | PROVEN | 默认“提前准备”在可见卡低于 7 张时补到最多 14 张，单轮最多上传 24 个候选；“每天一张”每次自动周期最多上传/分析 1 个候选，本机最多检查 4 张以寻找 1 张安全且不重复的照片。模式持久化、Activity 重建保留，PrivacyScanWorker 与 UploadWorker 均在运行时读取；切换不删旧卡，重复选择不重复排程，暂停/picker-only 只保存。显式 Picker/分享仍按逐项同意独立处理。两种自动模式继续使用按中国日历日期生成的稳定种子，只在综合分差不超过 0.04 的最多 3 张中调整顺序，同日重试稳定且明显较差照片不能靠随机上位；服务端在事务内选择今天起首个空位，既有 PostgreSQL 并发测试证明排期连续唯一。API 34 标准/2× 字体和 Activity 重建、App 17/17、Data 60/60 instrumentation 及 domain 限额测试通过 |

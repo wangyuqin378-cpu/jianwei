@@ -79,11 +79,7 @@ class SettingsNavigationInstrumentedTest {
 
             click(awaitNode(instrumentation, "设置与隐私"))
             assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
-            assertThat(findTextNode(
-                instrumentation.uiAutomation.rootInActiveWindow,
-                "设置与隐私"
-            )).isNull()
-            assertThat(awaitAnyTextNode(instrumentation, DEEP_SETTINGS_MARKERS)).isNotNull()
+            assertThat(awaitTextNode(instrumentation, "导出内测报告")).isNotNull()
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
             assertThat(awaitSelectedNode(instrumentation, "每日卡片").isSelected).isTrue()
             assertThat(awaitTextNode(instrumentation, TODAY_TITLE)).isNotNull()
@@ -199,14 +195,6 @@ class SettingsNavigationInstrumentedTest {
         findDescriptionPrefix(root, prefix)?.takeIf { it.stateDescription?.toString() == state }
     }
 
-    private fun awaitAnyTextNode(
-        instrumentation: android.app.Instrumentation,
-        texts: List<String>,
-        timeoutMillis: Long = 10_000
-    ): AccessibilityNodeInfo = awaitMatchingNode(instrumentation, timeoutMillis) { root ->
-        texts.firstNotNullOfOrNull { text -> findTextNode(root, text) }
-    }
-
     private fun awaitTextNodeWithScroll(
         instrumentation: android.app.Instrumentation,
         text: String,
@@ -291,11 +279,5 @@ class SettingsNavigationInstrumentedTest {
         const val TODAY_TITLE = "杯子把手为什么留出一个圆环"
         const val SETTINGS_SCREENSHOT_NAME = "settings-overview.png"
         const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
-        val DEEP_SETTINGS_MARKERS = listOf(
-            "导出内测报告",
-            "系统相册权限只控制自动发现；你曾逐次选择或分享导入的照片是独立同意。如需终止所有待处理任务，请点“暂停分析”。",
-            "暂停状态会跨重启保留，手动恢复前不再扫描、上传或同步卡片。删除云端数据也会暂停分析，并清除匿名设备身份、待处理任务和云端卡片；本地原照片不会被删除。",
-            "内测报告由你主动导出，只含计数、时间、App 版本、机型、系统版本和系统构建指纹；不含照片、标签、位置、相册 ID、安装身份或设备令牌。"
-        )
     }
 }

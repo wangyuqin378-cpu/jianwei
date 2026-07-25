@@ -188,6 +188,20 @@ class MainViewModel @Inject constructor(
         false
     }
 
+    fun saveOnboardingPreferences(
+        interests: Set<String>,
+        automaticCardMode: AutomaticCardMode
+    ): Boolean = try {
+        interestPreferences.updateSelected(interests)
+        automaticCardModePreferences.updateMode(automaticCardMode)
+        true
+    } catch (error: Exception) {
+        localState.value = localState.value.copy(
+            message = error.message ?: "首次设置保存失败，请重试"
+        )
+        false
+    }
+
     fun updateAutomaticCardMode(mode: AutomaticCardMode, access: PhotoAccess) {
         if (automaticCardModePreferences.mode() == mode) return
         runBusy(UserOperation.UPDATE_CARD_MODE) {
