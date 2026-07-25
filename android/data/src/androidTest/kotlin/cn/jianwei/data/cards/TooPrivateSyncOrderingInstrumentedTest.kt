@@ -237,6 +237,28 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun pausedAnalysisStillAllowsLocalSaveAndPrivacyFeedback() = runBlocking {
+        withRepository(initiallyPaused = true) { database, repository, _, api ->
+            assertThat(repository.setSaved(CARD_ID, true)).isTrue()
+            assertThat(repository.observeSavedCards().first().single().cardId).isEqualTo(CARD_ID)
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.SAVE.name)).hasSize(1)
+
+            val result = repository.sendFeedback(CARD_ID, FeedbackAction.TOO_PRIVATE)
+
+            assertThat(result.accepted).isTrue()
+            assertThat(result.cardRemoved).isTrue()
+            assertThat(database.cards().findById(CARD_ID)).isNull()
+            assertThat(repository.observeSavedCards().first()).isEmpty()
+            assertThat(database.cards().pendingFeedback().map { it.action })
+                .containsExactly(FeedbackAction.TOO_PRIVATE.name)
+            assertThat(database.photos().findById(42L)?.analysisState)
+                .isEqualTo(AnalysisState.NEVER_ANALYZE.name)
+            assertThat(database.photos().isSuppressed(42L)).isTrue()
+            assertThat(api.events).isEmpty()
+        }
+    }
+
+    @Test
     fun wrongObjectHidesCardRevokesSaveAndCannotBeResurrectedByStaleSync() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.setSaved(CARD_ID, true)
@@ -448,6 +470,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
 
     private suspend fun withRepository(
         firstCardMetrics: FirstCardMetricRecorder = FirstCardMetricRecorder {},
+        initiallyPaused: Boolean = false,
         block: suspend (
             JianweiDatabase,
             RoomCardRepository,
@@ -456,8 +479,12 @@ class TooPrivateSyncOrderingInstrumentedTest {
         ) -> Unit
     ) {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)
-            .edit().clear().commit()
+        val pipelinePreferences =
+            context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)
+        pipelinePreferences.edit().clear().putBoolean(
+            DailyPipelineKickWorker.KEY_PAUSED,
+            initiallyPaused
+        ).commit()
         val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
         val api = RecordingApi()
         api.cardsHandler = { CardsResponse(listOf(serverCard()), null) }
@@ -480,6 +507,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
             block(database, repository, identity, api)
         } finally {
             runCatching { identity.reset() }
+            pipelinePreferences.edit().clear().commit()
             database.close()
         }
     }

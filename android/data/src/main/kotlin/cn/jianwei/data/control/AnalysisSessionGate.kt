@@ -27,6 +27,9 @@ internal class SessionBarrier(
             block(token)
         }
 
+    suspend fun <T> withSerializedLocalMutation(block: suspend () -> T): T =
+        operation.withLock { block() }
+
     fun invalidate(): Long {
         paused.set(true)
         return epoch.incrementAndGet()
@@ -68,6 +71,14 @@ class AnalysisSessionGate @Inject constructor(
 
     suspend fun <T> withActiveSession(block: suspend (AnalysisSessionToken) -> T): T =
         barrier.withActiveSession(block)
+
+    /**
+     * Serializes a local user action with analysis and sync without requiring analysis to be
+     * resumed. Pausing is a transport/analysis barrier; it must not reject local feedback,
+     * saved-state changes, or privacy cleanup that can safely remain in the Room outbox.
+     */
+    suspend fun <T> withSerializedLocalMutation(block: suspend () -> T): T =
+        barrier.withSerializedLocalMutation(block)
 
     fun beginPause() {
         val epoch = barrier.invalidate()

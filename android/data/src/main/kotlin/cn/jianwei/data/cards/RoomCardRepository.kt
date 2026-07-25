@@ -150,8 +150,7 @@ class RoomCardRepository @Inject constructor(
     override suspend fun sendFeedback(
         cardId: String,
         action: FeedbackAction
-    ): FeedbackSubmissionResult = sessionGate.withActiveSession { session ->
-        session.requireActive()
+    ): FeedbackSubmissionResult = sessionGate.withSerializedLocalMutation {
         when {
             action == FeedbackAction.TOO_PRIVATE -> {
                 val cleanup = markPhotoNeverAnalyzeLocally(cardId)
@@ -177,8 +176,7 @@ class RoomCardRepository @Inject constructor(
     }
 
     override suspend fun setSaved(cardId: String, saved: Boolean): Boolean =
-        sessionGate.withActiveSession { session ->
-            session.requireActive()
+        sessionGate.withSerializedLocalMutation {
             cards.setCardSaved(cardId, saved, System.currentTimeMillis())
         }
 
