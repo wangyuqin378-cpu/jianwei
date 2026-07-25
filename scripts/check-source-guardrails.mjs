@@ -178,6 +178,8 @@ const widgetSwitchPolicyTest = await readFile(path.join(root, "android", "app", 
 const mainViewModel = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainViewModel.kt"), "utf8");
 const cloudDeletionFlow = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "CloudDeletionFlow.kt"), "utf8");
 const cloudDeletionFlowTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "CloudDeletionFlowTest.kt"), "utf8");
+const localIndexClearFlow = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "LocalIndexClearFlow.kt"), "utf8");
+const localIndexClearFlowTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "LocalIndexClearFlowTest.kt"), "utf8");
 const userOperationGate = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "UserOperationGate.kt"), "utf8");
 const shareReceiver = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ShareReceiverActivity.kt"), "utf8");
 const pendingImportResultStore = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "PendingImportResultStore.kt"), "utf8");
@@ -361,7 +363,12 @@ check(
     feedbackSenderBlock.includes("feedbackBodyOrThrow(api.feedback("),
   "Non-private feedback can be removed before a successful acknowledged response"
 );
-check(mainActivity.includes("确认删除云端数据？") && mainActivity.includes("showCloudDeleteConfirmation"), "Cloud data deletion is missing an explicit confirmation dialog");
+check(
+  mainActivity.includes("确认删除云端数据？") && mainActivity.includes("showCloudDeleteConfirmation") &&
+    mainActivity.includes("确认清除本地照片索引？") && mainActivity.includes("showLocalIndexClearConfirmation") &&
+    settingsNavigationDeviceTest.includes("保留本地索引"),
+  "A destructive cloud or local-photo deletion is missing an explicit confirmation dialog"
+);
 const cloudDeleteCall = cardRepository.indexOf("deleteRemote = { identity.deleteExistingDeviceData(); Unit }")
 const localCloudClearBinding = cardRepository.indexOf("clearLocal = cards::clearCloudState")
 const identityResetBinding = cardRepository.indexOf("resetIdentity = identity::reset")
@@ -783,6 +790,20 @@ check(
     reminderScheduler.includes("if (!cards.isTrackedReminderCurrent(cardId, startedOn, reminderDays))") &&
     reminderPrivacyDeviceTest.includes("missingCardOrTrackingCannotNotifyEvenWhenStaleWorkStillExecutes"),
   "Cloud deletion failure can leave UI pause/reminder state inconsistent or stale work able to notify"
+);
+check(
+  mainViewModel.includes("clearLocalIndexFromUi(") &&
+    mainActivity.includes("恢复分析后，见微才会重新建立索引") &&
+    localIndexClearFlow.indexOf("pauseAndPublishAnalysisState(") >= 0 &&
+    localIndexClearFlow.indexOf("clearCardPhotoReferences()") > localIndexClearFlow.indexOf("pauseAndPublishAnalysisState(") &&
+    localIndexClearFlow.indexOf("clearPhotoIndex()") > localIndexClearFlow.indexOf("clearCardPhotoReferences()") &&
+    localIndexClearFlow.indexOf("clearTransientUiState()") > localIndexClearFlow.indexOf("clearPhotoIndex()") &&
+    localIndexClearFlow.includes("LocalIndexClearIncompleteException") &&
+    localIndexClearFlowTest.includes("analysis drains before photo references and index are cleared") &&
+    localIndexClearFlowTest.includes("pause failure publishes scheduler truth and leaves the index untouched") &&
+    settingsNavigationDeviceTest.includes("暂停并清除") &&
+    settingsNavigationDeviceTest.includes("ANALYSIS_PAUSED_KEY"),
+  "Local index deletion can race active analysis or be rebuilt before the user resumes"
 );
 const privacyRetry = workersSource.indexOf("shouldRetryPrivacyAnalysisFailure(runAttemptCount)");
 const privacyFailure = workersSource.indexOf("photos.updateAnalysis(entity.localId, AnalysisState.FAILED)");

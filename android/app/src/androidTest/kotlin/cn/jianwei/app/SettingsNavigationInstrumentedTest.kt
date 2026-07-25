@@ -26,11 +26,15 @@ class SettingsNavigationInstrumentedTest {
         val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
         val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
+        val wasPaused = schedulerPreferences.getBoolean(ANALYSIS_PAUSED_KEY, false)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             database.cards().clear()
             preferences.edit().putBoolean("completed", true).commit()
-            schedulerPreferences.edit().remove(AUTOMATIC_CARD_MODE_KEY).commit()
+            schedulerPreferences.edit()
+                .remove(AUTOMATIC_CARD_MODE_KEY)
+                .putBoolean(ANALYSIS_PAUSED_KEY, false)
+                .commit()
             database.cards().upsertAll(listOf(todayCard()))
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
@@ -72,6 +76,11 @@ class SettingsNavigationInstrumentedTest {
             assertThat(awaitTextNodeWithScroll(instrumentation, "你的数据与隐私")).isNotNull()
             click(awaitTextNodeWithScroll(instrumentation, "管理隐私与数据"))
             assertThat(awaitTextNodeWithScroll(instrumentation, "导出内测报告")).isNotNull()
+            click(awaitTextNodeWithScroll(instrumentation, "清除本地照片索引"))
+            assertThat(awaitTextNode(instrumentation, "确认清除本地照片索引？")).isNotNull()
+            assertThat(awaitTextNode(instrumentation, "暂停并清除")).isNotNull()
+            click(awaitTextNode(instrumentation, "保留本地索引"))
+            assertThat(database.cards().findById(TODAY_CARD_ID)?.cardId).isEqualTo(TODAY_CARD_ID)
             val persistentDailyTab = awaitVisibleNode(instrumentation, "每日卡片")
             click(persistentDailyTab)
             assertThat(awaitSelectedNode(instrumentation, "每日卡片").isSelected).isTrue()
@@ -84,6 +93,17 @@ class SettingsNavigationInstrumentedTest {
             assertThat(awaitSelectedNode(instrumentation, "每日卡片").isSelected).isTrue()
             assertThat(awaitTextNode(instrumentation, TODAY_TITLE)).isNotNull()
             assertThat(database.cards().findById(TODAY_CARD_ID)?.cardId).isEqualTo(TODAY_CARD_ID)
+
+            click(awaitNode(instrumentation, "设置与隐私"))
+            click(awaitTextNodeWithScroll(instrumentation, "清除本地照片索引"))
+            click(awaitTextNode(instrumentation, "暂停并清除"))
+            awaitBooleanPreference(schedulerPreferences, ANALYSIS_PAUSED_KEY, true)
+            repeat(8) { swipeBackward(instrumentation) }
+            assertThat(awaitTextNodeWithScroll(
+                instrumentation,
+                "分析已暂停，不会继续扫描、上传或同步"
+            )).isNotNull()
+            assertThat(database.cards().findById(TODAY_CARD_ID)?.cardId).isEqualTo(TODAY_CARD_ID)
         } finally {
             scenario?.close()
             database.cards().clear()
@@ -92,6 +112,7 @@ class SettingsNavigationInstrumentedTest {
             schedulerPreferences.edit().apply {
                 if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
                 else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+                putBoolean(ANALYSIS_PAUSED_KEY, wasPaused)
             }.commit()
         }
     }
@@ -218,6 +239,30 @@ class SettingsNavigationInstrumentedTest {
         SystemClock.sleep(250)
     }
 
+    private fun swipeBackward(instrumentation: android.app.Instrumentation) {
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        instrumentation.uiAutomation.executeShellCommand(
+            "input swipe $centerX ${(metrics.heightPixels * 0.32f).toInt()} " +
+                "$centerX ${(metrics.heightPixels * 0.78f).toInt()} 250"
+        ).close()
+        SystemClock.sleep(250)
+    }
+
+    private fun awaitBooleanPreference(
+        preferences: android.content.SharedPreferences,
+        key: String,
+        expected: Boolean,
+        timeoutMillis: Long = 10_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (preferences.getBoolean(key, !expected) == expected) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for preference $key=$expected")
+    }
+
     private fun awaitMatchingNode(
         instrumentation: android.app.Instrumentation,
         timeoutMillis: Long,
@@ -279,5 +324,6 @@ class SettingsNavigationInstrumentedTest {
         const val TODAY_TITLE = "杯子把手为什么留出一个圆环"
         const val SETTINGS_SCREENSHOT_NAME = "settings-overview.png"
         const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
+        const val ANALYSIS_PAUSED_KEY = "analysis_paused"
     }
 }

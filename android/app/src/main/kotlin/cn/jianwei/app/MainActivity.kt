@@ -2586,6 +2586,7 @@ private fun PrivacyCenter(
     onExportMetrics: () -> Unit
 ) {
     val automaticControl = automaticDiscoveryControl(access, automaticMode)
+    var showLocalIndexClearConfirmation by rememberSaveable { mutableStateOf(false) }
     var showCloudDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     Card(
@@ -2640,15 +2641,41 @@ private fun PrivacyCenter(
                     OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
                         Text(if (paused) "恢复分析" else "暂停分析")
                     }
-                    OutlinedButton(onClick = onClearIndex, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("清除本地照片索引") }
+                    OutlinedButton(
+                        onClick = { showLocalIndexClearConfirmation = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = actionsEnabled
+                    ) { Text("清除本地照片索引") }
                     OutlinedButton(onClick = { showCloudDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("删除云端数据") }
                     OutlinedButton(onClick = onExportMetrics, modifier = Modifier.fillMaxWidth()) { Text("导出内测报告") }
                     Text("系统相册权限只控制自动发现；你曾逐次选择或分享导入的照片是独立同意。如需终止所有待处理任务，请点“暂停分析”。", style = MaterialTheme.typography.bodySmall)
-                    Text("暂停状态会跨重启保留，手动恢复前不再扫描、上传或同步卡片。删除云端数据也会暂停分析，并清除匿名设备身份、待处理任务和云端卡片；本地原照片不会被删除。", style = MaterialTheme.typography.bodySmall)
+                    Text("暂停状态会跨重启保留，手动恢复前不再扫描、上传或同步卡片。清除本地索引会先暂停分析，并删除逐次导入的应用内副本和卡片照片引用；知识卡正文、收藏和提醒保留。删除云端数据也会暂停分析，并清除匿名设备身份、待处理任务和云端卡片；本地原照片不会被删除。", style = MaterialTheme.typography.bodySmall)
                     Text("内测报告由你主动导出，只含计数、时间、App 版本、机型、系统版本和系统构建指纹；不含照片、标签、位置、相册 ID、安装身份或设备令牌。", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
+    }
+    if (showLocalIndexClearConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showLocalIndexClearConfirmation = false },
+            title = { Text("确认清除本地照片索引？") },
+            text = {
+                Text(
+                    "这会先暂停全部分析，再删除本机照片索引、逐次选择或分享后保存在应用内的副本，" +
+                        "以及知识卡上的照片引用。知识正文、收藏和物品提醒会保留；系统相册与其他应用中的原图不会被删除。" +
+                        "恢复分析后，见微才会重新建立索引。"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLocalIndexClearConfirmation = false
+                    onClearIndex()
+                }, enabled = actionsEnabled) { Text("暂停并清除") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLocalIndexClearConfirmation = false }) { Text("保留本地索引") }
+            }
+        )
     }
     if (showCloudDeleteConfirmation) {
         AlertDialog(

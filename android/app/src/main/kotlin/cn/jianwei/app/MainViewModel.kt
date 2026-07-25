@@ -370,19 +370,28 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
-        cards.clearLocalPhotoReferences()
-        photos.clearIndex()
-        pendingImportResults.clearAll()
-        pendingImportTokens.value = emptyList()
-        localState.update {
-            it.copy(
-                focusedCardId = null,
-                focusedCardFromRecentImport = false,
-                pendingImportCount = 0,
-                importedPhotoResultNotice = null
-            )
-        }
-        "本地照片索引和卡片中的照片引用已清除"
+        clearLocalIndexFromUi(
+            pauseAndCancelAnalysis = scheduler::pauseAndCancel,
+            publishPauseState = {
+                localState.update { it.copy(paused = scheduler.isPaused()) }
+            },
+            clearCardPhotoReferences = cards::clearLocalPhotoReferences,
+            clearPhotoIndex = photos::clearIndex,
+            clearTransientUiState = {
+                pendingImportResults.clearAll()
+                pendingImportTokens.value = emptyList()
+                localState.update {
+                    it.copy(
+                        paused = scheduler.isPaused(),
+                        focusedCardId = null,
+                        focusedCardFromRecentImport = false,
+                        pendingImportCount = 0,
+                        importedPhotoResultNotice = null
+                    )
+                }
+            }
+        )
+        "分析已暂停；本地照片索引、导入副本和卡片照片引用已清除"
     }
 
     fun deleteCloudData() = runBusy(UserOperation.DELETE_CLOUD_DATA) {
