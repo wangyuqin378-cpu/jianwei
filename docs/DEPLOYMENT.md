@@ -55,13 +55,17 @@ one explicitly authorized, non-personal JPEG:
 
 ```powershell
 cd backend
-pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv> --image <absolute-path-to-authorized-jpeg> --confirm-authorized-image
+pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv> --image <absolute-path-to-authorized-jpeg> --output <new-private-report-path.json> --confirm-authorized-image
 ```
 
 The verifier reads the CSV only at runtime and never prints or persists the key. Before any network
 request it removes APP/COM metadata segments in memory, then rejects any remaining metadata,
 trailing bytes or malformed JPEG structure; original metadata is neither persisted nor sent to the
-provider. Its local diagnostic fallback may
+provider. It writes exactly one machine-readable report with mode `0600` and refuses to overwrite an
+existing file. The report contains the sanitized fixture SHA-256, request counts and only redacted
+provider diagnostics; a final preflight rejects the API key, workspace endpoint and both local input
+paths if any of them appear in the report. It always carries `releaseEvidence: false` because a local
+provider probe does not prove the complete hosted cloud path. Its local diagnostic fallback may
 omit the optional paid guardrail solely to distinguish model access from guardrail
 activation. The command still exits unsuccessfully until the production request with the guardrail
 succeeds; this fallback is not available to the server runtime and is not release evidence. If the

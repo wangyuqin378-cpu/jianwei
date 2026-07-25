@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
 import { loadConfig } from "./config.js";
 import { isMainModule } from "./main-module.js";
 import {
@@ -16,6 +17,7 @@ interface VerificationArguments {
   credentialsFile: string;
   imageFile: string;
   authorizedImageConfirmed: boolean;
+  outputFile: string;
 }
 
 interface AccessProbeResult {
@@ -29,6 +31,28 @@ interface VerificationFailureDiagnostic {
   requiredInspectionHeader: string;
   requiredServiceLinkedRole?: string;
   nextAction: string;
+}
+
+interface PreparedVerification {
+  credentials: BailianCredentials;
+  image: Buffer;
+  model: string;
+  baseUrl: string;
+  fixture: {
+    sanitizedSha256: string;
+    sanitizedBytes: number;
+    metadataRemoved: boolean;
+  };
+}
+
+interface DetectionResult {
+  elapsedMs: number;
+  detection: {
+    canonicalTopicId: string;
+    displayName: string;
+    confidence: number;
+    sensitiveFlags: string[];
+  };
 }
 
 export function classifyVerificationFailure(
@@ -80,11 +104,13 @@ export function parseVerificationArguments(args: string[]): VerificationArgument
   let credentialsFile = "";
   let imageFile = "";
   let authorizedImageConfirmed = false;
+  let outputFile = "";
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--") continue;
     if (argument === "--credentials-file") credentialsFile = args[++index] ?? "";
     else if (argument === "--image") imageFile = args[++index] ?? "";
+    else if (argument === "--output") outputFile = args[++index] ?? "";
     else if (argument === "--confirm-authorized-image") authorizedImageConfirmed = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
@@ -93,20 +119,19 @@ export function parseVerificationArguments(args: string[]): VerificationArgument
   if (!authorizedImageConfirmed) {
     throw new Error("--confirm-authorized-image is required before sending image bytes to Qwen");
   }
-  return { credentialsFile, imageFile, authorizedImageConfirmed };
+  if (!outputFile) throw new Error("--output is required and must name a new private report file");
+  return { credentialsFile, imageFile, authorizedImageConfirmed, outputFile };
 }
 
-async function verifyQwenProvider(
-  args: VerificationArguments,
-  additionalDataInspection: "required" | "omit-for-local-verification" = "required"
-): Promise<void> {
+async function prepareVerification(args: VerificationArguments): Promise<PreparedVerification> {
   const credentials = parseBailianCredentialsCsv(await readFile(args.credentialsFile, "utf8"));
-  const image = await readFile(args.imageFile);
-  if (image.length < 4 || image.length > 5 * 1024 * 1024 || image[0] !== 0xff || image[1] !== 0xd8) {
+  const originalImage = await readFile(args.imageFile);
+  if (originalImage.length < 4 || originalImage.length > 5 * 1024 * 1024 ||
+      originalImage[0] !== 0xff || originalImage[1] !== 0xd8) {
     throw new Error("Smoke verification requires a JPEG image no larger than 5 MiB");
   }
-  const sanitizedImage = stripJpegMetadata(image);
-  assertMetadataFreeJpeg(sanitizedImage);
+  const image = stripJpegMetadata(originalImage);
+  assertMetadataFreeJpeg(image);
   const config = loadConfig({
     NODE_ENV: "development",
     VISION_PROVIDER: "qwen",
@@ -116,28 +141,39 @@ async function verifyQwenProvider(
     MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: "2000000000",
     MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: "50000000000"
   });
-  const startedAt = Date.now();
-  const entity = await new QwenVisionProvider({
-    apiKey: credentials.apiKey,
+  return {
+    credentials,
+    image,
     model: config.qwenFlashModel,
     baseUrl: config.dashscopeBaseUrl,
+    fixture: {
+      sanitizedSha256: createHash("sha256").update(image).digest("hex"),
+      sanitizedBytes: image.length,
+      metadataRemoved: !originalImage.equals(image)
+    }
+  };
+}
+
+async function verifyQwenProvider(
+  prepared: PreparedVerification,
+  additionalDataInspection: "required" | "omit-for-local-verification" = "required"
+): Promise<DetectionResult> {
+  const startedAt = Date.now();
+  const entity = await new QwenVisionProvider({
+    apiKey: prepared.credentials.apiKey,
+    model: prepared.model,
+    baseUrl: prepared.baseUrl,
     additionalDataInspection
-  }).detect({ image: sanitizedImage, localLabels: [] });
-  process.stdout.write(`${JSON.stringify({
-    provider: "qwen",
-    endpointRegion: "cn-beijing",
-    model: config.qwenFlashModel,
-    additionalDataInspection,
+  }).detect({ image: prepared.image, localLabels: [] });
+  return {
     elapsedMs: Date.now() - startedAt,
     detection: {
       canonicalTopicId: entity.canonicalTopicId,
       displayName: entity.displayName,
       confidence: entity.confidence,
       sensitiveFlags: entity.sensitiveFlags
-    },
-    modelCallsPerCard: 1,
-    cardTitlePolicy: "deterministic_server_side"
-  }, null, 2)}\n`);
+    }
+  };
 }
 
 export function stripJpegMetadata(bytes: Buffer): Buffer {
@@ -234,26 +270,16 @@ export function assertMetadataFreeJpeg(bytes: Buffer): void {
 }
 
 async function probeModelAccessWithoutOptionalGuardrail(
-  args: VerificationArguments
+  prepared: PreparedVerification
 ): Promise<AccessProbeResult> {
-  const credentials = parseBailianCredentialsCsv(await readFile(args.credentialsFile, "utf8"));
-  const config = loadConfig({
-    NODE_ENV: "development",
-    VISION_PROVIDER: "qwen",
-    DASHSCOPE_API_KEY: credentials.apiKey,
-    DASHSCOPE_BASE_URL: credentials.openAiCompatible,
-    WORST_CASE_COST_MICRO_CNY_PER_JOB: "1000000",
-    MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: "2000000000",
-    MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: "50000000000"
-  });
-  const response = await fetch(`${config.dashscopeBaseUrl}/chat/completions`, {
+  const response = await fetch(`${prepared.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${credentials.apiKey}`,
+      "Authorization": `Bearer ${prepared.credentials.apiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: config.qwenFlashModel,
+      model: prepared.model,
       messages: [{ role: "user", content: "只返回 JSON：{\"ok\":true}" }],
       enable_thinking: false,
       response_format: { type: "json_object" },
@@ -279,33 +305,106 @@ function unquote(value: string): string {
 
 if (isMainModule(import.meta.url)) {
   const args = parseVerificationArguments(process.argv.slice(2));
+  const prepared = await prepareVerification(args);
   try {
-    await verifyQwenProvider(args);
+    const guarded = await verifyQwenProvider(prepared);
+    await emitVerificationReport(args, prepared, {
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      releaseEvidence: false,
+      providerGate: "GO",
+      provider: "qwen",
+      endpointRegion: "cn-beijing",
+      model: prepared.model,
+      guardrailRequired: true,
+      fixture: prepared.fixture,
+      guardedRequest: { status: "passed", ...guarded },
+      modelAccessWithoutOptionalGuardrail: null,
+      localDiagnosticFallback: null,
+      diagnostic: null,
+      requestCounts: {
+        guardedVision: 1,
+        modelAccessProbe: 0,
+        unguardedVision: 0,
+        total: 1
+      },
+      modelCallsPerCard: 1,
+      cardTitlePolicy: "deterministic_server_side"
+    });
   } catch (error) {
     if (error instanceof QwenProviderError) {
-      const accessProbe = await probeModelAccessWithoutOptionalGuardrail(args).catch(() => null);
+      const accessProbe = await probeModelAccessWithoutOptionalGuardrail(prepared).catch(() => null);
+      let localDiagnosticFallback: Record<string, unknown> | null = null;
+      let unguardedVisionRequests = 0;
       if (error.upstreamStatus === 403 && error.upstreamCode === "access_denied" && accessProbe?.status === 200) {
+        unguardedVisionRequests = 1;
         try {
-          await verifyQwenProvider(args, "omit-for-local-verification");
+          const fallback = await verifyQwenProvider(prepared, "omit-for-local-verification");
+          localDiagnosticFallback = { status: "passed", ...fallback };
         } catch (fallbackError) {
           if (fallbackError instanceof QwenSchemaError) {
-            writeSchemaDiagnostic(fallbackError);
+            localDiagnosticFallback = schemaDiagnostic(fallbackError);
           } else {
             throw fallbackError;
           }
         }
       }
-      process.stderr.write(`${JSON.stringify({
+      await emitVerificationReport(args, prepared, {
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        releaseEvidence: false,
+        providerGate: "NO_GO",
         provider: "qwen",
-        verification: "failed",
-        upstreamStatus: error.upstreamStatus,
-        upstreamCode: error.upstreamCode,
+        endpointRegion: "cn-beijing",
+        model: prepared.model,
+        guardrailRequired: true,
+        fixture: prepared.fixture,
+        guardedRequest: {
+          status: "failed",
+          upstreamStatus: error.upstreamStatus,
+          upstreamCode: error.upstreamCode
+        },
         modelAccessWithoutOptionalGuardrail: accessProbe,
-        diagnostic: classifyVerificationFailure(error.upstreamStatus, error.upstreamCode, accessProbe)
-      })}\n`);
+        localDiagnosticFallback,
+        diagnostic: classifyVerificationFailure(error.upstreamStatus, error.upstreamCode, accessProbe),
+        requestCounts: {
+          guardedVision: 1,
+          modelAccessProbe: 1,
+          unguardedVision: unguardedVisionRequests,
+          total: 2 + unguardedVisionRequests
+        },
+        modelCallsPerCard: 1,
+        cardTitlePolicy: "deterministic_server_side"
+      });
       process.exitCode = 1;
     } else if (error instanceof QwenSchemaError) {
-      writeSchemaDiagnostic(error);
+      await emitVerificationReport(args, prepared, {
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        releaseEvidence: false,
+        providerGate: "NO_GO",
+        provider: "qwen",
+        endpointRegion: "cn-beijing",
+        model: prepared.model,
+        guardrailRequired: true,
+        fixture: prepared.fixture,
+        guardedRequest: schemaDiagnostic(error),
+        modelAccessWithoutOptionalGuardrail: null,
+        localDiagnosticFallback: null,
+        diagnostic: {
+          failureKind: "qwen_schema_failed",
+          productionReady: false,
+          nextAction: "Inspect the schema issues and keep the production provider failed closed."
+        },
+        requestCounts: {
+          guardedVision: 1,
+          modelAccessProbe: 0,
+          unguardedVision: 0,
+          total: 1
+        },
+        modelCallsPerCard: 1,
+        cardTitlePolicy: "deterministic_server_side"
+      });
       process.exitCode = 1;
     } else {
       throw error;
@@ -313,14 +412,40 @@ if (isMainModule(import.meta.url)) {
   }
 }
 
-function writeSchemaDiagnostic(error: QwenSchemaError): void {
-  process.stderr.write(`${JSON.stringify({
-    provider: "qwen",
-    verification: "schema_failed",
-    stage: "vision",
+function schemaDiagnostic(error: QwenSchemaError): Record<string, unknown> {
+  return {
+    status: "schema_failed",
     receivedKeys: error.receivedKeys,
     issues: error.issues
-  })}\n`);
+  };
+}
+
+export function assertVerificationReportIsSecretFree(
+  report: unknown,
+  forbiddenValues: string[]
+): void {
+  const rendered = JSON.stringify(report);
+  for (const value of forbiddenValues) {
+    if (value && rendered.includes(value)) {
+      throw new Error("Qwen verification report contains a forbidden credential, endpoint, or local path");
+    }
+  }
+}
+
+async function emitVerificationReport(
+  args: VerificationArguments,
+  prepared: PreparedVerification,
+  report: Record<string, unknown>
+): Promise<void> {
+  assertVerificationReportIsSecretFree(report, [
+    prepared.credentials.apiKey,
+    prepared.credentials.openAiCompatible,
+    args.credentialsFile,
+    args.imageFile
+  ]);
+  const rendered = `${JSON.stringify(report, null, 2)}\n`;
+  await writeFile(args.outputFile, rendered, { encoding: "utf8", mode: 0o600, flag: "wx" });
+  process.stdout.write(rendered);
 }
 
 function safeDiagnosticCode(value: unknown): string | null {

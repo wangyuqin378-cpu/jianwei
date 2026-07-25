@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 真实 Qwen Provider 验证（当前最新权威摘要）：使用用户下载的北京百炼工作空间按量付费 Key 和仓库自有、无人物的扫帚示例图，真实调用固定模型 `qwen3.6-flash-2026-04-16`。生产请求携带强制内容安全 Header 时返回 `403 access_denied`；随后只用于定位的无内容安全文本探针返回 200，无内容安全视觉诊断识别为 `broom / 扫帚 / 0.98` 且无敏感标记。这证明当前 Key、北京工作空间端点和固定视觉模型可达，但也精确证明生产要求的 AI Safety Guardrails 尚未对该工作空间授权；服务器运行时仍强制该 Header，不会为了跑通而降级。
+
+Provider 验证器现在把失败路径收敛为一份机读报告：`providerGate=NO_GO`、`releaseEvidence=false`，显式记录本轮实际 3 个请求，而不是只显示产品单卡的 1 次模型调用。原 JPEG 的 JFIF/EXIF 段在内存中移除，报告只保留净化字节 SHA-256 与大小；写出前扫描 API Key、完整工作空间端点、凭据路径和图片路径，命中即拒绝。报告以 `0600` 和 `wx` 写入，拒绝覆盖旧证据。本轮真实报告位于忽略目录 `.tooling/qwen-provider-verification-2026-07-26.json`，SHA-256 为 `4cbb927227fad5dcaf3f362f3081f6db33e2cb421de03ab9a6ae528a29a1ff2b`；二次检查确认四类敏感值均不存在。它是本地诊断证据，不是发布证据。下一外部动作仍需阿里云主账号开通按量付费 AI Safety Guardrails、授权同一百炼工作空间并允许创建 `AliyunServiceRoleForSFMAccessingCIP`，随后重跑到生产 Header 请求本身通过；Beta 保持 `NO_GO`。
+
 2026-07-25 每天一张自然日配额（当前最新权威摘要）：上一版把 `AUTOMATIC_DAILY_ONE` 的单个供给计划限制为 1 个候选，但用户选择、首次启动、权限调整和 WorkManager 重试都可能形成独立自动链，因此“每个自动周期最多 1 张”不能证明“每天随机挑一张”。这是业务语义偏差，不是文案问题。
 
 当前 domain 继续负责纯供给规则：当天自动配额已被领取时，后续 daily-one 隐私批次不得启动；提前准备和显式导入不受该条件影响。Data 层新增 `SharedPreferencesAutomaticDailyUploadQuota`，在视觉请求前以同步 `commit()` 持久写入中国自然日与本地候选 ID。首次候选返回 `NEW_CLAIM`，同日同候选返回 `SAME_CANDIDATE` 以支持 WorkManager/进程中断后的幂等继续，同日不同候选或同日损坏状态返回 `EXHAUSTED` 并在联网前失败关闭；次日覆盖旧领取。UploadWorker 的进程内 mutex 保证调用串行，配额组件自身也同步保护并发。PrivacyScanWorker 在当天已有领取时不再筛新的自动批次；UploadWorker 若发现已有领取，会调用 Room 的范围受限精确查询，只恢复该 READY、可访问、`MEDIA_STORE` 候选，不会让排序更高的另一张照片取代它，也不会跨进显式导入队列。服务端已有 `(device_id, candidate_token)` 幂等任务边界，保持同候选重试不产生另一张卡。

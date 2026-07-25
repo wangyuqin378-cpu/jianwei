@@ -930,9 +930,15 @@ check(
     qwenProviderTest.includes("boundingBox 必须严格为 null") &&
     qwenProviderTest.includes('not.toHaveProperty("max_tokens")') &&
     qwenVerifier.includes('if (argument === "--") continue') &&
-    qwenVerifier.includes("stripJpegMetadata(image)") &&
-    qwenVerifier.includes("assertMetadataFreeJpeg(sanitizedImage)") &&
-    qwenVerifierTest.includes("strips JPEG metadata before verification"),
+    qwenVerifier.includes("stripJpegMetadata(originalImage)") &&
+    qwenVerifier.includes("assertMetadataFreeJpeg(image)") &&
+    qwenVerifier.includes("assertVerificationReportIsSecretFree") &&
+    qwenVerifier.includes('releaseEvidence: false') &&
+    qwenVerifier.includes('providerGate: "NO_GO"') &&
+    qwenVerifier.includes("requestCounts:") &&
+    qwenVerifier.includes('flag: "wx"') &&
+    qwenVerifierTest.includes("strips JPEG metadata before verification") &&
+    qwenVerifierTest.includes("refuses to emit credentials, workspace endpoints, or local input paths"),
   "Qwen JSON contract or metadata-free verifier can regress from the live-validated path"
 );
 check(

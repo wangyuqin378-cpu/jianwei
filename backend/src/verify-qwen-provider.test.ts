@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assertMetadataFreeJpeg,
+  assertVerificationReportIsSecretFree,
   classifyVerificationFailure,
   parseBailianCredentialsCsv,
   parseVerificationArguments,
@@ -38,12 +39,27 @@ describe("Qwen provider verification inputs", () => {
       "--",
       "--credentials-file", "credentials.csv",
       "--image", "fixture.jpg",
+      "--output", "provider-report.json",
       "--confirm-authorized-image"
     ])).toEqual({
       credentialsFile: "credentials.csv",
       imageFile: "fixture.jpg",
-      authorizedImageConfirmed: true
+      authorizedImageConfirmed: true,
+      outputFile: "provider-report.json"
     });
+
+    expect(parseVerificationArguments([
+      "--credentials-file", "credentials.csv",
+      "--image", "fixture.jpg",
+      "--output", "provider-report.json",
+      "--confirm-authorized-image"
+    ])).toMatchObject({ outputFile: "provider-report.json" });
+
+    expect(() => parseVerificationArguments([
+      "--credentials-file", "credentials.csv",
+      "--image", "fixture.jpg",
+      "--confirm-authorized-image"
+    ])).toThrow(/--output is required/);
 
     const clean = Buffer.from([0xff, 0xd8, 0xff, 0xda, 0x00, 0x02, 0xff, 0xd9]);
     expect(() => assertMetadataFreeJpeg(clean)).not.toThrow();
@@ -82,5 +98,24 @@ describe("Qwen provider verification inputs", () => {
       failureKind: "qwen_provider_request_failed",
       productionReady: false
     });
+  });
+
+  it("refuses to emit credentials, workspace endpoints, or local input paths", () => {
+    const report = {
+      providerGate: "NO_GO",
+      provider: "qwen",
+      model: "fixed-model",
+      fixture: { sanitizedSha256: "a".repeat(64) }
+    };
+    expect(() => assertVerificationReportIsSecretFree(report, [
+      `sk-ws${"a".repeat(80)}`,
+      "https://workspace-123.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+      "/private/credentials.csv",
+      "/private/fixture.jpg"
+    ])).not.toThrow();
+    expect(() => assertVerificationReportIsSecretFree(
+      { ...report, accidentalLeak: "/private/credentials.csv" },
+      ["/private/credentials.csv"]
+    )).toThrow(/forbidden credential, endpoint, or local path/);
   });
 });
