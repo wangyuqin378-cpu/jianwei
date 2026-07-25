@@ -126,7 +126,6 @@ class ImportedPhotoResultFlowInstrumentedTest {
             )
             val retry = awaitNode(instrumentation, "立即重试")
             assertThat(clickableAncestorOrNull(retry)?.isEnabled).isTrue()
-            screenshot(context, instrumentation, FAILED_SCREENSHOT_NAME)
 
             clickNode(instrumentation, "立即重试")
             awaitRetryStarted(resultStore)
@@ -351,7 +350,6 @@ class ImportedPhotoResultFlowInstrumentedTest {
         const val CARD_TITLE = "扫帚刷毛为什么是斜的"
         const val SUCCESS_SCREENSHOT_NAME = "imported-photo-success.png"
         const val NO_MATCH_SCREENSHOT_NAME = "imported-photo-no-match.png"
-        const val FAILED_SCREENSHOT_NAME = "imported-photo-failed.png"
         const val CANNOT_RETRY_SCREENSHOT_NAME = "imported-photo-cannot-retry.png"
         const val IMPORTED_ANALYSIS_WORK = "jianwei-imported-analysis"
     }

@@ -192,6 +192,7 @@ const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", 
 const importedPhotoResultPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportedPhotoResultPolicy.kt"), "utf8");
 const importedPhotoResultPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportedPhotoResultPolicyTest.kt"), "utf8");
 const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
+const wrongObjectConfirmationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "WrongObjectConfirmationInstrumentedTest.kt"), "utf8");
 const onboardingValuePreviewDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "OnboardingValuePreviewInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
 const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
@@ -457,6 +458,11 @@ check(
     mainActivity.includes('"删除并停止分析"') &&
     mainActivity.includes('"保留卡片"') &&
     !mainActivity.includes('"在本次安装中不再分析"') &&
+    mainActivity.includes("确认这张卡识错了？") &&
+    mainActivity.includes("确认识错并隐藏") &&
+    wrongObjectConfirmationDeviceTest.includes("wrongObjectRequiresConfirmationBeforeRemovingCardState") &&
+    wrongObjectConfirmationDeviceTest.includes("assertCardStateIsUntouched(database)") &&
+    wrongObjectConfirmationDeviceTest.includes("awaitWrongObjectCommitted(database)") &&
     feedbackUiPolicy.includes("shouldOfferOrdinaryFeedback") &&
     feedbackUiPolicyTest.includes("ordinary choices disappear after one persisted selection"),
   "Feedback UI does not persist one ordinary choice or safely confirm private deletion"

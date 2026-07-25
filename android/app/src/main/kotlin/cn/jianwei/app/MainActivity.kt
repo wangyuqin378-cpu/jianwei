@@ -2030,6 +2030,7 @@ private fun KnowledgeCardView(
     }
     var showReminderDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
     var showCancelReminderDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
+    var showWrongObjectFeedbackDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
     var showPrivateFeedbackDialog by rememberSaveable(card.cardId) { mutableStateOf(false) }
     if (showReminderDialog) {
         ItemReminderDialog(
@@ -2077,6 +2078,32 @@ private fun KnowledgeCardView(
             },
             dismissButton = {
                 TextButton(onClick = { showPrivateFeedbackDialog = false }) { Text("保留卡片") }
+            }
+        )
+    }
+    if (showWrongObjectFeedbackDialog) {
+        AlertDialog(
+            onDismissRequest = { showWrongObjectFeedbackDialog = false },
+            title = { Text("确认这张卡识错了？") },
+            text = {
+                Text(
+                    "确认后会隐藏这张卡、取消它的收藏和物品提醒，并把“识错了”同步给见微。" +
+                        "这个判断不会作为兴趣信号。"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showWrongObjectFeedbackDialog = false
+                        onFeedback(card.cardId, FeedbackAction.WRONG_OBJECT)
+                    },
+                    enabled = actionsEnabled
+                ) { Text("确认识错并隐藏") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showWrongObjectFeedbackDialog = false }) {
+                    Text("保留卡片")
+                }
             }
         )
     }
@@ -2280,7 +2307,7 @@ private fun KnowledgeCardView(
                                             action = FeedbackAction.WRONG_OBJECT,
                                             enabled = actionsEnabled,
                                             modifier = Modifier.fillMaxWidth(),
-                                            onSelect = { onFeedback(card.cardId, it) }
+                                            onSelect = { showWrongObjectFeedbackDialog = true }
                                         )
                                         FeedbackChoiceButton(
                                             action = FeedbackAction.TOO_PRIVATE,
@@ -2310,7 +2337,7 @@ private fun KnowledgeCardView(
                                                 action = FeedbackAction.WRONG_OBJECT,
                                                 enabled = actionsEnabled,
                                                 modifier = Modifier.weight(1f),
-                                                onSelect = { onFeedback(card.cardId, it) }
+                                                onSelect = { showWrongObjectFeedbackDialog = true }
                                             )
                                             FeedbackChoiceButton(
                                                 action = FeedbackAction.TOO_PRIVATE,
