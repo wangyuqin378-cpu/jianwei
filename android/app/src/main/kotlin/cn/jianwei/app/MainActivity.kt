@@ -845,7 +845,11 @@ private fun HomeScreen(
     var homeSection by rememberSaveable { mutableStateOf(HomeSection.DAILY) }
     var openedSavedCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var openedHistoryCardId by rememberSaveable { mutableStateOf<String?>(null) }
-    val actionsEnabled = areUserMutationsEnabled(state.activeOperation)
+    val deletionActionEnabled = areUserMutationsEnabled(state.activeOperation)
+    val actionsEnabled = areAnalysisMutationsEnabled(
+        state.activeOperation,
+        state.cloudDeletionUnresolved
+    )
     val activityIndicator = homeActivityIndicator(state.activeOperation, state.analysisProgress)
     val externalFocusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
     val openedSavedCard = state.savedCards.firstOrNull { it.cardId == openedSavedCardId }
@@ -1018,9 +1022,26 @@ private fun HomeScreen(
                 }
             } else {
                 if (homeSection == HomeSection.DAILY) {
-                    if (shouldShowPausedAnalysisBanner(state.paused, state.cards.isNotEmpty() || state.savedCards.isNotEmpty())) {
+                    if (
+                        shouldShowPausedAnalysisBanner(
+                            state.paused,
+                            state.cards.isNotEmpty() ||
+                                state.savedCards.isNotEmpty() ||
+                                state.pendingImportCount > 0 ||
+                                state.importedPhotoResultNotice != null
+                        )
+                    ) {
                         item {
-                            PausedAnalysisBanner(actionsEnabled = actionsEnabled, onResume = onResume)
+                            PausedAnalysisBanner(
+                                cloudDeletionUnresolved = state.cloudDeletionUnresolved,
+                                actionsEnabled = if (state.cloudDeletionUnresolved) {
+                                    deletionActionEnabled
+                                } else {
+                                    actionsEnabled
+                                },
+                                onResume = onResume,
+                                onContinueCloudDeletion = onDeleteCloud
+                            )
                         }
                     }
                     if (state.pendingImportCount > 0) {
@@ -1028,6 +1049,7 @@ private fun HomeScreen(
                             ImportedPhotoProgressCard(
                                 count = state.pendingImportCount,
                                 paused = state.paused,
+                                cloudDeletionUnresolved = state.cloudDeletionUnresolved,
                                 phase = state.analysisProgress.phase
                             )
                         }
@@ -1067,10 +1089,13 @@ private fun HomeScreen(
                             access,
                             state.automaticCardMode,
                             state.analysisProgress,
+                            state.cloudDeletionUnresolved,
                             actionsEnabled,
+                            deletionActionEnabled,
                             onPick,
                             onResume,
-                            onRetry
+                            onRetry,
+                            onDeleteCloud
                         )
                     }
                     if (homeSection == HomeSection.SAVED && state.savedCards.isEmpty()) {
@@ -1158,7 +1183,9 @@ private fun HomeScreen(
                             state.automaticCardMode,
                             widgetInstalled,
                             state.paused,
+                            state.cloudDeletionUnresolved,
                             actionsEnabled,
+                            deletionActionEnabled,
                             onPick,
                             onManageAutomaticDiscovery,
                             onAddWidget,
@@ -1470,8 +1497,10 @@ private fun SavedEmptyState(onShowDaily: () -> Unit) {
 
 @Composable
 private fun PausedAnalysisBanner(
+    cloudDeletionUnresolved: Boolean,
     actionsEnabled: Boolean,
-    onResume: () -> Unit
+    onResume: () -> Unit,
+    onContinueCloudDeletion: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1479,19 +1508,25 @@ private fun PausedAnalysisBanner(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                "照片分析已暂停",
+                if (cloudDeletionUnresolved) "云端删除尚未完成" else "照片分析已暂停",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "已有卡片仍可查看；恢复后才会继续处理新照片。",
+                if (cloudDeletionUnresolved) {
+                    "已有本地卡片仍可查看；完成删除前不会恢复分析或接收新照片。"
+                } else {
+                    "已有卡片仍可查看；恢复后才会继续处理新照片。"
+                },
                 style = MaterialTheme.typography.bodySmall
             )
             TextButton(
-                onClick = onResume,
+                onClick = if (cloudDeletionUnresolved) onContinueCloudDeletion else onResume,
                 enabled = actionsEnabled,
                 modifier = Modifier.align(Alignment.End)
-            ) { Text("恢复分析") }
+            ) {
+                Text(if (cloudDeletionUnresolved) "继续删除云端数据" else "恢复分析")
+            }
         }
     }
 }
@@ -1559,9 +1594,12 @@ private fun ImportedPhotoResultCard(
 private fun ImportedPhotoProgressCard(
     count: Int,
     paused: Boolean,
+    cloudDeletionUnresolved: Boolean,
     phase: AnalysisPhase
 ) {
     val detail = when {
+        cloudDeletionUnresolved ->
+            "云端删除尚未完成；这些本地照片不会继续分析，完成删除后请重新选择。"
         paused -> "照片已安全保存在见微的私有空间。恢复分析后，会继续寻找可靠知识。"
         phase == AnalysisPhase.FILTERING -> "正在本机检查画质和隐私；不合适的照片不会上传。"
         phase == AnalysisPhase.SYNCING -> "正在理解画面，并从审核过的事实和来源中寻找匹配。"
@@ -1583,7 +1621,11 @@ private fun ImportedPhotoProgressCard(
             if (!paused) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    if (paused) "你刚选的照片正在等待" else "正在读你刚选的照片",
+                    when {
+                        cloudDeletionUnresolved -> "云端删除正在等待完成"
+                        paused -> "你刚选的照片正在等待"
+                        else -> "正在读你刚选的照片"
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -1912,12 +1954,21 @@ private fun EmptyState(
     access: PhotoAccess,
     automaticMode: AutomaticCardMode,
     progress: cn.jianwei.domain.model.AnalysisProgress,
+    cloudDeletionUnresolved: Boolean,
     actionsEnabled: Boolean,
+    deletionActionEnabled: Boolean,
     onPick: () -> Unit,
     onResume: () -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onContinueCloudDeletion: () -> Unit
 ) {
-    val copy = emptyDiscoveryCopy(paused, access, automaticMode, progress)
+    val copy = emptyDiscoveryCopy(
+        paused,
+        access,
+        automaticMode,
+        progress,
+        cloudDeletionUnresolved
+    )
     val isStarterState = copy.starterSuggestions.isNotEmpty()
     Card(
         colors = CardDefaults.cardColors(
@@ -1960,8 +2011,13 @@ private fun EmptyState(
                     EmptyDiscoveryAction.PICK -> onPick
                     EmptyDiscoveryAction.RESUME -> onResume
                     EmptyDiscoveryAction.RETRY -> onRetry
+                    EmptyDiscoveryAction.CONTINUE_CLOUD_DELETION -> onContinueCloudDeletion
                 },
-                enabled = actionsEnabled,
+                enabled = if (copy.action == EmptyDiscoveryAction.CONTINUE_CLOUD_DELETION) {
+                    deletionActionEnabled
+                } else {
+                    actionsEnabled
+                },
                 modifier = Modifier.fillMaxWidth()
             ) { Text(copy.actionLabel) }
             copy.footnote?.let { footnote ->
@@ -2575,7 +2631,9 @@ private fun PrivacyCenter(
     automaticMode: AutomaticCardMode,
     widgetInstalled: Boolean,
     paused: Boolean,
+    cloudDeletionUnresolved: Boolean,
     actionsEnabled: Boolean,
+    deletionActionEnabled: Boolean,
     onPick: () -> Unit,
     onManageAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
@@ -2600,7 +2658,13 @@ private fun PrivacyCenter(
                     photoAccessSummary(access, automaticMode),
                     style = MaterialTheme.typography.bodySmall
                 )
-                if (paused) {
+                if (cloudDeletionUnresolved) {
+                    Text(
+                        "云端删除尚未完成；分析保持暂停，完成前不会接收新照片",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                } else if (paused) {
                     Text(
                         "分析已暂停，不会继续扫描、上传或同步",
                         style = MaterialTheme.typography.bodySmall,
@@ -2613,7 +2677,17 @@ private fun PrivacyCenter(
             }
             if (expanded) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (automaticControl != null) {
+                    if (cloudDeletionUnresolved) {
+                        Text(
+                            "见微保留了加密恢复信息，用来完成你已经确认的删除。此时不会恢复分析、创建新匿名身份或导入新照片。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Button(
+                            onClick = onDeleteCloud,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = deletionActionEnabled
+                        ) { Text("继续删除云端数据") }
+                    } else if (automaticControl != null) {
                         Text(
                             "照片发现方式",
                             style = MaterialTheme.typography.titleSmall,
@@ -2634,19 +2708,27 @@ private fun PrivacyCenter(
                             ) { Text(automaticControl.actionLabel) }
                         }
                     }
-                    OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
-                    OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
-                        Text(widgetManagementActionLabel(widgetInstalled))
-                    }
-                    OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
-                        Text(if (paused) "恢复分析" else "暂停分析")
+                    if (!cloudDeletionUnresolved) {
+                        OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
                     }
                     OutlinedButton(
-                        onClick = { showLocalIndexClearConfirmation = true },
+                        onClick = onAddWidget,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = actionsEnabled
-                    ) { Text("清除本地照片索引") }
-                    OutlinedButton(onClick = { showCloudDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("删除云端数据") }
+                        enabled = if (cloudDeletionUnresolved) deletionActionEnabled else actionsEnabled
+                    ) {
+                        Text(widgetManagementActionLabel(widgetInstalled))
+                    }
+                    if (!cloudDeletionUnresolved) {
+                        OutlinedButton(onClick = if (paused) onResume else onPause, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) {
+                            Text(if (paused) "恢复分析" else "暂停分析")
+                        }
+                        OutlinedButton(
+                            onClick = { showLocalIndexClearConfirmation = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = actionsEnabled
+                        ) { Text("清除本地照片索引") }
+                        OutlinedButton(onClick = { showCloudDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("删除云端数据") }
+                    }
                     OutlinedButton(onClick = onExportMetrics, modifier = Modifier.fillMaxWidth()) { Text("导出内测报告") }
                     Text("系统相册权限只控制自动发现；你曾逐次选择或分享导入的照片是独立同意。如需终止所有待处理任务，请点“暂停分析”。", style = MaterialTheme.typography.bodySmall)
                     Text("暂停状态会跨重启保留，手动恢复前不再扫描、上传或同步卡片。清除本地索引会先暂停分析，并删除逐次导入的应用内副本和卡片照片引用；知识卡正文、收藏和提醒保留。删除云端数据也会暂停分析，并清除匿名设备身份、待处理任务和云端卡片；本地原照片不会被删除。", style = MaterialTheme.typography.bodySmall)
@@ -2692,7 +2774,7 @@ private fun PrivacyCenter(
                 TextButton(onClick = {
                     showCloudDeleteConfirmation = false
                     onDeleteCloud()
-                }, enabled = actionsEnabled) { Text("确认删除") }
+                }, enabled = deletionActionEnabled) { Text("确认删除") }
             },
             dismissButton = { TextButton(onClick = { showCloudDeleteConfirmation = false }) { Text("取消") } }
         )

@@ -8,6 +8,7 @@ import android.widget.ProgressBar
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import cn.jianwei.domain.repository.AnalysisScheduler
+import cn.jianwei.domain.repository.CloudDeletionStatusRepository
 import cn.jianwei.domain.usecase.ImportPhotosUseCase
 import cn.jianwei.domain.usecase.PhotoImportDisposition
 import cn.jianwei.domain.usecase.PhotoImportOutcome
@@ -21,6 +22,7 @@ class ShareReceiverActivity : ComponentActivity() {
     @Inject lateinit var importPhotos: ImportPhotosUseCase
     @Inject lateinit var operationGate: UserOperationGate
     @Inject lateinit var scheduler: AnalysisScheduler
+    @Inject lateinit var cloudDeletionStatus: CloudDeletionStatusRepository
     private var progressDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,24 +50,28 @@ class ShareReceiverActivity : ComponentActivity() {
             )
             return
         }
-        progressDialog = AlertDialog.Builder(this)
-            .setTitle("正在安全导入")
-            .setMessage(
-                if (scheduler.isPaused()) {
-                    "正在将所选图片复制到见微的私有空间。分析会保持暂停，恢复后再继续。"
-                } else {
-                    "正在将所选图片复制到见微的私有空间。此时还不会上传原图。"
-                }
-            )
-            .setView(ProgressBar(this))
-            .setCancelable(false)
-            .create()
-            .also(AlertDialog::show)
         lifecycleScope.launch {
             var outcome: PhotoImportOutcome? = null
             var failed = false
+            var blockedByCloudDeletion = false
             try {
-                outcome = importPhotos(uris.map(Uri::toString))
+                blockedByCloudDeletion = cloudDeletionStatus.isUnresolved()
+                if (!blockedByCloudDeletion) {
+                    progressDialog = AlertDialog.Builder(this@ShareReceiverActivity)
+                        .setTitle("正在安全导入")
+                        .setMessage(
+                            if (scheduler.isPaused()) {
+                                "正在将所选图片复制到见微的私有空间。分析会保持暂停，恢复后再继续。"
+                            } else {
+                                "正在将所选图片复制到见微的私有空间。此时还不会上传原图。"
+                            }
+                        )
+                        .setView(ProgressBar(this@ShareReceiverActivity))
+                        .setCancelable(false)
+                        .create()
+                        .also(AlertDialog::show)
+                    outcome = importPhotos(uris.map(Uri::toString))
+                }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
@@ -76,6 +82,7 @@ class ShareReceiverActivity : ComponentActivity() {
                 operationGate.finish(UserOperation.IMPORT_PHOTOS)
             }
             when {
+                blockedByCloudDeletion -> showCloudDeletionBlockedDialog()
                 failed -> showRetryDialog(
                     title = "导入没有完成",
                     message = "图片访问可能已失效，或本机存储暂时不可用。已安全写入的重复照片不会再次导入。",
@@ -89,6 +96,24 @@ class ShareReceiverActivity : ComponentActivity() {
                 outcome != null -> openMainActivity(outcome)
             }
         }
+    }
+
+    private fun showCloudDeletionBlockedDialog() {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle("先完成云端数据删除")
+            .setMessage("你之前发起的云端删除尚未完成。完成前，见微不会接收或分析新照片。请回到见微继续删除。")
+            .setNegativeButton("取消") { _, _ -> finish() }
+            .setPositiveButton("回到见微") { _, _ ->
+                startActivity(
+                    Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                )
+                finish()
+            }
+            .setOnCancelListener { finish() }
+            .show()
     }
 
     private fun openMainActivity(outcome: PhotoImportOutcome) {

@@ -17,6 +17,8 @@ import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.CardRepository
+import cn.jianwei.domain.repository.CloudDeletionStatusRepository
+import cn.jianwei.domain.repository.CloudDeletionUnresolvedException
 import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import cn.jianwei.domain.time.ChinaCalendar
@@ -51,6 +53,7 @@ data class MainUiState(
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
     val paused: Boolean = false,
+    val cloudDeletionUnresolved: Boolean = false,
     val currentDay: LocalDate = ChinaCalendar.today(),
     val focusedCardId: String? = null,
     val focusedCardFromRecentImport: Boolean = false,
@@ -65,6 +68,7 @@ data class MainUiState(
 class MainViewModel @Inject constructor(
     private val photos: PhotoRepository,
     private val cards: CardRepository,
+    private val cloudDeletionStatus: CloudDeletionStatusRepository,
     private val scheduler: AnalysisScheduler,
     private val analysisStatus: AnalysisStatusRepository,
     private val interestPreferences: InterestPreferencesRepository,
@@ -96,9 +100,16 @@ class MainViewModel @Inject constructor(
         cards.observeTrackedItems(),
         cards.observeFeedbackStates(),
         interestPreferences.observeSelected(),
-        automaticCardModePreferences.observeMode()
-    ) { tracked, feedback, interests, automaticCardMode ->
-        CardLocalState(tracked, feedback, interests, automaticCardMode)
+        automaticCardModePreferences.observeMode(),
+        cloudDeletionStatus.observeUnresolved()
+    ) { tracked, feedback, interests, automaticCardMode, cloudDeletionUnresolved ->
+        CardLocalState(
+            tracked,
+            feedback,
+            interests,
+            automaticCardMode,
+            cloudDeletionUnresolved
+        )
     }
     private val scopedAnalysisProgress = combine(
         analysisStatus.observeProgress(AnalysisProgressScope.AUTOMATIC_DISCOVERY),
@@ -121,6 +132,7 @@ class MainViewModel @Inject constructor(
             feedbackStates = cardState.feedback.associateBy(CardFeedbackState::cardId),
             selectedInterests = cardState.interests,
             automaticCardMode = cardState.automaticCardMode,
+            cloudDeletionUnresolved = cardState.cloudDeletionUnresolved,
             analysisProgress = analysisProgressForPresentation(
                 automatic = progress.automatic,
                 explicitImport = progress.explicitImport,
@@ -219,6 +231,7 @@ class MainViewModel @Inject constructor(
     fun updateAutomaticCardMode(mode: AutomaticCardMode, access: PhotoAccess) {
         if (automaticCardModePreferences.mode() == mode) return
         runBusy(UserOperation.UPDATE_CARD_MODE) {
+            requireCloudDeletionResolved()
             automaticCardModePreferences.updateMode(mode)
             if (!scheduler.isPaused() && shouldScheduleAutomaticDiscovery(access)) {
                 scheduler.scheduleAccessReconciliation(access)
@@ -234,6 +247,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun startDiscovery(access: PhotoAccess) = runBusy(UserOperation.START_DISCOVERY) {
+        requireCloudDeletionResolved()
         configurePhotoAccess(access)
         if (scheduler.isPaused()) {
             if (shouldScheduleAutomaticDiscovery(access)) {
@@ -247,24 +261,33 @@ class MainViewModel @Inject constructor(
     }
 
     fun ensureDailyRefresh(access: PhotoAccess) {
-        if (!scheduler.isPaused() && shouldScheduleAutomaticDiscovery(access)) {
-            scheduler.scheduleDailyRefresh()
+        viewModelScope.launch {
+            if (
+                !cloudDeletionStatus.isUnresolved() &&
+                !scheduler.isPaused() &&
+                shouldScheduleAutomaticDiscovery(access)
+            ) {
+                scheduler.scheduleDailyRefresh()
+            }
         }
     }
 
     fun reconcilePhotoAccess(access: PhotoAccess) {
-        if (scheduler.isPaused()) return
-        if (shouldScheduleAutomaticDiscovery(access)) {
-            scheduler.scheduleAccessReconciliation(access)
-            scheduler.scheduleDailyRefresh()
-        } else {
-            viewModelScope.launch { scheduler.stopAutomaticDiscovery() }
+        viewModelScope.launch {
+            if (cloudDeletionStatus.isUnresolved() || scheduler.isPaused()) return@launch
+            if (shouldScheduleAutomaticDiscovery(access)) {
+                scheduler.scheduleAccessReconciliation(access)
+                scheduler.scheduleDailyRefresh()
+            } else {
+                scheduler.stopAutomaticDiscovery()
+            }
         }
     }
 
     fun importUris(uris: List<String>) {
         if (uris.isEmpty()) return
         runBusy(UserOperation.IMPORT_PHOTOS) {
+            requireCloudDeletionResolved()
             val outcome = importPhotos(uris)
             rememberPendingImport(outcome.candidateTokens)
             photoImportResultMessage(outcome, PhotoImportEntry.PHOTO_PICKER)
@@ -276,6 +299,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun retry(access: PhotoAccess) = runBusy(UserOperation.RETRY_ANALYSIS) {
+        requireCloudDeletionResolved()
         if (scheduler.isPaused()) scheduler.setPaused(false)
         localState.update { it.copy(paused = false) }
         scheduleAvailableAnalysis(access)
@@ -283,6 +307,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun retryImportedPhoto() = runBusy(UserOperation.RETRY_IMPORTED_PHOTO) {
+        requireCloudDeletionResolved()
         val retrySnapshot = pendingImportResults.snapshot()
         val candidateTokens = retrySnapshot.retryCandidateTokens
         if (candidateTokens.isEmpty()) {
@@ -318,6 +343,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun feedback(cardId: String, action: FeedbackAction) = runBusy(UserOperation.RECORD_FEEDBACK) {
+        requireCloudDeletionResolved()
         val result = cards.sendFeedback(cardId, action)
         if (result.accepted) {
             if (action == FeedbackAction.TOO_PRIVATE || action == FeedbackAction.WRONG_OBJECT) {
@@ -329,12 +355,14 @@ class MainViewModel @Inject constructor(
     }
 
     fun setSaved(cardId: String, saved: Boolean) = runBusy(UserOperation.UPDATE_SAVED) {
+        requireCloudDeletionResolved()
         cards.setSaved(cardId, saved)
         betaMetrics.markEngaged()
         if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
     }
 
     fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = runBusy(UserOperation.SET_REMINDER) {
+        requireCloudDeletionResolved()
         require(isValidItemReminderDraft(startedOn, reminderDays)) {
             "请选择不晚于今天的启用日期和有效提醒周期"
         }
@@ -345,6 +373,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun cancelReminder(cardId: String) = runBusy(UserOperation.CANCEL_REMINDER) {
+        requireCloudDeletionResolved()
         itemReminders.cancel(cardId)
         cards.cancelTracking(cardId)
         betaMetrics.markEngaged()
@@ -362,6 +391,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun resume(access: PhotoAccess) = runBusy(UserOperation.RESUME_ANALYSIS) {
+        requireCloudDeletionResolved()
         scheduler.setPaused(false)
         localState.update { it.copy(paused = false) }
         if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
@@ -370,6 +400,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
+        requireCloudDeletionResolved()
         clearLocalIndexFromUi(
             pauseAndCancelAnalysis = scheduler::pauseAndCancel,
             publishPauseState = {
@@ -430,6 +461,10 @@ class MainViewModel @Inject constructor(
 
     fun announceMessage(message: String) {
         localState.update { it.copy(message = message) }
+    }
+
+    private suspend fun requireCloudDeletionResolved() {
+        if (cloudDeletionStatus.isUnresolved()) throw CloudDeletionUnresolvedException()
     }
 
     private fun rememberPendingImport(candidateTokens: List<String>) {
@@ -499,7 +534,8 @@ private data class CardLocalState(
     val tracked: List<TrackedItem>,
     val feedback: List<CardFeedbackState>,
     val interests: Set<String>,
-    val automaticCardMode: AutomaticCardMode
+    val automaticCardMode: AutomaticCardMode,
+    val cloudDeletionUnresolved: Boolean
 )
 
 internal fun analysisProgressForPresentation(

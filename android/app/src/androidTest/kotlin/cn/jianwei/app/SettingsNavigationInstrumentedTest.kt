@@ -9,9 +9,13 @@ import androidx.test.platform.app.InstrumentationRegistry
 import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.local.sourcesToJson
+import cn.jianwei.data.network.DeviceIdentity
+import cn.jianwei.data.network.DeviceTokenCipher
+import cn.jianwei.data.network.JianweiApi
 import cn.jianwei.domain.model.KnowledgeSource
 import com.google.common.truth.Truth.assertThat
 import java.io.File
+import java.lang.reflect.Proxy
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -24,11 +28,13 @@ class SettingsNavigationInstrumentedTest {
         val database = buildJianweiDatabase(context)
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
         val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
+        val identity = DeviceIdentity(context, unusedApi(), DeviceTokenCipher())
         val wasOnboarded = preferences.getBoolean("completed", false)
         val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
         val wasPaused = schedulerPreferences.getBoolean(ANALYSIS_PAUSED_KEY, false)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
+            identity.reset()
             database.cards().clear()
             preferences.edit().putBoolean("completed", true).commit()
             schedulerPreferences.edit()
@@ -106,6 +112,7 @@ class SettingsNavigationInstrumentedTest {
             assertThat(database.cards().findById(TODAY_CARD_ID)?.cardId).isEqualTo(TODAY_CARD_ID)
         } finally {
             scenario?.close()
+            identity.reset()
             database.cards().clear()
             database.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
@@ -143,6 +150,11 @@ class SettingsNavigationInstrumentedTest {
         scheduledDate = LocalDate.now().toString(),
         createdAtMillis = System.currentTimeMillis()
     )
+
+    private fun unusedApi(): JianweiApi = Proxy.newProxyInstance(
+        JianweiApi::class.java.classLoader,
+        arrayOf(JianweiApi::class.java)
+    ) { _, method, _ -> error("Unexpected API call from identity reset: ${method.name}") } as JianweiApi
 
     private fun screenshot(
         context: Context,
@@ -222,11 +234,18 @@ class SettingsNavigationInstrumentedTest {
         timeoutMillis: Long = 10_000
     ): AccessibilityNodeInfo {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        repeat(12) {
+            findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)?.let { return it }
+            swipeBackward(instrumentation)
+        }
         while (SystemClock.uptimeMillis() < deadline) {
             findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)?.let { return it }
             swipeForward(instrumentation)
         }
-        error("Timed out scrolling to text node: $text")
+        error(
+            "Timed out scrolling to text node: $text; visible=" +
+                visibleNodeSummary(instrumentation.uiAutomation.rootInActiveWindow)
+        )
     }
 
     private fun swipeForward(instrumentation: android.app.Instrumentation) {

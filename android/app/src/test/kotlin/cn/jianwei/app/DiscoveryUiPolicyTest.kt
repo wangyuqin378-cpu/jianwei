@@ -94,6 +94,24 @@ class DiscoveryUiPolicyTest {
     }
 
     @Test
+    fun `unresolved cloud deletion replaces every resume path with deletion recovery`() {
+        val copy = emptyDiscoveryCopy(
+            paused = true,
+            access = PhotoAccess.FULL,
+            mode = AutomaticCardMode.PREPARED_POOL,
+            progress = AnalysisProgress(phase = AnalysisPhase.FAILED),
+            cloudDeletionUnresolved = true
+        )
+
+        assertThat(copy.title).isEqualTo("云端删除尚未完成")
+        assertThat(copy.actionLabel).isEqualTo("继续删除云端数据")
+        assertThat(copy.action).isEqualTo(EmptyDiscoveryAction.CONTINUE_CLOUD_DELETION)
+        assertThat(copy.body).contains("不会接收新照片")
+        assertThat(areAnalysisMutationsEnabled(null, cloudDeletionUnresolved = true)).isFalse()
+        assertThat(areUserMutationsEnabled(null)).isTrue()
+    }
+
+    @Test
     fun `widget prompt follows first daily card until installation is complete`() {
         assertThat(
             shouldShowWidgetCallToAction(

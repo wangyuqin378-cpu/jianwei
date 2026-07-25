@@ -16,7 +16,12 @@ import javax.crypto.spec.GCMParameterSpec
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import cn.jianwei.domain.repository.CloudDeletionStatusRepository
+import cn.jianwei.domain.repository.CloudDeletionUnresolvedException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import retrofit2.HttpException
@@ -28,7 +33,7 @@ class DeviceIdentity @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val api: JianweiApi,
     private val cipher: DeviceTokenCipher
-) {
+) : CloudDeletionStatusRepository {
     private val mutex = Mutex()
 
     suspend fun bearer(beforeRegister: () -> Unit = {}): String = mutex.withLock { bearerLocked(beforeRegister) }
@@ -56,6 +61,13 @@ class DeviceIdentity @Inject constructor(
         val stored = context.identityStore.data.first()[TOKEN] ?: return@withLock null
         stored.let(cipher::decrypt)?.let { "Bearer $it" }
     }
+
+    override fun observeUnresolved(): Flow<Boolean> = context.identityStore.data
+        .map { preferences -> preferences[DELETION_STATE] != null }
+        .distinctUntilChanged()
+
+    override suspend fun isUnresolved(): Boolean =
+        context.identityStore.data.first()[DELETION_STATE] != null
 
     /**
      * Deletes only an identity that already exists on this installation. The persistent deletion
@@ -109,6 +121,7 @@ class DeviceIdentity @Inject constructor(
     private suspend fun bearerLocked(requireActive: () -> Unit): String {
         requireActive()
         val preferences = context.identityStore.data.first()
+        if (preferences[DELETION_STATE] != null) throw CloudDeletionUnresolvedException()
         val stored = preferences[TOKEN]
         val existing = stored?.let(cipher::decrypt)
         if (existing != null) {

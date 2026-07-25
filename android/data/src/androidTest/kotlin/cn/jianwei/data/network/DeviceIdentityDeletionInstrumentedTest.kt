@@ -3,6 +3,7 @@ package cn.jianwei.data.network
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import cn.jianwei.domain.repository.CloudDeletionUnresolvedException
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
@@ -67,6 +68,44 @@ class DeviceIdentityDeletionInstrumentedTest {
             assertThat(api.deletedDeviceIds).containsExactly(DEVICE_A, DEVICE_B).inOrder()
             identity.reset()
             assertThat(identity.existingBearer()).isNull()
+        } finally {
+            identity.reset()
+        }
+    }
+
+    @Test
+    fun unresolvedDeletion_blocksOrdinaryAuthenticationUntilDeletionFinishesAndIdentityResets() = runBlocking {
+        val api = RotatingTokenApi()
+        val identity = freshIdentity(api)
+        try {
+            assertThat(identity.isUnresolved()).isFalse()
+            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            api.loseSuccessfulDeleteResponse = true
+            assertThat(runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull())
+                .isInstanceOf(IOException::class.java)
+            assertThat(identity.isUnresolved()).isTrue()
+
+            val registerCountAtBarrier = api.registerCount
+            var authenticatedCalls = 0
+            assertThat(runCatching { identity.bearer() }.exceptionOrNull())
+                .isInstanceOf(CloudDeletionUnresolvedException::class.java)
+            assertThat(runCatching {
+                identity.authenticated<String> {
+                    authenticatedCalls += 1
+                    "unexpected"
+                }
+            }.exceptionOrNull()).isInstanceOf(CloudDeletionUnresolvedException::class.java)
+            assertThat(authenticatedCalls).isEqualTo(0)
+            assertThat(api.registerCount).isEqualTo(registerCountAtBarrier)
+
+            assertThat(identity.deleteExistingDeviceData()).isTrue()
+            assertThat(identity.isUnresolved()).isTrue()
+            assertThat(runCatching { identity.bearer() }.exceptionOrNull())
+                .isInstanceOf(CloudDeletionUnresolvedException::class.java)
+
+            identity.reset()
+            assertThat(identity.isUnresolved()).isFalse()
+            assertThat(identity.bearer()).isEqualTo("Bearer token-3")
         } finally {
             identity.reset()
         }

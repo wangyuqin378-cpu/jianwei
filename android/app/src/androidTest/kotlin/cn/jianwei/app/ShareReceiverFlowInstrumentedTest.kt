@@ -16,10 +16,15 @@ import androidx.test.runner.lifecycle.Stage
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import cn.jianwei.data.local.buildJianweiDatabase
+import cn.jianwei.data.network.DeviceIdentity
+import cn.jianwei.data.network.DeviceTokenCipher
+import cn.jianwei.data.network.JianweiApi
+import cn.jianwei.data.network.RegisterResponse
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.domain.repository.AnalysisScheduler
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.TimeUnit
+import java.lang.reflect.Proxy
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -32,6 +37,7 @@ class ShareReceiverFlowInstrumentedTest {
         val photos = MediaPhotoRepository(context, context.contentResolver, database.photos())
         val workManager = WorkManager.getInstance(context)
         val sourceUri = insertSyntheticImage(context)
+        val identity = DeviceIdentity(context, unusedApi(), DeviceTokenCipher())
         var mainScenario: ActivityScenario<MainActivity>? = null
         var shareActivity: ShareReceiverActivity? = null
         var initialMainActivity: MainActivity? = null
@@ -39,6 +45,7 @@ class ShareReceiverFlowInstrumentedTest {
         var scheduler: AnalysisScheduler? = null
 
         try {
+            identity.reset()
             photos.clearIndex()
             context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
                 .edit()
@@ -107,7 +114,68 @@ class ShareReceiverFlowInstrumentedTest {
                 }
             }
             photos.clearIndex()
+            identity.reset()
             database.close()
+            context.contentResolver.delete(sourceUri, null, null)
+        }
+    }
+
+    @Test
+    fun unresolvedCloudDeletionBlocksHomeRecoveryAndSharedPhotoImport() = runBlocking {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val database = buildJianweiDatabase(context)
+        val photos = MediaPhotoRepository(context, context.contentResolver, database.photos())
+        val sourceUri = insertSyntheticImage(context)
+        val identity = DeviceIdentity(context, deletionFailureApi(), DeviceTokenCipher())
+        val onboarding = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
+        val wasOnboarded = onboarding.getBoolean("completed", false)
+        val wasPaused = schedulerPreferences.getBoolean(ANALYSIS_PAUSED_KEY, false)
+        var mainScenario: ActivityScenario<MainActivity>? = null
+        var shareActivity: ShareReceiverActivity? = null
+
+        try {
+            identity.reset()
+            photos.clearIndex()
+            onboarding.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, true).commit()
+            assertThat(identity.bearer()).isEqualTo("Bearer pending-delete-token")
+            assertThat(runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull())
+                .isInstanceOf(IllegalStateException::class.java)
+            assertThat(identity.isUnresolved()).isTrue()
+
+            mainScenario = ActivityScenario.launch(MainActivity::class.java)
+            val mainActivity = awaitResumedMainActivity(instrumentation)
+            assertThat(awaitNode(instrumentation, "云端删除尚未完成")).isNotNull()
+            assertThat(awaitNode(instrumentation, "继续删除云端数据")).isNotNull()
+            assertThat(exactNode(instrumentation, "恢复分析")).isNull()
+
+            instrumentation.runOnMainSync {
+                mainActivity.startActivity(
+                    Intent(mainActivity, ShareReceiverActivity::class.java).apply {
+                        action = Intent.ACTION_SEND
+                        type = "image/jpeg"
+                        putExtra(Intent.EXTRA_STREAM, sourceUri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                )
+            }
+            shareActivity = awaitResumedShareReceiverActivity(instrumentation)
+            clickNode(instrumentation, "导入并分析")
+            assertThat(awaitNode(instrumentation, "先完成云端数据删除")).isNotNull()
+            assertThat(database.photos().discoveredForPrivacy(10, "EXPLICIT_IMPORT")).isEmpty()
+            assertThat(identity.isUnresolved()).isTrue()
+        } finally {
+            if (shareActivity?.isDestroyed == false) {
+                instrumentation.runOnMainSync { shareActivity?.finish() }
+            }
+            mainScenario?.close()
+            photos.clearIndex()
+            identity.reset()
+            database.close()
+            onboarding.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, wasPaused).commit()
             context.contentResolver.delete(sourceUri, null, null)
         }
     }
@@ -157,14 +225,24 @@ class ShareReceiverFlowInstrumentedTest {
     private fun exactNode(
         instrumentation: android.app.Instrumentation,
         text: String
-    ): AccessibilityNodeInfo? = instrumentation.uiAutomation.rootInActiveWindow
-        ?.findAccessibilityNodeInfosByText(text)
-        ?.firstOrNull { node -> node.text?.toString() == text }
+    ): AccessibilityNodeInfo? = findExactNode(
+        instrumentation.uiAutomation.rootInActiveWindow,
+        text
+    )
+
+    private fun findExactNode(root: AccessibilityNodeInfo?, text: String): AccessibilityNodeInfo? {
+        if (root == null) return null
+        if (root.text?.toString() == text) return root
+        for (index in 0 until root.childCount) {
+            findExactNode(root.getChild(index), text)?.let { return it }
+        }
+        return null
+    }
 
     private fun awaitNode(
         instrumentation: android.app.Instrumentation,
         text: String,
-        timeoutMillis: Long = 5_000
+        timeoutMillis: Long = 10_000
     ): AccessibilityNodeInfo {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
         while (SystemClock.uptimeMillis() < deadline) {
@@ -172,7 +250,20 @@ class ShareReceiverFlowInstrumentedTest {
             if (match != null) return match
             SystemClock.sleep(100)
         }
-        error("Timed out waiting for accessibility node: $text")
+        error(
+            "Timed out waiting for accessibility node: $text; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow)
+        )
+    }
+
+    private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 50) return
+            node.text?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            node.contentDescription?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
     }
 
     private fun awaitResumedMainActivity(
@@ -211,5 +302,31 @@ class ShareReceiverFlowInstrumentedTest {
             SystemClock.sleep(100)
         }
         error("Timed out waiting for ShareReceiverActivity")
+    }
+
+    private fun unusedApi(): JianweiApi = proxyApi { methodName ->
+        error("Unexpected API call while resetting identity: $methodName")
+    }
+
+    private fun deletionFailureApi(): JianweiApi = proxyApi { methodName ->
+        when (methodName) {
+            "register" -> RegisterResponse(
+                deviceId = PENDING_DELETE_DEVICE_ID,
+                deviceToken = "pending-delete-token",
+                created = true
+            )
+            "deleteDeviceData" -> throw IllegalStateException("response lost")
+            else -> error("Unexpected API call while creating deletion barrier: $methodName")
+        }
+    }
+
+    private fun proxyApi(handler: (String) -> Any?): JianweiApi = Proxy.newProxyInstance(
+        JianweiApi::class.java.classLoader,
+        arrayOf(JianweiApi::class.java)
+    ) { _, method, _ -> handler(method.name) } as JianweiApi
+
+    private companion object {
+        const val ANALYSIS_PAUSED_KEY = "analysis_paused"
+        const val PENDING_DELETE_DEVICE_ID = "00000000-0000-4000-8000-000000000099"
     }
 }

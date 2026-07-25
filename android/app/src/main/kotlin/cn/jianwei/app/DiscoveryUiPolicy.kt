@@ -5,7 +5,7 @@ import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.PhotoAccess
 
-internal enum class EmptyDiscoveryAction { PICK, RESUME, RETRY }
+internal enum class EmptyDiscoveryAction { PICK, RESUME, RETRY, CONTINUE_CLOUD_DELETION }
 
 internal data class EmptyDiscoveryCopy(
     val title: String,
@@ -117,6 +117,11 @@ internal fun isAnalysisActive(progress: AnalysisProgress): Boolean = progress.ph
 internal fun areUserMutationsEnabled(activeOperation: UserOperation?): Boolean =
     activeOperation == null
 
+internal fun areAnalysisMutationsEnabled(
+    activeOperation: UserOperation?,
+    cloudDeletionUnresolved: Boolean
+): Boolean = areUserMutationsEnabled(activeOperation) && !cloudDeletionUnresolved
+
 internal fun homeActivityIndicator(
     activeOperation: UserOperation?,
     progress: AnalysisProgress
@@ -137,8 +142,15 @@ internal fun emptyDiscoveryCopy(
     paused: Boolean,
     access: PhotoAccess,
     mode: AutomaticCardMode,
-    progress: AnalysisProgress
+    progress: AnalysisProgress,
+    cloudDeletionUnresolved: Boolean = false
 ): EmptyDiscoveryCopy = when {
+    cloudDeletionUnresolved -> EmptyDiscoveryCopy(
+        title = "云端删除尚未完成",
+        body = "分析会保持暂停，完成删除前也不会接收新照片。已有本地卡片仍可查看。",
+        actionLabel = "继续删除云端数据",
+        action = EmptyDiscoveryAction.CONTINUE_CLOUD_DELETION
+    )
     paused -> EmptyDiscoveryCopy(
         title = "分析已暂停",
         body = when (mode) {

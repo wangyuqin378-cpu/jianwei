@@ -146,6 +146,7 @@ const cardDaos = await readFile(path.join(root, "android", "data", "src", "main"
 const localEntities = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "local", "Entities.kt"), "utf8");
 const databaseMigrationDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "local", "DatabaseMigrationInstrumentedTest.kt"), "utf8");
 const deviceIdentity = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "network", "DeviceIdentity.kt"), "utf8");
+const deviceIdentityDeletionTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "network", "DeviceIdentityDeletionInstrumentedTest.kt"), "utf8");
 const workersSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "Workers.kt"), "utf8");
 const deferredCandidateSelector = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelector.kt"), "utf8");
 const deferredCandidateSelectorDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "work", "DeferredCandidateSelectorInstrumentedTest.kt"), "utf8");
@@ -790,6 +791,54 @@ check(
     reminderScheduler.includes("if (!cards.isTrackedReminderCurrent(cardId, startedOn, reminderDays))") &&
     reminderPrivacyDeviceTest.includes("missingCardOrTrackingCannotNotifyEvenWhenStaleWorkStillExecutes"),
   "Cloud deletion failure can leave UI pause/reminder state inconsistent or stale work able to notify"
+);
+const resumeAnalysisFlow = mainViewModel.slice(
+  mainViewModel.indexOf("fun resume(access: PhotoAccess)"),
+  mainViewModel.indexOf("fun clearLocalIndex()")
+);
+const importPhotoFlow = mainViewModel.slice(
+  mainViewModel.indexOf("fun importUris(uris: List<String>)"),
+  mainViewModel.indexOf("fun trackSharedImportResults")
+);
+const configureDiscoveryFlow = mainViewModel.slice(
+  mainViewModel.indexOf("fun startDiscovery(access: PhotoAccess)"),
+  mainViewModel.indexOf("fun importUris(uris: List<String>)")
+);
+const retryAnalysisFlow = mainViewModel.slice(
+  mainViewModel.indexOf("fun retry(access: PhotoAccess)"),
+  mainViewModel.indexOf("fun retryImportedPhoto()")
+);
+const retryImportedPhotoFlow = mainViewModel.slice(
+  mainViewModel.indexOf("fun retryImportedPhoto()"),
+  mainViewModel.indexOf("private fun scheduleAvailableAnalysis")
+);
+check(
+  dataModule.includes("CloudDeletionStatusRepository") &&
+    dataModule.includes("cloudDeletionStatus(value: DeviceIdentity)") &&
+    deviceIdentity.includes(") : CloudDeletionStatusRepository") &&
+    deviceIdentity.includes("observeUnresolved()") &&
+    deviceIdentity.includes("if (preferences[DELETION_STATE] != null) throw CloudDeletionUnresolvedException()") &&
+    resumeAnalysisFlow.indexOf("requireCloudDeletionResolved()") >= 0 &&
+    resumeAnalysisFlow.indexOf("requireCloudDeletionResolved()") < resumeAnalysisFlow.indexOf("scheduler.setPaused(false)") &&
+    importPhotoFlow.indexOf("requireCloudDeletionResolved()") >= 0 &&
+    importPhotoFlow.indexOf("requireCloudDeletionResolved()") < importPhotoFlow.indexOf("importPhotos(uris)") &&
+    retryAnalysisFlow.indexOf("requireCloudDeletionResolved()") >= 0 &&
+    retryAnalysisFlow.indexOf("requireCloudDeletionResolved()") < retryAnalysisFlow.indexOf("scheduler.setPaused(false)") &&
+    retryImportedPhotoFlow.indexOf("requireCloudDeletionResolved()") >= 0 &&
+    retryImportedPhotoFlow.indexOf("requireCloudDeletionResolved()") < retryImportedPhotoFlow.indexOf("scheduler.scheduleImportedPhotos()") &&
+    configureDiscoveryFlow.indexOf("requireCloudDeletionResolved()") >= 0 &&
+    configureDiscoveryFlow.indexOf("cloudDeletionStatus.isUnresolved()") >= 0 &&
+    configureDiscoveryFlow.indexOf("cloudDeletionStatus.isUnresolved()") < configureDiscoveryFlow.indexOf("scheduler.scheduleDailyRefresh()") &&
+    shareReceiver.indexOf("cloudDeletionStatus.isUnresolved()") >= 0 &&
+    shareReceiver.indexOf("cloudDeletionStatus.isUnresolved()") < shareReceiver.indexOf("importPhotos(uris.map") &&
+    discoveryUiPolicy.includes("CONTINUE_CLOUD_DELETION") &&
+    discoveryUiPolicyTest.includes("unresolved cloud deletion replaces every resume path") &&
+    mainActivity.includes("继续删除云端数据") &&
+    deviceIdentityDeletionTest.includes("unresolvedDeletion_blocksOrdinaryAuthenticationUntilDeletionFinishesAndIdentityResets") &&
+    deviceIdentityDeletionTest.includes("authenticatedCalls") &&
+    shareReceiverDeviceTest.includes("unresolvedCloudDeletionBlocksHomeRecoveryAndSharedPhotoImport") &&
+    shareReceiverDeviceTest.includes("先完成云端数据删除"),
+  "Unresolved cloud deletion can be bypassed by authentication, resume, retry, picker, or share import"
 );
 check(
   mainViewModel.includes("clearLocalIndexFromUi(") &&
@@ -1682,7 +1731,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

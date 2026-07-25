@@ -72,6 +72,19 @@ interface AnalysisStatusRepository {
     fun publishProgress(scope: AnalysisProgressScope, progress: AnalysisProgress)
 }
 
+/**
+ * Exposes the durable privacy-deletion barrier without leaking the data-layer identity store.
+ * A confirmed server deletion remains unresolved until local identity cleanup completes.
+ */
+interface CloudDeletionStatusRepository {
+    fun observeUnresolved(): Flow<Boolean>
+    suspend fun isUnresolved(): Boolean
+}
+
+class CloudDeletionUnresolvedException : Exception(
+    "云端删除尚未完成，请先继续删除；完成前不会恢复分析或接收新照片"
+)
+
 interface InterestPreferencesRepository {
     fun observeSelected(): Flow<Set<String>>
     fun selected(): Set<String>

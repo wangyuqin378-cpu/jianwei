@@ -9,6 +9,7 @@ import cn.jianwei.data.local.JianweiDatabase
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.local.PhotoDao
 import cn.jianwei.data.network.JianweiApi
+import cn.jianwei.data.network.DeviceIdentity
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.data.photos.MlKitPrivacyFilter
 import cn.jianwei.data.photos.PrivacyFilter
@@ -19,6 +20,7 @@ import cn.jianwei.data.preferences.SharedPreferencesAutomaticCardModeRepository
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.domain.repository.CardRepository
+import cn.jianwei.domain.repository.CloudDeletionStatusRepository
 import cn.jianwei.domain.repository.InterestPreferencesRepository
 import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.PhotoRepository
@@ -77,6 +79,7 @@ object DataProviders {
 abstract class DataBindings {
     @Binds abstract fun photoRepository(value: MediaPhotoRepository): PhotoRepository
     @Binds abstract fun cardRepository(value: RoomCardRepository): CardRepository
+    @Binds abstract fun cloudDeletionStatus(value: DeviceIdentity): CloudDeletionStatusRepository
     @Binds abstract fun privacyFilter(value: MlKitPrivacyFilter): PrivacyFilter
     @Binds abstract fun scheduler(value: WorkManagerScheduler): AnalysisScheduler
     @Binds abstract fun analysisStatus(value: SharedPreferencesAnalysisStatusRepository): AnalysisStatusRepository
