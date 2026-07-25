@@ -46,7 +46,33 @@ class ImportedPhotoResultPolicyTest {
             listOf(candidate("failed", AnalysisState.FAILED)),
             emptyList(),
             AnalysisPhase.FAILED
-        )).isEqualTo(ImportedPhotoResultResolution.Failed)
+        )).isEqualTo(ImportedPhotoResultResolution.Failed(canRetry = false))
+    }
+
+    @Test
+    fun `terminal service failure makes retained candidates retryable`() {
+        assertThat(resolveImportedPhotoResult(
+            listOf("ready"),
+            listOf(candidate("ready", AnalysisState.READY)),
+            emptyList(),
+            AnalysisPhase.FAILED
+        )).isEqualTo(ImportedPhotoResultResolution.Failed(canRetry = true))
+        assertThat(resolveImportedPhotoResult(
+            listOf("completed"),
+            listOf(candidate("completed", AnalysisState.COMPLETED)),
+            emptyList(),
+            AnalysisPhase.FAILED
+        )).isEqualTo(ImportedPhotoResultResolution.Failed(canRetry = true))
+    }
+
+    @Test
+    fun `unreadable candidate asks for a fresh selection instead of retry`() {
+        assertThat(resolveImportedPhotoResult(
+            listOf("unavailable"),
+            listOf(candidate("unavailable", AnalysisState.ACCESS_UNAVAILABLE)),
+            emptyList(),
+            AnalysisPhase.FAILED
+        )).isEqualTo(ImportedPhotoResultResolution.Failed(canRetry = false))
     }
 
     @Test

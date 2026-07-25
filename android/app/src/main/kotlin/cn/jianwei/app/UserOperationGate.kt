@@ -14,6 +14,7 @@ enum class UserOperation(val progressLabel: String) {
     PAUSE_ANALYSIS("正在暂停分析"),
     RESUME_ANALYSIS("正在恢复分析"),
     RETRY_ANALYSIS("正在重新安排分析"),
+    RETRY_IMPORTED_PHOTO("正在重新分析刚选的照片"),
     UPDATE_CARD_MODE("正在更新照片处理节奏"),
     CLEAR_LOCAL_INDEX("正在清除本地索引"),
     DELETE_CLOUD_DATA("正在删除云端数据")

@@ -84,7 +84,11 @@ class AutomaticDiscoveryControlInstrumentedTest {
         if (snapshot.candidateTokens.isNotEmpty()) {
             store.remember(snapshot.candidateTokens)
         } else {
-            store.complete(snapshot.focusedCardId, snapshot.notice)
+            store.complete(
+                snapshot.focusedCardId,
+                snapshot.notice,
+                snapshot.retryCandidateTokens
+            )
         }
     }
 

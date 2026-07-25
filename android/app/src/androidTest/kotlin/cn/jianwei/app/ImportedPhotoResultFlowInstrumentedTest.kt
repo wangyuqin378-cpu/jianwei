@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.work.WorkManager
 import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.PhotoCandidateEntity
 import cn.jianwei.data.local.buildJianweiDatabase
@@ -15,6 +16,7 @@ import cn.jianwei.domain.model.KnowledgeSource
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -102,7 +104,7 @@ class ImportedPhotoResultFlowInstrumentedTest {
     }
 
     @Test
-    fun failedAnalysisOffersAnExplicitRetryWithoutPretendingThereIsAResult() = runBlocking {
+    fun retryableFailureReturnsToTrackedProgress() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val database = buildJianweiDatabase(context)
@@ -110,17 +112,59 @@ class ImportedPhotoResultFlowInstrumentedTest {
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             prepareEmptyHome(context, database, resultStore)
-            resultStore.complete(null, ImportedPhotoResultNotice.FAILED)
+            resultStore.complete(
+                null,
+                ImportedPhotoResultNotice.FAILED,
+                retryCandidateTokens = listOf(RETRY_CANDIDATE_TOKEN)
+            )
 
             scenario = launchMain(context)
             awaitNode(instrumentation, "分析暂时没有完成")
             awaitNode(
                 instrumentation,
-                "网络或服务暂时不可用。你可以立即重试，也可以稍后再回来。"
+                "网络或服务暂时不可用。照片仍安全保留在本机，你可以立即重试。"
             )
             val retry = awaitNode(instrumentation, "立即重试")
             assertThat(clickableAncestorOrNull(retry)?.isEnabled).isTrue()
             screenshot(context, instrumentation, FAILED_SCREENSHOT_NAME)
+
+            clickNode(instrumentation, "立即重试")
+            awaitRetryStarted(resultStore)
+            awaitNode(instrumentation, "正在读你刚选的照片")
+            WorkManager.getInstance(context)
+                .cancelUniqueWork(IMPORTED_ANALYSIS_WORK)
+                .result
+                .get(5, TimeUnit.SECONDS)
+            Unit
+        } finally {
+            scenario?.close()
+            resultStore.clearAll()
+            database.cards().clear()
+            database.photos().clear()
+            database.close()
+        }
+    }
+
+    @Test
+    fun nonRetryableFailureAsksForAFreshPhoto() = runBlocking {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val database = buildJianweiDatabase(context)
+        val resultStore = PendingImportResultStore(context)
+        var scenario: ActivityScenario<MainActivity>? = null
+        try {
+            prepareEmptyHome(context, database, resultStore)
+            resultStore.complete(null, ImportedPhotoResultNotice.CANNOT_RETRY)
+
+            scenario = launchMain(context)
+            awaitNode(instrumentation, "这张照片需要重新选择")
+            awaitNode(
+                instrumentation,
+                "照片读取权限可能已失效，或本机处理没有完成。为保护隐私，见微没有保留可继续分析的中间文件。"
+            )
+            val chooseAgain = awaitNode(instrumentation, "重新选择照片")
+            assertThat(clickableAncestorOrNull(chooseAgain)?.isEnabled).isTrue()
+            screenshot(context, instrumentation, CANNOT_RETRY_SCREENSHOT_NAME)
 
             clickNode(instrumentation, "回到每日卡片")
             awaitResultCleared(resultStore)
@@ -214,6 +258,7 @@ class ImportedPhotoResultFlowInstrumentedTest {
         instrumentation: android.app.Instrumentation,
         name: String
     ) {
+        SystemClock.sleep(300)
         val output = File(context.getExternalFilesDir(null), name)
         output.outputStream().use { stream ->
             assertThat(
@@ -282,12 +327,32 @@ class ImportedPhotoResultFlowInstrumentedTest {
         error("Timed out waiting for import result to clear: ${store.snapshot()}")
     }
 
+    private fun awaitRetryStarted(
+        store: PendingImportResultStore,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val snapshot = store.snapshot()
+            if (
+                snapshot.candidateTokens == listOf(RETRY_CANDIDATE_TOKEN) &&
+                snapshot.retryCandidateTokens.isEmpty() &&
+                snapshot.notice == null
+            ) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for failed import retry to start: ${store.snapshot()}")
+    }
+
     private companion object {
         const val CANDIDATE_TOKEN = "candidate-import-result-flow"
+        const val RETRY_CANDIDATE_TOKEN = "candidate-import-result-retry"
         const val CARD_ID = "card-import-result-flow"
         const val CARD_TITLE = "扫帚刷毛为什么是斜的"
         const val SUCCESS_SCREENSHOT_NAME = "imported-photo-success.png"
         const val NO_MATCH_SCREENSHOT_NAME = "imported-photo-no-match.png"
         const val FAILED_SCREENSHOT_NAME = "imported-photo-failed.png"
+        const val CANNOT_RETRY_SCREENSHOT_NAME = "imported-photo-cannot-retry.png"
+        const val IMPORTED_ANALYSIS_WORK = "jianwei-imported-analysis"
     }
 }

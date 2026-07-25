@@ -154,8 +154,17 @@ class MainViewModel @Inject constructor(
                     ImportedPhotoResultResolution.NoMatch -> completePendingImport(
                         notice = ImportedPhotoResultNotice.NO_MATCH
                     )
-                    ImportedPhotoResultResolution.Failed -> completePendingImport(
-                        notice = ImportedPhotoResultNotice.FAILED
+                    is ImportedPhotoResultResolution.Failed -> completePendingImport(
+                        notice = if (resolution.canRetry) {
+                            ImportedPhotoResultNotice.FAILED
+                        } else {
+                            ImportedPhotoResultNotice.CANNOT_RETRY
+                        },
+                        retryCandidateTokens = if (resolution.canRetry) {
+                            pendingImportTokens.value
+                        } else {
+                            emptyList()
+                        }
                     )
                 }
             }
@@ -271,6 +280,31 @@ class MainViewModel @Inject constructor(
         localState.update { it.copy(paused = false) }
         scheduleAvailableAnalysis(access)
         "已重新安排分析；系统会在条件允许时继续"
+    }
+
+    fun retryImportedPhoto() = runBusy(UserOperation.RETRY_IMPORTED_PHOTO) {
+        val retrySnapshot = pendingImportResults.snapshot()
+        val candidateTokens = retrySnapshot.retryCandidateTokens
+        if (candidateTokens.isEmpty()) {
+            return@runBusy "这张照片无法继续重试，请重新选择照片"
+        }
+        if (scheduler.isPaused()) scheduler.setPaused(false)
+        scheduler.scheduleImportedPhotos()
+        val activatedTokens = pendingImportResults.retryFailed()
+        if (activatedTokens.isEmpty()) {
+            return@runBusy "重试状态已经变化，请重新选择照片"
+        }
+        localState.update {
+            it.copy(
+                paused = false,
+                focusedCardId = null,
+                focusedCardFromRecentImport = false,
+                pendingImportCount = activatedTokens.size,
+                importedPhotoResultNotice = null
+            )
+        }
+        pendingImportTokens.value = activatedTokens
+        "已重新分析刚才选择的照片；找到后会直接打开结果"
     }
 
     private fun scheduleAvailableAnalysis(access: PhotoAccess) {
@@ -395,9 +429,10 @@ class MainViewModel @Inject constructor(
     private fun completePendingImport(
         focusedCardId: String? = null,
         message: String? = null,
-        notice: ImportedPhotoResultNotice? = null
+        notice: ImportedPhotoResultNotice? = null,
+        retryCandidateTokens: List<String> = emptyList()
     ) {
-        pendingImportResults.complete(focusedCardId, notice)
+        pendingImportResults.complete(focusedCardId, notice, retryCandidateTokens)
         pendingImportTokens.value = emptyList()
         localState.update { state ->
             state.copy(

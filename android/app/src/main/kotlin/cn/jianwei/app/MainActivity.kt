@@ -260,6 +260,7 @@ class MainActivity : ComponentActivity() {
                         onPause = viewModel::pauseAnalysis,
                         onResume = { viewModel.resume(photoAccess) },
                         onRetry = { viewModel.retry(photoAccess) },
+                        onRetryImportedPhoto = viewModel::retryImportedPhoto,
                         onClearIndex = viewModel::clearLocalIndex,
                         onDeleteCloud = viewModel::deleteCloudData,
                         onExportMetrics = ::shareBetaMetrics,
@@ -830,6 +831,7 @@ private fun HomeScreen(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onRetry: () -> Unit,
+    onRetryImportedPhoto: () -> Unit,
     onClearIndex: () -> Unit,
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit,
@@ -1035,7 +1037,7 @@ private fun HomeScreen(
                                 result = state.importedPhotoResultNotice,
                                 actionsEnabled = actionsEnabled,
                                 onPick = onPick,
-                                onRetry = onRetry,
+                                onRetry = onRetryImportedPhoto,
                                 onDismiss = onDismissImportedPhotoResult
                             )
                         }
@@ -1503,30 +1505,44 @@ private fun ImportedPhotoResultCard(
     onDismiss: () -> Unit
 ) {
     val noMatch = result == ImportedPhotoResultNotice.NO_MATCH
+    val cannotRetry = result == ImportedPhotoResultNotice.CANNOT_RETRY
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                if (noMatch) "这张照片暂时没有合适的知识" else "分析暂时没有完成",
+                when {
+                    noMatch -> "这张照片暂时没有合适的知识"
+                    cannotRetry -> "这张照片需要重新选择"
+                    else -> "分析暂时没有完成"
+                },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                if (noMatch) {
-                    "它可能因隐私、画质或暂时没有可靠知识而被跳过。见微不会为了出卡而猜测。"
-                } else {
-                    "网络或服务暂时不可用。你可以立即重试，也可以稍后再回来。"
+                when {
+                    noMatch ->
+                        "它可能因隐私、画质或暂时没有可靠知识而被跳过。见微不会为了出卡而猜测。"
+                    cannotRetry ->
+                        "照片读取权限可能已失效，或本机处理没有完成。为保护隐私，见微没有保留可继续分析的中间文件。"
+                    else ->
+                        "网络或服务暂时不可用。照片仍安全保留在本机，你可以立即重试。"
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
             Button(
-                onClick = if (noMatch) onPick else onRetry,
+                onClick = if (result == ImportedPhotoResultNotice.FAILED) onRetry else onPick,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = actionsEnabled
             ) {
-                Text(if (noMatch) "换一张照片" else "立即重试")
+                Text(
+                    when {
+                        noMatch -> "换一张照片"
+                        cannotRetry -> "重新选择照片"
+                        else -> "立即重试"
+                    }
+                )
             }
             TextButton(
                 onClick = onDismiss,

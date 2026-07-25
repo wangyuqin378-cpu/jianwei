@@ -189,6 +189,8 @@ const dailyHistoryNavigationDeviceTest = await readFile(path.join(root, "android
 const settingsNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SettingsNavigationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
+const importedPhotoResultPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportedPhotoResultPolicy.kt"), "utf8");
+const importedPhotoResultPolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "usecase", "ImportedPhotoResultPolicyTest.kt"), "utf8");
 const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
 const onboardingValuePreviewDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "OnboardingValuePreviewInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
@@ -1111,12 +1113,18 @@ check(
     shareReceiver.includes("putStringArrayListExtra(") &&
     shareReceiver.includes("EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS") &&
     pendingImportResultStore.includes("normalizedPendingImportTokens") &&
-    pendingImportResultStore.includes("fun complete(focusedCardId: String?, notice: ImportedPhotoResultNotice?)") &&
+    pendingImportResultStore.includes("KEY_RETRY_TOKENS") &&
+    pendingImportResultStore.includes("fun retryFailed()") &&
     !pendingImportResultStore.includes("contentUri =") &&
     importedPhotoResultDeviceTest.includes("importedCardOpensImmediatelyAndSurvivesANewActivitySession") &&
     importedPhotoResultDeviceTest.includes("assertThat(resultStore.snapshot().focusedCardId).isEqualTo(CARD_ID)") &&
     importedPhotoResultDeviceTest.includes("noMatchExplainsWhyAndOffersAnotherPhoto") &&
-    importedPhotoResultDeviceTest.includes("failedAnalysisOffersAnExplicitRetryWithoutPretendingThereIsAResult") &&
+    importedPhotoResultDeviceTest.includes("retryableFailureReturnsToTrackedProgress") &&
+    importedPhotoResultDeviceTest.includes("nonRetryableFailureAsksForAFreshPhoto") &&
+    importedPhotoResultDeviceTest.includes("awaitRetryStarted(resultStore)") &&
+    importedPhotoResultPolicy.includes("data class Failed(val canRetry: Boolean)") &&
+    importedPhotoResultPolicyTest.includes("terminal service failure makes retained candidates retryable") &&
+    mainViewModel.includes("fun retryImportedPhoto()") &&
     mainViewModel.includes("focusedCardFromRecentImport") &&
     mainActivity.includes("从你刚选的照片找到了知识") &&
     mainActivity.includes("见微不会为了出卡而猜测。") &&

@@ -9,7 +9,7 @@ sealed interface ImportedPhotoResultResolution {
     data object Pending : ImportedPhotoResultResolution
     data class CardReady(val cardId: String) : ImportedPhotoResultResolution
     data object NoMatch : ImportedPhotoResultResolution
-    data object Failed : ImportedPhotoResultResolution
+    data class Failed(val canRetry: Boolean) : ImportedPhotoResultResolution
 }
 
 /**
@@ -34,18 +34,25 @@ fun resolveImportedPhotoResult(
         return ImportedPhotoResultResolution.Pending
     }
     val states = requestedCandidates.map { it.analysisState }
+    if (analysisPhase == AnalysisPhase.FAILED) {
+        if (states.any { it in RETRYABLE_IMPORT_STATES }) {
+            return ImportedPhotoResultResolution.Failed(canRetry = true)
+        }
+        if (states.any { it == AnalysisState.FAILED || it == AnalysisState.ACCESS_UNAVAILABLE }) {
+            return ImportedPhotoResultResolution.Failed(canRetry = false)
+        }
+    }
     if (states.any { it in ACTIVE_IMPORT_STATES }) {
         return ImportedPhotoResultResolution.Pending
     }
     if (states.any { it == AnalysisState.COMPLETED }) {
         return when (analysisPhase) {
             AnalysisPhase.READY, AnalysisPhase.NO_MATCH -> ImportedPhotoResultResolution.NoMatch
-            AnalysisPhase.FAILED -> ImportedPhotoResultResolution.Failed
             else -> ImportedPhotoResultResolution.Pending
         }
     }
     if (states.any { it == AnalysisState.FAILED || it == AnalysisState.ACCESS_UNAVAILABLE }) {
-        return ImportedPhotoResultResolution.Failed
+        return ImportedPhotoResultResolution.Failed(canRetry = false)
     }
     return ImportedPhotoResultResolution.NoMatch
 }
@@ -56,3 +63,5 @@ private val ACTIVE_IMPORT_STATES = setOf(
     AnalysisState.DEFERRED,
     AnalysisState.QUEUED
 )
+
+private val RETRYABLE_IMPORT_STATES = ACTIVE_IMPORT_STATES + AnalysisState.COMPLETED
