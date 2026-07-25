@@ -754,11 +754,15 @@ private fun HomeScreen(
     val fontScale = LocalDensity.current.fontScale
     var showSavedCards by rememberSaveable { mutableStateOf(false) }
     var openedSavedCardId by rememberSaveable { mutableStateOf<String?>(null) }
+    var openedHistoryCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEnabled = areUserMutationsEnabled(state.activeOperation)
     val activityIndicator = homeActivityIndicator(state.activeOperation, state.analysisProgress)
     val externalFocusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
     val openedSavedCard = state.savedCards.firstOrNull { it.cardId == openedSavedCardId }
-    val focusedEntry = externalFocusedEntry || openedSavedCard != null
+    val openedHistoryCard = state.cards.firstOrNull { card ->
+        card.cardId == openedHistoryCardId && card.scheduledDate.isBefore(state.currentDay)
+    }
+    val focusedEntry = externalFocusedEntry || openedSavedCard != null || openedHistoryCard != null
     val dailyListState = rememberLazyListState()
     val savedListState = rememberLazyListState()
     val focusedListState = rememberLazyListState()
@@ -773,6 +777,11 @@ private fun HomeScreen(
     BackHandler(enabled = !externalFocusedEntry && openedSavedCard != null) {
         openedSavedCardId = null
     }
+    BackHandler(
+        enabled = !externalFocusedEntry && openedSavedCard == null && openedHistoryCard != null
+    ) {
+        openedHistoryCardId = null
+    }
     BackHandler(enabled = !focusedEntry && showSavedCards) { showSavedCards = false }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
@@ -780,6 +789,7 @@ private fun HomeScreen(
     LaunchedEffect(state.focusedCardId) {
         if (state.focusedCardId != null) {
             openedSavedCardId = null
+            openedHistoryCardId = null
             focusedListState.scrollToItem(0)
         }
     }
@@ -787,6 +797,13 @@ private fun HomeScreen(
         if (openedSavedCardId != null && openedSavedCard == null) {
             openedSavedCardId = null
         } else if (openedSavedCard != null) {
+            focusedListState.scrollToItem(0)
+        }
+    }
+    LaunchedEffect(openedHistoryCardId, openedHistoryCard?.cardId) {
+        if (openedHistoryCardId != null && openedHistoryCard == null) {
+            openedHistoryCardId = null
+        } else if (openedHistoryCard != null) {
             focusedListState.scrollToItem(0)
         }
     }
@@ -838,6 +855,25 @@ private fun HomeScreen(
                             state.trackedItems[openedSavedCard.cardId],
                             state.feedbackStates[openedSavedCard.cardId],
                             isSaved = true,
+                            actionsEnabled,
+                            onFeedback,
+                            onSetSaved,
+                            onTrack,
+                            onCancelReminder,
+                            onEngagement
+                        )
+                    }
+                } else if (openedHistoryCard != null) {
+                    item {
+                        HistoryCardDetailHeader(onClose = { openedHistoryCardId = null })
+                    }
+                    item(key = "history-detail-${openedHistoryCard.cardId}") {
+                        KnowledgeCardView(
+                            openedHistoryCard,
+                            state.currentDay,
+                            state.trackedItems[openedHistoryCard.cardId],
+                            state.feedbackStates[openedHistoryCard.cardId],
+                            openedHistoryCard.cardId in savedCardIds,
                             actionsEnabled,
                             onFeedback,
                             onSetSaved,
@@ -984,21 +1020,37 @@ private fun HomeScreen(
                             ?.let { previous -> cardDatePresentation(previous.scheduledDate, state.currentDay).section }
                         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             if (datePresentation.section != previousSection) {
-                                DailyCardSectionHeader(datePresentation.section)
+                                if (datePresentation.section == CardDateSection.HISTORY) {
+                                    HistoryCollectionHeader(
+                                        visibleCards.count { historyCard ->
+                                            historyCard.scheduledDate.isBefore(state.currentDay)
+                                        }
+                                    )
+                                } else {
+                                    DailyCardSectionHeader(datePresentation.section)
+                                }
                             }
-                            KnowledgeCardView(
-                                card,
-                                state.currentDay,
-                                state.trackedItems[card.cardId],
-                                state.feedbackStates[card.cardId],
-                                card.cardId in savedCardIds,
-                                actionsEnabled,
-                                onFeedback,
-                                onSetSaved,
-                                onTrack,
-                                onCancelReminder,
-                                onEngagement
-                            )
+                            if (datePresentation.section == CardDateSection.HISTORY) {
+                                HistoricalKnowledgeCardPreview(
+                                    card = card,
+                                    currentDay = state.currentDay,
+                                    onOpen = { openedHistoryCardId = card.cardId }
+                                )
+                            } else {
+                                KnowledgeCardView(
+                                    card,
+                                    state.currentDay,
+                                    state.trackedItems[card.cardId],
+                                    state.feedbackStates[card.cardId],
+                                    card.cardId in savedCardIds,
+                                    actionsEnabled,
+                                    onFeedback,
+                                    onSetSaved,
+                                    onTrack,
+                                    onCancelReminder,
+                                    onEngagement
+                                )
+                            }
                             if (shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)) {
                                 WidgetCallToAction(onAddWidget)
                             }
@@ -1057,11 +1109,40 @@ private fun SavedKnowledgeCardPreview(
     currentDay: LocalDate,
     onOpen: () -> Unit
 ) {
+    CompactKnowledgeCardPreview(
+        card = card,
+        currentDay = currentDay,
+        openDescription = "打开收藏的知识卡：${card.title}",
+        onOpen = onOpen
+    )
+}
+
+@Composable
+private fun HistoricalKnowledgeCardPreview(
+    card: KnowledgeCard,
+    currentDay: LocalDate,
+    onOpen: () -> Unit
+) {
+    CompactKnowledgeCardPreview(
+        card = card,
+        currentDay = currentDay,
+        openDescription = "打开往日知识卡：${card.title}",
+        onOpen = onOpen
+    )
+}
+
+@Composable
+private fun CompactKnowledgeCardPreview(
+    card: KnowledgeCard,
+    currentDay: LocalDate,
+    openDescription: String,
+    onOpen: () -> Unit
+) {
     val datePresentation = cardDatePresentation(card.scheduledDate, currentDay)
     Card(
         onClick = onOpen,
         modifier = Modifier.fillMaxWidth().semantics {
-            contentDescription = "打开收藏的知识卡：${card.title}"
+            contentDescription = openDescription
         },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp)
@@ -1100,6 +1181,26 @@ private fun SavedKnowledgeCardPreview(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HistoryCollectionHeader(count: Int) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(
+            "往日一知",
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            "过去的 $count 张卡片收在这里。点开可查看来源、提醒和反馈。",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -1327,6 +1428,33 @@ private fun SavedCardDetailHeader(onClose: () -> Unit) {
             )
             OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
                 Text("返回收藏")
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistoryCardDetailHeader(onClose: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "从往日一知打开",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "这里显示这张旧卡的完整知识、来源与操作。返回后会继续停在往日列表。",
+                style = MaterialTheme.typography.bodySmall
+            )
+            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                Text("返回每日卡片")
             }
         }
     }

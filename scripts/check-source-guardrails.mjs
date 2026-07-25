@@ -184,6 +184,7 @@ const configurePhotoAccessTest = await readFile(path.join(root, "android", "doma
 const automaticDiscoveryControlDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "AutomaticDiscoveryControlInstrumentedTest.kt"), "utf8");
 const photoAccessPresentationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "PhotoAccessPresentationInstrumentedTest.kt"), "utf8");
 const savedTabNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SavedTabNavigationInstrumentedTest.kt"), "utf8");
+const dailyHistoryNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "DailyHistoryNavigationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
@@ -485,6 +486,21 @@ check(
     savedTabNavigationDeviceTest.includes('SCREENSHOT_NAME = "saved-empty-state.png"') &&
     savedTabNavigationDeviceTest.includes('COLLECTION_SCREENSHOT_NAME = "saved-collection.png"'),
   "Saved-card collection has no complete visible add/list/remove UI"
+);
+check(
+  mainActivity.includes("openedHistoryCardId") &&
+    mainActivity.includes("private fun HistoricalKnowledgeCardPreview(") &&
+    mainActivity.includes("private fun HistoryCollectionHeader(") &&
+    mainActivity.includes('"往日一知"') &&
+    mainActivity.includes("private fun HistoryCardDetailHeader(") &&
+    mainActivity.includes('"从往日一知打开"') &&
+    mainActivity.includes("datePresentation.section == CardDateSection.HISTORY") &&
+    dailyHistoryNavigationDeviceTest.includes("todayStaysFullWhileHistoryUsesCompactCardsAndReturnsToItsPosition") &&
+    dailyHistoryNavigationDeviceTest.includes('"打开往日知识卡：$HISTORY_TITLE"') &&
+    dailyHistoryNavigationDeviceTest.includes('executeShellCommand("input keyevent 4")') &&
+    dailyHistoryNavigationDeviceTest.includes('COLLECTION_SCREENSHOT_NAME = "daily-history-collection.png"') &&
+    dailyHistoryNavigationDeviceTest.includes('DETAIL_SCREENSHOT_NAME = "daily-history-detail.png"'),
+  "Daily-card history does not stay compact or reopen complete knowledge in context"
 );
 check(
   mainActivity.includes("datePresentation.visibleLabel") &&
