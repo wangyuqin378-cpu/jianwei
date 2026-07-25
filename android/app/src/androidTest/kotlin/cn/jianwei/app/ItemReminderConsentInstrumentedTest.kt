@@ -11,6 +11,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.WorkManager
+import androidx.work.WorkInfo
 import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.domain.time.ChinaCalendar
@@ -93,6 +94,13 @@ class ItemReminderConsentInstrumentedTest {
             val disabledSave = awaitNode(instrumentation, "保存提醒")
             assertThat(clickableAncestorOrNull(disabledSave)?.isEnabled).isFalse()
             click(awaitNode(instrumentation, "取消"))
+
+            click(awaitNodeWithScroll(instrumentation, "取消物品提醒"))
+            assertThat(awaitNode(instrumentation, "取消物品提醒？")).isNotNull()
+            click(awaitNode(instrumentation, "确认取消"))
+            awaitCancelledTrackedItem(database, CARD_ID)
+            awaitReminderWorkCancelled(workManager, CARD_ID)
+            assertThat(awaitNodeWithScroll(instrumentation, "物品提醒")).isNotNull()
         } finally {
             scenario?.close()
             workManager.cancelUniqueWork(itemReminderWorkName(CARD_ID)).result.get(5, TimeUnit.SECONDS)
@@ -112,6 +120,30 @@ class ItemReminderConsentInstrumentedTest {
             SystemClock.sleep(50)
         }
         error("Timed out waiting for tracked item: $cardId")
+    }
+
+    private suspend fun awaitCancelledTrackedItem(
+        database: cn.jianwei.data.local.JianweiDatabase,
+        cardId: String
+    ) {
+        repeat(100) {
+            if (database.cards().findTrackedItem(cardId)?.syncAction == "DELETE") return
+            SystemClock.sleep(50)
+        }
+        error("Timed out waiting for durable reminder cancellation: $cardId")
+    }
+
+    private fun awaitReminderWorkCancelled(
+        workManager: WorkManager,
+        cardId: String
+    ) {
+        repeat(100) {
+            val work = workManager.getWorkInfosForUniqueWork(itemReminderWorkName(cardId))
+                .get(5, TimeUnit.SECONDS)
+            if (work.isNotEmpty() && work.all { it.state == WorkInfo.State.CANCELLED }) return
+            SystemClock.sleep(50)
+        }
+        error("Timed out waiting for reminder Work cancellation: $cardId")
     }
 
     private fun reminderCard(today: LocalDate) = CardEntity(

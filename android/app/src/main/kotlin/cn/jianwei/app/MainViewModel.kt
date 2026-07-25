@@ -347,7 +347,7 @@ class MainViewModel @Inject constructor(
         val result = cards.sendFeedback(cardId, action)
         if (result.accepted) {
             if (action == FeedbackAction.TOO_PRIVATE || action == FeedbackAction.WRONG_OBJECT) {
-                itemReminders.cancel(cardId)
+                bestEffortCancelLocalReminderWork { itemReminders.cancel(cardId) }
             }
             betaMetrics.markFeedback(action)
         }
@@ -374,8 +374,10 @@ class MainViewModel @Inject constructor(
 
     fun cancelReminder(cardId: String) = runBusy(UserOperation.CANCEL_REMINDER) {
         requireCloudDeletionResolved()
-        itemReminders.cancel(cardId)
-        cards.cancelTracking(cardId)
+        cancelReminderFromUi(
+            commitDurableCancellation = { cards.cancelTracking(cardId) },
+            cancelLocalWork = { itemReminders.cancel(cardId) }
+        )
         betaMetrics.markEngaged()
         "已取消物品提醒；云端记录会在联网且分析未暂停时撤销"
     }
