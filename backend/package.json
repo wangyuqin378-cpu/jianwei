@@ -19,6 +19,7 @@
     "issue:evaluation-lease": "tsx src/issue-evaluation-lease.ts",
     "revoke:evaluation-lease": "tsx src/revoke-evaluation-lease.ts",
     "verify:cloud-beta": "tsx src/verify-cloud-beta.ts",
+    "verify:qwen-guardrail-access": "tsx src/verify-qwen-guardrail-access.ts",
     "verify:qwen-provider": "tsx src/verify-qwen-provider.ts",
     "release:identity": "tsx src/release-identity.ts",
     "test": "vitest run --coverage.enabled=false",

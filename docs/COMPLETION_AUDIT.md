@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 百炼 AI 安全护栏文本预检（当前最新权威摘要）：新增独立命令 `pnpm verify:qwen-guardrail-access -- --credentials-file <csv>`，用于在不读取或上传任何图片的情况下检查账号侧阻断。命令只发送一条无敏感文本，携带与生产完全相同的 `X-DashScope-DataInspection={"input":"cip","output":"cip"}`，输出仅包含北京区域、固定模型、HTTP 状态和受限错误码；API Key、完整工作空间端点、凭据路径和上游错误正文均不进入输出。专项测试同时断言请求体不存在 `image_url`。
+
+使用当前下载的北京百炼按量付费工作空间 CSV 真实执行后，固定 `qwen3.6-flash-2026-04-16` 仍返回 `403 access_denied`。这直接证明截至本次检查，AI Safety Guardrails 尚未对当前工作空间完成授权；所需服务关联角色仍为 `AliyunServiceRoleForSFMAccessingCIP`。根据阿里云当前官方流程，仍需先开通按量付费 AI 安全护栏，再在百炼北京地域“安全管理”中授权内容审核。预检未来返回 GO 也只证明角色和生产 Header 可用，之后仍须用明确授权的非个人图片重跑完整视觉 Provider 验证。后端 TypeScript check/build、118/118 基础测试（另 13 项 PostgreSQL 环境测试 skipped）、源码护栏 `qwenGuardrailPreflight=1` 和差异检查通过；Beta 保持 `NO_GO`。
+
 2026-07-26 真实 Qwen Provider 验证（当前最新权威摘要）：使用用户下载的北京百炼工作空间按量付费 Key 和仓库自有、无人物的扫帚示例图，真实调用固定模型 `qwen3.6-flash-2026-04-16`。生产请求携带强制内容安全 Header 时返回 `403 access_denied`；随后只用于定位的无内容安全文本探针返回 200，无内容安全视觉诊断识别为 `broom / 扫帚 / 0.98` 且无敏感标记。这证明当前 Key、北京工作空间端点和固定视觉模型可达，但也精确证明生产要求的 AI Safety Guardrails 尚未对该工作空间授权；服务器运行时仍强制该 Header，不会为了跑通而降级。
 
 Provider 验证器现在把失败路径收敛为一份机读报告：`providerGate=NO_GO`、`releaseEvidence=false`，显式记录本轮实际 3 个请求，而不是只显示产品单卡的 1 次模型调用。原 JPEG 的 JFIF/EXIF 段在内存中移除，报告只保留净化字节 SHA-256 与大小；写出前扫描 API Key、完整工作空间端点、凭据路径和图片路径，命中即拒绝。报告以 `0600` 和 `wx` 写入，拒绝覆盖旧证据。本轮真实报告位于忽略目录 `.tooling/qwen-provider-verification-2026-07-26.json`，SHA-256 为 `4cbb927227fad5dcaf3f362f3081f6db33e2cb421de03ab9a6ae528a29a1ff2b`；二次检查确认四类敏感值均不存在。它是本地诊断证据，不是发布证据。下一外部动作仍需阿里云主账号开通按量付费 AI Safety Guardrails、授权同一百炼工作空间并允许创建 `AliyunServiceRoleForSFMAccessingCIP`，随后重跑到生产 Header 请求本身通过；Beta 保持 `NO_GO`。

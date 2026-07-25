@@ -91,6 +91,8 @@ const backendDomainTypes = await readFile(path.join(root, "backend", "src", "dom
 const qwenProvider = await readFile(path.join(root, "backend", "src", "providers", "qwen-providers.ts"), "utf8");
 const kimiProvider = await readFile(path.join(root, "backend", "src", "providers", "kimi-providers.ts"), "utf8");
 const qwenVerifier = await readFile(path.join(root, "backend", "src", "verify-qwen-provider.ts"), "utf8");
+const qwenGuardrailPreflight = await readFile(path.join(root, "backend", "src", "verify-qwen-guardrail-access.ts"), "utf8");
+const qwenGuardrailPreflightTest = await readFile(path.join(root, "backend", "src", "verify-qwen-guardrail-access.test.ts"), "utf8");
 const qwenProviderTest = await readFile(path.join(root, "backend", "src", "providers", "qwen-providers.test.ts"), "utf8");
 const qwenVerifierTest = await readFile(path.join(root, "backend", "src", "verify-qwen-provider.test.ts"), "utf8");
 const cardScheduling = await readFile(path.join(root, "backend", "src", "domain", "card-scheduling.ts"), "utf8");
@@ -1094,6 +1096,21 @@ check(
   "Qwen JSON contract or metadata-free verifier can regress from the live-validated path"
 );
 check(
+  backendPackage.scripts?.["verify:qwen-guardrail-access"] === "tsx src/verify-qwen-guardrail-access.ts" &&
+    qwenGuardrailPreflight.includes('"X-DashScope-DataInspection": INSPECTION_HEADER') &&
+    qwenGuardrailPreflight.includes('messages: [{ role: "user", content: "只返回 JSON') &&
+    !qwenGuardrailPreflight.includes("image_url") &&
+    qwenGuardrailPreflight.includes('redirect: "error"') &&
+    qwenGuardrailPreflight.includes("AbortSignal.timeout(15_000)") &&
+    qwenGuardrailPreflight.includes('code: "transport_error"') &&
+    qwenGuardrailPreflight.includes('releaseEvidence: false') &&
+    qwenGuardrailPreflight.includes('requiredServiceLinkedRole: "AliyunServiceRoleForSFMAccessingCIP"') &&
+    qwenGuardrailPreflightTest.includes("uses the production inspection header without sending image bytes") &&
+    qwenGuardrailPreflightTest.includes("reports missing workspace authorization without leaking upstream messages") &&
+    qwenGuardrailPreflightTest.includes("redacts transport failures that may contain the private workspace URL"),
+  "Qwen guardrail authorization cannot be safely preflighted without re-uploading an image"
+);
+check(
   backendServerTest.includes("uses the reviewed topic name consistently when vision returns an alias") &&
     backendServerTest.includes('displayName: "清扫刷"') &&
     backendServerTest.includes('detectedObjectName: "扫帚"'),
@@ -1827,7 +1844,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

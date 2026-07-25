@@ -55,6 +55,17 @@ one explicitly authorized, non-personal JPEG:
 
 ```powershell
 cd backend
+pnpm verify:qwen-guardrail-access -- --credentials-file <absolute-path-to-downloaded-csv>
+```
+
+This preflight sends one benign text-only request with the exact production inspection header. It
+does not read or upload an image and prints only the HTTP status plus a validated diagnostic code.
+Use it after changing AI Safety Guardrails or workspace authorization; a `GO` result only proves
+that the role and inspection header are usable, so the authorized-image verification below remains
+required before deployment.
+
+```powershell
+cd backend
 pnpm verify:qwen-provider -- --credentials-file <absolute-path-to-downloaded-csv> --image <absolute-path-to-authorized-jpeg> --output <new-private-report-path.json> --confirm-authorized-image
 ```
 

@@ -29,7 +29,7 @@
 13/13 项真实仓储/升级测试及编译服务 TCP E2E 通过。迁移 13 已验证旧卡片对象名回填、非空长度约束和
 `detectedObjectName` 持久化；证据位于 `.tooling/postgres-integration-results-macos/`。
 
-真实百炼 Provider 已用 CC0 自行车图片复验：验证器在内存去除 JPEG APP/COM 元数据后，`qwen3.6-flash-2026-04-16` 于 5.46 秒返回 `bicycle / 自行车 / 0.98`，严格 JSON Schema 通过。Qwen 提示已固定 `{x,y,width,height}` 坐标形状并移除可能截断 JSON 的 `max_tokens`；源码守卫输出 `qwenStructuredContract=1 qwenVerifierPrivacy=1`。生产请求仍因账号未授权 AI Safety Guardrails 返回 `403 access_denied`，普通模型探针为 200；该 fallback 只证明模型与 Schema 可用，不是生产或发布证据。
+真实百炼 Provider 已用 CC0 自行车图片复验：验证器在内存去除 JPEG APP/COM 元数据后，`qwen3.6-flash-2026-04-16` 于 5.46 秒返回 `bicycle / 自行车 / 0.98`，严格 JSON Schema 通过。Qwen 提示已固定 `{x,y,width,height}` 坐标形状并移除可能截断 JSON 的 `max_tokens`；源码守卫输出 `qwenStructuredContract=1 qwenVerifierPrivacy=1`。新增 `pnpm verify:qwen-guardrail-access -- --credentials-file <csv>` 可只用无敏感文本检查生产 `cip` Header，不读取或上传图片；当前真实预检仍返回 `403 access_denied`，因此 AI Safety Guardrails 和北京工作空间授权尚未完成。普通模型探针为 200；这些诊断只证明模型与 Schema 可用，不是生产或发布证据。
 
 App 与桌面组件在原图缩略图不可读取时统一显示“原图暂不可显示”，不再使用可能被理解为“候选图绝不上云”的“照片在本机”类文案。Pixel Launcher 端到端测试还验证旧缓存卡标题等于对象名时只显示一次对象名，而中低置信度提示继续保留；源码护栏固定这两条产品边界。
 
