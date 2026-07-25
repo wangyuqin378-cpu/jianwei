@@ -3,10 +3,26 @@ package cn.jianwei.app
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
+import cn.jianwei.domain.model.SavedCardUpdateResult
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class FeedbackUiPolicyTest {
+
+    @Test
+    fun `saved-card messages reflect availability change and final state`() {
+        assertThat(savedCardUpdateMessage(SavedCardUpdateResult(false, false, false)))
+            .isEqualTo("这张卡已不可用，收藏没有更改")
+        assertThat(savedCardUpdateMessage(SavedCardUpdateResult(true, true, true)))
+            .isEqualTo("已收藏，可在收藏页查看")
+        assertThat(savedCardUpdateMessage(SavedCardUpdateResult(true, true, false)))
+            .isEqualTo("已取消收藏")
+        assertThat(savedCardUpdateMessage(SavedCardUpdateResult(true, false, true)))
+            .isEqualTo("这张卡已在收藏中")
+        assertThat(savedCardUpdateMessage(SavedCardUpdateResult(true, false, false)))
+            .isEqualTo("这张卡已经不在收藏中")
+    }
+
     @Test
     fun `feedback choices use a compact grid until width or text scale needs stacking`() {
         assertThat(shouldStackFeedbackChoices(availableWidthDp = 315f, fontScale = 1f)).isFalse()

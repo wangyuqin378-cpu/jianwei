@@ -23,6 +23,7 @@ import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.KnowledgeSource
+import cn.jianwei.domain.model.SavedCardUpdateResult
 import cn.jianwei.domain.model.TrackedItem
 import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import cn.jianwei.domain.model.normalizedSafeKnowledgeSourceUrl
@@ -175,9 +176,14 @@ class RoomCardRepository @Inject constructor(
         }
     }
 
-    override suspend fun setSaved(cardId: String, saved: Boolean): Boolean =
+    override suspend fun setSaved(cardId: String, saved: Boolean): SavedCardUpdateResult =
         sessionGate.withSerializedLocalMutation {
-            cards.setCardSaved(cardId, saved, System.currentTimeMillis())
+            val commit = cards.setCardSaved(cardId, saved, System.currentTimeMillis())
+            SavedCardUpdateResult(
+                cardAvailable = commit.cardAvailable,
+                changed = commit.changed,
+                isSaved = commit.isSaved
+            )
         }
 
     private suspend fun markPhotoNeverAnalyzeLocally(cardId: String): PrivateCardCleanup {

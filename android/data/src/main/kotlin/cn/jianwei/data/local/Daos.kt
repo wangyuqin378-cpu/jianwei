@@ -25,6 +25,12 @@ data class OrdinaryFeedbackCommit(
     val cardFound: Boolean
 )
 
+data class SavedCardCommit(
+    val cardAvailable: Boolean,
+    val changed: Boolean,
+    val isSaved: Boolean
+)
+
 @Dao
 interface PhotoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -246,11 +252,16 @@ interface CardDao {
     suspend fun upsertSavedCard(item: SavedCardEntity)
 
     @Transaction
-    suspend fun setCardSaved(cardId: String, saved: Boolean, nowMillis: Long): Boolean {
-        val card = findById(cardId) ?: return false
-        if (card.status != "scheduled") return false
+    suspend fun setCardSaved(cardId: String, saved: Boolean, nowMillis: Long): SavedCardCommit {
+        val card = findById(cardId)
+            ?: return SavedCardCommit(false, false, false)
         val current = findSavedCard(cardId)
-        if (!saved && current == null) return false
+        if (card.status != "scheduled") {
+            return SavedCardCommit(false, false, current?.isSaved == true)
+        }
+        if (current?.isSaved == saved || (!saved && current == null)) {
+            return SavedCardCommit(true, false, saved)
+        }
         val shouldSignal = saved && current?.feedbackSignaled != true
         upsertSavedCard(
             SavedCardEntity(
@@ -284,7 +295,7 @@ interface CardDao {
                 )
             )
         }
-        return shouldSignal
+        return SavedCardCommit(true, true, saved)
     }
 
     @Query("SELECT * FROM pending_feedback ORDER BY createdAtMillis ASC LIMIT :limit")

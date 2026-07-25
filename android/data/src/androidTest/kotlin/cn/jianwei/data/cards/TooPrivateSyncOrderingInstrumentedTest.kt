@@ -30,6 +30,7 @@ import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.PhotoOrigin
+import cn.jianwei.domain.model.SavedCardUpdateResult
 import com.google.common.truth.Truth.assertThat
 import java.io.IOException
 import java.time.LocalDate
@@ -175,9 +176,14 @@ class TooPrivateSyncOrderingInstrumentedTest {
     @Test
     fun savedCardSurvivesRefreshAndResaveDoesNotDuplicateSignal() = runBlocking {
         withRepository { database, repository, _, api ->
-            assertThat(repository.setSaved(CARD_ID, true)).isTrue()
-            assertThat(repository.setSaved(CARD_ID, false)).isFalse()
-            assertThat(repository.setSaved(CARD_ID, true)).isFalse()
+            assertThat(repository.setSaved(CARD_ID, true))
+                .isEqualTo(SavedCardUpdateResult(true, true, true))
+            assertThat(repository.setSaved(CARD_ID, false))
+                .isEqualTo(SavedCardUpdateResult(true, true, false))
+            assertThat(repository.setSaved(CARD_ID, true))
+                .isEqualTo(SavedCardUpdateResult(true, true, true))
+            assertThat(repository.setSaved(CARD_ID, true))
+                .isEqualTo(SavedCardUpdateResult(true, false, true))
             assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.SAVE.name)).hasSize(1)
             assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.5)
             api.cardsHandler = { CardsResponse(listOf(serverCard(title = "server-refreshed")), null) }
@@ -239,7 +245,8 @@ class TooPrivateSyncOrderingInstrumentedTest {
     @Test
     fun pausedAnalysisStillAllowsLocalSaveAndPrivacyFeedback() = runBlocking {
         withRepository(initiallyPaused = true) { database, repository, _, api ->
-            assertThat(repository.setSaved(CARD_ID, true)).isTrue()
+            assertThat(repository.setSaved(CARD_ID, true))
+                .isEqualTo(SavedCardUpdateResult(true, true, true))
             assertThat(repository.observeSavedCards().first().single().cardId).isEqualTo(CARD_ID)
             assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.SAVE.name)).hasSize(1)
 
@@ -255,6 +262,22 @@ class TooPrivateSyncOrderingInstrumentedTest {
                 .isEqualTo(AnalysisState.NEVER_ANALYZE.name)
             assertThat(database.photos().isSuppressed(42L)).isTrue()
             assertThat(api.events).isEmpty()
+        }
+    }
+
+    @Test
+    fun unavailableCardCannotReportAFalseSavedState() = runBlocking {
+        withRepository { database, repository, _, _ ->
+            database.cards().archiveCard(CARD_ID)
+
+            val archived = repository.setSaved(CARD_ID, true)
+            database.cards().deleteById(CARD_ID)
+            val missing = repository.setSaved(CARD_ID, true)
+
+            assertThat(archived).isEqualTo(SavedCardUpdateResult(false, false, false))
+            assertThat(missing).isEqualTo(SavedCardUpdateResult(false, false, false))
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.SAVE.name)).isEmpty()
+            assertThat(repository.observeSavedCards().first()).isEmpty()
         }
     }
 

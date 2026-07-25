@@ -3,6 +3,7 @@ package cn.jianwei.app
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
+import cn.jianwei.domain.model.SavedCardUpdateResult
 
 internal fun FeedbackAction.userLabel(): String = when (this) {
     FeedbackAction.LIKE -> "有意思"
@@ -26,4 +27,12 @@ internal fun feedbackResultMessage(result: FeedbackSubmissionResult): String = w
         "已隐藏这张识别有误的卡片；不会把它当作兴趣信号"
     else ->
         "已记录「${result.effectiveAction.userLabel()}」，用于改进本次安装的推荐"
+}
+
+internal fun savedCardUpdateMessage(result: SavedCardUpdateResult): String = when {
+    !result.cardAvailable -> "这张卡已不可用，收藏没有更改"
+    result.changed && result.isSaved -> "已收藏，可在收藏页查看"
+    result.changed -> "已取消收藏"
+    result.isSaved -> "这张卡已在收藏中"
+    else -> "这张卡已经不在收藏中"
 }

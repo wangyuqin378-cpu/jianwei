@@ -113,6 +113,12 @@ data class FeedbackSubmissionResult(
     val cardRemoved: Boolean = false
 )
 
+data class SavedCardUpdateResult(
+    val cardAvailable: Boolean,
+    val changed: Boolean,
+    val isSaved: Boolean
+)
+
 fun FeedbackAction.isCardFeedback(): Boolean =
     this != FeedbackAction.SAVE
 

@@ -356,9 +356,9 @@ class MainViewModel @Inject constructor(
 
     fun setSaved(cardId: String, saved: Boolean) = runBusy(UserOperation.UPDATE_SAVED) {
         requireCloudDeletionResolved()
-        cards.setSaved(cardId, saved)
-        betaMetrics.markEngaged()
-        if (saved) "已收藏，可在收藏页查看" else "已取消收藏"
+        val result = cards.setSaved(cardId, saved)
+        if (result.cardAvailable && result.changed) betaMetrics.markEngaged()
+        savedCardUpdateMessage(result)
     }
 
     fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = runBusy(UserOperation.SET_REMINDER) {
