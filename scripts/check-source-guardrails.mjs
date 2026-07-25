@@ -1010,7 +1010,8 @@ check(
     mainActivity.includes('EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"') &&
     mainActivity.includes("BackHandler(enabled = externalFocusedEntry) { onCloseFocusedCard() }") &&
     mainActivity.includes("BackHandler(enabled = !externalFocusedEntry && openedSavedCard != null)") &&
-    mainActivity.includes("FocusedCardEntryHeader(onCloseFocusedCard)") &&
+    mainActivity.includes("FocusedCardEntryHeader(") &&
+    mainActivity.includes("fromRecentImport = state.focusedCardFromRecentImport") &&
     mainActivity.includes('"返回每日卡片"') &&
     mainActivity.includes('"这张卡已不可用"'),
   "App daily feed can expose future cache or focused card entry lacks a separate return/failure state"
@@ -1114,10 +1115,15 @@ check(
     !pendingImportResultStore.includes("contentUri =") &&
     importedPhotoResultDeviceTest.includes("importedCardOpensImmediatelyAndSurvivesANewActivitySession") &&
     importedPhotoResultDeviceTest.includes("assertThat(resultStore.snapshot().focusedCardId).isEqualTo(CARD_ID)") &&
+    importedPhotoResultDeviceTest.includes("noMatchExplainsWhyAndOffersAnotherPhoto") &&
+    importedPhotoResultDeviceTest.includes("failedAnalysisOffersAnExplicitRetryWithoutPretendingThereIsAResult") &&
+    mainViewModel.includes("focusedCardFromRecentImport") &&
+    mainActivity.includes("从你刚选的照片找到了知识") &&
+    mainActivity.includes("见微不会为了出卡而猜测。") &&
     shareReceiverDeviceTest.includes("sharedImageRetriesAcrossProcessGateAndExplainsPausedImport") &&
     shareReceiverDeviceTest.includes("assertThat(activeImportWork).isEmpty()") &&
     shareReceiverDeviceTest.includes("assertThat(imported.contentUri).doesNotContain(sourceUri.toString())"),
-  "Android Sharesheet imports bypass the shared operation gate, lack retry/progress, or falsely queue while analysis is paused"
+  "Android photo imports bypass the operation gate, lose completion context, or lack truthful result states"
 );
 check(androidManifest.includes("android.permission.POST_NOTIFICATIONS"), "Item reminders are missing the Android notification permission declaration");
 check(

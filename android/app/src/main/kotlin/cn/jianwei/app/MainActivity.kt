@@ -990,7 +990,10 @@ private fun HomeScreen(
                 } else {
                     state.focusedCard?.let { card ->
                         item {
-                            FocusedCardEntryHeader(onCloseFocusedCard)
+                            FocusedCardEntryHeader(
+                                fromRecentImport = state.focusedCardFromRecentImport,
+                                onClose = onCloseFocusedCard
+                            )
                         }
                         item(key = "focused-${card.cardId}") {
                             KnowledgeCardView(
@@ -1506,7 +1509,7 @@ private fun ImportedPhotoResultCard(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                if (noMatch) "这张照片没有生成知识卡" else "这次分析没有完成",
+                if (noMatch) "这张照片暂时没有合适的知识" else "分析暂时没有完成",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
@@ -1530,7 +1533,7 @@ private fun ImportedPhotoResultCard(
                 modifier = Modifier.align(Alignment.End),
                 enabled = actionsEnabled
             ) {
-                Text("收起")
+                Text("回到每日卡片")
             }
         }
     }
@@ -1575,7 +1578,10 @@ private fun ImportedPhotoProgressCard(
 }
 
 @Composable
-private fun FocusedCardEntryHeader(onClose: () -> Unit) {
+private fun FocusedCardEntryHeader(
+    fromRecentImport: Boolean,
+    onClose: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -1586,12 +1592,16 @@ private fun FocusedCardEntryHeader(onClose: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "打开的知识卡",
+                if (fromRecentImport) "从你刚选的照片找到了知识" else "打开的知识卡",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "这是你刚刚打开的知识卡。返回后只会看到今天及过去的卡片。",
+                if (fromRecentImport) {
+                    "下面是完整卡片；你可以核对识别对象、推荐原因和来源。"
+                } else {
+                    "这是你刚刚打开的知识卡。返回后只会看到今天及过去的卡片。"
+                },
                 style = MaterialTheme.typography.bodySmall
             )
             OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {

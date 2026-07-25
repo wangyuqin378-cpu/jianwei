@@ -53,6 +53,7 @@ data class MainUiState(
     val paused: Boolean = false,
     val currentDay: LocalDate = ChinaCalendar.today(),
     val focusedCardId: String? = null,
+    val focusedCardFromRecentImport: Boolean = false,
     val pendingImportCount: Int = 0,
     val importedPhotoResultNotice: ImportedPhotoResultNotice? = null
 ) {
@@ -87,6 +88,7 @@ class MainViewModel @Inject constructor(
             paused = scheduler.isPaused(),
             pendingImportCount = pendingImportTokens.value.size,
             focusedCardId = restoredImportResult.focusedCardId,
+            focusedCardFromRecentImport = restoredImportResult.focusedCardId != null,
             importedPhotoResultNotice = restoredImportResult.notice
         )
     )
@@ -163,7 +165,10 @@ class MainViewModel @Inject constructor(
     fun focusCard(cardId: String?) {
         val safeId = normalizedFocusedCardId(cardId)
         if (safeId == null) pendingImportResults.setFocusedCard(null)
-        localState.value = localState.value.copy(focusedCardId = safeId)
+        localState.value = localState.value.copy(
+            focusedCardId = safeId,
+            focusedCardFromRecentImport = false
+        )
     }
 
     fun refreshCurrentDay() {
@@ -332,7 +337,12 @@ class MainViewModel @Inject constructor(
         pendingImportResults.clearAll()
         pendingImportTokens.value = emptyList()
         localState.update {
-            it.copy(focusedCardId = null, pendingImportCount = 0, importedPhotoResultNotice = null)
+            it.copy(
+                focusedCardId = null,
+                focusedCardFromRecentImport = false,
+                pendingImportCount = 0,
+                importedPhotoResultNotice = null
+            )
         }
         "本地照片索引和卡片中的照片引用已清除"
     }
@@ -347,6 +357,7 @@ class MainViewModel @Inject constructor(
             it.copy(
                 paused = true,
                 focusedCardId = null,
+                focusedCardFromRecentImport = false,
                 pendingImportCount = 0,
                 importedPhotoResultNotice = null
             )
@@ -374,6 +385,7 @@ class MainViewModel @Inject constructor(
         localState.update {
             it.copy(
                 focusedCardId = null,
+                focusedCardFromRecentImport = false,
                 pendingImportCount = normalized.size,
                 importedPhotoResultNotice = null
             )
@@ -390,6 +402,7 @@ class MainViewModel @Inject constructor(
         localState.update { state ->
             state.copy(
                 focusedCardId = focusedCardId,
+                focusedCardFromRecentImport = focusedCardId != null,
                 pendingImportCount = 0,
                 message = message,
                 importedPhotoResultNotice = notice
