@@ -69,7 +69,7 @@ internal fun shouldStackKnowledgeCardActions(availableWidthDp: Float, fontScale:
     availableWidthDp < 340f || fontScale >= 1.5f
 
 internal fun shouldStackOnboardingInterests(availableWidthDp: Float, fontScale: Float): Boolean =
-    availableWidthDp < 360f || fontScale >= 1.5f
+    availableWidthDp < 300f || fontScale >= 1.5f
 
 internal fun discoveryStartMessage(access: PhotoAccess): String =
     if (shouldScheduleAutomaticDiscovery(access)) {

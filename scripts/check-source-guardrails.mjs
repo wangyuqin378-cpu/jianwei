@@ -491,16 +491,22 @@ check(
     mainActivity.includes("private fun OnboardingPrivacyPreview()") &&
     mainActivity.includes("private fun OnboardingPreferences(") &&
     mainActivity.includes("private fun OnboardingEntryChoice(") &&
+    mainActivity.includes("R.drawable.onboarding_broom_example") &&
+    mainActivity.includes('"示例照片：靠在墙边的一把扫帚"') &&
+    mainActivity.includes('"识别到 · 扫帚"') &&
     mainActivity.includes('"事实有来源"') &&
     mainActivity.includes('"可靠命中才生成"') &&
     mainActivity.includes('"已选 ${interests.size} / $REQUIRED_INTEREST_COUNT"') &&
     mainActivity.includes("shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)") &&
     mainActivity.includes("val scrollState = rememberScrollState()") &&
     mainActivity.includes("LaunchedEffect(step)") &&
+    mainActivity.includes("focusManager.clearFocus(force = true)") &&
+    mainActivity.includes("withFrameNanos { }") &&
     mainActivity.includes("scrollState.scrollTo(0)") &&
-    mainActivity.includes("BackHandler(enabled = step > 0) { step-- }") &&
+    mainActivity.includes("BackHandler(enabled = step > 0)") &&
     mainActivity.includes('Text("返回上一步")') &&
     discoveryUiPolicy.includes("fun shouldStackOnboardingInterests") &&
+    discoveryUiPolicy.includes("availableWidthDp < 300f || fontScale >= 1.5f") &&
     discoveryUiPolicyTest.includes("onboarding interests reflow before choices become cramped"),
   "Onboarding is missing its product preview, truthful privacy path, accessible reflow, or page scroll reset"
 );

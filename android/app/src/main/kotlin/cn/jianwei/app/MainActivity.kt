@@ -65,13 +65,16 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -355,7 +358,10 @@ private fun JianweiTheme(content: @Composable () -> Unit) {
 private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>) -> Unit) {
     var step by remember { mutableIntStateOf(0) }
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(step) {
+        focusManager.clearFocus(force = true)
+        withFrameNanos { }
         scrollState.scrollTo(0)
     }
     val pages = listOf(
@@ -364,7 +370,10 @@ private fun Onboarding(onAutomatic: (Set<String>) -> Unit, onPick: (Set<String>)
         "决定你想看什么" to "先选 3 个兴趣，再选择自动发现或逐次挑选照片。以后可以在推荐偏好中调整。"
     )
     val interests = remember { mutableStateOf(DEFAULT_INTEREST_SELECTION) }
-    BackHandler(enabled = step > 0) { step-- }
+    BackHandler(enabled = step > 0) {
+        focusManager.clearFocus(force = true)
+        step--
+    }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             Modifier.fillMaxSize().verticalScroll(scrollState).padding(horizontal = 20.dp, vertical = 18.dp),
@@ -467,21 +476,38 @@ private fun OnboardingValuePreview() {
     ) {
         Column {
             Box(
-                Modifier.fillMaxWidth().height(156.dp).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+                Modifier.fillMaxWidth().height(180.dp)
             ) {
+                Image(
+                    painter = painterResource(R.drawable.onboarding_broom_example),
+                    contentDescription = "示例照片：靠在墙边的一把扫帚",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(28.dp)
+                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    shape = RoundedCornerShape(18.dp)
                 ) {
-                    Column(
-                        Modifier.padding(horizontal = 24.dp, vertical = 18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text("你的日常照片", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                        Text("一件普通物品", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
+                    Text(
+                        "示例照片",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Surface(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.94f),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Text(
+                        "识别到 · 扫帚",
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -491,10 +517,13 @@ private fun OnboardingValuePreview() {
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text("从照片中的物件，遇见一条有来源的知识", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("原照片只作为上下文；卡片会标明识别把握、推荐原因和可点击来源。", style = MaterialTheme.typography.bodyMedium)
+                Text("扫帚为什么用一束细长刷毛？", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "见微会从审核过的事实里寻找答案。正式卡片会标明识别把握、推荐原因，并附上可点击来源。",
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OnboardingTag("来自你的照片")
+                    OnboardingTag("原照片做上下文")
                     OnboardingTag("事实有来源")
                 }
             }

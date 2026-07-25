@@ -117,9 +117,9 @@ class DiscoveryUiPolicyTest {
 
     @Test
     fun `onboarding interests reflow before choices become cramped`() {
-        assertThat(shouldStackOnboardingInterests(availableWidthDp = 320f, fontScale = 1f)).isTrue()
-        assertThat(shouldStackOnboardingInterests(availableWidthDp = 411f, fontScale = 2f)).isTrue()
-        assertThat(shouldStackOnboardingInterests(availableWidthDp = 411f, fontScale = 1f)).isFalse()
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 339f, fontScale = 1f)).isFalse()
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 299f, fontScale = 1f)).isTrue()
+        assertThat(shouldStackOnboardingInterests(availableWidthDp = 339f, fontScale = 1.5f)).isTrue()
     }
 
     @Test
