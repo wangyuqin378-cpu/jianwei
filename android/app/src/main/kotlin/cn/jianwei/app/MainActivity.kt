@@ -1787,7 +1787,11 @@ private fun KnowledgeCardView(
                         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("物品提醒已开启", fontWeight = FontWeight.SemiBold)
                             Text(
-                                "启用 ${reminder.startedOn} · ${reminder.reminderDays} 天 · 预计 ${reminder.dueOn} 复查",
+                                "开始使用：${reminder.startedOn.chineseDateLabel()}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Text(
+                                "复查周期：${reminder.reminderDays} 天 · 预计 ${reminder.dueOn.chineseDateLabel()} 上午提醒",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -1958,19 +1962,49 @@ private fun ItemReminderDialog(
     var reminderDays by rememberSaveable(card.cardId, existing?.reminderDays) {
         mutableIntStateOf(existing?.reminderDays ?: 90)
     }
+    var timingConfirmed by rememberSaveable(card.cardId, existing?.startedOn, existing?.reminderDays) {
+        mutableStateOf(false)
+    }
     val startedOn = LocalDate.ofEpochDay(startedOnEpochDay)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "追踪「${card.title}」" else "更新「${card.title}」提醒") },
+        title = {
+            Text(
+                if (existing == null) {
+                    "为「${card.detectedObjectName}」设复查提醒"
+                } else {
+                    "更新「${card.detectedObjectName}」的复查提醒"
+                }
+            )
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("请确认这个物品开始使用或启用的日期。见微不会让 AI 猜测使用时长。")
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("时间由你确认", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "见微不会从照片猜测这个物品用了多久，只会按你填写的日期提醒。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                Text("开始使用日", fontWeight = FontWeight.SemiBold)
                 OutlinedButton(
                     onClick = {
                         DatePickerDialog(
                             context,
                             { _, year, month, day ->
                                 startedOnEpochDay = LocalDate.of(year, month + 1, day).toEpochDay()
+                                timingConfirmed = false
                             },
                             startedOn.year,
                             startedOn.monthValue - 1,
@@ -1980,19 +2014,25 @@ private fun ItemReminderDialog(
                         }.show()
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("启用日期：$startedOn（点击修改）") }
-                Text("提醒周期", fontWeight = FontWeight.SemiBold)
+                ) { Text("${startedOn.chineseDateLabel()} · 点击修改") }
+                Text("多久后复查", fontWeight = FontWeight.SemiBold)
                 ITEM_REMINDER_DAY_OPTIONS.chunked(2).forEach { rowOptions ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         rowOptions.forEach { option ->
                             if (option == reminderDays) {
                                 Button(
-                                    onClick = { reminderDays = option },
+                                    onClick = {
+                                        reminderDays = option
+                                        timingConfirmed = false
+                                    },
                                     modifier = Modifier.weight(1f)
                                 ) { Text("$option 天") }
                             } else {
                                 OutlinedButton(
-                                    onClick = { reminderDays = option },
+                                    onClick = {
+                                        reminderDays = option
+                                        timingConfirmed = false
+                                    },
                                     modifier = Modifier.weight(1f)
                                 ) { Text("$option 天") }
                             }
@@ -2000,9 +2040,50 @@ private fun ItemReminderDialog(
                         if (rowOptions.size == 1) Spacer(Modifier.weight(1f))
                     }
                 }
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("预计复查日", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            startedOn.plusDays(reminderDays.toLong()).chineseDateLabel(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "当天上午 9:00 左右通知；系统省电可能造成延迟。",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = timingConfirmed,
+                                role = Role.Checkbox,
+                                onValueChange = { timingConfirmed = it }
+                            )
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = timingConfirmed, onCheckedChange = null)
+                        Text("我确认以上开始使用日和复查周期", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 Text(
-                    "预计 ${startedOn.plusDays(reminderDays.toLong())} 上午提醒。确认后才会请求通知权限；系统省电可能延迟送达，不承诺精确时间。",
-                    style = MaterialTheme.typography.bodySmall
+                    "这是自定义复查提醒，不代表专业更换建议；请优先遵循产品说明或专业建议。若尚未授权，确认后再由系统请求通知权限。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -2011,12 +2092,16 @@ private fun ItemReminderDialog(
                 onClick = {
                     onConfirm(ItemReminderSubmission(card.cardId, startedOn, reminderDays))
                 },
-                enabled = actionsEnabled && isValidItemReminderDraft(startedOn, reminderDays, today)
+                enabled = actionsEnabled &&
+                    timingConfirmed &&
+                    isValidItemReminderDraft(startedOn, reminderDays, today)
             ) { Text(if (existing == null) "确认并开启提醒" else "保存提醒") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
     )
 }
+
+private fun LocalDate.chineseDateLabel(): String = "$year 年 $monthValue 月 $dayOfMonth 日"
 
 @Composable
 private fun PrivacyCenter(

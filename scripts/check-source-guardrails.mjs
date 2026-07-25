@@ -186,6 +186,7 @@ const photoAccessPresentationDeviceTest = await readFile(path.join(root, "androi
 const savedTabNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SavedTabNavigationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
+const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
 const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
 const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicy.kt"), "utf8");
@@ -1011,7 +1012,20 @@ check(
   "Android Sharesheet imports bypass the shared operation gate, lack retry/progress, or falsely queue while analysis is paused"
 );
 check(androidManifest.includes("android.permission.POST_NOTIFICATIONS"), "Item reminders are missing the Android notification permission declaration");
-check(mainActivity.includes("确认并开启提醒") && mainActivity.includes("datePicker.maxDate"), "Item tracking does not require an explicit non-future start-date confirmation");
+check(
+  mainActivity.includes("确认并开启提醒") &&
+    mainActivity.includes("datePicker.maxDate") &&
+    mainActivity.includes("时间由你确认") &&
+    mainActivity.includes("不会从照片猜测这个物品用了多久") &&
+    mainActivity.includes("我确认以上开始使用日和复查周期") &&
+    mainActivity.includes("这是自定义复查提醒，不代表专业更换建议") &&
+    mainActivity.includes("timingConfirmed &&") &&
+    mainActivity.includes("Modifier.verticalScroll(rememberScrollState())") &&
+    itemReminderConsentDeviceTest.includes("reminderRequiresConfirmedTimingBeforeSchedulingAndShowsHumanReadableState") &&
+    itemReminderConsentDeviceTest.includes("clickableAncestorOrNull(disabledConfirm)?.isEnabled") &&
+    itemReminderConsentDeviceTest.includes("item-reminder-consent.png"),
+  "Item tracking does not require explicit user-owned timing confirmation or lacks device regression coverage"
+);
 check(
   mainActivity.includes("WidgetCallToAction(onAddWidget)") &&
     mainActivity.includes("每天在桌面遇见新知识") &&
