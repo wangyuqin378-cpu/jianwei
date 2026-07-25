@@ -183,6 +183,7 @@ const discoveryUseCases = await readFile(path.join(root, "android", "domain", "s
 const configurePhotoAccessTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "usecase", "ConfigurePhotoAccessUseCaseTest.kt"), "utf8");
 const automaticDiscoveryControlDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "AutomaticDiscoveryControlInstrumentedTest.kt"), "utf8");
 const photoAccessPresentationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "PhotoAccessPresentationInstrumentedTest.kt"), "utf8");
+const savedTabNavigationDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "SavedTabNavigationInstrumentedTest.kt"), "utf8");
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
@@ -464,9 +465,16 @@ check(
 );
 check(
   mainActivity.includes("收藏 ${state.savedCards.size}") &&
-    mainActivity.includes("还没有收藏") &&
+    mainActivity.includes("private fun SavedEmptyState(") &&
+    mainActivity.includes("把想记住的知识留在这里") &&
+    mainActivity.includes('Text("查看每日卡片")') &&
+    mainActivity.includes("BackHandler(enabled = !focusedEntry && showSavedCards)") &&
+    !mainActivity.includes("收藏这张知识卡") &&
     mainActivity.includes('Text(if (isSaved) "取消收藏" else "收藏")') &&
-    mainActivity.includes('Text(if (trackedItem == null) "物品提醒" else "更新提醒")'),
+    mainActivity.includes('Text(if (trackedItem == null) "物品提醒" else "更新提醒")') &&
+    savedTabNavigationDeviceTest.includes("emptySavedTabExplainsTheCurrentActionAndReturnsToDailyCards") &&
+    savedTabNavigationDeviceTest.includes('executeShellCommand("input keyevent KEYCODE_BACK")') &&
+    savedTabNavigationDeviceTest.includes('SCREENSHOT_NAME = "saved-empty-state.png"'),
   "Saved-card collection has no complete visible add/list/remove UI"
 );
 check(

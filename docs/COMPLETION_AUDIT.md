@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 收藏页独立导航闭环（当前最新权威摘要）：收藏空状态不再沿用旧动作名“收藏这张知识卡”，而是与每日卡片当前的“收藏”操作一致，明确说明卡片会保存在这里，并给出“查看每日卡片”主操作。收藏模式只呈现归档内容，不再重复自动分析状态、推荐偏好和隐私中心；CTA 与系统返回键都恢复每日模式，未改变 Room 收藏、反馈或云同步语义。Android Clean Architecture 在本轮用于保持变化位于 Compose 展示/导航边界。
+
+API 34 新增设备测试以真实 Room 空状态验证文案、设置隔离、CTA 返回和 `KEYCODE_BACK` 返回，并生成 1080×2400 截图；840×1867/2× 字体下同一测试通过，主操作完整可达。标准/大字截图 SHA-256 为 `892187f0b7dd1108e2f61c96a8d2bf7a77e12a2e89f5ce344e2165eedf3a844e` / `f686965d6f43916bd221db7fc396e8d753d01e8ace8fa2291110244bb2364ef8`。完整 App instrumentation 13/13；Android JVM 180/180（Domain 56、App 46、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。Debug/未签名 Release APK SHA-256 为 `13f2068d797b3f842e5d0c40d2f4cbbaf2d862c2c4e99cc30ab0605bff666579` / `a579b6f0e164fe79b411edb93e9a2440f66c5b5ed8d93c0e9a8e23709fa755de`。截图和 APK 仍是本地工程证据；外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-25 Picker-only 首日空状态（当前最新权威摘要）：完成引导但取消系统选图后，首页不再只解释权限和入口。主卡现在先告诉用户“从一件日常物品开始”，说明主体清楚、画面简单以及本机先做隐私/质量筛选，并给出杯子与餐具、清洁工具、数码小物三类可直接尝试的照片；选图是唯一主操作，分享入口降为补充说明。三项建议按卡片净宽而非屏幕宽度排版，标准横排，净宽 `<300dp` 或字体 `>=1.5×` 才纵排。策略保持在 app 纯 UI policy，扫描、权限和数据层语义未改。
 
 API 34 Picker-only 设备测试真实检查标题、三项建议、选图按钮和截图，并使用真实滑动手势验证精确 320dp/2× 字体下隐私中心展开后的自动发现入口仍可到达；完整 App instrumentation 12/12。Android JVM 180/180（Domain 56、App 46、Data 78），App/Data Lint 0 error，Debug、R8 Release 与源码门禁通过。标准截图 SHA-256 为 `e8242db314ace01beb39990a0bc62196d451778e3815d2e3bcc16901a8082ed4`；Debug/未签名 Release APK SHA-256 为 `a613574db83c8d5bfe4bc28d11dcf6732312966a899ed8fba851fe23327ed95a` / `51176de1a10542a0f6e944029b7f731c1b373fe8cc566d60210a9d870b0d14d7`。这些仍是本地工程证据；外部发布阻断不变，Beta 保持 `NO_GO`。

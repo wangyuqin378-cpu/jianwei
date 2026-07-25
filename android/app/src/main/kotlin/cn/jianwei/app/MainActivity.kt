@@ -765,6 +765,7 @@ private fun HomeScreen(
     val visibleCards = if (showSavedCards) state.savedCards else state.cards
     val savedCardIds = state.savedCards.mapTo(remember(state.savedCards) { mutableSetOf() }) { it.cardId }
     BackHandler(enabled = focusedEntry) { onCloseFocusedCard() }
+    BackHandler(enabled = !focusedEntry && showSavedCards) { showSavedCards = false }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
     }
@@ -875,38 +876,40 @@ private fun HomeScreen(
                         }
                     }
                 }
-                if (shouldShowPausedAnalysisBanner(state.paused, state.cards.isNotEmpty() || state.savedCards.isNotEmpty())) {
-                    item {
-                        PausedAnalysisBanner(actionsEnabled = actionsEnabled, onResume = onResume)
-                    }
-                }
-                if (state.pendingImportCount > 0) {
-                    item {
-                        ImportedPhotoProgressCard(
-                            count = state.pendingImportCount,
-                            paused = state.paused,
-                            phase = state.analysisProgress.phase
-                        )
-                    }
-                } else if (state.importedPhotoResultNotice != null) {
-                    item {
-                        ImportedPhotoResultCard(
-                            result = state.importedPhotoResultNotice,
-                            actionsEnabled = actionsEnabled,
-                            onPick = onPick,
-                            onRetry = onRetry,
-                            onDismiss = onDismissImportedPhotoResult
-                        )
-                    }
-                } else {
-                    analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
+                if (!showSavedCards) {
+                    if (shouldShowPausedAnalysisBanner(state.paused, state.cards.isNotEmpty() || state.savedCards.isNotEmpty())) {
                         item {
-                            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                                Text(
-                                    bannerMessage,
-                                    modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                            PausedAnalysisBanner(actionsEnabled = actionsEnabled, onResume = onResume)
+                        }
+                    }
+                    if (state.pendingImportCount > 0) {
+                        item {
+                            ImportedPhotoProgressCard(
+                                count = state.pendingImportCount,
+                                paused = state.paused,
+                                phase = state.analysisProgress.phase
+                            )
+                        }
+                    } else if (state.importedPhotoResultNotice != null) {
+                        item {
+                            ImportedPhotoResultCard(
+                                result = state.importedPhotoResultNotice,
+                                actionsEnabled = actionsEnabled,
+                                onPick = onPick,
+                                onRetry = onRetry,
+                                onDismiss = onDismissImportedPhotoResult
+                            )
+                        }
+                    } else {
+                        analysisStatusBanner(state.analysisProgress, state.cards.isNotEmpty())?.let { bannerMessage ->
+                            item {
+                                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                                    Text(
+                                        bannerMessage,
+                                        modifier = Modifier.padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                     }
@@ -921,12 +924,7 @@ private fun HomeScreen(
                         EmptyState(state.paused, access, state.analysisProgress, actionsEnabled, onPick, onResume, onRetry)
                     }
                     if (showSavedCards && state.savedCards.isEmpty()) {
-                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("还没有收藏", style = MaterialTheme.typography.titleLarge)
-                                Text("看到想留住的知识卡时，点击“收藏这张知识卡”。")
-                            }
-                        }
+                        SavedEmptyState(onShowDaily = { showSavedCards = false })
                     }
                 }
                 itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
@@ -958,25 +956,51 @@ private fun HomeScreen(
                         }
                     }
                 }
-                item {
-                    InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
+                if (!showSavedCards) {
+                    item {
+                        InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
+                    }
+                    item {
+                        PrivacyCenter(
+                            access,
+                            widgetInstalled,
+                            state.paused,
+                            actionsEnabled,
+                            onPick,
+                            onManageAutomaticDiscovery,
+                            onAddWidget,
+                            onPause,
+                            onResume,
+                            onClearIndex,
+                            onDeleteCloud,
+                            onExportMetrics
+                        )
+                    }
                 }
-                item {
-                    PrivacyCenter(
-                        access,
-                        widgetInstalled,
-                        state.paused,
-                        actionsEnabled,
-                        onPick,
-                        onManageAutomaticDiscovery,
-                        onAddWidget,
-                        onPause,
-                        onResume,
-                        onClearIndex,
-                        onDeleteCloud,
-                        onExportMetrics
-                    )
-                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedEmptyState(onShowDaily: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = RoundedCornerShape(22.dp)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "把想记住的知识留在这里",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "在每日卡片上点“收藏”，它就会出现在这里，方便以后回来找。",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Button(onClick = onShowDaily, modifier = Modifier.fillMaxWidth()) {
+                Text("查看每日卡片")
             }
         }
     }
