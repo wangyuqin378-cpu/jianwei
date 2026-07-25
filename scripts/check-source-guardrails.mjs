@@ -164,6 +164,7 @@ const imageSanitizerSource = await readFile(path.join(root, "android", "data", "
 const orientedBitmapDecoder = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "OrientedBitmapDecoder.kt"), "utf8");
 const androidManifest = await readFile(path.join(root, "android", "app", "src", "main", "AndroidManifest.xml"), "utf8");
 const mainActivity = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainActivity.kt"), "utf8");
+const appStrings = await readFile(path.join(root, "android", "app", "src", "main", "res", "values", "strings.xml"), "utf8");
 const dailyWidget = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "widget", "DailyWidget.kt"), "utf8");
 const dailyWidgetRefresh = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "widget", "DailyWidgetRefreshWorker.kt"), "utf8");
 const dailyWidgetRefreshJvmTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "widget", "DailyWidgetRefreshPolicyTest.kt"), "utf8");
@@ -189,6 +190,7 @@ const settingsNavigationDeviceTest = await readFile(path.join(root, "android", "
 const shareReceiverDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ShareReceiverFlowInstrumentedTest.kt"), "utf8");
 const importedPhotoResultDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ImportedPhotoResultFlowInstrumentedTest.kt"), "utf8");
 const itemReminderConsentDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderConsentInstrumentedTest.kt"), "utf8");
+const onboardingValuePreviewDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "OnboardingValuePreviewInstrumentedTest.kt"), "utf8");
 const feedbackUiPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicy.kt"), "utf8");
 const feedbackUiPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "FeedbackUiPolicyTest.kt"), "utf8");
 const feedbackAffinityPolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "feedback", "FeedbackAffinityPolicy.kt"), "utf8");
@@ -546,9 +548,17 @@ check(
     mainActivity.includes("private fun OnboardingPreferences(") &&
     mainActivity.includes("private fun OnboardingEntryChoice(") &&
     mainActivity.includes("R.drawable.onboarding_broom_example") &&
-    mainActivity.includes('"示例照片：靠在墙边的一把扫帚"') &&
+    mainActivity.includes("R.string.widget_preview_image_description") &&
+    appStrings.includes('name="widget_preview_image_description">示例照片：靠在墙边的一把扫帚</string>') &&
     mainActivity.includes('"识别到 · 扫帚"') &&
-    mainActivity.includes('"事实有来源"') &&
+    mainActivity.includes('"来源可查看"') &&
+    mainActivity.includes("stringResource(R.string.onboarding_example_body)") &&
+    mainActivity.includes("uriHandler.openUri(ONBOARDING_BROOM_SOURCE_URL)") &&
+    mainActivity.includes('"https://patents.google.com/patent/US4756039A/en"') &&
+    appStrings.includes('name="onboarding_example_body">现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。</string>') &&
+    appStrings.includes('name="onboarding_example_source">查看示例来源 · Google Patents</string>') &&
+    onboardingValuePreviewDeviceTest.includes('clickTextWithScroll(instrumentation, "查看示例来源 · Google Patents")') &&
+    onboardingValuePreviewDeviceTest.includes("awaitExternalWindow(instrumentation, context.packageName)") &&
     mainActivity.includes('"可靠命中才生成"') &&
     mainActivity.includes('"已选 ${interests.size} / $REQUIRED_INTEREST_COUNT"') &&
     mainActivity.includes("shouldStackOnboardingInterests(maxWidth.value, LocalDensity.current.fontScale)") &&

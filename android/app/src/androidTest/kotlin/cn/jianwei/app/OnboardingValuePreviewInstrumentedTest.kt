@@ -33,9 +33,23 @@ class OnboardingValuePreviewInstrumentedTest {
             )).isNotNull()
             assertThat(reachableNode(
                 instrumentation,
-                "扫帚为什么用一束细长刷毛？",
+                "扫帚为什么做成扇形？",
                 requiresScroll
             )).isNotNull()
+            assertThat(reachableNode(
+                instrumentation,
+                ONBOARDING_EXAMPLE_BODY,
+                true
+            )).isNotNull()
+            val source = reachableNode(
+                instrumentation,
+                "查看示例来源 · Google Patents",
+                true
+            )
+            assertThat(
+                generateSequence(source) { current -> current.parent }
+                    .any { current -> current.isClickable }
+            ).isTrue()
 
             val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
             output.outputStream().use { stream ->
@@ -46,12 +60,15 @@ class OnboardingValuePreviewInstrumentedTest {
             }
             assertThat(output.length()).isGreaterThan(0L)
 
-            clickTextWithScroll(instrumentation, "继续")
-            assertThat(awaitNode(instrumentation, "2 / 3")).isNotNull()
+            clickTextWithScroll(instrumentation, "查看示例来源 · Google Patents")
+            awaitExternalWindow(instrumentation, context.packageName)
+            instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+            awaitPackage(instrumentation, context.packageName)
+
+            clickTextAndAwaitText(instrumentation, "继续", "2 / 3")
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
 
-            clickTextWithScroll(instrumentation, "继续")
-            assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
+            clickTextAndAwaitText(instrumentation, "继续", "3 / 3")
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
             assertThat(awaitDescriptionPrefixWithScroll(
                 instrumentation,
@@ -88,10 +105,8 @@ class OnboardingValuePreviewInstrumentedTest {
             scheduler.edit().remove(AUTOMATIC_CARD_MODE_KEY).commit()
             scenario = ActivityScenario.launch(MainActivity::class.java)
 
-            clickTextWithScroll(instrumentation, "继续")
-            assertThat(awaitNode(instrumentation, "2 / 3")).isNotNull()
-            clickTextWithScroll(instrumentation, "继续")
-            assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
+            clickTextAndAwaitText(instrumentation, "继续", "2 / 3")
+            clickTextAndAwaitText(instrumentation, "继续", "3 / 3")
             clickTextWithScroll(instrumentation, "生活设计")
             awaitChoiceState(instrumentation, "生活设计", false)
             clickTextWithScroll(instrumentation, "实用技巧")
@@ -128,6 +143,28 @@ class OnboardingValuePreviewInstrumentedTest {
         text: String
     ) = clickMatchingNodeWithScroll(instrumentation, text) { node ->
         node.text?.toString() == text
+    }
+
+    private fun clickTextAndAwaitText(
+        instrumentation: android.app.Instrumentation,
+        clickedText: String,
+        expectedText: String,
+        timeoutMillis: Long = 12_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val remaining = deadline - SystemClock.uptimeMillis()
+            clickMatchingNodeWithScroll(
+                instrumentation = instrumentation,
+                label = clickedText,
+                timeoutMillis = minOf(remaining, 3_000)
+            ) { node -> node.text?.toString() == clickedText }
+            if (awaitMatchingNode(instrumentation, minOf(remaining, 1_000)) { node ->
+                    node.text?.toString() == expectedText
+                } != null
+            ) return
+        }
+        error("Timed out after clicking $clickedText while waiting for $expectedText")
     }
 
     private fun clickDescriptionPrefixWithScroll(
@@ -168,7 +205,22 @@ class OnboardingValuePreviewInstrumentedTest {
                     continue
                 }
                 lastOffscreenBounds = null
-                if (clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+                instrumentation.waitForIdleSync()
+                val settledNode = findNode(
+                    instrumentation.uiAutomation.rootInActiveWindow
+                ) { candidate ->
+                    predicate(candidate) &&
+                        generateSequence(candidate) { current -> current.parent }
+                            .any { current -> current.isClickable }
+                }
+                val settledClickable = settledNode?.let {
+                    generateSequence(it) { current -> current.parent }
+                        .firstOrNull { current -> current.isClickable }
+                }
+                if (
+                    settledClickable?.isActuallyOnScreen(instrumentation) == true &&
+                    settledClickable.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                ) return
                 SystemClock.sleep(100)
             } else {
                 swipeForward(instrumentation)
@@ -423,5 +475,7 @@ class OnboardingValuePreviewInstrumentedTest {
         const val SCREENSHOT_NAME = "onboarding-value-preview.png"
         const val ENTRY_SCREENSHOT_NAME = "onboarding-entry-choice.png"
         const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
+        const val ONBOARDING_EXAMPLE_BODY =
+            "现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。"
     }
 }

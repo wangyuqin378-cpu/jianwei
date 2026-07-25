@@ -6,4 +6,7 @@
     <string name="widget_preview_image_description">示例照片：靠在墙边的一把扫帚</string>
     <string name="widget_preview_title">扫帚为什么做成扇形？</string>
     <string name="widget_preview_body">扇形刷毛更容易贴近墙角。</string>
+    <string name="onboarding_example_body">现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。</string>
+    <string name="onboarding_example_source">查看示例来源 · Google Patents</string>
+    <string name="onboarding_example_source_description">查看示例来源：Google Patents，US4756039A angled-cut bristle broom</string>
 </resources>

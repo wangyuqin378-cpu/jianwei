@@ -80,6 +80,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -502,6 +503,9 @@ private fun Onboarding(
 
 @Composable
 private fun OnboardingValuePreview() {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    val sourceDescription = stringResource(R.string.onboarding_example_source_description)
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(24.dp)
@@ -512,7 +516,7 @@ private fun OnboardingValuePreview() {
             ) {
                 Image(
                     painter = painterResource(R.drawable.onboarding_broom_example),
-                    contentDescription = "示例照片：靠在墙边的一把扫帚",
+                    contentDescription = stringResource(R.string.widget_preview_image_description),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -544,19 +548,39 @@ private fun OnboardingValuePreview() {
             }
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "今天的见微",
+                    "今天的见微 · 示例",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text("扫帚为什么用一束细长刷毛？", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(
-                    "见微会从审核过的事实里寻找答案。正式卡片会标明识别把握、推荐原因，并附上可点击来源。",
-                    style = MaterialTheme.typography.bodyMedium
+                    stringResource(R.string.widget_preview_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
+                Text(
+                    stringResource(R.string.onboarding_example_body),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                TextButton(
+                    onClick = {
+                        val opened = runCatching {
+                            uriHandler.openUri(ONBOARDING_BROOM_SOURCE_URL)
+                        }.isSuccess
+                        if (!opened) {
+                            Toast.makeText(context, "示例来源暂不可用", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.semantics {
+                        contentDescription = sourceDescription
+                    }
+                ) {
+                    Text(stringResource(R.string.onboarding_example_source))
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OnboardingTag("原照片做上下文")
-                    OnboardingTag("事实有来源")
+                    OnboardingTag("来源可查看")
                 }
             }
         }
@@ -2624,6 +2648,8 @@ private fun PhotoThumbnail(
 
 private const val DETAIL_THUMBNAIL_MAX_SIDE_PX = 1280
 private const val SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX = 320
+private const val ONBOARDING_BROOM_SOURCE_URL =
+    "https://patents.google.com/patent/US4756039A/en"
 
 private fun requestPinDailyWidget(context: android.content.Context) {
     val manager = AppWidgetManager.getInstance(context)

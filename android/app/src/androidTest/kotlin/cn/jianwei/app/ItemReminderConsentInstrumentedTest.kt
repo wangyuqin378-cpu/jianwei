@@ -2,6 +2,7 @@ package cn.jianwei.app
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
@@ -44,7 +45,11 @@ class ItemReminderConsentInstrumentedTest {
             database.cards().clear()
             preferences.edit().putBoolean("completed", true).commit()
             database.cards().upsertAll(listOf(reminderCard(today)))
-            scenario = ActivityScenario.launch(MainActivity::class.java)
+            scenario = ActivityScenario.launch<MainActivity>(
+                Intent(context, MainActivity::class.java).addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                )
+            )
 
             click(awaitNodeWithScroll(instrumentation, "物品提醒"))
             assertThat(awaitNode(instrumentation, "为「牙刷」设复查提醒")).isNotNull()
