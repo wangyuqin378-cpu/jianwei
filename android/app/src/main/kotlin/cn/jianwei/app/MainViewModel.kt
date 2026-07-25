@@ -214,7 +214,7 @@ class MainViewModel @Inject constructor(
                 AutomaticCardMode.PREPARED_POOL ->
                     "已改为提前准备；联网时会逐步补足 7–14 张卡片"
                 AutomaticCardMode.DAILY_ONE ->
-                    "已改为每天一张；已准备卡片保留，之后每个周期最多分析 1 张"
+                    "已改为每天一张；已准备卡片保留，每个自然日最多分析 1 张"
             }
         }
     }

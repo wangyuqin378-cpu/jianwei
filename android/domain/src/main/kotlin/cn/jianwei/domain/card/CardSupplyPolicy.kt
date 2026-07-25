@@ -11,6 +11,12 @@ enum class AutomaticCardMode {
     DAILY_ONE
 }
 
+enum class DailyAutomaticUploadClaim {
+    NEW_CLAIM,
+    SAME_CANDIDATE,
+    EXHAUSTED
+}
+
 fun AutomaticCardMode.toSupplyMode(): CardSupplyMode = when (this) {
     AutomaticCardMode.PREPARED_POOL -> CardSupplyMode.AUTOMATIC_PREPARED_POOL
     AutomaticCardMode.DAILY_ONE -> CardSupplyMode.AUTOMATIC_DAILY_ONE
@@ -79,8 +85,13 @@ fun shouldContinueCardSupply(
     return plan.targetCachedCards?.let { currentCachedCards < it } ?: true
 }
 
-fun shouldRunPrivacyBatch(mode: CardSupplyMode, currentCachedCards: Int): Boolean {
+fun shouldRunPrivacyBatch(
+    mode: CardSupplyMode,
+    currentCachedCards: Int,
+    dailyAutomaticUploadClaimed: Boolean = false
+): Boolean {
     require(currentCachedCards >= 0)
+    if (mode == CardSupplyMode.AUTOMATIC_DAILY_ONE && dailyAutomaticUploadClaimed) return false
     return mode == CardSupplyMode.EXPLICIT_IMPORT || cardSupplyPlan(mode, currentCachedCards) != null
 }
 

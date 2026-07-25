@@ -64,6 +64,36 @@ class UploadOriginScopeInstrumentedTest {
     }
 
     @Test
+    fun claimedDailyCandidateCanBeResumedWithoutSelectingAHigherRankedPhoto() = runBlocking {
+        val database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            JianweiDatabase::class.java
+        ).build()
+        try {
+            val dao = database.photos()
+            dao.upsert(candidate(1, PhotoOrigin.MEDIA_STORE, AnalysisState.READY).copy(qualityScore = 0.99))
+            dao.upsert(candidate(2, PhotoOrigin.MEDIA_STORE, AnalysisState.READY).copy(qualityScore = 0.45))
+            dao.upsert(candidate(3, PhotoOrigin.PHOTO_PICKER, AnalysisState.READY).copy(qualityScore = 1.0))
+
+            assertThat(
+                dao.eligibleCandidatesForAnalysis(1, 1, UploadOriginScope.MEDIA_STORE.name)
+                    .single().localId
+            ).isEqualTo(1L)
+            assertThat(
+                dao.eligibleCandidateForAnalysis(2L, 1, UploadOriginScope.MEDIA_STORE.name)?.localId
+            ).isEqualTo(2L)
+            assertThat(
+                dao.eligibleCandidateForAnalysis(2L, 0, UploadOriginScope.MEDIA_STORE.name)
+            ).isNull()
+            assertThat(
+                dao.eligibleCandidateForAnalysis(3L, 1, UploadOriginScope.MEDIA_STORE.name)
+            ).isNull()
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
     fun readyCandidatesRemainScopedAfterDatabaseReopen() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val databaseName = "upload-origin-reopen.db"

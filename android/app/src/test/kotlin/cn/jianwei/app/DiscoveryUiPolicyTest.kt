@@ -217,8 +217,8 @@ class DiscoveryUiPolicyTest {
             progress = AnalysisProgress(phase = AnalysisPhase.NO_MATCH)
         )
 
-        assertThat(start).contains("最多上传分析 1 张")
-        assertThat(control?.explanation).contains("最多上传分析 1 张")
+        assertThat(start).contains("每个自然日最多上传分析 1 张")
+        assertThat(control?.explanation).contains("每个自然日最多上传分析 1 张")
         assertThat(scanning.body).contains("最多深入筛选 4 张")
         assertThat(filtering.body).contains("最多选择 1 张")
         assertThat(syncing.body).contains("最多上传分析 1 张")

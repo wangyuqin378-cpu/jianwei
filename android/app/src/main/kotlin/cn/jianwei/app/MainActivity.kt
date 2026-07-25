@@ -1783,7 +1783,7 @@ private fun AutomaticCardModeCenter(
             )
             AutomaticCardModeOption(
                 title = "每天一张",
-                body = "每个周期最多上传分析 1 张；没命中可靠知识或系统延迟时，继续显示上一张。",
+                body = "每天最多上传分析 1 张；任务中断仍继续这张，没命中时显示上一张。",
                 selected = selectedMode == AutomaticCardMode.DAILY_ONE,
                 enabled = actionsEnabled,
                 onClick = { onSelect(AutomaticCardMode.DAILY_ONE) }

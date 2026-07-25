@@ -38,7 +38,7 @@ internal fun automaticDiscoveryControl(
             AutomaticCardMode.PREPARED_POOL ->
                 "自动发现目前只会查看你在系统中选中的照片；联网时会逐步准备 7–14 张卡片。"
             AutomaticCardMode.DAILY_ONE ->
-                "自动发现目前只会查看你在系统中选中的照片；每个自动周期最多上传分析 1 张。"
+                "自动发现目前只会查看你在系统中选中的照片；每天最多上传分析 1 张。"
         },
         emphasized = false
     )
@@ -48,7 +48,7 @@ internal fun automaticDiscoveryControl(
             AutomaticCardMode.PREPARED_POOL ->
                 "开启后先在本机筛选最近照片，联网时逐步准备 7–14 张卡片。"
             AutomaticCardMode.DAILY_ONE ->
-                "开启后先在本机筛选最近照片，每个自动周期最多上传分析 1 张；没有可靠命中时不会凑数。"
+                "开启后先在本机筛选最近照片，每个自然日最多上传分析 1 张；没有可靠命中时不会凑数。"
         },
         emphasized = true
     )
@@ -98,7 +98,7 @@ internal fun discoveryStartMessage(access: PhotoAccess, mode: AutomaticCardMode)
             AutomaticCardMode.PREPARED_POOL ->
                 "已开始本机扫描；联网时会逐步准备 7–14 张卡片"
             AutomaticCardMode.DAILY_ONE ->
-                "已开启每天一张；每个自动周期最多上传分析 1 张"
+                "已开启每天一张；每个自然日最多上传分析 1 张"
         }
     } else {
         "没有相册访问权限，因此不会自动扫描；你仍可选择或分享照片"
@@ -142,7 +142,7 @@ internal fun emptyDiscoveryCopy(
             AutomaticCardMode.PREPARED_POOL ->
                 "恢复后才会继续筛选照片并逐步补足卡片；暂停期间已有缓存仍可在桌面组件查看。"
             AutomaticCardMode.DAILY_ONE ->
-                "恢复后每个自动周期最多上传分析 1 张；暂停期间已有卡片仍可查看。"
+                "恢复后每天最多上传分析 1 张；暂停期间已有卡片仍可查看。"
         },
         actionLabel = "恢复分析",
         action = EmptyDiscoveryAction.RESUME
@@ -153,7 +153,7 @@ internal fun emptyDiscoveryCopy(
             AutomaticCardMode.PREPARED_POOL ->
                 "系统会在网络可用且电量不低时继续，逐步准备 7–14 张卡片；原图不会建立云端照片库。"
             AutomaticCardMode.DAILY_ONE ->
-                "系统会在网络可用且电量不低时继续；每个自动周期最多上传分析 1 张。"
+                "系统会在网络可用且电量不低时继续；每个自然日最多上传分析 1 张。"
         },
         actionLabel = "继续选择照片",
         action = EmptyDiscoveryAction.PICK
@@ -228,7 +228,7 @@ internal fun emptyDiscoveryCopy(
     else -> EmptyDiscoveryCopy(
         title = if (mode == AutomaticCardMode.DAILY_ONE) "准备寻找下一张卡片" else "准备第一批卡片",
         body = if (mode == AutomaticCardMode.DAILY_ONE) {
-            "后台会从近 90 天照片中挑选候选；每个自动周期最多上传分析 1 张。"
+            "后台会从近 90 天照片中挑选候选；每个自然日最多上传分析 1 张。"
         } else {
             "后台会检查近 90 天照片并逐步准备 7–14 张；没有可靠命中时不会勉强生成。"
         },

@@ -212,6 +212,8 @@ const analysisStatusPort = await readFile(path.join(root, "android", "domain", "
 const interestPreferencePolicy = await readFile(path.join(root, "android", "domain", "src", "main", "kotlin", "cn", "jianwei", "domain", "preferences", "InterestPreferences.kt"), "utf8");
 const interestPreferenceRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "preferences", "SharedPreferencesInterestPreferencesRepository.kt"), "utf8");
 const automaticCardModeRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "preferences", "SharedPreferencesAutomaticCardModeRepository.kt"), "utf8");
+const automaticDailyUploadQuota = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "preferences", "SharedPreferencesAutomaticDailyUploadQuota.kt"), "utf8");
+const automaticDailyUploadQuotaDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "preferences", "AutomaticDailyUploadQuotaInstrumentedTest.kt"), "utf8");
 const interestPreferencePolicyTest = await readFile(path.join(root, "android", "domain", "src", "test", "kotlin", "cn", "jianwei", "domain", "preferences", "InterestPreferencesTest.kt"), "utf8");
 const interestPreferenceDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "preferences", "InterestPreferencesRepositoryInstrumentedTest.kt"), "utf8");
 const analysisStatusDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "status", "AnalysisStatusRepositoryInstrumentedTest.kt"), "utf8");
@@ -597,8 +599,30 @@ check(
     workersSource.includes("automaticCardMode.mode().toSupplyMode()") &&
     workersSource.includes("limit = privacySelectionLimit(supplyMode)") &&
     cardSupplyPolicyTest.includes("daily one mode attempts at most one upload") &&
-    cardSupplyPolicyTest.includes("daily one mode inspects a bounded local batch but queues one candidate"),
-  "Daily-one mode is missing its independent one-upload and one-candidate hard boundaries"
+    cardSupplyPolicyTest.includes("daily one mode inspects a bounded local batch but queues one candidate") &&
+    cardSupplyPolicy.includes("dailyAutomaticUploadClaimed") &&
+    cardSupplyPolicyTest.includes("daily one skips later automatic privacy batches after the natural-day quota is claimed"),
+  "Daily-one mode is missing its independent natural-day, one-upload, or one-candidate hard boundaries"
+);
+check(
+  automaticDailyUploadQuota.includes("@Synchronized") &&
+    automaticDailyUploadQuota.includes("daily_one_claimed_day") &&
+    automaticDailyUploadQuota.includes("daily_one_candidate_local_id") &&
+    automaticDailyUploadQuota.includes("DailyAutomaticUploadClaim.SAME_CANDIDATE") &&
+    automaticDailyUploadQuota.includes("DailyAutomaticUploadClaim.EXHAUSTED") &&
+    automaticDailyUploadQuota.includes("fun claimedCandidate(day: LocalDate)") &&
+    automaticDailyUploadQuota.includes("require(candidateLocalId >= 0)") &&
+    automaticDailyUploadQuota.includes(".commit()") &&
+    workersSource.includes("automaticDailyUploadQuota.hasClaim(ChinaCalendar.today())") &&
+    workersSource.includes("automaticDailyUploadQuota.claim(") &&
+    workersSource.includes("automaticDailyUploadQuota.claimedCandidate(ChinaCalendar.today())") &&
+    workersSource.includes("photoDao.eligibleCandidateForAnalysis(") &&
+    workersSource.includes("break@supplyLoop") &&
+    automaticDailyUploadQuotaDeviceTest.includes("oneCandidatePerChinaDaySurvivesStoreRecreationAndAllowsItsOwnRetry") &&
+    automaticDailyUploadQuotaDeviceTest.includes("concurrentDifferentCandidatesProduceExactlyOneNewClaim") &&
+    automaticDailyUploadQuotaDeviceTest.includes("incompleteSameDayStateFailsClosed") &&
+    uploadOriginScopeDeviceTest.includes("claimedDailyCandidateCanBeResumedWithoutSelectingAHigherRankedPhoto"),
+  "Daily-one automatic upload quota is not durable, idempotent, retry-stable, concurrent, or fail-closed"
 );
 check(
   automaticCardModeRepository.includes("AutomaticCardMode.PREPARED_POOL") &&
@@ -1024,7 +1048,7 @@ check(
     workersSource.includes("uniqueEligibleCandidates = ranker.uniqueEligibleCount(analyzed, baselineHashes)") &&
     workersSource.includes("hadAnyLocalCardAtStart = cardDao.countCards() > 0") &&
     workersSource.includes("shouldSyncCardsImmediately(") &&
-    workersSource.includes("!shouldRunPrivacyBatch(supplyMode, currentCachedCards)") &&
+    workersSource.includes("!shouldRunPrivacyBatch(supplyMode, currentCachedCards, dailyAutomaticUploadClaimed)") &&
     workersSource.includes("completedAnalysisProgress(currentCachedCards, processedCount = 0)") &&
     cardDaos.includes("suspend fun countCards(): Int") &&
     workersSource.includes("dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS, originScope.name)") &&
@@ -1201,11 +1225,14 @@ for (const marker of ["PhotoAccess.PICKER_ONLY", "PhotoAccess.PARTIAL", "PhotoAc
 }
 check(
   discoveryUiPolicy.includes("AutomaticCardMode") &&
-    discoveryUiPolicy.includes("每个自动周期最多上传分析 1 张") &&
+    discoveryUiPolicy.includes("每个自然日最多上传分析 1 张") &&
+    !discoveryUiPolicy.includes("每个自动周期") &&
     discoveryUiPolicy.includes("逐步准备 7–14 张卡片") &&
     discoveryUiPolicyTest.includes("daily one status copy preserves its hard limits without promising a card pool") &&
     automaticDiscoveryControlDeviceTest.includes('"DAILY_ONE"') &&
-    automaticDiscoveryControlDeviceTest.includes("每个自动周期最多上传分析 1 张") &&
+    automaticDiscoveryControlDeviceTest.includes("每个自然日最多上传分析 1 张") &&
+    automaticDiscoveryControlDeviceTest.includes("val previousPendingImport = pendingImportResults.snapshot()") &&
+    automaticDiscoveryControlDeviceTest.includes("restorePendingImport(pendingImportResults, previousPendingImport)") &&
     photoAccessPresentationDeviceTest.includes('"PREPARED_POOL"') &&
     photoAccessPresentationDeviceTest.includes("自动发现已开启 · 提前准备 · 全部授权照片"),
   "Automatic processing mode does not remain explicit and truthful after onboarding"

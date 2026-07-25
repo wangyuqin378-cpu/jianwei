@@ -20,6 +20,8 @@ class AutomaticDiscoveryControlInstrumentedTest {
         val context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
         val schedulerPreferences = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
+        val pendingImportResults = PendingImportResultStore(context)
+        val previousPendingImport = pendingImportResults.snapshot()
         val wasOnboarded = preferences.getBoolean("completed", false)
         val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
         assumeTrue(
@@ -28,6 +30,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
         )
         var scenario: ActivityScenario<MainActivity>? = null
         try {
+            pendingImportResults.clearAll()
             preferences.edit().putBoolean("completed", true).commit()
             schedulerPreferences.edit().putString(AUTOMATIC_CARD_MODE_KEY, "DAILY_ONE").commit()
 
@@ -35,12 +38,14 @@ class AutomaticDiscoveryControlInstrumentedTest {
             clickNode(instrumentation, "设置与隐私")
             assertThat(awaitNodeWithScroll(instrumentation, "管理隐私与数据")).isNotNull()
             clickNode(instrumentation, "管理隐私与数据")
-            assertThat(awaitNodeWithScroll(instrumentation, "照片发现方式")).isNotNull()
-            assertThat(awaitNodeWithScroll(
+            val enableNode = awaitNodesInReadingOrder(
                 instrumentation,
-                "开启后先在本机筛选最近照片，每个自动周期最多上传分析 1 张；没有可靠命中时不会凑数。"
-            )).isNotNull()
-            assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
+                listOf(
+                    "照片发现方式",
+                    "开启后先在本机筛选最近照片，每个自然日最多上传分析 1 张；没有可靠命中时不会凑数。",
+                    "开启自动发现"
+                )
+            )
 
             val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
             output.outputStream().use { stream ->
@@ -50,12 +55,13 @@ class AutomaticDiscoveryControlInstrumentedTest {
             assertThat(output.length()).isGreaterThan(0L)
 
             if (context.resources.configuration.fontScale >= 1.5f) {
-                val enableNode = awaitNodeWithScroll(instrumentation, "开启自动发现")
                 val clickable = clickableAncestor(enableNode)
                 assertThat(clickable).isNotNull()
                 assertThat(clickable!!.isEnabled).isTrue()
             } else {
-                clickNode(instrumentation, "开启自动发现")
+                val clickable = clickableAncestor(enableNode)
+                assertThat(clickable).isNotNull()
+                assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
                 awaitPermissionController(instrumentation)
             }
         } finally {
@@ -66,6 +72,19 @@ class AutomaticDiscoveryControlInstrumentedTest {
                 if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
                 else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
             }.commit()
+            restorePendingImport(pendingImportResults, previousPendingImport)
+        }
+    }
+
+    private fun restorePendingImport(
+        store: PendingImportResultStore,
+        snapshot: PendingImportResultSnapshot
+    ) {
+        store.clearAll()
+        if (snapshot.candidateTokens.isNotEmpty()) {
+            store.remember(snapshot.candidateTokens)
+        } else {
+            store.complete(snapshot.focusedCardId, snapshot.notice)
         }
     }
 
@@ -111,12 +130,47 @@ class AutomaticDiscoveryControlInstrumentedTest {
         return null
     }
 
+    private fun awaitNodesInReadingOrder(
+        instrumentation: android.app.Instrumentation,
+        texts: List<String>,
+        timeoutMillis: Long = 20_000
+    ): AccessibilityNodeInfo {
+        require(texts.isNotEmpty())
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        var nextIndex = 0
+        while (SystemClock.uptimeMillis() < deadline) {
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val node = findTextNode(root, texts[nextIndex])
+            if (node != null) {
+                nextIndex += 1
+                if (nextIndex == texts.size) return node
+                continue
+            }
+            swipeForwardSmall(instrumentation)
+            SystemClock.sleep(200)
+        }
+        val root = instrumentation.uiAutomation.rootInActiveWindow
+        error(
+            "Timed out reading accessibility nodes in order at: ${texts[nextIndex]}; " +
+                "package=${root?.packageName}; visible=${visibleText(root)}"
+        )
+    }
+
     private fun swipeForward(instrumentation: android.app.Instrumentation) {
         val metrics = instrumentation.targetContext.resources.displayMetrics
         val centerX = metrics.widthPixels / 2
         instrumentation.uiAutomation.executeShellCommand(
             "input swipe $centerX ${(metrics.heightPixels * 0.78f).toInt()} " +
                 "$centerX ${(metrics.heightPixels * 0.32f).toInt()} 250"
+        ).close()
+    }
+
+    private fun swipeForwardSmall(instrumentation: android.app.Instrumentation) {
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        instrumentation.uiAutomation.executeShellCommand(
+            "input swipe $centerX ${(metrics.heightPixels * 0.64f).toInt()} " +
+                "$centerX ${(metrics.heightPixels * 0.50f).toInt()} 180"
         ).close()
     }
 

@@ -115,6 +115,30 @@ class CardSupplyPolicyTest {
     }
 
     @Test
+    fun `daily one skips later automatic privacy batches after the natural-day quota is claimed`() {
+        assertThat(shouldRunPrivacyBatch(
+            CardSupplyMode.AUTOMATIC_DAILY_ONE,
+            currentCachedCards = 0,
+            dailyAutomaticUploadClaimed = true
+        )).isFalse()
+        assertThat(shouldRunPrivacyBatch(
+            CardSupplyMode.AUTOMATIC_DAILY_ONE,
+            currentCachedCards = 0,
+            dailyAutomaticUploadClaimed = false
+        )).isTrue()
+        assertThat(shouldRunPrivacyBatch(
+            CardSupplyMode.AUTOMATIC_PREPARED_POOL,
+            currentCachedCards = 0,
+            dailyAutomaticUploadClaimed = true
+        )).isTrue()
+        assertThat(shouldRunPrivacyBatch(
+            CardSupplyMode.EXPLICIT_IMPORT,
+            currentCachedCards = 0,
+            dailyAutomaticUploadClaimed = true
+        )).isTrue()
+    }
+
+    @Test
     fun `automatic preference maps to the matching supply policy`() {
         assertThat(AutomaticCardMode.PREPARED_POOL.toSupplyMode())
             .isEqualTo(CardSupplyMode.AUTOMATIC_PREPARED_POOL)

@@ -22,7 +22,9 @@ import cn.jianwei.data.network.RemoteAnalysisClient
 import cn.jianwei.data.network.UploadHttpStatusException
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
+import cn.jianwei.data.preferences.SharedPreferencesAutomaticDailyUploadQuota
 import cn.jianwei.domain.card.CardSupplyMode
+import cn.jianwei.domain.card.DailyAutomaticUploadClaim
 import cn.jianwei.domain.card.cardSupplyPlan
 import cn.jianwei.domain.card.isAutomatic
 import cn.jianwei.domain.card.privacyBatchPlan
@@ -112,6 +114,7 @@ class PrivacyScanWorker @AssistedInject constructor(
     private val affinities: LocalTopicAffinityStore,
     private val interestPreferences: InterestPreferencesRepository,
     private val automaticCardMode: AutomaticCardModeRepository,
+    private val automaticDailyUploadQuota: SharedPreferencesAutomaticDailyUploadQuota,
     private val status: AnalysisStatusRepository,
     private val privacyExecutionGate: PrivacyExecutionGate
 ) : CoroutineWorker(context, params) {
@@ -135,7 +138,9 @@ class PrivacyScanWorker @AssistedInject constructor(
         } else {
             0
         }
-        if (!shouldRunPrivacyBatch(supplyMode, currentCachedCards)) {
+        val dailyAutomaticUploadClaimed = supplyMode == CardSupplyMode.AUTOMATIC_DAILY_ONE &&
+            automaticDailyUploadQuota.hasClaim(ChinaCalendar.today())
+        if (!shouldRunPrivacyBatch(supplyMode, currentCachedCards, dailyAutomaticUploadClaimed)) {
             status.publishProgress(
                 progressScope,
                 completedAnalysisProgress(currentCachedCards, processedCount = 0)
@@ -252,6 +257,7 @@ class UploadWorker @AssistedInject constructor(
     private val deferredCandidates: DeferredCandidateSelector,
     private val status: AnalysisStatusRepository,
     private val automaticCardMode: AutomaticCardModeRepository,
+    private val automaticDailyUploadQuota: SharedPreferencesAutomaticDailyUploadQuota,
     private val uploadExecutionGate: UploadExecutionGate
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result = uploadExecutionGate.runExclusive {
@@ -275,22 +281,36 @@ class UploadWorker @AssistedInject constructor(
                 UploadOriginScope.MEDIA_STORE -> automaticCardMode.mode().toSupplyMode()
                 UploadOriginScope.EXPLICIT_IMPORT -> CardSupplyMode.EXPLICIT_IMPORT
             }
+            val claimedDailyCandidateId = if (supplyMode == CardSupplyMode.AUTOMATIC_DAILY_ONE) {
+                automaticDailyUploadQuota.claimedCandidate(ChinaCalendar.today())
+            } else {
+                null
+            }
             val hadAnyLocalCardAtStart = cardDao.countCards() > 0
             var immediateSyncCompleted = false
             val supplyPlan = cardSupplyPlan(supplyMode, cardDao.countFutureCards(today))
             var processed = 0
-            while (supplyPlan != null && shouldContinueCardSupply(
+            supplyLoop@ while (supplyPlan != null && shouldContinueCardSupply(
                     supplyPlan,
                     cardDao.countFutureCards(today),
                     processed
                 )) {
                 val remaining = supplyPlan.maxCandidates - processed
-                var candidates = photoDao.eligibleCandidatesForAnalysis(
-                    minOf(BATCH_SIZE, remaining),
-                    includeMediaStore,
-                    originScope.name
-                ).map { it.toDomain() }
+                var candidates = if (claimedDailyCandidateId != null) {
+                    listOfNotNull(photoDao.eligibleCandidateForAnalysis(
+                        claimedDailyCandidateId,
+                        includeMediaStore,
+                        originScope.name
+                    )).map { it.toDomain() }
+                } else {
+                    photoDao.eligibleCandidatesForAnalysis(
+                        minOf(BATCH_SIZE, remaining),
+                        includeMediaStore,
+                        originScope.name
+                    ).map { it.toDomain() }
+                }
                 if (candidates.isEmpty()) {
+                    if (claimedDailyCandidateId != null) break
                     val promoted = deferredCandidates.promote(
                         limit = minOf(BATCH_SIZE, remaining),
                         includeMediaStore = includeMediaStore,
@@ -310,6 +330,15 @@ class UploadWorker @AssistedInject constructor(
                         photos.updateAnalysis(candidate.localId, AnalysisState.ACCESS_UNAVAILABLE)
                         processed += 1
                         continue
+                    }
+                    if (supplyMode == CardSupplyMode.AUTOMATIC_DAILY_ONE &&
+                        automaticDailyUploadQuota.claim(
+                            day = ChinaCalendar.today(),
+                            candidateLocalId = candidate.localId
+                        ) ==
+                        DailyAutomaticUploadClaim.EXHAUSTED
+                    ) {
+                        break@supplyLoop
                     }
                     try {
                         val analyzed = remote.analyze(candidate)

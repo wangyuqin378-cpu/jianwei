@@ -46,11 +46,11 @@ class OnboardingValuePreviewInstrumentedTest {
             }
             assertThat(output.length()).isGreaterThan(0L)
 
-            click(reachableNode(instrumentation, "继续", requiresScroll))
+            click(awaitNodeWithScroll(instrumentation, "继续"))
             assertThat(awaitNode(instrumentation, "2 / 3")).isNotNull()
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
 
-            click(reachableNode(instrumentation, "继续", requiresScroll))
+            click(awaitNodeWithScroll(instrumentation, "继续"))
             assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
             assertThat(awaitDescriptionPrefixWithScroll(
