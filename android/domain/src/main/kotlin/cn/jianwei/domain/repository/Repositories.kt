@@ -8,6 +8,7 @@ import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoCandidate
+import cn.jianwei.domain.model.PendingReminderSchedule
 import cn.jianwei.domain.model.ScanRequest
 import cn.jianwei.domain.model.ScanResult
 import cn.jianwei.domain.model.SavedCardUpdateResult
@@ -40,11 +41,14 @@ interface CardRepository {
     fun observeCards(): Flow<List<KnowledgeCard>>
     fun observeSavedCards(): Flow<List<KnowledgeCard>>
     fun observeTrackedItems(): Flow<List<TrackedItem>>
+    fun observePendingReminderSchedules(): Flow<List<PendingReminderSchedule>>
     fun observeFeedbackStates(): Flow<List<CardFeedbackState>>
     suspend fun syncCards()
     suspend fun sendFeedback(cardId: String, action: FeedbackAction): FeedbackSubmissionResult
     suspend fun setSaved(cardId: String, saved: Boolean): SavedCardUpdateResult
-    suspend fun track(cardId: String, startedOn: LocalDate, reminderDays: Int)
+    suspend fun track(cardId: String, startedOn: LocalDate, reminderDays: Int): PendingReminderSchedule
+    suspend fun isReminderSchedulePending(schedule: PendingReminderSchedule): Boolean
+    suspend fun markReminderScheduled(schedule: PendingReminderSchedule): Boolean
     suspend fun isTrackedReminderCurrent(
         cardId: String,
         startedOn: LocalDate,

@@ -35,9 +35,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 
 data class MainUiState(
@@ -80,6 +83,7 @@ class MainViewModel @Inject constructor(
     private val operationGate: UserOperationGate,
     private val pendingImportResults: PendingImportResultStore
 ) : ViewModel() {
+    private val reminderSchedulingMutex = Mutex()
     private val restoredImportResult = pendingImportResults.snapshot()
     private val pendingImportTokens = MutableStateFlow(
         restoredImportResult.candidateTokens
@@ -143,6 +147,26 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MainUiState())
 
     init {
+        // Reconcile only the durable outbox inherited at process start. Fresh UI submissions
+        // schedule directly after their Room commit, avoiding duplicate REPLACE operations.
+        viewModelScope.launch {
+            cards.observePendingReminderSchedules().first().forEach { pending ->
+                reminderSchedulingMutex.withLock {
+                    reconcilePendingReminderScheduleIfCurrent(
+                        schedule = pending,
+                        isStillPending = cards::isReminderSchedulePending,
+                        scheduleLocalWork = { schedule ->
+                            itemReminders.schedule(
+                                schedule.cardId,
+                                schedule.startedOn,
+                                schedule.reminderDays
+                            )
+                        },
+                        acknowledgeLocalSchedule = cards::markReminderScheduled
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             combine(
                 cards.observeCards(),
@@ -366,10 +390,20 @@ class MainViewModel @Inject constructor(
         require(isValidItemReminderDraft(startedOn, reminderDays)) {
             "请选择不晚于今天的启用日期和有效提醒周期"
         }
-        itemReminders.schedule(cardId, startedOn, reminderDays)
-        cards.track(cardId, startedOn, reminderDays)
+        lateinit var committedSchedule: cn.jianwei.domain.model.PendingReminderSchedule
+        val outcome = reminderSchedulingMutex.withLock {
+            scheduleReminderFromUi(
+                commitDurableReminder = {
+                    cards.track(cardId, startedOn, reminderDays).also { committedSchedule = it }
+                },
+                scheduleLocalWork = { schedule ->
+                    itemReminders.schedule(schedule.cardId, schedule.startedOn, schedule.reminderDays)
+                },
+                acknowledgeLocalSchedule = cards::markReminderScheduled
+            )
+        }
         betaMetrics.markEngaged()
-        "已设置物品提醒；预计 ${startedOn.plusDays(reminderDays.toLong())} 上午送达，系统省电可能造成延迟"
+        reminderSchedulingMessage(outcome, committedSchedule)
     }
 
     fun cancelReminder(cardId: String) = runBusy(UserOperation.CANCEL_REMINDER) {

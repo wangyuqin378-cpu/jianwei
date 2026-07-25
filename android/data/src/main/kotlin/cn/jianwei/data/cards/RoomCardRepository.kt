@@ -22,6 +22,7 @@ import cn.jianwei.domain.metrics.FirstCardMetricRecorder
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
+import cn.jianwei.domain.model.PendingReminderSchedule
 import cn.jianwei.domain.model.KnowledgeSource
 import cn.jianwei.domain.model.SavedCardUpdateResult
 import cn.jianwei.domain.model.TrackedItem
@@ -59,6 +60,17 @@ class RoomCardRepository @Inject constructor(
     override fun observeTrackedItems(): Flow<List<TrackedItem>> = cards.observeTrackedItems().map { items ->
         items.map { TrackedItem(it.cardId, LocalDate.parse(it.startedOn), it.reminderDays) }
     }
+    override fun observePendingReminderSchedules(): Flow<List<PendingReminderSchedule>> =
+        cards.observePendingReminderSchedules().map { items ->
+            items.map { item ->
+                PendingReminderSchedule(
+                    cardId = item.cardId,
+                    startedOn = LocalDate.parse(item.startedOn),
+                    reminderDays = item.reminderDays,
+                    version = item.updatedAtMillis
+                )
+            }
+        }
     override fun observeFeedbackStates(): Flow<List<CardFeedbackState>> =
         cards.observeFeedbackStates().map { items ->
             items.mapNotNull { item ->
@@ -195,19 +207,47 @@ class RoomCardRepository @Inject constructor(
         return cleanup
     }
 
-    override suspend fun track(cardId: String, startedOn: LocalDate, reminderDays: Int) = trackedItemMutex.withLock {
+    override suspend fun track(
+        cardId: String,
+        startedOn: LocalDate,
+        reminderDays: Int
+    ): PendingReminderSchedule = trackedItemMutex.withLock {
         require(reminderDays in 7..730)
         val previousVersion = cards.findTrackedItem(cardId)?.updatedAtMillis ?: 0L
+        val version = maxOf(System.currentTimeMillis(), previousVersion + 1)
+        val schedule = PendingReminderSchedule(cardId, startedOn, reminderDays, version)
         cards.upsertTrackedItem(
             TrackedItemEntity(
-                cardId = cardId,
-                startedOn = startedOn.toString(),
-                reminderDays = reminderDays,
+                cardId = schedule.cardId,
+                startedOn = schedule.startedOn.toString(),
+                reminderDays = schedule.reminderDays,
                 syncAction = TRACK_UPSERT,
-                updatedAtMillis = maxOf(System.currentTimeMillis(), previousVersion + 1)
+                updatedAtMillis = schedule.version,
+                localSchedulePending = true
             )
         )
+        schedule
     }
+
+    override suspend fun markReminderScheduled(schedule: PendingReminderSchedule): Boolean =
+        trackedItemMutex.withLock {
+            cards.markReminderScheduled(
+                cardId = schedule.cardId,
+                startedOn = schedule.startedOn.toString(),
+                reminderDays = schedule.reminderDays,
+                expectedVersion = schedule.version
+            ) == 1
+        }
+
+    override suspend fun isReminderSchedulePending(schedule: PendingReminderSchedule): Boolean =
+        trackedItemMutex.withLock {
+            cards.isReminderSchedulePending(
+                cardId = schedule.cardId,
+                startedOn = schedule.startedOn.toString(),
+                reminderDays = schedule.reminderDays,
+                expectedVersion = schedule.version
+            )
+        }
 
     override suspend fun isTrackedReminderCurrent(
         cardId: String,
@@ -226,7 +266,8 @@ class RoomCardRepository @Inject constructor(
         cards.upsertTrackedItem(
             existing.copy(
                 syncAction = TRACK_DELETE,
-                updatedAtMillis = maxOf(System.currentTimeMillis(), existing.updatedAtMillis + 1)
+                updatedAtMillis = maxOf(System.currentTimeMillis(), existing.updatedAtMillis + 1),
+                localSchedulePending = false
             )
         )
     }

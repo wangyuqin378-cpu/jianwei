@@ -213,7 +213,8 @@ interface CardDao {
                 upsertTrackedItem(
                     tracked.copy(
                         syncAction = "DELETE",
-                        updatedAtMillis = maxOf(nowMillis, tracked.updatedAtMillis + 1)
+                        updatedAtMillis = maxOf(nowMillis, tracked.updatedAtMillis + 1),
+                        localSchedulePending = false
                     )
                 )
             }
@@ -325,8 +326,41 @@ interface CardDao {
     @Query("SELECT * FROM local_tracked_items WHERE syncAction != 'DELETE' ORDER BY updatedAtMillis DESC")
     fun observeTrackedItems(): Flow<List<TrackedItemEntity>>
 
+    @Query(
+        "SELECT * FROM local_tracked_items " +
+            "WHERE syncAction != 'DELETE' AND localSchedulePending = 1 " +
+            "ORDER BY updatedAtMillis ASC"
+    )
+    fun observePendingReminderSchedules(): Flow<List<TrackedItemEntity>>
+
     @Query("SELECT * FROM local_tracked_items WHERE cardId = :cardId LIMIT 1")
     suspend fun findTrackedItem(cardId: String): TrackedItemEntity?
+
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM local_tracked_items " +
+            "WHERE cardId = :cardId AND updatedAtMillis = :expectedVersion " +
+            "AND startedOn = :startedOn AND reminderDays = :reminderDays " +
+            "AND syncAction != 'DELETE' AND localSchedulePending = 1)"
+    )
+    suspend fun isReminderSchedulePending(
+        cardId: String,
+        startedOn: String,
+        reminderDays: Int,
+        expectedVersion: Long
+    ): Boolean
+
+    @Query(
+        "UPDATE local_tracked_items SET localSchedulePending = 0 " +
+            "WHERE cardId = :cardId AND updatedAtMillis = :expectedVersion " +
+            "AND startedOn = :startedOn AND reminderDays = :reminderDays " +
+            "AND syncAction != 'DELETE' AND localSchedulePending = 1"
+    )
+    suspend fun markReminderScheduled(
+        cardId: String,
+        startedOn: String,
+        reminderDays: Int,
+        expectedVersion: Long
+    ): Int
 
     @Query(
         "SELECT EXISTS(" +

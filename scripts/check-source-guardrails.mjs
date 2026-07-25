@@ -238,10 +238,13 @@ const applicationSource = await readFile(path.join(root, "android", "app", "src"
 const reminderScheduler = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ItemReminderScheduler.kt"), "utf8");
 const reminderCancellationFlow = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ReminderCancellationFlow.kt"), "utf8");
 const reminderCancellationFlowTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "ReminderCancellationFlowTest.kt"), "utf8");
+const reminderSchedulingFlow = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ReminderSchedulingFlow.kt"), "utf8");
+const reminderSchedulingFlowTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "ReminderSchedulingFlowTest.kt"), "utf8");
 const reminderPrivacyDeviceTest = await readFile(path.join(root, "android", "app", "src", "androidTest", "kotlin", "cn", "jianwei", "app", "ItemReminderPrivacyGuardInstrumentedTest.kt"), "utf8");
 const androidApiSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "network", "JianweiApi.kt"), "utf8");
 const databaseSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "local", "JianweiDatabase.kt"), "utf8");
 const daosSource = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "local", "Daos.kt"), "utf8");
+const trackedItemLifecycleDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "local", "TrackedItemLifecycleInstrumentedTest.kt"), "utf8");
 const mediaRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "MediaPhotoRepository.kt"), "utf8");
 const mediaIndexPolicy = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "photos", "MediaStoreIndexPolicy.kt"), "utf8");
 const mediaIncrementalDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "photos", "MediaStoreIncrementalScanInstrumentedTest.kt"), "utf8");
@@ -786,14 +789,14 @@ check(
   "WRONG_OBJECT is not a crash-safe terminal display barrier or can keep training stale interest signals"
 );
 check(
-  databaseSource.includes("version = 11") &&
+  databaseSource.includes("version = 12") &&
     databaseSource.includes("MIGRATION_9_10") &&
     databaseMigrationDeviceTest.includes("migratesVersion9To10CompactsLegacyFeedbackAndCascadesState") &&
     databaseMigrationDeviceTest.includes("card_feedback_states"),
   "Room 9-to-10 persistent feedback migration or cascade evidence is missing"
 );
 check(
-  databaseSource.includes("version = 11") &&
+  databaseSource.includes("version = 12") &&
     databaseSource.includes("MIGRATION_6_7") &&
     databaseSource.includes("MIGRATION_7_8") &&
     databaseMigrationDeviceTest.includes("migratesVersion7To8PreservesCardsAndCascadesSavedState"),
@@ -1120,7 +1123,7 @@ for (const marker of ["val detectedObjectName: String", "detectedObjectName = dt
     `Android card pipeline is missing explicit object identity marker: ${marker}`
   );
 }
-for (const marker of ["version = 11", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
+for (const marker of ["version = 12", "MIGRATION_8_9", "ADD COLUMN `detectedObjectName` TEXT NOT NULL DEFAULT ''"]) {
   check(databaseSource.includes(marker), `Room object-name migration is missing marker: ${marker}`);
 }
 for (const marker of ["UNCERTAIN_OBJECT_CONFIDENCE = 0.72", "HIGH_OBJECT_CONFIDENCE = 0.90", "titleAlreadyCarriesIdentity", "识别把握较低", "未知物件"]) {
@@ -1450,9 +1453,40 @@ for (const marker of ["missingCardOrTrackingCannotNotifyEvenWhenStaleWorkStillEx
     `API 34 reminder privacy crash-window evidence is missing marker: ${marker}`
   );
 }
-const localReminderSchedule = mainViewModel.indexOf("itemReminders.schedule(cardId, startedOn, reminderDays)");
-const reminderOutboxWrite = mainViewModel.indexOf("cards.track(cardId, startedOn, reminderDays)");
-check(localReminderSchedule >= 0 && reminderOutboxWrite > localReminderSchedule, "Local item reminder is not committed before cloud-sync outbox work");
+const reminderTrackUiBlock = mainViewModel.slice(
+  mainViewModel.indexOf("fun track(cardId: String"),
+  mainViewModel.indexOf("fun cancelReminder(cardId: String)")
+);
+check(
+    reminderTrackUiBlock.includes("scheduleReminderFromUi(") &&
+    mainViewModel.includes("private val reminderSchedulingMutex = Mutex()") &&
+    mainViewModel.includes("reconcilePendingReminderScheduleIfCurrent(") &&
+    mainViewModel.includes("isStillPending = cards::isReminderSchedulePending") &&
+    reminderTrackUiBlock.includes("reminderSchedulingMutex.withLock") &&
+    reminderTrackUiBlock.includes("cards.track(cardId, startedOn, reminderDays)") &&
+    reminderTrackUiBlock.includes("acknowledgeLocalSchedule = cards::markReminderScheduled") &&
+    reminderSchedulingFlow.indexOf("commitDurableReminder()") >= 0 &&
+    reminderSchedulingFlow.indexOf("scheduleLocalWork(schedule)") >
+      reminderSchedulingFlow.indexOf("commitDurableReminder()") &&
+    reminderSchedulingFlow.indexOf("acknowledgeLocalSchedule(schedule)") >
+      reminderSchedulingFlow.indexOf("scheduleLocalWork(schedule)") &&
+    reminderSchedulingFlow.includes("SAVED_PENDING_SCHEDULE") &&
+    reminderSchedulingFlow.includes("catch (cancellation: CancellationException)") &&
+    reminderSchedulingFlowTest.includes("Room failure never replaces the previous Work") &&
+    reminderSchedulingFlowTest.includes("Work failure leaves durable outbox pending") &&
+    reminderSchedulingFlowTest.includes("stale startup recovery cannot replace a newer reminder Work") &&
+    cardRepository.includes("localSchedulePending = true") &&
+    cardRepository.includes("override suspend fun markReminderScheduled(") &&
+    daosSource.includes("localSchedulePending = 1") &&
+    daosSource.includes("suspend fun isReminderSchedulePending(") &&
+    daosSource.includes("updatedAtMillis = :expectedVersion") &&
+    databaseSource.includes("MIGRATION_11_12") &&
+    databaseMigrationDeviceTest.includes("migratesVersion11To12WithoutReplayingExistingReminders") &&
+    trackedItemLifecycleDeviceTest.includes("localScheduleOutboxOnlyAcknowledgesTheExactDurableReminderVersion") &&
+    itemReminderConsentDeviceTest.includes("RECOVERY_CARD_ID") &&
+    itemReminderConsentDeviceTest.includes("awaitReminderWorkScheduled(workManager, RECOVERY_CARD_ID)"),
+  "Reminder scheduling can replace old Work before Room commit or lose a committed reminder across process death"
+);
 const cancelReminderUiBlock = mainViewModel.slice(
   mainViewModel.indexOf("fun cancelReminder(cardId: String)"),
   mainViewModel.indexOf("fun pauseAnalysis()")
@@ -1480,7 +1514,7 @@ check(trackApiCall >= 0 && trackAck > trackApiCall, "Pending item tracking can b
 check(untrackApiCall >= 0 && untrackAck > untrackApiCall, "Pending item cancellation can be removed before a successful API response");
 check(cardRepository.includes("expectedUpdatedAtMillis") || cardRepository.includes("pending.updatedAtMillis"), "Reminder outbox acknowledgements are not version-guarded");
 check(androidApiSource.includes('@DELETE("v1/items/{cardId}/track")') && serverSource.includes('app.delete("/v1/items/:cardId/track"'), "Reminder cancellation API is missing on Android or backend");
-check(databaseSource.includes("version = 11") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
+check(databaseSource.includes("version = 12") && databaseSource.includes("MIGRATION_6_7"), "Persistent reminder lifecycle Room migration is missing");
 check(mainActivity.includes("物品提醒已开启") && mainActivity.includes("取消物品提醒") && mainActivity.includes("确认取消"), "Reminder visible state/update/cancel UI is incomplete");
 check(mediaIndexPolicy.includes("if (access == PhotoAccess.FULL) stored else null"), "Partial-photo scans still trust a stale MediaStore authorization watermark");
 check(mediaRepository.includes("catch (_: SecurityException)") && !mediaRepository.includes("catch (_: Exception)"), "MediaStore query defects can still be silently reported as an empty successful scan");
@@ -1793,7 +1827,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

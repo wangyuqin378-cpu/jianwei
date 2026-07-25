@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MediaScanCursorEntity::class,
         TopicAffinityEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -169,6 +169,17 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
     }
 }
 
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Existing reminders may already have a durable WorkManager request. Only reminders
+        // created or updated by version 12 enter the explicit local-scheduling outbox.
+        db.execSQL(
+            "ALTER TABLE `local_tracked_items` " +
+                "ADD COLUMN `localSchedulePending` INTEGER NOT NULL DEFAULT 0"
+        )
+    }
+}
+
 fun buildJianweiDatabase(context: Context): JianweiDatabase =
     Room.databaseBuilder(context.applicationContext, JianweiDatabase::class.java, "jianwei.db")
         .addMigrations(
@@ -181,7 +192,8 @@ fun buildJianweiDatabase(context: Context): JianweiDatabase =
             MIGRATION_7_8,
             MIGRATION_8_9,
             MIGRATION_9_10,
-            MIGRATION_10_11
+            MIGRATION_10_11,
+            MIGRATION_11_12
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()

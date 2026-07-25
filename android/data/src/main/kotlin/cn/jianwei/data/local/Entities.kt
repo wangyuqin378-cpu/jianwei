@@ -102,7 +102,8 @@ data class TrackedItemEntity(
     val startedOn: String,
     val reminderDays: Int,
     val syncAction: String,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val localSchedulePending: Boolean = false
 )
 
 @Entity(tableName = "suppressed_photos")

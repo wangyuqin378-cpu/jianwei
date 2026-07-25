@@ -99,6 +99,13 @@ data class TrackedItem(
     val dueOn: LocalDate get() = startedOn.plusDays(reminderDays.toLong())
 }
 
+data class PendingReminderSchedule(
+    val cardId: String,
+    val startedOn: LocalDate,
+    val reminderDays: Int,
+    val version: Long
+)
+
 enum class FeedbackAction { LIKE, DISLIKE, WRONG_OBJECT, TOO_PRIVATE, SAVE }
 
 data class CardFeedbackState(

@@ -68,4 +68,57 @@ class TrackedItemLifecycleInstrumentedTest {
             database.close()
         }
     }
+
+    @Test
+    fun localScheduleOutboxOnlyAcknowledgesTheExactDurableReminderVersion() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            val cards = database.cards()
+            cards.upsertTrackedItem(
+                TrackedItemEntity(
+                    cardId = "card-1",
+                    startedOn = "2026-07-20",
+                    reminderDays = 90,
+                    syncAction = "UPSERT",
+                    updatedAtMillis = 10,
+                    localSchedulePending = true
+                )
+            )
+            assertThat(cards.observePendingReminderSchedules().first().single().updatedAtMillis)
+                .isEqualTo(10L)
+
+            cards.upsertTrackedItem(
+                TrackedItemEntity(
+                    cardId = "card-1",
+                    startedOn = "2026-07-21",
+                    reminderDays = 120,
+                    syncAction = "UPSERT",
+                    updatedAtMillis = 11,
+                    localSchedulePending = true
+                )
+            )
+            assertThat(
+                cards.markReminderScheduled("card-1", "2026-07-20", 90, 10)
+            ).isEqualTo(0)
+            assertThat(
+                cards.isReminderSchedulePending("card-1", "2026-07-20", 90, 10)
+            ).isFalse()
+            assertThat(
+                cards.isReminderSchedulePending("card-1", "2026-07-21", 120, 11)
+            ).isTrue()
+            assertThat(cards.observePendingReminderSchedules().first().single().updatedAtMillis)
+                .isEqualTo(11L)
+
+            assertThat(
+                cards.markReminderScheduled("card-1", "2026-07-21", 120, 11)
+            ).isEqualTo(1)
+            assertThat(cards.observePendingReminderSchedules().first()).isEmpty()
+            assertThat(cards.findTrackedItem("card-1")!!.localSchedulePending).isFalse()
+        } finally {
+            database.close()
+        }
+    }
 }

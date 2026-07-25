@@ -13,6 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.WorkManager
 import androidx.work.WorkInfo
 import cn.jianwei.data.local.CardEntity
+import cn.jianwei.data.local.TrackedItemEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.domain.time.ChinaCalendar
 import com.google.common.truth.Truth.assertThat
@@ -43,14 +44,27 @@ class ItemReminderConsentInstrumentedTest {
             ensureItemReminderChannel(context)
             assertThat(canPostItemReminder(context)).isTrue()
             workManager.cancelUniqueWork(itemReminderWorkName(CARD_ID)).result.get(5, TimeUnit.SECONDS)
+            workManager.cancelUniqueWork(itemReminderWorkName(RECOVERY_CARD_ID)).result.get(5, TimeUnit.SECONDS)
             database.cards().clear()
             preferences.edit().putBoolean("completed", true).commit()
             database.cards().upsertAll(listOf(reminderCard(today)))
+            database.cards().upsertTrackedItem(
+                TrackedItemEntity(
+                    cardId = RECOVERY_CARD_ID,
+                    startedOn = today.toString(),
+                    reminderDays = 120,
+                    syncAction = "UPSERT",
+                    updatedAtMillis = System.currentTimeMillis(),
+                    localSchedulePending = true
+                )
+            )
             scenario = ActivityScenario.launch<MainActivity>(
                 Intent(context, MainActivity::class.java).addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 )
             )
+            assertThat(awaitScheduledTrackedItem(database, RECOVERY_CARD_ID).localSchedulePending).isFalse()
+            awaitReminderWorkScheduled(workManager, RECOVERY_CARD_ID)
 
             click(awaitNodeWithScroll(instrumentation, "物品提醒"))
             assertThat(awaitNode(instrumentation, "为「牙刷」设复查提醒")).isNotNull()
@@ -80,9 +94,11 @@ class ItemReminderConsentInstrumentedTest {
             assertThat(output.length()).isGreaterThan(0L)
 
             click(enabledConfirm)
-            val tracked = awaitTrackedItem(database, CARD_ID)
+            val tracked = awaitScheduledTrackedItem(database, CARD_ID)
             assertThat(tracked.startedOn).isEqualTo(today.toString())
             assertThat(tracked.reminderDays).isEqualTo(90)
+            assertThat(tracked.localSchedulePending).isFalse()
+            awaitReminderWorkScheduled(workManager, CARD_ID)
             assertThat(awaitNodeWithScroll(instrumentation, "物品提醒已开启")).isNotNull()
             assertThat(awaitNodeWithScroll(
                 instrumentation,
@@ -104,22 +120,26 @@ class ItemReminderConsentInstrumentedTest {
         } finally {
             scenario?.close()
             workManager.cancelUniqueWork(itemReminderWorkName(CARD_ID)).result.get(5, TimeUnit.SECONDS)
+            workManager.cancelUniqueWork(itemReminderWorkName(RECOVERY_CARD_ID)).result.get(5, TimeUnit.SECONDS)
             database.cards().removeTrackedItem(CARD_ID)
+            database.cards().removeTrackedItem(RECOVERY_CARD_ID)
             database.cards().clear()
             database.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
         }
     }
 
-    private suspend fun awaitTrackedItem(
+    private suspend fun awaitScheduledTrackedItem(
         database: cn.jianwei.data.local.JianweiDatabase,
         cardId: String
     ): cn.jianwei.data.local.TrackedItemEntity {
         repeat(100) {
-            database.cards().findTrackedItem(cardId)?.let { return it }
+            database.cards().findTrackedItem(cardId)?.let { tracked ->
+                if (!tracked.localSchedulePending) return tracked
+            }
             SystemClock.sleep(50)
         }
-        error("Timed out waiting for tracked item: $cardId")
+        error("Timed out waiting for durably scheduled tracked item: $cardId")
     }
 
     private suspend fun awaitCancelledTrackedItem(
@@ -144,6 +164,19 @@ class ItemReminderConsentInstrumentedTest {
             SystemClock.sleep(50)
         }
         error("Timed out waiting for reminder Work cancellation: $cardId")
+    }
+
+    private fun awaitReminderWorkScheduled(
+        workManager: WorkManager,
+        cardId: String
+    ) {
+        repeat(100) {
+            val work = workManager.getWorkInfosForUniqueWork(itemReminderWorkName(cardId))
+                .get(5, TimeUnit.SECONDS)
+            if (work.size == 1 && work.single().state == WorkInfo.State.ENQUEUED) return
+            SystemClock.sleep(50)
+        }
+        error("Timed out waiting for reminder Work scheduling: $cardId")
     }
 
     private fun reminderCard(today: LocalDate) = CardEntity(
@@ -270,6 +303,7 @@ class ItemReminderConsentInstrumentedTest {
 
     private companion object {
         const val CARD_ID = "item-reminder-consent-card"
+        const val RECOVERY_CARD_ID = "item-reminder-recovery-card"
         const val SCREENSHOT_NAME = "item-reminder-consent.png"
     }
 }

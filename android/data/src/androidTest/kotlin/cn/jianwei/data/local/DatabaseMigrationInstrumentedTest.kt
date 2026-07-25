@@ -282,6 +282,34 @@ class DatabaseMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion11To12WithoutReplayingExistingReminders() {
+        helper.createDatabase(REMINDER_SCHEDULE_DATABASE, 11).apply {
+            execSQL(
+                "INSERT INTO local_tracked_items " +
+                    "(cardId, startedOn, reminderDays, syncAction, updatedAtMillis) " +
+                    "VALUES ('card-existing', '2026-07-20', 90, 'NONE', 1000)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            REMINDER_SCHEDULE_DATABASE,
+            12,
+            true,
+            MIGRATION_11_12
+        ).use { database ->
+            database.query(
+                "SELECT localSchedulePending FROM local_tracked_items " +
+                    "WHERE cardId = 'card-existing'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getInt(0)).isEqualTo(0)
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-2-3-test"
         const val CURSOR_DATABASE = "migration-3-4-cursor-test"
@@ -292,5 +320,6 @@ class DatabaseMigrationInstrumentedTest {
         const val OBJECT_NAME_DATABASE = "migration-8-9-object-name-test"
         const val FEEDBACK_STATE_DATABASE = "migration-9-10-feedback-state-test"
         const val PRIVACY_REFERENCE_DATABASE = "migration-10-11-privacy-reference-test"
+        const val REMINDER_SCHEDULE_DATABASE = "migration-11-12-reminder-schedule-test"
     }
 }
