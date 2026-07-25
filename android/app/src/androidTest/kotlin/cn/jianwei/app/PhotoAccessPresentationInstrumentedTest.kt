@@ -1,12 +1,14 @@
 package cn.jianwei.app
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import cn.jianwei.domain.model.PhotoAccess
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Test
 
 class PhotoAccessPresentationInstrumentedTest {
@@ -28,6 +30,19 @@ class PhotoAccessPresentationInstrumentedTest {
             scenario = ActivityScenario.launch(MainActivity::class.java)
             when (actualAccess) {
                 PhotoAccess.PICKER_ONLY -> {
+                    assertThat(awaitNodeWithScroll(instrumentation, "从一件日常物品开始")).isNotNull()
+                    listOf("杯子与餐具", "清洁工具", "数码小物").forEach { suggestion ->
+                        assertThat(awaitNodeWithScroll(instrumentation, suggestion)).isNotNull()
+                    }
+                    assertThat(awaitNodeWithScroll(instrumentation, "选择一张照片")).isNotNull()
+                    val output = File(context.getExternalFilesDir(null), PICKER_EMPTY_SCREENSHOT_NAME)
+                    output.outputStream().use { stream ->
+                        assertThat(
+                            instrumentation.uiAutomation.takeScreenshot()
+                                .compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        ).isTrue()
+                    }
+                    assertThat(output.length()).isGreaterThan(0L)
                     clickNode(instrumentation, "管理隐私与数据")
                     assertThat(awaitNodeWithScroll(instrumentation, "开启自动发现")).isNotNull()
                 }
@@ -77,7 +92,12 @@ class PhotoAccessPresentationInstrumentedTest {
         while (SystemClock.uptimeMillis() < deadline) {
             val root = instrumentation.uiAutomation.rootInActiveWindow
             findTextNode(root, text)?.let { return it }
-            findScrollableNode(root)?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+            val metrics = instrumentation.targetContext.resources.displayMetrics
+            val centerX = metrics.widthPixels / 2
+            instrumentation.uiAutomation.executeShellCommand(
+                "input swipe $centerX ${(metrics.heightPixels * 0.78f).toInt()} " +
+                    "$centerX ${(metrics.heightPixels * 0.32f).toInt()} 250"
+            ).close()
             SystemClock.sleep(250)
         }
         error("Timed out waiting for accessibility node: $text")
@@ -92,16 +112,8 @@ class PhotoAccessPresentationInstrumentedTest {
         return null
     }
 
-    private fun findScrollableNode(root: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
-        if (root == null) return null
-        if (root.isScrollable) return root
-        for (index in 0 until root.childCount) {
-            findScrollableNode(root.getChild(index))?.let { return it }
-        }
-        return null
-    }
-
     private companion object {
         const val EXPECTED_ACCESS_ARGUMENT = "expectedAccess"
+        const val PICKER_EMPTY_SCREENSHOT_NAME = "picker-only-empty-state.png"
     }
 }

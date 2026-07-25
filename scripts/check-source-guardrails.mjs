@@ -1067,9 +1067,18 @@ check(
   "A stale full-access ScanWorker can exceed the current partial-photo scope"
 );
 check(!mainViewModel.includes("init {\n        if (!scheduler.isPaused()) scheduler.scheduleDailyRefresh()"), "MainViewModel still schedules analysis work before onboarding consent");
-for (const marker of ["shouldScheduleAutomaticDiscovery", "PhotoAccess.PICKER_ONLY", "不会自动扫描", "先选择一张照片", "分析已暂停"]) {
+for (const marker of ["shouldScheduleAutomaticDiscovery", "PhotoAccess.PICKER_ONLY", "不会自动扫描", "从一件日常物品开始", "杯子与餐具", "清洁工具", "数码小物", "shouldStackStarterSuggestions", "分析已暂停"]) {
   check(discoveryUiPolicy.includes(marker), `Permission-aware empty discovery policy is missing marker: ${marker}`);
 }
+check(
+  mainActivity.includes("private fun StarterSuggestion(") &&
+    mainActivity.includes("shouldStackStarterSuggestions(maxWidth.value, LocalDensity.current.fontScale)") &&
+    discoveryUiPolicy.includes("availableWidthDp < 300f || fontScale >= 1.5f") &&
+    discoveryUiPolicyTest.includes("starter suggestions use the empty card net width") &&
+    photoAccessPresentationDeviceTest.includes('PICKER_EMPTY_SCREENSHOT_NAME = "picker-only-empty-state.png"') &&
+    photoAccessPresentationDeviceTest.includes('"选择一张照片"'),
+  "Picker-only empty state is missing actionable starter guidance or responsive device evidence"
+);
 for (const marker of ["class ConfigurePhotoAccessUseCase", "scheduler.stopAutomaticDiscovery()", "scheduler.scheduleInitialScan(access)", "scheduler.scheduleDailyRefresh()"]) {
   check(discoveryUseCases.includes(marker), `Reversible automatic-discovery use case is missing marker: ${marker}`);
 }

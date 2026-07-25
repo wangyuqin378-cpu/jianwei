@@ -10,7 +10,9 @@ internal data class EmptyDiscoveryCopy(
     val title: String,
     val body: String,
     val actionLabel: String,
-    val action: EmptyDiscoveryAction
+    val action: EmptyDiscoveryAction,
+    val starterSuggestions: List<String> = emptyList(),
+    val footnote: String? = null
 )
 
 internal data class HomeActivityIndicator(
@@ -69,6 +71,9 @@ internal fun shouldStackKnowledgeCardActions(availableWidthDp: Float, fontScale:
     availableWidthDp < 340f || fontScale >= 1.5f
 
 internal fun shouldStackOnboardingInterests(availableWidthDp: Float, fontScale: Float): Boolean =
+    availableWidthDp < 300f || fontScale >= 1.5f
+
+internal fun shouldStackStarterSuggestions(availableWidthDp: Float, fontScale: Float): Boolean =
     availableWidthDp < 300f || fontScale >= 1.5f
 
 internal fun discoveryStartMessage(access: PhotoAccess): String =
@@ -158,10 +163,12 @@ internal fun emptyDiscoveryCopy(
         action = EmptyDiscoveryAction.PICK
     )
     access == PhotoAccess.PICKER_ONLY -> EmptyDiscoveryCopy(
-        title = "先选择一张照片",
-        body = "见微不会自动读取相册。你可以使用系统照片选择器，或从相册、微信、浏览器等 App 分享图片到见微。",
-        actionLabel = "选择照片",
-        action = EmptyDiscoveryAction.PICK
+        title = "从一件日常物品开始",
+        body = "选择一张主体清楚、画面简单的照片。见微会先在本机做隐私和质量筛选，再寻找可靠知识。",
+        actionLabel = "选择一张照片",
+        action = EmptyDiscoveryAction.PICK,
+        starterSuggestions = listOf("杯子与餐具", "清洁工具", "数码小物"),
+        footnote = "也可以从相册、微信或浏览器分享图片到见微。"
     )
     else -> EmptyDiscoveryCopy(
         title = "准备寻找第一张卡片",

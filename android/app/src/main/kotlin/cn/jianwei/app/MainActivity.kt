@@ -86,6 +86,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.app.NotificationManagerCompat
@@ -1266,10 +1267,43 @@ private fun EmptyState(
     onRetry: () -> Unit
 ) {
     val copy = emptyDiscoveryCopy(paused, access, progress)
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    val isStarterState = copy.starterSuggestions.isNotEmpty()
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (isStarterState) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        )
+    ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(copy.title, style = MaterialTheme.typography.titleLarge)
-            Text(copy.body)
+            Text(copy.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(copy.body, style = MaterialTheme.typography.bodyMedium)
+            if (isStarterState) {
+                Text(
+                    "适合开始的照片",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                BoxWithConstraints {
+                    val stacked = shouldStackStarterSuggestions(maxWidth.value, LocalDensity.current.fontScale)
+                    if (stacked) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            copy.starterSuggestions.forEach { suggestion ->
+                                StarterSuggestion(suggestion, Modifier.fillMaxWidth())
+                            }
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            copy.starterSuggestions.forEach { suggestion ->
+                                StarterSuggestion(suggestion, Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
             Button(
                 onClick = when (copy.action) {
                     EmptyDiscoveryAction.PICK -> onPick
@@ -1279,7 +1313,30 @@ private fun EmptyState(
                 enabled = actionsEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) { Text(copy.actionLabel) }
+            copy.footnote?.let { footnote ->
+                Text(
+                    footnote,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun StarterSuggestion(label: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.78f),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Text(
+            label,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

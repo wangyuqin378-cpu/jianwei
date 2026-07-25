@@ -14,8 +14,10 @@ class DiscoveryUiPolicyTest {
         assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY)).doesNotContain("已开始扫描")
 
         val copy = emptyDiscoveryCopy(paused = false, access = PhotoAccess.PICKER_ONLY, progress = AnalysisProgress())
-        assertThat(copy.title).isEqualTo("先选择一张照片")
-        assertThat(copy.actionLabel).isEqualTo("选择照片")
+        assertThat(copy.title).isEqualTo("从一件日常物品开始")
+        assertThat(copy.actionLabel).isEqualTo("选择一张照片")
+        assertThat(copy.starterSuggestions).containsExactly("杯子与餐具", "清洁工具", "数码小物").inOrder()
+        assertThat(copy.footnote).contains("分享图片到见微")
     }
 
     @Test
@@ -120,6 +122,13 @@ class DiscoveryUiPolicyTest {
         assertThat(shouldStackOnboardingInterests(availableWidthDp = 339f, fontScale = 1f)).isFalse()
         assertThat(shouldStackOnboardingInterests(availableWidthDp = 299f, fontScale = 1f)).isTrue()
         assertThat(shouldStackOnboardingInterests(availableWidthDp = 339f, fontScale = 1.5f)).isTrue()
+    }
+
+    @Test
+    fun `starter suggestions use the empty card net width`() {
+        assertThat(shouldStackStarterSuggestions(availableWidthDp = 339f, fontScale = 1f)).isFalse()
+        assertThat(shouldStackStarterSuggestions(availableWidthDp = 299f, fontScale = 1f)).isTrue()
+        assertThat(shouldStackStarterSuggestions(availableWidthDp = 339f, fontScale = 1.5f)).isTrue()
     }
 
     @Test
