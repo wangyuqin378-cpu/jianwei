@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-25 收藏目录与详情闭环（当前最新权威摘要）：收藏页有内容时不再把来源、提醒和四项反馈逐张全部展开，而是按既有最近收藏顺序展示紧凑可点击目录。标准宽度使用 112dp 照片与标题/摘要并排，净宽 `<300dp` 或字体 `>=1.5×` 时切为上下结构并将摘要收为两行；目录缩略图只解码到 320px，完整详情继续使用 1280px 上限。点击后进入独立“从收藏打开”详情，显式返回和系统返回都恢复收藏滚动位置；取消收藏会以现有 Repository/Room 事务更新状态，详情随 Flow 自动关闭并显示新计数。Android Clean Architecture 在本轮用于把浏览形态留在 Compose，未改收藏业务或同步边界。
+
+API 34 设备测试用真实 Room 保存两张卡，验证目录中没有提前展开“为什么推给你”、详情完整可达、系统返回、再次进入、取消收藏及 DAO 最终 `isSaved=false`；标准 1080×2400 和 840×1867/2× 字体均通过。详情滚动复位只观察当前打开卡片的 ID/存在性，其他收藏同步变化不会重置阅读位置。标准/大字截图 SHA-256 为 `31e18380480c2b6976f6e776a843a46408d9691badb70bacaee84bb13841964e` / `95c0f8ae92d064cc11af4209d62d4a4a6756a3a67d53dba467b4dcaa280407d9`。当前源码包重新安装后的完整 App instrumentation 14/14；Android JVM 180/180（Domain 56、App 46、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。Debug/未签名 Release APK SHA-256 为 `1b70a08445a3ae2805298612b91cf17549b85c7c7d287b89553945178c501e19` / `5637bcbe97b9aa073eb185875e216a01b4252fe6c917efe65f2f5994cab3797d`。这些仍是本地工程证据；外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-25 收藏页独立导航闭环（当前最新权威摘要）：收藏空状态不再沿用旧动作名“收藏这张知识卡”，而是与每日卡片当前的“收藏”操作一致，明确说明卡片会保存在这里，并给出“查看每日卡片”主操作。收藏模式只呈现归档内容，不再重复自动分析状态、推荐偏好和隐私中心；CTA 与系统返回键都恢复每日模式，未改变 Room 收藏、反馈或云同步语义。Android Clean Architecture 在本轮用于保持变化位于 Compose 展示/导航边界。
 
 API 34 新增设备测试以真实 Room 空状态验证文案、设置隔离、CTA 返回和 `KEYCODE_BACK` 返回，并生成 1080×2400 截图；840×1867/2× 字体下同一测试通过，主操作完整可达。标准/大字截图 SHA-256 为 `892187f0b7dd1108e2f61c96a8d2bf7a77e12a2e89f5ce344e2165eedf3a844e` / `f686965d6f43916bd221db7fc396e8d753d01e8ace8fa2291110244bb2364ef8`。完整 App instrumentation 13/13；Android JVM 180/180（Domain 56、App 46、Data 78），App/Data Lint 0 error，Debug、R8 Release、源码门禁和差异检查通过。Debug/未签名 Release APK SHA-256 为 `13f2068d797b3f842e5d0c40d2f4cbbaf2d862c2c4e99cc30ab0605bff666579` / `a579b6f0e164fe79b411edb93e9a2440f66c5b5ed8d93c0e9a8e23709fa755de`。截图和 APK 仍是本地工程证据；外部发布阻断不变，Beta 保持 `NO_GO`。

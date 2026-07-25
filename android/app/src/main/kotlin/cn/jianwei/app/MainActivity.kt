@@ -87,6 +87,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.app.NotificationManagerCompat
@@ -99,6 +100,7 @@ import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
 import cn.jianwei.domain.card.cardRecognitionPresentation
 import cn.jianwei.domain.card.cardDatePresentation
+import cn.jianwei.domain.card.CardDatePresentation
 import cn.jianwei.domain.card.CardDateSection
 import cn.jianwei.domain.card.FocusedCardStatus
 import cn.jianwei.domain.model.AnalysisPhase
@@ -751,9 +753,12 @@ private fun HomeScreen(
     val snackbar = remember { SnackbarHostState() }
     val fontScale = LocalDensity.current.fontScale
     var showSavedCards by rememberSaveable { mutableStateOf(false) }
+    var openedSavedCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEnabled = areUserMutationsEnabled(state.activeOperation)
     val activityIndicator = homeActivityIndicator(state.activeOperation, state.analysisProgress)
-    val focusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
+    val externalFocusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
+    val openedSavedCard = state.savedCards.firstOrNull { it.cardId == openedSavedCardId }
+    val focusedEntry = externalFocusedEntry || openedSavedCard != null
     val dailyListState = rememberLazyListState()
     val savedListState = rememberLazyListState()
     val focusedListState = rememberLazyListState()
@@ -764,13 +769,26 @@ private fun HomeScreen(
     }
     val visibleCards = if (showSavedCards) state.savedCards else state.cards
     val savedCardIds = state.savedCards.mapTo(remember(state.savedCards) { mutableSetOf() }) { it.cardId }
-    BackHandler(enabled = focusedEntry) { onCloseFocusedCard() }
+    BackHandler(enabled = externalFocusedEntry) { onCloseFocusedCard() }
+    BackHandler(enabled = !externalFocusedEntry && openedSavedCard != null) {
+        openedSavedCardId = null
+    }
     BackHandler(enabled = !focusedEntry && showSavedCards) { showSavedCards = false }
     LaunchedEffect(state.message) {
         state.message?.let { snackbar.showSnackbar(it); onMessageShown() }
     }
     LaunchedEffect(state.focusedCardId) {
-        if (state.focusedCardId != null) focusedListState.scrollToItem(0)
+        if (state.focusedCardId != null) {
+            openedSavedCardId = null
+            focusedListState.scrollToItem(0)
+        }
+    }
+    LaunchedEffect(openedSavedCardId, openedSavedCard?.cardId) {
+        if (openedSavedCardId != null && openedSavedCard == null) {
+            openedSavedCardId = null
+        } else if (openedSavedCard != null) {
+            focusedListState.scrollToItem(0)
+        }
     }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -809,17 +827,17 @@ private fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             if (focusedEntry) {
-                state.focusedCard?.let { card ->
+                if (openedSavedCard != null) {
                     item {
-                        FocusedCardEntryHeader(onCloseFocusedCard)
+                        SavedCardDetailHeader(onClose = { openedSavedCardId = null })
                     }
-                    item(key = "focused-${card.cardId}") {
+                    item(key = "saved-detail-${openedSavedCard.cardId}") {
                         KnowledgeCardView(
-                            card,
+                            openedSavedCard,
                             state.currentDay,
-                            state.trackedItems[card.cardId],
-                            state.feedbackStates[card.cardId],
-                            card.cardId in savedCardIds,
+                            state.trackedItems[openedSavedCard.cardId],
+                            state.feedbackStates[openedSavedCard.cardId],
+                            isSaved = true,
                             actionsEnabled,
                             onFeedback,
                             onSetSaved,
@@ -828,8 +846,29 @@ private fun HomeScreen(
                             onEngagement
                         )
                     }
-                } ?: item {
-                    FocusedCardUnavailable(onCloseFocusedCard)
+                } else {
+                    state.focusedCard?.let { card ->
+                        item {
+                            FocusedCardEntryHeader(onCloseFocusedCard)
+                        }
+                        item(key = "focused-${card.cardId}") {
+                            KnowledgeCardView(
+                                card,
+                                state.currentDay,
+                                state.trackedItems[card.cardId],
+                                state.feedbackStates[card.cardId],
+                                card.cardId in savedCardIds,
+                                actionsEnabled,
+                                onFeedback,
+                                onSetSaved,
+                                onTrack,
+                                onCancelReminder,
+                                onEngagement
+                            )
+                        }
+                    } ?: item {
+                        FocusedCardUnavailable(onCloseFocusedCard)
+                    }
                 }
             } else {
                 item {
@@ -927,32 +966,42 @@ private fun HomeScreen(
                         SavedEmptyState(onShowDaily = { showSavedCards = false })
                     }
                 }
+                if (showSavedCards && state.savedCards.isNotEmpty()) {
+                    item {
+                        SavedCollectionHeader(state.savedCards.size)
+                    }
+                }
                 itemsIndexed(visibleCards, key = { _, card -> card.cardId }) { index, card ->
-                    val datePresentation = cardDatePresentation(card.scheduledDate, state.currentDay)
-                    val previousSection = visibleCards.getOrNull(index - 1)
-                        ?.let { previous -> cardDatePresentation(previous.scheduledDate, state.currentDay).section }
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        if (
-                            !showSavedCards &&
-                            datePresentation.section != previousSection
-                        ) {
-                            DailyCardSectionHeader(datePresentation.section)
-                        }
-                        KnowledgeCardView(
-                            card,
-                            state.currentDay,
-                            state.trackedItems[card.cardId],
-                            state.feedbackStates[card.cardId],
-                            card.cardId in savedCardIds,
-                            actionsEnabled,
-                            onFeedback,
-                            onSetSaved,
-                            onTrack,
-                            onCancelReminder,
-                            onEngagement
+                    if (showSavedCards) {
+                        SavedKnowledgeCardPreview(
+                            card = card,
+                            currentDay = state.currentDay,
+                            onOpen = { openedSavedCardId = card.cardId }
                         )
-                        if (shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)) {
-                            WidgetCallToAction(onAddWidget)
+                    } else {
+                        val datePresentation = cardDatePresentation(card.scheduledDate, state.currentDay)
+                        val previousSection = visibleCards.getOrNull(index - 1)
+                            ?.let { previous -> cardDatePresentation(previous.scheduledDate, state.currentDay).section }
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            if (datePresentation.section != previousSection) {
+                                DailyCardSectionHeader(datePresentation.section)
+                            }
+                            KnowledgeCardView(
+                                card,
+                                state.currentDay,
+                                state.trackedItems[card.cardId],
+                                state.feedbackStates[card.cardId],
+                                card.cardId in savedCardIds,
+                                actionsEnabled,
+                                onFeedback,
+                                onSetSaved,
+                                onTrack,
+                                onCancelReminder,
+                                onEngagement
+                            )
+                            if (shouldShowWidgetCallToAction(showSavedCards, index, widgetInstalled)) {
+                                WidgetCallToAction(onAddWidget)
+                            }
                         }
                     }
                 }
@@ -979,6 +1028,118 @@ private fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SavedCollectionHeader(count: Int) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(
+            "收藏的知识",
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            "共 $count 张，按最近收藏排序。点开卡片查看来源、提醒和反馈。",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SavedKnowledgeCardPreview(
+    card: KnowledgeCard,
+    currentDay: LocalDate,
+    onOpen: () -> Unit
+) {
+    val datePresentation = cardDatePresentation(card.scheduledDate, currentDay)
+    Card(
+        onClick = onOpen,
+        modifier = Modifier.fillMaxWidth().semantics {
+            contentDescription = "打开收藏的知识卡：${card.title}"
+        },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        BoxWithConstraints {
+            val stacked = maxWidth.value < 300f || LocalDensity.current.fontScale >= 1.5f
+            if (stacked) {
+                Column(Modifier.fillMaxWidth()) {
+                    PhotoThumbnail(
+                        card.photoUri,
+                        contentDescription = "${card.title}的原照片缩略图",
+                        modifier = Modifier.fillMaxWidth().height(104.dp),
+                        maxSidePx = SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX
+                    )
+                    SavedKnowledgeCardPreviewText(
+                        card = card,
+                        datePresentation = datePresentation,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                        bodyMaxLines = 2
+                    )
+                }
+            } else {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    PhotoThumbnail(
+                        card.photoUri,
+                        contentDescription = "${card.title}的原照片缩略图",
+                        modifier = Modifier.size(112.dp),
+                        maxSidePx = SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX
+                    )
+                    SavedKnowledgeCardPreviewText(
+                        card = card,
+                        datePresentation = datePresentation,
+                        modifier = Modifier.weight(1f).padding(horizontal = 14.dp, vertical = 12.dp),
+                        bodyMaxLines = 3
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedKnowledgeCardPreviewText(
+    card: KnowledgeCard,
+    datePresentation: CardDatePresentation,
+    modifier: Modifier,
+    bodyMaxLines: Int
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(
+            datePresentation.visibleLabel,
+            modifier = Modifier.semantics {
+                contentDescription = datePresentation.accessibilityLabel
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            card.title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            card.body,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = bodyMaxLines,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            "查看完整知识",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -1139,6 +1300,33 @@ private fun FocusedCardEntryHeader(onClose: () -> Unit) {
             )
             OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
                 Text("返回每日卡片")
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedCardDetailHeader(onClose: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "从收藏打开",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "这里显示完整知识、来源与操作。返回后会继续停在刚才的收藏位置。",
+                style = MaterialTheme.typography.bodySmall
+            )
+            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                Text("返回收藏")
             }
         }
     }
@@ -1927,12 +2115,17 @@ private fun PrivacyCenter(
 }
 
 @Composable
-private fun PhotoThumbnail(uri: String, contentDescription: String, modifier: Modifier = Modifier) {
+private fun PhotoThumbnail(
+    uri: String,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    maxSidePx: Int = DETAIL_THUMBNAIL_MAX_SIDE_PX
+) {
     val context = LocalContext.current
-    val bitmap by produceState<android.graphics.Bitmap?>(null, uri) {
+    val bitmap by produceState<android.graphics.Bitmap?>(null, uri, maxSidePx) {
         value = if (uri.isBlank()) null else withContext(Dispatchers.IO) {
             runCatching {
-                decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), DETAIL_THUMBNAIL_MAX_SIDE_PX)
+                decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), maxSidePx)
             }.getOrNull()
         }
     }
@@ -1942,11 +2135,20 @@ private fun PhotoThumbnail(uri: String, contentDescription: String, modifier: Mo
     }
     Box(modifier.background(androidx.compose.ui.graphics.Color(0xFFDDE5DD)), contentAlignment = Alignment.Center) {
         if (displayBitmap != null) Image(displayBitmap.asImageBitmap(), contentDescription = contentDescription, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        else Text(PHOTO_THUMBNAIL_UNAVAILABLE_LABEL)
+        else Text(
+            PHOTO_THUMBNAIL_UNAVAILABLE_LABEL,
+            modifier = Modifier.padding(10.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
 private const val DETAIL_THUMBNAIL_MAX_SIDE_PX = 1280
+private const val SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX = 320
 
 private fun requestPinDailyWidget(context: android.content.Context) {
     val manager = AppWidgetManager.getInstance(context)

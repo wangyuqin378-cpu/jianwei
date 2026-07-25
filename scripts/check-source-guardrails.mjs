@@ -466,15 +466,23 @@ check(
 check(
   mainActivity.includes("收藏 ${state.savedCards.size}") &&
     mainActivity.includes("private fun SavedEmptyState(") &&
+    mainActivity.includes("private fun SavedKnowledgeCardPreview(") &&
+    mainActivity.includes("private fun SavedCardDetailHeader(") &&
     mainActivity.includes("把想记住的知识留在这里") &&
     mainActivity.includes('Text("查看每日卡片")') &&
+    mainActivity.includes('"查看完整知识"') &&
+    mainActivity.includes('Text("返回收藏")') &&
+    mainActivity.includes("SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX = 320") &&
     mainActivity.includes("BackHandler(enabled = !focusedEntry && showSavedCards)") &&
     !mainActivity.includes("收藏这张知识卡") &&
     mainActivity.includes('Text(if (isSaved) "取消收藏" else "收藏")') &&
     mainActivity.includes('Text(if (trackedItem == null) "物品提醒" else "更新提醒")') &&
     savedTabNavigationDeviceTest.includes("emptySavedTabExplainsTheCurrentActionAndReturnsToDailyCards") &&
+    savedTabNavigationDeviceTest.includes("savedCollectionUsesCompactPreviewsAndOpensFullKnowledgeInContext") &&
+    savedTabNavigationDeviceTest.includes('database.cards().findSavedCard(PRIMARY_CARD_ID)?.isSaved') &&
     savedTabNavigationDeviceTest.includes('executeShellCommand("input keyevent KEYCODE_BACK")') &&
-    savedTabNavigationDeviceTest.includes('SCREENSHOT_NAME = "saved-empty-state.png"'),
+    savedTabNavigationDeviceTest.includes('SCREENSHOT_NAME = "saved-empty-state.png"') &&
+    savedTabNavigationDeviceTest.includes('COLLECTION_SCREENSHOT_NAME = "saved-collection.png"'),
   "Saved-card collection has no complete visible add/list/remove UI"
 );
 check(
@@ -732,8 +740,10 @@ check(
     orientedBitmapDecoder.includes("thumbnailSampleSizeFor(bounds.outWidth, bounds.outHeight, maximumOutputSide)") &&
     orientedBitmapDecoder.includes("boundOutputBitmap(applyExifOrientation(decoded, orientation), maximumOutputSide)") &&
     orientedBitmapDecoder.includes("if (scaled !== source) source.recycle()") &&
-    mainActivity.includes("decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), DETAIL_THUMBNAIL_MAX_SIDE_PX)") &&
+    mainActivity.includes("maxSidePx: Int = DETAIL_THUMBNAIL_MAX_SIDE_PX") &&
+    mainActivity.includes("decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), maxSidePx)") &&
     mainActivity.includes("DETAIL_THUMBNAIL_MAX_SIDE_PX = 1280") &&
+    mainActivity.includes("SAVED_PREVIEW_THUMBNAIL_MAX_SIDE_PX = 320") &&
     !mainActivity.includes("BitmapFactory::decodeStream") &&
     dailyWidget.includes("decodeBoundedThumbnail(context.contentResolver, Uri.parse(uriValue), WIDGET_THUMBNAIL_MAX_SIDE_PX)") &&
     dailyWidget.includes("WIDGET_THUMBNAIL_MAX_SIDE_PX = 320") &&
@@ -891,7 +901,8 @@ check(
     mainViewModel.includes("focusedCardId") &&
     mainActivity.includes("viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))") &&
     mainActivity.includes('EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"') &&
-    mainActivity.includes("BackHandler(enabled = focusedEntry)") &&
+    mainActivity.includes("BackHandler(enabled = externalFocusedEntry) { onCloseFocusedCard() }") &&
+    mainActivity.includes("BackHandler(enabled = !externalFocusedEntry && openedSavedCard != null)") &&
     mainActivity.includes("FocusedCardEntryHeader(onCloseFocusedCard)") &&
     mainActivity.includes('"返回每日卡片"') &&
     mainActivity.includes('"这张卡已不可用"'),
