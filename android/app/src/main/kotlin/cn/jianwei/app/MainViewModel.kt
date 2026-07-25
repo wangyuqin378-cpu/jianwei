@@ -352,8 +352,12 @@ class MainViewModel @Inject constructor(
     }
 
     fun pauseAnalysis() = runBusy(UserOperation.PAUSE_ANALYSIS) {
-        scheduler.pauseAndCancel()
-        localState.update { it.copy(paused = true) }
+        pauseAndPublishAnalysisState(
+            pauseAndCancelAnalysis = scheduler::pauseAndCancel,
+            publishPauseState = {
+                localState.update { it.copy(paused = scheduler.isPaused()) }
+            }
+        )
         "分析已暂停，进行中的网络任务已经退出"
     }
 
@@ -382,20 +386,27 @@ class MainViewModel @Inject constructor(
     }
 
     fun deleteCloudData() = runBusy(UserOperation.DELETE_CLOUD_DATA) {
-        scheduler.pauseAndCancel()
-        itemReminders.cancelAllAndAwait()
-        cards.clearCloudData()
-        pendingImportResults.clearAll()
-        pendingImportTokens.value = emptyList()
-        localState.update {
-            it.copy(
-                paused = true,
-                focusedCardId = null,
-                focusedCardFromRecentImport = false,
-                pendingImportCount = 0,
-                importedPhotoResultNotice = null
-            )
-        }
+        completeCloudDeletionFromUi(
+            pauseAndCancelAnalysis = scheduler::pauseAndCancel,
+            publishPauseState = {
+                localState.update { it.copy(paused = scheduler.isPaused()) }
+            },
+            deleteCloudData = cards::clearCloudData,
+            cancelReminderWork = itemReminders::cancelAllAndAwait,
+            clearTransientUiState = {
+                pendingImportResults.clearAll()
+                pendingImportTokens.value = emptyList()
+                localState.update {
+                    it.copy(
+                        paused = scheduler.isPaused(),
+                        focusedCardId = null,
+                        focusedCardFromRecentImport = false,
+                        pendingImportCount = 0,
+                        importedPhotoResultNotice = null
+                    )
+                }
+            }
+        )
         "云端设备数据和未完成任务已删除"
     }
 

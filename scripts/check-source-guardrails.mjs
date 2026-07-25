@@ -176,6 +176,8 @@ const widgetStateDeviceTest = await readFile(path.join(root, "android", "data", 
 const widgetSwitchPolicy = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "widget", "WidgetSwitchPolicy.kt"), "utf8");
 const widgetSwitchPolicyTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "widget", "WidgetSwitchPolicyTest.kt"), "utf8");
 const mainViewModel = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "MainViewModel.kt"), "utf8");
+const cloudDeletionFlow = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "CloudDeletionFlow.kt"), "utf8");
+const cloudDeletionFlowTest = await readFile(path.join(root, "android", "app", "src", "test", "kotlin", "cn", "jianwei", "app", "CloudDeletionFlowTest.kt"), "utf8");
 const userOperationGate = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "UserOperationGate.kt"), "utf8");
 const shareReceiver = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "ShareReceiverActivity.kt"), "utf8");
 const pendingImportResultStore = await readFile(path.join(root, "android", "app", "src", "main", "kotlin", "cn", "jianwei", "app", "PendingImportResultStore.kt"), "utf8");
@@ -766,17 +768,21 @@ check(
     postgresRepositories.includes("created: row.registration_created === true"),
   "Registration does not atomically distinguish a newly created replacement from an existing device"
 );
-const cloudDeleteUi = mainViewModel.slice(
-  mainViewModel.indexOf("fun deleteCloudData()"),
-  mainViewModel.indexOf("fun clearMessage()")
-);
 check(
-  cloudDeleteUi.indexOf("scheduler.pauseAndCancel()") >= 0 &&
-    cloudDeleteUi.indexOf("itemReminders.cancelAllAndAwait()") > cloudDeleteUi.indexOf("scheduler.pauseAndCancel()") &&
-    cloudDeleteUi.indexOf("cards.clearCloudData()") > cloudDeleteUi.indexOf("itemReminders.cancelAllAndAwait()") &&
+  mainViewModel.includes("completeCloudDeletionFromUi(") &&
+    mainActivity.includes("若删除尚未确认，分析仍会保持暂停") &&
+    cloudDeletionFlow.indexOf("pauseAndPublishAnalysisState(") >= 0 &&
+    cloudDeletionFlow.indexOf("deleteCloudData()") > cloudDeletionFlow.indexOf("pauseAndPublishAnalysisState(") &&
+    cloudDeletionFlow.indexOf("cancelReminderWork()") > cloudDeletionFlow.indexOf("deleteCloudData()") &&
+    cloudDeletionFlow.indexOf("clearTransientUiState()") > cloudDeletionFlow.indexOf("cancelReminderWork()") &&
+    cloudDeletionFlow.includes("CloudDeletionIncompleteException") &&
+    cloudDeletionFlowTest.includes("remote failure publishes paused state and preserves reminder work and local UI") &&
+    cloudDeletionFlowTest.includes("pause failure still publishes the scheduler truth and never starts deletion") &&
     reminderScheduler.includes("suspend fun cancelAllAndAwait()") &&
-    reminderScheduler.includes("cancelAllWorkByTag(ITEM_REMINDER_WORK_TAG).result.get()"),
-  "Cloud deletion does not durably cancel local reminder work before the remote request"
+    reminderScheduler.includes("cancelAllWorkByTag(ITEM_REMINDER_WORK_TAG).result.get()") &&
+    reminderScheduler.includes("if (!cards.isTrackedReminderCurrent(cardId, startedOn, reminderDays))") &&
+    reminderPrivacyDeviceTest.includes("missingCardOrTrackingCannotNotifyEvenWhenStaleWorkStillExecutes"),
+  "Cloud deletion failure can leave UI pause/reminder state inconsistent or stale work able to notify"
 );
 const privacyRetry = workersSource.indexOf("shouldRetryPrivacyAnalysisFailure(runAttemptCount)");
 const privacyFailure = workersSource.indexOf("photos.updateAnalysis(entity.localId, AnalysisState.FAILED)");

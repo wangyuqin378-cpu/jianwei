@@ -2654,7 +2654,13 @@ private fun PrivacyCenter(
         AlertDialog(
             onDismissRequest = { showCloudDeleteConfirmation = false },
             title = { Text("确认删除云端数据？") },
-            text = { Text("这会暂停分析，并永久删除当前匿名设备在服务端的卡片和未完成任务。若网络或身份校验失败，本地恢复凭据会保留，方便你重试；本地原照片不会被删除。") },
+            text = {
+                Text(
+                    "这会暂停分析，并永久删除当前匿名设备在服务端的卡片和未完成任务。" +
+                        "若删除尚未确认，分析仍会保持暂停，并保留恢复信息供你联网后重试；" +
+                        "本地原照片不会被删除。"
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     showCloudDeleteConfirmation = false
