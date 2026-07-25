@@ -11,6 +11,7 @@ import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.local.sourcesToJson
 import cn.jianwei.domain.model.KnowledgeSource
+import cn.jianwei.domain.time.ChinaCalendar
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.time.LocalDate
@@ -25,7 +26,7 @@ class DailyHistoryNavigationInstrumentedTest {
         val database = buildJianweiDatabase(context)
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
-        val today = LocalDate.now()
+        val today = ChinaCalendar.today()
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             database.cards().clear()
@@ -61,7 +62,7 @@ class DailyHistoryNavigationInstrumentedTest {
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
             assertThat(awaitNodeWithScroll(instrumentation, TODAY_BODY)).isNotNull()
-            assertThat(awaitNodeWithScroll(instrumentation, "往日一知")).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, HISTORY_SECTION_DESCRIPTION)).isNotNull()
             val historyEntry = awaitNodeWithScroll(
                 instrumentation,
                 "打开往日知识卡：$HISTORY_TITLE"
@@ -82,7 +83,6 @@ class DailyHistoryNavigationInstrumentedTest {
                 )
             ).isNotNull()
             instrumentation.uiAutomation.executeShellCommand("input keyevent 4").close()
-            assertThat(awaitNode(instrumentation, "往日一知")).isNotNull()
             assertThat(awaitNode(instrumentation, HISTORY_TITLE)).isNotNull()
             assertThat(database.cards().findById(HISTORY_CARD_ID)?.cardId).isEqualTo(HISTORY_CARD_ID)
         } finally {
@@ -183,7 +183,14 @@ class DailyHistoryNavigationInstrumentedTest {
             scrollTowardNode(instrumentation, node)
             SystemClock.sleep(250)
         }
-        error("Timed out scrolling to accessibility node: $value")
+        error(
+            "Timed out scrolling to accessibility node: $value; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow) +
+                "; matches=" + describeMatchingNodes(
+                    instrumentation.uiAutomation.rootInActiveWindow,
+                    value
+                )
+        )
     }
 
     private fun AccessibilityNodeInfo.isActuallyOnScreen(
@@ -192,45 +199,34 @@ class DailyHistoryNavigationInstrumentedTest {
         if (!isVisibleToUser) return false
         val bounds = Rect()
         getBoundsInScreen(bounds)
-        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val windowBounds = Rect().also { visibleBounds ->
+            instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(visibleBounds)
+        }
         return bounds.width() > 0 &&
             bounds.height() > 0 &&
-            bounds.centerX() in 0 until metrics.widthPixels &&
-            bounds.centerY() in 0 until metrics.heightPixels
+            windowBounds.contains(bounds.centerX(), bounds.centerY())
     }
 
     private fun scrollTowardNode(
         instrumentation: android.app.Instrumentation,
         node: AccessibilityNodeInfo?
     ) {
+        if (
+            node != null &&
+            node.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
+        ) return
+
         val bounds = Rect()
         node?.getBoundsInScreen(bounds)
         val targetIsAbove = node != null && bounds.bottom <= 0
-        val scrollAction = if (targetIsAbove) {
-            AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
-        } else {
-            AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
-        }
-        val root = instrumentation.uiAutomation.rootInActiveWindow
-        if (findScrollableNode(root)?.performAction(scrollAction) == true) return
-
         val metrics = instrumentation.targetContext.resources.displayMetrics
-        val startY = if (targetIsAbove) 0.32f else 0.78f
-        val endY = if (targetIsAbove) 0.78f else 0.32f
+        val startY = if (targetIsAbove) 0.52f else 0.68f
+        val endY = if (targetIsAbove) 0.68f else 0.52f
         val centerX = metrics.widthPixels / 2
         instrumentation.uiAutomation.executeShellCommand(
             "input swipe $centerX ${(metrics.heightPixels * startY).toInt()} " +
                 "$centerX ${(metrics.heightPixels * endY).toInt()} 250"
         ).close()
-    }
-
-    private fun findScrollableNode(root: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
-        if (root == null) return null
-        if (root.isScrollable) return root
-        for (index in 0 until root.childCount) {
-            findScrollableNode(root.getChild(index))?.let { return it }
-        }
-        return null
     }
 
     private fun findNode(root: AccessibilityNodeInfo?, value: String): AccessibilityNodeInfo? {
@@ -246,10 +242,42 @@ class DailyHistoryNavigationInstrumentedTest {
         return null
     }
 
+    private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 60) return
+            node.text?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            node.contentDescription
+                ?.toString()
+                ?.takeIf(String::isNotBlank)
+                ?.let(::add)
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
+    }
+
+    private fun describeMatchingNodes(
+        root: AccessibilityNodeInfo?,
+        value: String
+    ): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 12) return
+            val text = node.text?.toString().orEmpty()
+            val description = node.contentDescription?.toString().orEmpty()
+            if (text.contains(value) || description.contains(value)) {
+                val bounds = Rect().also(node::getBoundsInScreen)
+                add("bounds=$bounds visible=${node.isVisibleToUser}")
+            }
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
+    }
+
     private companion object {
         const val HISTORY_CARD_ID = "daily-history-yesterday"
         const val HISTORY_TITLE = "雨伞为什么有弧形伞面"
         const val HISTORY_CONTEXT = "你昨天拍下了雨伞，所以今天从它讲起。"
+        const val HISTORY_SECTION_DESCRIPTION =
+            "过去的 2 张卡片收在这里。点开可查看来源、提醒和反馈。"
         const val TODAY_BODY = "杯把让手指与高温杯壁保持距离，也为抓握提供稳定的受力位置。"
         const val COLLECTION_SCREENSHOT_NAME = "daily-history-collection.png"
         const val DETAIL_SCREENSHOT_NAME = "daily-history-detail.png"

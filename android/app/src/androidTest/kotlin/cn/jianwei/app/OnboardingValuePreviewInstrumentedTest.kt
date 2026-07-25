@@ -46,11 +46,11 @@ class OnboardingValuePreviewInstrumentedTest {
             }
             assertThat(output.length()).isGreaterThan(0L)
 
-            click(awaitNodeWithScroll(instrumentation, "继续"))
+            clickTextWithScroll(instrumentation, "继续")
             assertThat(awaitNode(instrumentation, "2 / 3")).isNotNull()
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
 
-            click(awaitNodeWithScroll(instrumentation, "继续"))
+            clickTextWithScroll(instrumentation, "继续")
             assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
             assertThat(awaitDescriptionPrefixWithScroll(
@@ -88,15 +88,15 @@ class OnboardingValuePreviewInstrumentedTest {
             scheduler.edit().remove(AUTOMATIC_CARD_MODE_KEY).commit()
             scenario = ActivityScenario.launch(MainActivity::class.java)
 
-            click(awaitNodeWithScroll(instrumentation, "继续"))
+            clickTextWithScroll(instrumentation, "继续")
             assertThat(awaitNode(instrumentation, "2 / 3")).isNotNull()
-            click(awaitNodeWithScroll(instrumentation, "继续"))
+            clickTextWithScroll(instrumentation, "继续")
             assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
-            click(awaitNodeWithScroll(instrumentation, "生活设计"))
+            clickTextWithScroll(instrumentation, "生活设计")
             awaitChoiceState(instrumentation, "生活设计", false)
-            click(awaitNodeWithScroll(instrumentation, "实用技巧"))
+            clickTextWithScroll(instrumentation, "实用技巧")
             awaitChoiceState(instrumentation, "实用技巧", true)
-            click(awaitDescriptionPrefixWithScroll(instrumentation, "每天一张。"))
+            clickDescriptionPrefixWithScroll(instrumentation, "每天一张。")
 
             requireNotNull(scenario).recreate()
             assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
@@ -107,10 +107,12 @@ class OnboardingValuePreviewInstrumentedTest {
                 "每天一张。"
             ).stateDescription?.toString()).isEqualTo("已选择")
 
-            click(awaitClickableNodeWithScroll(instrumentation, "仅选择照片"))
+            clickTextWithScroll(instrumentation, "仅选择照片")
             awaitPreference(onboarding, "completed", true)
             assertThat(scheduler.getString(AUTOMATIC_CARD_MODE_KEY, null)).isEqualTo("DAILY_ONE")
+            awaitExternalWindow(instrumentation, context.packageName)
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+            awaitPackage(instrumentation, context.packageName)
         } finally {
             scenario?.close()
             onboarding.edit().putBoolean("completed", wasOnboarded).commit()
@@ -121,11 +123,96 @@ class OnboardingValuePreviewInstrumentedTest {
         }
     }
 
-    private fun click(node: AccessibilityNodeInfo) {
-        val clickable = generateSequence(node) { current -> current.parent }
-            .firstOrNull { current -> current.isClickable }
-        assertThat(clickable).isNotNull()
-        assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
+    private fun clickTextWithScroll(
+        instrumentation: android.app.Instrumentation,
+        text: String
+    ) = clickMatchingNodeWithScroll(instrumentation, text) { node ->
+        node.text?.toString() == text
+    }
+
+    private fun clickDescriptionPrefixWithScroll(
+        instrumentation: android.app.Instrumentation,
+        prefix: String
+    ) = clickMatchingNodeWithScroll(instrumentation, prefix) { node ->
+        node.contentDescription?.toString()?.startsWith(prefix) == true
+    }
+
+    private fun clickMatchingNodeWithScroll(
+        instrumentation: android.app.Instrumentation,
+        label: String,
+        timeoutMillis: Long = 10_000,
+        predicate: (AccessibilityNodeInfo) -> Boolean
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        var lastOffscreenBounds: Rect? = null
+        while (SystemClock.uptimeMillis() < deadline) {
+            val node = findNode(instrumentation.uiAutomation.rootInActiveWindow) { candidate ->
+                predicate(candidate) &&
+                    generateSequence(candidate) { current -> current.parent }
+                        .any { current -> current.isClickable }
+            }
+            val clickable = node?.let {
+                generateSequence(it) { current -> current.parent }
+                    .firstOrNull { current -> current.isClickable }
+            }
+            if (clickable != null) {
+                if (!clickable.isActuallyOnScreen(instrumentation)) {
+                    val bounds = Rect().also(clickable::getBoundsInScreen)
+                    val stalled = bounds == lastOffscreenBounds
+                    val requested = clickable.performAction(
+                            AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                        )
+                    if (!requested || stalled) swipeTowardNode(instrumentation, clickable)
+                    lastOffscreenBounds = Rect(bounds)
+                    SystemClock.sleep(150)
+                    continue
+                }
+                lastOffscreenBounds = null
+                if (clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+                SystemClock.sleep(100)
+            } else {
+                swipeForward(instrumentation)
+            }
+        }
+        error(
+            "Timed out clicking accessibility node: $label; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow) +
+                "; matches=" + describeMatchingNodes(
+                    instrumentation.uiAutomation.rootInActiveWindow,
+                    predicate
+                )
+        )
+    }
+
+    private fun AccessibilityNodeInfo.isActuallyOnScreen(
+        instrumentation: android.app.Instrumentation
+    ): Boolean {
+        if (!isVisibleToUser) return false
+        val bounds = Rect()
+        getBoundsInScreen(bounds)
+        val windowBounds = Rect().also { visibleBounds ->
+            instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(visibleBounds)
+        }
+        return bounds.width() > 0 &&
+            bounds.height() > 0 &&
+            windowBounds.contains(bounds.centerX(), bounds.centerY())
+    }
+
+    private fun swipeTowardNode(
+        instrumentation: android.app.Instrumentation,
+        node: AccessibilityNodeInfo
+    ) {
+        val bounds = Rect()
+        node.getBoundsInScreen(bounds)
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        val targetIsAbove = bounds.bottom <= 0
+        val startY = if (targetIsAbove) 0.32f else 0.78f
+        val endY = if (targetIsAbove) 0.78f else 0.32f
+        instrumentation.uiAutomation.executeShellCommand(
+            "input swipe $centerX ${(metrics.heightPixels * startY).toInt()} " +
+                "$centerX ${(metrics.heightPixels * endY).toInt()} 250"
+        ).close()
     }
 
     private fun topOf(node: AccessibilityNodeInfo): Int = Rect().also(node::getBoundsInScreen).top
@@ -175,22 +262,6 @@ class OnboardingValuePreviewInstrumentedTest {
             SystemClock.sleep(250)
         }
         error("Timed out scrolling to accessibility node: $text")
-    }
-
-    private fun awaitClickableNodeWithScroll(
-        instrumentation: android.app.Instrumentation,
-        text: String,
-        timeoutMillis: Long = 10_000
-    ): AccessibilityNodeInfo {
-        val deadline = SystemClock.uptimeMillis() + timeoutMillis
-        while (SystemClock.uptimeMillis() < deadline) {
-            findNode(instrumentation.uiAutomation.rootInActiveWindow) { node ->
-                node.text?.toString() == text &&
-                    generateSequence(node) { current -> current.parent }.any { it.isClickable }
-            }?.let { return it }
-            swipeForward(instrumentation)
-        }
-        error("Timed out scrolling to clickable accessibility node: $text")
     }
 
     private fun awaitDescriptionPrefixWithScroll(
@@ -255,6 +326,38 @@ class OnboardingValuePreviewInstrumentedTest {
         error("Timed out waiting for preference: $key=$expected")
     }
 
+    private fun awaitExternalWindow(
+        instrumentation: android.app.Instrumentation,
+        targetPackage: String,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val packageName = instrumentation.uiAutomation.rootInActiveWindow
+                ?.packageName
+                ?.toString()
+            if (packageName != null && packageName != targetPackage) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for the system photo picker")
+    }
+
+    private fun awaitPackage(
+        instrumentation: android.app.Instrumentation,
+        expectedPackage: String,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val packageName = instrumentation.uiAutomation.rootInActiveWindow
+                ?.packageName
+                ?.toString()
+            if (packageName == expectedPackage) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out returning from the system photo picker")
+    }
+
     private fun awaitMatchingNode(
         instrumentation: android.app.Instrumentation,
         timeoutMillis: Long,
@@ -278,6 +381,41 @@ class OnboardingValuePreviewInstrumentedTest {
             findNode(root.getChild(index), predicate)?.let { return it }
         }
         return null
+    }
+
+    private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 60) return
+            node.text?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            node.contentDescription
+                ?.toString()
+                ?.takeIf(String::isNotBlank)
+                ?.let(::add)
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
+    }
+
+    private fun describeMatchingNodes(
+        root: AccessibilityNodeInfo?,
+        predicate: (AccessibilityNodeInfo) -> Boolean
+    ): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 12) return
+            if (predicate(node)) {
+                val bounds = Rect().also(node::getBoundsInScreen)
+                val clickable = generateSequence(node) { current -> current.parent }
+                    .firstOrNull { current -> current.isClickable }
+                val clickableBounds = clickable?.let { Rect().also(it::getBoundsInScreen) }
+                add(
+                    "node=$bounds visible=${node.isVisibleToUser} clickable=" +
+                        "${clickable != null} clickableBounds=$clickableBounds " +
+                        "clickableVisible=${clickable?.isVisibleToUser}"
+                )
+            }
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
     }
 
     private companion object {
