@@ -2,4 +2,8 @@
     <string name="app_name">见微</string>
     <string name="widget_description">从你的照片里发现日常冷知识</string>
     <string name="widget_loading">见微\n正在准备今天的卡片</string>
+    <string name="widget_preview_brand">见微 · 示例</string>
+    <string name="widget_preview_image_description">示例照片：靠在墙边的一把扫帚</string>
+    <string name="widget_preview_title">扫帚为什么做成扇形？</string>
+    <string name="widget_preview_body">扇形刷毛更容易贴近墙角。</string>
 </resources>
