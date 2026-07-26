@@ -76,6 +76,26 @@ export function assessApiContract(input) {
       failures
     );
   }
+  const trackOperation = operations.get("POST /v1/items/{cardId}/track");
+  const untrackOperation = operations.get("DELETE /v1/items/{cardId}/track");
+  const trackSchema = contract.components?.schemas?.TrackItemResponse;
+  const untrackSchema = contract.components?.schemas?.UntrackItemResponse;
+  if (
+    trackOperation?.responses?.["201"]?.content?.["application/json"]?.schema?.$ref !==
+      "#/components/schemas/TrackItemResponse" ||
+    !trackSchema || trackSchema.additionalProperties !== false ||
+    Object.hasOwn(trackSchema.properties ?? {}, "deviceId")
+  ) {
+    failures.push("track success must return a strict minimal TrackItemResponse");
+  }
+  if (
+    untrackOperation?.responses?.["200"]?.content?.["application/json"]?.schema?.$ref !==
+      "#/components/schemas/UntrackItemResponse" ||
+    !untrackSchema || untrackSchema.additionalProperties !== false ||
+    untrackSchema.properties?.status?.const !== "untracked"
+  ) {
+    failures.push("untrack success must return a strict bound UntrackItemResponse");
+  }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
   }
@@ -140,6 +160,7 @@ if (process.argv.includes("--self-test")) {
     ["removed raw upload acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UploadJobResponse", "#/components/schemas/ErrorResponse"); }],
     ["removed registration binding", (value) => { value.openapi = value.openapi.replace('"installationBindingSha256", ', ""); }],
     ["removed job status binding", (value) => { value.openapi = value.openapi.replace("#/components/schemas/JobStatusResponse", "#/components/schemas/ErrorResponse"); }],
+    ["removed reminder acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UntrackItemResponse", "#/components/schemas/ErrorResponse"); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];

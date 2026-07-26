@@ -41,13 +41,13 @@ interface JianweiApi {
         @Header("Authorization") authorization: String,
         @Path("cardId") cardId: String,
         @Body request: TrackRequest
-    )
+    ): TrackItemResponse
 
     @DELETE("v1/items/{cardId}/track")
     suspend fun cancelTracking(
         @Header("Authorization") authorization: String,
         @Path("cardId") cardId: String
-    )
+    ): UntrackItemResponse
 
     @DELETE("v1/device-data")
     suspend fun deleteDeviceData(@Header("Authorization") authorization: String)
@@ -116,3 +116,11 @@ data class FeedbackResponse(
 )
 data class TopicAffinityDto(val topicId: String, val weight: Double, val aliases: List<String> = emptyList())
 data class TrackRequest(val startedOn: String, val reminderDays: Int)
+data class TrackItemResponse(
+    val id: String?,
+    val cardId: String?,
+    val startedOn: String?,
+    val reminderDays: Int?,
+    val createdAt: String?
+)
+data class UntrackItemResponse(val cardId: String?, val status: String?)

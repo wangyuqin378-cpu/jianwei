@@ -16,6 +16,7 @@ import cn.jianwei.data.network.FeedbackResponse
 import cn.jianwei.data.network.JianweiApi
 import cn.jianwei.data.network.SourceDto
 import cn.jianwei.data.network.TrackRequest
+import cn.jianwei.data.network.requireBoundTo
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.metrics.FirstCardMetricRecorder
@@ -362,8 +363,9 @@ class RoomCardRepository @Inject constructor(
                         bearer,
                         pending.cardId,
                         TrackRequest(pending.startedOn, pending.reminderDays)
-                    )
+                    ).requireBoundTo(pending.cardId, pending.startedOn, pending.reminderDays)
                     TRACK_DELETE -> api.cancelTracking(bearer, pending.cardId)
+                        .requireBoundTo(pending.cardId)
                     else -> error("未知物品提醒同步动作")
                 }
             }

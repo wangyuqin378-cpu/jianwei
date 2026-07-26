@@ -316,6 +316,9 @@ describe("见微 API", () => {
       payload: { startedOn: "2026-07-18", reminderDays: 90 }
     });
     expect(tracked.statusCode).toBe(201);
+    expect(Object.keys(tracked.json()).sort()).toEqual(["cardId", "createdAt", "id", "reminderDays", "startedOn"]);
+    expect(tracked.json()).not.toHaveProperty("deviceId");
+    expect(tracked.json().cardId).toBe(card.cardId);
     expect(tracked.json().startedOn).toBe("2026-07-18");
     const retracked = await app.inject({
       method: "POST",
@@ -369,7 +372,8 @@ describe("见微 API", () => {
     expect(foreignJob.statusCode).toBe(404);
     expect(foreignFeedback.statusCode).toBe(404);
     expect(foreignTrack.statusCode).toBe(404);
-    expect(foreignUntrack.statusCode).toBe(204);
+    expect(foreignUntrack.statusCode).toBe(200);
+    expect(foreignUntrack.json()).toEqual({ cardId: card.cardId, status: "untracked" });
     expect(foreignCards.json().items).toEqual([]);
     expect(foreignCursor.statusCode).toBe(400);
     expect(foreignCursor.json().error.code).toBe("invalid_cursor");
@@ -391,8 +395,10 @@ describe("见微 API", () => {
       url: `/v1/items/${card.cardId}/track`,
       headers: bearer(token)
     });
-    expect(untracked.statusCode).toBe(204);
-    expect(untrackedAgain.statusCode).toBe(204);
+    expect(untracked.statusCode).toBe(200);
+    expect(untracked.json()).toEqual({ cardId: card.cardId, status: "untracked" });
+    expect(untrackedAgain.statusCode).toBe(200);
+    expect(untrackedAgain.json()).toEqual(untracked.json());
     const trackedAfterCancel = await app.inject({
       method: "POST",
       url: `/v1/items/${card.cardId}/track`,

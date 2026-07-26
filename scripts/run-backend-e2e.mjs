@@ -161,17 +161,26 @@ try {
     json: { startedOn: "2026-07-18", reminderDays: 90 }
   });
   assertUuid(tracked.body.id, "tracked item id");
-  assert(tracked.body.cardId === card.cardId && tracked.body.reminderDays === 90, "tracked item response is invalid");
-  await requestJson(`${baseUrl}/v1/items/${card.cardId}/track`, {
+  assert(
+    tracked.body.cardId === card.cardId &&
+    tracked.body.startedOn === "2026-07-18" &&
+    tracked.body.reminderDays === 90 &&
+    typeof tracked.body.createdAt === "string" &&
+    !Object.hasOwn(tracked.body, "deviceId"),
+    "tracked item response is not minimally bound to the submitted reminder"
+  );
+  const untracked = await requestJson(`${baseUrl}/v1/items/${card.cardId}/track`, {
     method: "DELETE",
     token,
-    expectedStatus: 204
+    expectedStatus: 200
   });
-  await requestJson(`${baseUrl}/v1/items/${card.cardId}/track`, {
+  assert(untracked.body.cardId === card.cardId && untracked.body.status === "untracked", "untrack response is not bound to the card");
+  const untrackedAgain = await requestJson(`${baseUrl}/v1/items/${card.cardId}/track`, {
     method: "DELETE",
     token,
-    expectedStatus: 204
+    expectedStatus: 200
   });
+  assert(JSON.stringify(untrackedAgain.body) === JSON.stringify(untracked.body), "idempotent untrack acknowledgement drifted");
 
   const unknownJob = await createJob(baseUrl, token, randomUUID(), ["unmapped-e2e-object"]);
   await uploadJpeg(unknownJob.uploadUrl, token, 200);
@@ -215,7 +224,7 @@ try {
       objectFilesRemaining: 0
     }
   };
-  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
+  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 reminderAckBinding=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
   await writeFile(resultJsonPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   await writeFile(resultTextPath, `${summary}\n`, "utf8");
   process.stdout.write(`${summary}\n`);

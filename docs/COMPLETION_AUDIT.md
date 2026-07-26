@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 提醒同步确认绑定（当前最新跨端权威摘要）：Android 原来丢弃 POST track 的完整成功正文，并在 DELETE 的空 204 后直接确认 Room outbox。合法但串 card/日期/周期的响应可让本地停止重试，而云端保留错误提醒；POST 还额外公开了客户端不需要的匿名 deviceId。当前创建响应缩为不含 deviceId 的五字段资源快照，取消响应改为幂等 `cardId + untracked`；Android 在任何 outbox 确认前精确绑定 card、日期、周期、ID、创建时间和删除终态，缺失或错配统一保留 outbox。
+
+API 34 真实 Room 测试证明串 card 的 UPSERT/DELETE 确认分别保留原动作，精确重试后才确认。OpenAPI 两个响应均严格，契约第 9 个绕过反例、后端 124/124、Android JVM 228/228、API 34 Data 78/78、Lint、Debug/R8 Release、编译后 TCP `reminderAckBinding=1` 和源码守卫 `reminderAcknowledgementBinding=1` 全部通过。按 `api-design` 的兼容策略必须先部署返回 200 取消确认的新后端，再分发新 APK；真实云、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。
+
 2026-07-26 分析任务状态快照绑定（当前最新后端/云验收权威摘要）：GET analysis job 原本校验设备所有权，却不返回 `candidateToken`，OpenAPI 也没有成功响应 Schema。真实云验收在上传后与完成后看到的状态，不能证明属于本轮随机照片候选。当前 `JobStatusResponse` 只允许六个必填字段，覆盖 job/candidate 身份、完整 8 项状态、受限错误码和两个规范 ISO 时间；云校验器在 uploaded 与 terminal 两个检查点都要求 job/candidate 精确匹配，并拒绝额外字段、非法状态、非规范时间和时间倒退。
 
 合成云负面用例证明串 candidate 的 GET 快照在 OSS 观察前失败；API 端到端固定精确字段集，编译后端真实 TCP 同时绑定 uploaded/completed 快照并输出 `jobStatusBinding=1`。OpenAPI 契约第 8 个绕过反例、后端 124/124、TypeScript check/build、TCP E2E 和源码守卫 `jobStatusResponseBinding=1` 全部通过。本轮 Android 生产代码未改，不将旧 APK 结果记作新构建；真实云、Qwen 安全护栏、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。

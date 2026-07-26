@@ -21,6 +21,8 @@ import cn.jianwei.data.network.JianweiApi
 import cn.jianwei.data.network.RegisterRequest
 import cn.jianwei.data.network.RegisterResponse
 import cn.jianwei.data.network.TrackRequest
+import cn.jianwei.data.network.TrackItemResponse
+import cn.jianwei.data.network.UntrackItemResponse
 import cn.jianwei.data.network.CardsResponse
 import cn.jianwei.data.network.CardDto
 import cn.jianwei.data.network.SourceDto
@@ -43,6 +45,48 @@ import retrofit2.HttpException
 import retrofit2.Response
 
 class TooPrivateSyncOrderingInstrumentedTest {
+    @Test
+    fun crossedReminderAcknowledgementsRetainOutboxUntilExactRetrySucceeds() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
+            api.trackResponseFactory = { _, request ->
+                TrackItemResponse(
+                    TRACKED_ITEM_ID,
+                    MALFORMED_CARD_ID,
+                    request.startedOn,
+                    request.reminderDays,
+                    "2026-07-26T00:00:00.000Z"
+                )
+            }
+
+            assertThat(runCatching { repository.syncCards() }.exceptionOrNull())
+                .isInstanceOf(IOException::class.java)
+            assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("UPSERT")
+
+            api.trackResponseFactory = { cardId, request ->
+                TrackItemResponse(
+                    TRACKED_ITEM_ID,
+                    cardId,
+                    request.startedOn,
+                    request.reminderDays,
+                    "2026-07-26T00:00:00.000Z"
+                )
+            }
+            repository.syncCards()
+            assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("NONE")
+
+            repository.cancelTracking(CARD_ID)
+            api.untrackResponseFactory = { UntrackItemResponse(MALFORMED_CARD_ID, "untracked") }
+            assertThat(runCatching { repository.syncCards() }.exceptionOrNull())
+                .isInstanceOf(IOException::class.java)
+            assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("DELETE")
+
+            api.untrackResponseFactory = { cardId -> UntrackItemResponse(cardId, "untracked") }
+            repository.syncCards()
+            assertThat(database.cards().findTrackedItem(CARD_ID)).isNull()
+        }
+    }
+
     @Test
     fun wrongObjectBarrierSurvivesCrashRestart() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
@@ -658,6 +702,18 @@ class TooPrivateSyncOrderingInstrumentedTest {
                 )
             )
         }
+        var trackResponseFactory: (String, TrackRequest) -> TrackItemResponse = { cardId, request ->
+            TrackItemResponse(
+                id = TRACKED_ITEM_ID,
+                cardId = cardId,
+                startedOn = request.startedOn,
+                reminderDays = request.reminderDays,
+                createdAt = "2026-07-26T00:00:00.000Z"
+            )
+        }
+        var untrackResponseFactory: (String) -> UntrackItemResponse = { cardId ->
+            UntrackItemResponse(cardId, "untracked")
+        }
 
         override suspend fun register(request: RegisterRequest): RegisterResponse {
             events += "register"
@@ -700,12 +756,14 @@ class TooPrivateSyncOrderingInstrumentedTest {
             authorization: String,
             cardId: String,
             request: TrackRequest
-        ) {
+        ): TrackItemResponse {
             events += "track:$cardId"
+            return trackResponseFactory(cardId, request)
         }
 
-        override suspend fun cancelTracking(authorization: String, cardId: String) {
+        override suspend fun cancelTracking(authorization: String, cardId: String): UntrackItemResponse {
             events += "cancelTracking:$cardId"
+            return untrackResponseFactory(cardId)
         }
 
         override suspend fun deleteDeviceData(authorization: String) {
@@ -750,5 +808,6 @@ class TooPrivateSyncOrderingInstrumentedTest {
         const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"
         const val CANDIDATE_TOKEN = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"
         const val FEEDBACK_ID = "16d3e259-3ec1-4232-b542-f9a7d8719464"
+        const val TRACKED_ITEM_ID = "a542bed7-fca8-43b1-8b7a-ff21f196d0d1"
     }
 }

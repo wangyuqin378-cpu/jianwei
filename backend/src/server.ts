@@ -420,14 +420,21 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     const card = await cards.findById(cardId);
     if (!card || card.deviceId !== device.id) throw new AppError("card_not_found", "卡片不存在", 404);
     const body = trackItemSchema.parse(request.body);
-    return reply.status(201).send(await cards.track({ deviceId: device.id, cardId, ...body }));
+    const tracked = await cards.track({ deviceId: device.id, cardId, ...body });
+    return reply.status(201).send({
+      id: tracked.id,
+      cardId: tracked.cardId,
+      startedOn: tracked.startedOn,
+      reminderDays: tracked.reminderDays,
+      createdAt: tracked.createdAt
+    });
   });
 
   app.delete("/v1/items/:cardId/track", async (request, reply) => {
     const device = await authenticate(request);
     const { cardId } = cardIdParamSchema.parse(request.params);
     await cards.untrack(cardId, device.id);
-    return reply.status(204).send();
+    return reply.send({ cardId, status: "untracked" });
   });
 
   app.delete("/v1/device-data", async (request, reply) => {
