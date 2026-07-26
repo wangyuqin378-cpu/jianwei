@@ -65,7 +65,7 @@
         "operationId": "getAnalysisJob",
         "security": [{ "deviceBearer": [] }],
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "responses": { "200": { "description": "Job status" }, "401": { "$ref": "#/components/responses/Error" }, "404": { "$ref": "#/components/responses/Error" } }
+        "responses": { "200": { "description": "Job status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobStatusResponse" } } } }, "401": { "$ref": "#/components/responses/Error" }, "404": { "$ref": "#/components/responses/Error" } }
       }
     },
     "/v1/cards": {
@@ -165,6 +165,7 @@
       },
       "CreateJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "uploadUrl", "uploadSessionId", "expiresAt"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["awaiting_upload", "uploaded", "completed", "needs_content", "rejected"] }, "uploadUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "string", "maxLength": 0 }, { "type": "null" }] }, "uploadSessionId": { "type": ["string", "null"], "format": "uuid" }, "expiresAt": { "type": "string", "format": "date-time" } } },
       "UploadJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "uploadSessionId", "status"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "uploadSessionId": { "type": "string", "format": "uuid" }, "status": { "type": "string", "const": "uploaded" } } },
+      "JobStatusResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "errorCode", "createdAt", "updatedAt"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["awaiting_upload", "uploading", "uploaded", "processing", "completed", "needs_content", "rejected", "failed"] }, "errorCode": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9._:-]{1,120}$" }, "createdAt": { "type": "string", "format": "date-time" }, "updatedAt": { "type": "string", "format": "date-time" } } },
       "CompleteJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "card"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["completed", "needs_content", "rejected"] }, "card": { "oneOf": [{ "$ref": "#/components/schemas/Card" }, { "type": "null" }] } } },
       "CardsResponse": { "type": "object", "required": ["items", "nextCursor"], "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/Card" } }, "nextCursor": { "type": ["string", "null"], "format": "uuid" } } },
       "FeedbackRequest": { "type": "object", "additionalProperties": false, "required": ["action"], "properties": { "action": { "type": "string", "enum": ["LIKE", "DISLIKE", "WRONG_OBJECT", "TOO_PRIVATE", "SAVE"] } } },

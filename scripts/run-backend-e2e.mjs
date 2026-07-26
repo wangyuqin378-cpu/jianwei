@@ -96,7 +96,12 @@ try {
   const replay = await uploadJpeg(broomJob.uploadUrl, token, 409);
   assert(replay.body?.error?.code === "upload_session_unavailable", "one-time upload session accepted a replay");
   const uploaded = await requestJson(`${baseUrl}/v1/analysis-jobs/${broomJob.jobId}`, { token, expectedStatus: 200 });
-  assert(uploaded.body.status === "uploaded", "job did not reach uploaded state");
+  assert(
+    uploaded.body.jobId === broomJob.jobId &&
+    uploaded.body.candidateToken === broomCandidate &&
+    uploaded.body.status === "uploaded",
+    "uploaded job snapshot is not bound to the job and candidate"
+  );
 
   const completed = await requestJson(`${baseUrl}/v1/analysis-jobs/${broomJob.jobId}/complete`, {
     method: "POST",
@@ -106,6 +111,13 @@ try {
   assert(completed.body.jobId === broomJob.jobId, "completion response job identity drifted");
   assert(completed.body.candidateToken === broomCandidate, "completion response candidate identity drifted");
   assert(completed.body.status === "completed", "broom job did not complete");
+  const terminal = await requestJson(`${baseUrl}/v1/analysis-jobs/${broomJob.jobId}`, { token, expectedStatus: 200 });
+  assert(
+    terminal.body.jobId === broomJob.jobId &&
+    terminal.body.candidateToken === broomCandidate &&
+    terminal.body.status === "completed",
+    "terminal job snapshot is not bound to the job and candidate"
+  );
   const card = completed.body.card;
   assertUuid(card?.cardId, "cardId");
   assert(card.candidateToken === broomCandidate, "card candidate token does not match the submitted candidate");
@@ -203,7 +215,7 @@ try {
       objectFilesRemaining: 0
     }
   };
-  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
+  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
   await writeFile(resultJsonPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   await writeFile(resultTextPath, `${summary}\n`, "utf8");
   process.stdout.write(`${summary}\n`);

@@ -359,6 +359,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     const job = await analysis.requireOwnedJob(device, id);
     return reply.send({
       jobId: job.id,
+      candidateToken: job.candidateToken,
       status: job.status,
       errorCode: job.errorCode,
       createdAt: job.createdAt,

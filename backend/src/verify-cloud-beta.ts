@@ -10,6 +10,7 @@ import { computeBackendReleaseIdentity } from "./release-identity.js";
 import { verifyDeploymentReceipt } from "./deployment-receipt.js";
 import { isMainModule } from "./main-module.js";
 import { validateRegistrationResponse } from "./registration-binding.js";
+import { validateJobStatusResponse } from "./job-status-response.js";
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -97,11 +98,7 @@ class HttpsCloudApi implements CloudAuditApi {
 
   async getJob(token: string, jobId: string) {
     const body = await this.requestJson(`/v1/analysis-jobs/${encodeURIComponent(jobId)}`, { expectedStatus: 200, token });
-    return {
-      status: String(body.status ?? ""),
-      errorCode: body.errorCode === null || body.errorCode === undefined ? null : String(body.errorCode),
-      createdAt: String(body.createdAt ?? "")
-    };
+    return validateJobStatusResponse(body, jobId);
   }
 
   async complete(token: string, jobId: string) {

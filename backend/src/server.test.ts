@@ -328,6 +328,16 @@ describe("见微 API", () => {
     expect(retracked.json().reminderDays).toBe(120);
 
     const otherToken = await register(app, SECOND_INSTALLATION_ID);
+    const ownedJob = await app.inject({
+      method: "GET",
+      url: `/v1/analysis-jobs/${jobId}`,
+      headers: bearer(token)
+    });
+    expect(ownedJob.statusCode).toBe(200);
+    expect(ownedJob.json()).toMatchObject({ jobId, candidateToken: CANDIDATE_ID });
+    expect(Object.keys(ownedJob.json()).sort()).toEqual([
+      "candidateToken", "createdAt", "errorCode", "jobId", "status", "updatedAt"
+    ]);
     const foreignJob = await app.inject({
       method: "GET",
       url: `/v1/analysis-jobs/${jobId}`,

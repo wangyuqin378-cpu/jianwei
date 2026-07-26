@@ -32,6 +32,7 @@ function fixture({
   leaveObject = false,
   crossCandidateResponse = false,
   crossUploadAcknowledgement = false,
+  crossJobSnapshot = false,
   catalogVersion = "catalog-17",
   backendReleaseSha256 = "d".repeat(64),
   containerImageDigest = CONTAINER_IMAGE_DIGEST
@@ -73,7 +74,14 @@ function fixture({
     },
     getJob: async (_token, jobId) => {
       const job = jobs.get(jobId)!;
-      return { status: job.status, errorCode: job.errorCode, createdAt: job.createdAt };
+      return {
+        jobId,
+        candidateToken: crossJobSnapshot ? "00000000-0000-4000-8000-999999999999" : job.candidateToken,
+        status: job.status,
+        errorCode: job.errorCode,
+        createdAt: job.createdAt,
+        updatedAt: job.createdAt
+      };
     },
     complete: async (_token, jobId) => {
       const job = jobs.get(jobId)!;
@@ -158,6 +166,24 @@ describe("verifyCloudBeta", () => {
       sensitiveFixture: jpeg(2),
       expectedSensitiveType: "face"
     })).rejects.toThrow(/upload acknowledgement crossed/);
+
+    const crossedJob = fixture({ crossJobSnapshot: true });
+    await expect(verifyCloudBeta({
+      api: crossedJob.api,
+      objects: crossedJob.inspector,
+      baseUrl: "https://beta.jianwei.example/",
+      runId: "cloud-beta-17",
+      evidenceRef: "controlled://cloud/beta-17",
+      appVersion: "0.1.0-beta17",
+      releaseApkSha256: "e".repeat(64),
+      backendReleaseSha256: "d".repeat(64),
+      deploymentReceipt: deploymentReceipt(),
+      modelVersion: "qwen-fixed-17",
+      catalogVersion: "catalog-17",
+      safeFixture: jpeg(1),
+      sensitiveFixture: jpeg(2),
+      expectedSensitiveType: "face"
+    })).rejects.toThrow(/uploaded job snapshot crossed/);
 
     const drift = fixture({ catalogVersion: "old-catalog" });
     await expect(verifyCloudBeta({

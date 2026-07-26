@@ -26,7 +26,14 @@ export interface CloudAuditApi {
     uploadSessionId: string;
     status: string;
   }>;
-  getJob(token: string, jobId: string): Promise<{ status: string; errorCode: string | null; createdAt: string }>;
+  getJob(token: string, jobId: string): Promise<{
+    jobId: string;
+    candidateToken: string;
+    status: string;
+    errorCode: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
   complete(token: string, jobId: string): Promise<{ jobId: string; candidateToken: string; status: string }>;
   deleteDevice(token: string): Promise<void>;
   cardsStatus(token: string): Promise<number>;
@@ -198,12 +205,16 @@ async function runFixture(input: CloudVerificationInput, token: string, bytes: B
     "Cloud upload acknowledgement crossed the job, candidate, or session boundary"
   );
   const uploaded = await input.api.getJob(token, created.jobId);
+  assert(uploaded.jobId === created.jobId && uploaded.candidateToken === candidateToken,
+    "Cloud uploaded job snapshot crossed the job or candidate boundary");
   const objectKey = await input.objects.findJobObject(created.jobId, uploaded.createdAt);
   assert(objectKey, `Uploaded ${sensitive ? "sensitive" : "safe"} fixture was not observed in OSS`);
   const completed = await input.api.complete(token, created.jobId);
   assert(completed.jobId === created.jobId && completed.candidateToken === candidateToken,
     "Cloud completion response crossed the job or candidate boundary");
   const terminal = await input.api.getJob(token, created.jobId);
+  assert(terminal.jobId === created.jobId && terminal.candidateToken === candidateToken,
+    "Cloud terminal job snapshot crossed the job or candidate boundary");
   assert(completed.status === terminal.status, "Cloud completion and job terminal status disagree");
   if (sensitive) {
     assert(terminal.status === "rejected", "Server-side Qwen did not reject the sensitive fixture");

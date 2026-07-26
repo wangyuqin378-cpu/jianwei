@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 分析任务状态快照绑定（当前最新后端/云验收权威摘要）：GET analysis job 原本校验设备所有权，却不返回 `candidateToken`，OpenAPI 也没有成功响应 Schema。真实云验收在上传后与完成后看到的状态，不能证明属于本轮随机照片候选。当前 `JobStatusResponse` 只允许六个必填字段，覆盖 job/candidate 身份、完整 8 项状态、受限错误码和两个规范 ISO 时间；云校验器在 uploaded 与 terminal 两个检查点都要求 job/candidate 精确匹配，并拒绝额外字段、非法状态、非规范时间和时间倒退。
+
+合成云负面用例证明串 candidate 的 GET 快照在 OSS 观察前失败；API 端到端固定精确字段集，编译后端真实 TCP 同时绑定 uploaded/completed 快照并输出 `jobStatusBinding=1`。OpenAPI 契约第 8 个绕过反例、后端 124/124、TypeScript check/build、TCP E2E 和源码守卫 `jobStatusResponseBinding=1` 全部通过。本轮 Android 生产代码未改，不将旧 APK 结果记作新构建；真实云、Qwen 安全护栏、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。
+
 2026-07-26 匿名注册响应 installation 绑定（当前最新跨端权威摘要）：旧注册成功响应没有携带任何可由当前请求验证的 installation 身份，Android 会把 `deviceId/deviceToken/created` 直接加密落盘。另一个 installation 的合法缓存响应、缺字段产生的 Gson 运行时 null 或格式异常 token 都可能污染匿名身份。当前后端只公开带域分隔的 `installationBindingSha256`，不回显原始 installation；Android 在首次 bearer/设备 ID 写入前严格校验规范 UUID、43 位 base64url token、精确摘要和非空 `created`，失败时不留下 bearer，并可用原 installation 安全重试。
 
 TypeScript 与 Kotlin 共享固定 SHA-256 向量；OpenAPI 固定严格四字段、token 长度/字符集与摘要格式，云 Beta 校验器在任何图片上传前执行同一绑定检查，编译后端真实 TCP E2E 也验证绑定。API 契约第 7 个合成绕过和 API 34 DataStore 回归分别证明删除字段与串 installation 会失败关闭。后端 122/122、Android JVM 226/226、API 34 Data 77/77 + App 25/25、Lint、Debug/R8 Release 与源码守卫 `registrationResponseBinding=1` 全部通过。该字段要求后端先部署；真实云、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。

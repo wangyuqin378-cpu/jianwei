@@ -54,6 +54,28 @@ export function assessApiContract(input) {
   ) {
     failures.push("RegisterResponse must bind a strict bearer identity to the submitted installation");
   }
+  const jobStatusOperation = operations.get("GET /v1/analysis-jobs/{id}");
+  const jobStatusRef = jobStatusOperation?.responses?.["200"]?.content?.["application/json"]?.schema?.$ref;
+  const jobStatusSchema = contract.components?.schemas?.JobStatusResponse;
+  if (jobStatusRef !== "#/components/schemas/JobStatusResponse") {
+    failures.push("GET analysis job success response must use JobStatusResponse");
+  }
+  if (!jobStatusSchema || jobStatusSchema.additionalProperties !== false) {
+    failures.push("JobStatusResponse must be a strict object");
+  } else {
+    compareSets(
+      "JobStatusResponse required field",
+      new Set(jobStatusSchema.required ?? []),
+      new Set(["jobId", "candidateToken", "status", "errorCode", "createdAt", "updatedAt"]),
+      failures
+    );
+    compareSets(
+      "JobStatusResponse status",
+      new Set(jobStatusSchema.properties?.status?.enum ?? []),
+      new Set(["awaiting_upload", "uploading", "uploaded", "processing", "completed", "needs_content", "rejected", "failed"]),
+      failures
+    );
+  }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
   }
@@ -117,6 +139,7 @@ if (process.argv.includes("--self-test")) {
     ["removed raw upload guard", (value) => { value.remoteAnalysis = value.remoteAnalysis.replaceAll("isExpectedApiUploadPath", "removedUploadPathGuard"); }],
     ["removed raw upload acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UploadJobResponse", "#/components/schemas/ErrorResponse"); }],
     ["removed registration binding", (value) => { value.openapi = value.openapi.replace('"installationBindingSha256", ', ""); }],
+    ["removed job status binding", (value) => { value.openapi = value.openapi.replace("#/components/schemas/JobStatusResponse", "#/components/schemas/ErrorResponse"); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];
