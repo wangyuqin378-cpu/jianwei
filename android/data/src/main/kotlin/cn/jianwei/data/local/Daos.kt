@@ -187,7 +187,14 @@ interface CardDao {
             )
         }
         upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis))
-        enqueueFeedback(PendingFeedbackEntity(cardId = cardId, action = action, createdAtMillis = nowMillis))
+        enqueueFeedback(
+            PendingFeedbackEntity(
+                cardId = cardId,
+                action = action,
+                createdAtMillis = nowMillis,
+                topicId = card.topicId
+            )
+        )
         if (ordinaryAction == FeedbackAction.WRONG_OBJECT) {
             val saved = findSavedCard(cardId)
             if (saved?.feedbackSignaled == true) {
@@ -278,7 +285,8 @@ interface CardDao {
                 PendingFeedbackEntity(
                     cardId = cardId,
                     action = "SAVE",
-                    createdAtMillis = nowMillis
+                    createdAtMillis = nowMillis,
+                    topicId = card.topicId
                 )
             )
             val affinity = findTopicAffinity(card.topicId)
@@ -452,7 +460,8 @@ interface CardDao {
             PendingFeedbackEntity(
                 cardId = cardId,
                 action = "TOO_PRIVATE",
-                createdAtMillis = nowMillis
+                createdAtMillis = nowMillis,
+                topicId = card?.topicId
             )
         )
         if (photoLocalId != null) {

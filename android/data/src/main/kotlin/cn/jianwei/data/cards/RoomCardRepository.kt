@@ -345,7 +345,8 @@ class RoomCardRepository @Inject constructor(
             val acknowledgement = feedbackAcknowledgementOrThrow(
                 response = api.feedback(it, pending.cardId, FeedbackRequest(pending.action)),
                 expectedCardId = pending.cardId,
-                expectedAction = pending.action
+                expectedAction = pending.action,
+                expectedTopicId = pending.topicId
             )
             affinities.applyServerWeights(acknowledgement.topicAffinities)
         }
@@ -404,7 +405,8 @@ internal data class ValidatedFeedbackAcknowledgement(
 internal fun feedbackAcknowledgementOrThrow(
     response: retrofit2.Response<FeedbackResponse>,
     expectedCardId: String,
-    expectedAction: String
+    expectedAction: String,
+    expectedTopicId: String?
 ): ValidatedFeedbackAcknowledgement {
     if (!response.isSuccessful) throw retrofit2.HttpException(response)
     val body = response.body() ?: throw IOException("反馈接口成功响应缺少正文")
@@ -427,12 +429,22 @@ internal fun feedbackAcknowledgementOrThrow(
     if (topicAffinities.size != 1) {
         throw IOException("Feedback acknowledgement must contain exactly one topic affinity")
     }
+    val boundTopicAffinities = if (expectedTopicId == null) {
+        // Legacy privacy outboxes may outlive the deleted card that carried their topic. Confirm
+        // the idempotent server action, but never apply an unbound preference snapshot.
+        emptyList()
+    } else {
+        if (!CARD_IDENTIFIER.matches(expectedTopicId) || topicAffinities.single().topicId != expectedTopicId) {
+            throw IOException("Feedback acknowledgement does not match the pending topic")
+        }
+        topicAffinities
+    }
     return ValidatedFeedbackAcknowledgement(
         feedbackId = body.id,
         cardId = body.cardId,
         action = body.action,
         createdAtMillis = createdAtMillis,
-        topicAffinities = topicAffinities
+        topicAffinities = boundTopicAffinities
     )
 }
 

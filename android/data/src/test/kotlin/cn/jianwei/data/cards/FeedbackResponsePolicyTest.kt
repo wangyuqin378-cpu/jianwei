@@ -19,7 +19,7 @@ class FeedbackResponsePolicyTest {
         )
 
         val error = assertThrows(HttpException::class.java) {
-            feedbackAcknowledgementOrThrow(response, CARD_ID, "LIKE")
+            feedbackAcknowledgementOrThrow(response, CARD_ID, "LIKE", "broom")
         }
 
         assertEquals(401, error.code())
@@ -35,14 +35,14 @@ class FeedbackResponsePolicyTest {
             topicAffinities = listOf(TopicAffinityDto("broom", 0.7, listOf("扫帚")))
         )
 
-        val acknowledgement = feedbackAcknowledgementOrThrow(Response.success(response), CARD_ID, "LIKE")
+        val acknowledgement = feedbackAcknowledgementOrThrow(Response.success(response), CARD_ID, "LIKE", "broom")
 
         assertEquals(FEEDBACK_ID, acknowledgement.feedbackId)
         assertEquals(CARD_ID, acknowledgement.cardId)
         assertEquals("LIKE", acknowledgement.action)
         assertEquals(1, acknowledgement.topicAffinities.size)
         assertThrows(java.io.IOException::class.java) {
-            feedbackAcknowledgementOrThrow(Response.success<FeedbackResponse>(null), CARD_ID, "LIKE")
+            feedbackAcknowledgementOrThrow(Response.success<FeedbackResponse>(null), CARD_ID, "LIKE", "broom")
         }
     }
 
@@ -70,9 +70,26 @@ class FeedbackResponsePolicyTest {
 
         invalid.forEach { body ->
             assertThrows(java.io.IOException::class.java) {
-                feedbackAcknowledgementOrThrow(Response.success(body), CARD_ID, "LIKE")
+                feedbackAcknowledgementOrThrow(Response.success(body), CARD_ID, "LIKE", "broom")
             }
         }
+    }
+
+    @Test
+    fun `topic snapshot must match pending topic while legacy unbound rows skip the snapshot`() {
+        val response = FeedbackResponse(
+            id = FEEDBACK_ID,
+            cardId = CARD_ID,
+            action = "LIKE",
+            createdAt = "2026-07-26T00:00:00.000Z",
+            topicAffinities = listOf(TopicAffinityDto("toothbrush", -2.0, emptyList()))
+        )
+
+        assertThrows(java.io.IOException::class.java) {
+            feedbackAcknowledgementOrThrow(Response.success(response), CARD_ID, "LIKE", "broom")
+        }
+        val legacy = feedbackAcknowledgementOrThrow(Response.success(response), CARD_ID, "LIKE", null)
+        assertEquals(emptyList<ServerTopicAffinity>(), legacy.topicAffinities)
     }
 
     private companion object {

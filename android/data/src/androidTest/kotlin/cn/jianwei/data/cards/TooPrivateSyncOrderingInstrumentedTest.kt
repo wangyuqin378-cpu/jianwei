@@ -222,6 +222,31 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun mismatchedFeedbackTopicRetainsOutboxAndDoesNotCreateForeignAffinity() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.LIKE.name).single().topicId)
+                .isEqualTo("broom")
+            api.feedbackResponseFactory = { cardId, request ->
+                FeedbackResponse(
+                    id = FEEDBACK_ID,
+                    cardId = cardId,
+                    action = request.action,
+                    createdAt = "2026-07-26T00:00:00.000Z",
+                    topicAffinities = listOf(TopicAffinityDto("toothbrush", -2.0, emptyList()))
+                )
+            }
+
+            val failure = runCatching { repository.syncCards() }.exceptionOrNull()
+
+            assertThat(failure).isInstanceOf(IOException::class.java)
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.LIKE.name)).hasSize(1)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.35)
+            assertThat(database.cards().findTopicAffinity("toothbrush")).isNull()
+        }
+    }
+
+    @Test
     fun syncedPrivacyReferenceSurvivesIndexClearAndServerRefresh() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.syncCards()

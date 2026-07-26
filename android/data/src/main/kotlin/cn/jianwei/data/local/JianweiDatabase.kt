@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MediaScanCursorEntity::class,
         TopicAffinityEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -180,6 +180,17 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
     }
 }
 
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `pending_feedback` ADD COLUMN `topicId` TEXT")
+        db.execSQL(
+            "UPDATE `pending_feedback` SET `topicId` = (" +
+                "SELECT cards.topicId FROM `knowledge_cards` AS cards " +
+                "WHERE cards.cardId = `pending_feedback`.cardId LIMIT 1)"
+        )
+    }
+}
+
 fun buildJianweiDatabase(context: Context): JianweiDatabase =
     Room.databaseBuilder(context.applicationContext, JianweiDatabase::class.java, "jianwei.db")
         .addMigrations(
@@ -193,7 +204,8 @@ fun buildJianweiDatabase(context: Context): JianweiDatabase =
             MIGRATION_8_9,
             MIGRATION_9_10,
             MIGRATION_10_11,
-            MIGRATION_11_12
+            MIGRATION_11_12,
+            MIGRATION_12_13
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()

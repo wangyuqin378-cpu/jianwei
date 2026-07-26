@@ -310,6 +310,41 @@ class DatabaseMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion12To13BackfillsAvailableFeedbackTopicsWithoutGuessingDeletedCards() {
+        helper.createDatabase(FEEDBACK_TOPIC_DATABASE, 12).apply {
+            execSQL(
+                "INSERT INTO knowledge_cards " +
+                    "(cardId, candidateToken, photoUri, topicId, factId, title, detectedObjectName, body, " +
+                    "personalContext, confidence, sources, status, scheduledDate, createdAtMillis) VALUES " +
+                    "('card-live', 'candidate-live', '', 'broom', 'broom-001', '扫帚', " +
+                    "'扫帚', 'Fact', 'Context', 0.9, '[]', 'scheduled', '2026-07-26', 1)"
+            )
+            execSQL(
+                "INSERT INTO pending_feedback (cardId, action, createdAtMillis) VALUES " +
+                    "('card-live', 'LIKE', 1), ('card-deleted', 'TOO_PRIVATE', 2)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            FEEDBACK_TOPIC_DATABASE,
+            13,
+            true,
+            MIGRATION_12_13
+        ).use { database ->
+            database.query("SELECT cardId, topicId FROM pending_feedback ORDER BY cardId").use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("card-deleted")
+                assertThat(cursor.isNull(1)).isTrue()
+                assertThat(cursor.moveToNext()).isTrue()
+                assertThat(cursor.getString(0)).isEqualTo("card-live")
+                assertThat(cursor.getString(1)).isEqualTo("broom")
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-2-3-test"
         const val CURSOR_DATABASE = "migration-3-4-cursor-test"
@@ -321,5 +356,6 @@ class DatabaseMigrationInstrumentedTest {
         const val FEEDBACK_STATE_DATABASE = "migration-9-10-feedback-state-test"
         const val PRIVACY_REFERENCE_DATABASE = "migration-10-11-privacy-reference-test"
         const val REMINDER_SCHEDULE_DATABASE = "migration-11-12-reminder-schedule-test"
+        const val FEEDBACK_TOPIC_DATABASE = "migration-12-13-feedback-topic-test"
     }
 }

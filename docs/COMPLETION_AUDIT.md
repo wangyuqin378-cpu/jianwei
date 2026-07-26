@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 反馈 topic 身份绑定（当前最新 Android 权威摘要）：card/action 绑定仍不足以证明偏好快照属于当前知识主题。旧 pending 表没有 topic，合法的 broom/LIKE 确认可以携带 toothbrush 权重并通过所有上一轮校验，随后既删除 broom outbox 又污染另一个主题的候选排序。
+
+Room 13 为 `pending_feedback` 增加可空 `topicId`，所有新建普通反馈、收藏和隐私反馈都在读取卡片的同一事务内写入真实 topic。12→13 迁移通过 cardId 仅回填仍存在的卡片；旧 TOO_PRIVATE 可能已删除卡片，因此保持 null，禁止从其他偏好或标题猜测。确认处理在应用快照前要求非空 expected topic 使用安全 ID 且与响应唯一 topic 精确相等。升级遗留 null 行只确认已由 card/action 绑定的幂等服务端事件，返回空快照，不把无法证明归属的权重写入 Room。
+
+JVM 回归覆盖 topic 错配拒绝和 legacy null 快照丢弃；API 34 Room 12→13 迁移证明 live LIKE 回填 broom、deleted TOO_PRIVATE 保持 null，真实同步测试证明 broom LIKE 遇到 toothbrush/-2.0 后 outbox 保留、broom 维持 0.35、toothbrush 行不存在。最终 Android JVM 217/217（Domain 64、Data 87、App 66），完整 Data instrumentation 76/76；Data/App Debug Lint、App Release Lint、Debug/R8 Release、Room schema 13、源码守卫 `feedbackTopicBinding=1` 和差异检查通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `a3346ec1de830e8302c52461c27c5d4f600cd96613142db52fb46e124b57346c` / `d20a9a6440dc60c8803affc9d5c638c3b6c3043ac5ec6cbc5dc7496d8b480a56` / `5c1fbaa648a1b0335e33b127a5c51597a2868e2565c7b560866553d1aecf0721`。外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 反馈确认身份绑定（当前最新跨端权威摘要）：后端的两条反馈成功分支实际都返回 `id`、`cardId`、`action`、`createdAt` 和 `topicAffinities`，但旧 OpenAPI 只描述一个可空偏好数组，Android DTO 因而主动丢弃确认身份。客户端只检查 HTTP 成功和正文存在，就会应用偏好并由调用方删除当前 outbox；一个合法结构但属于另一张卡或另一动作的 201 响应可以错误确认当前本地事件。
 
 当前 OpenAPI 将反馈响应设为无额外字段的严格对象，五字段全部必填，偏好数组必须恰好一项；TopicAffinity 同步声明安全 ID、-2..2 权重及别名数量/长度边界。Android `feedbackAcknowledgementOrThrow` 以 pending 为权威，要求响应 card ID 与 action 精确匹配、feedback/card ID 为 UUID、action 为已知枚举、createdAt 可解析，并在返回前完成偏好整批校验。只有该确认返回后才允许 `applyServerWeights`，也只有整个 `sendPendingFeedback` 成功后调用方才删除 pending 行。错配会失败关闭，但服务端反馈的 `(device, card, action)` 幂等边界允许安全重试。

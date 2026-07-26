@@ -93,7 +93,8 @@ data class PendingFeedbackEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val cardId: String,
     val action: String,
-    val createdAtMillis: Long
+    val createdAtMillis: Long,
+    val topicId: String? = null
 )
 
 @Entity(tableName = "local_tracked_items", indices = [Index("syncAction")])
