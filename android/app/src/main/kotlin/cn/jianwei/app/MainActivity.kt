@@ -896,6 +896,14 @@ private fun HomeScreen(
             focusedListState.scrollToItem(0)
         }
     }
+    LaunchedEffect(state.paused, state.cloudDeletionUnresolved) {
+        if (state.paused || state.cloudDeletionUnresolved) {
+            // A privacy stop is more important than preserving the old feed offset. It can be
+            // triggered from Settings while the daily list is off-screen, so reveal its banner
+            // before the user returns instead of anchoring the previous card above it.
+            dailyListState.scrollToItem(0)
+        }
+    }
     LaunchedEffect(openedSavedCardId, openedSavedCard?.cardId) {
         if (openedSavedCardId != null && openedSavedCard == null) {
             openedSavedCardId = null

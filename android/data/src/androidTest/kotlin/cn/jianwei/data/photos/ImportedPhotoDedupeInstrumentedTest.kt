@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import cn.jianwei.data.local.JianweiDatabase
+import cn.jianwei.domain.model.AnalysisState
 import com.google.common.truth.Truth.assertThat
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -41,6 +42,64 @@ class ImportedPhotoDedupeInstrumentedTest {
         }
     }
 
+    @Test
+    fun sameProviderUriWithChangedBytesCreatesANewCandidate() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val resolver = context.contentResolver
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        val firstBytes = jpegBytes(1)
+        val secondBytes = jpegBytes(9)
+        val uri = insertImage(context, "reused-${UUID.randomUUID()}.jpg", firstBytes)
+        val repository = MediaPhotoRepository(context, resolver, database.photos())
+
+        try {
+            val first = repository.importUris(listOf(uri.toString())).single()
+            resolver.openOutputStream(uri, "wt").use { output ->
+                checkNotNull(output).write(secondBytes)
+            }
+
+            val second = repository.importUris(listOf(uri.toString())).single()
+
+            assertThat(second.localId).isNotEqualTo(first.localId)
+            assertThat(database.photos().findById(second.localId)?.sourceDigest)
+                .isNotEqualTo(database.photos().findById(first.localId)?.sourceDigest)
+            assertThat(database.photos().importedContentUris().filter(String::isNotBlank)).hasSize(2)
+        } finally {
+            repository.clearIndex()
+            resolver.delete(uri, null, null)
+            database.close()
+        }
+    }
+
+    @Test
+    fun suppressedBytesCannotBeReimportedThroughAnotherUri() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val resolver = context.contentResolver
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        val bytes = jpegBytes(4)
+        val first = insertImage(context, "private-a-${UUID.randomUUID()}.jpg", bytes)
+        val alias = insertImage(context, "private-b-${UUID.randomUUID()}.jpg", bytes)
+        val repository = MediaPhotoRepository(context, resolver, database.photos())
+
+        try {
+            val privateCandidate = repository.importUris(listOf(first.toString())).single()
+            repository.markNeverAnalyze(privateCandidate.localId)
+
+            val reimported = repository.importUris(listOf(alias.toString()))
+
+            assertThat(reimported).isEmpty()
+            assertThat(database.photos().findById(privateCandidate.localId)?.analysisState)
+                .isEqualTo(AnalysisState.NEVER_ANALYZE.name)
+            assertThat(database.photos().isSuppressed(privateCandidate.localId)).isTrue()
+            assertThat(database.photos().importedContentUris().filter(String::isNotBlank)).isEmpty()
+        } finally {
+            repository.clearIndex()
+            resolver.delete(first, null, null)
+            resolver.delete(alias, null, null)
+            database.close()
+        }
+    }
+
     private fun insertImage(context: Context, name: String, bytes: ByteArray): Uri {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
@@ -53,4 +112,7 @@ class ImportedPhotoDedupeInstrumentedTest {
         resolver.update(uri, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
         return uri
     }
+
+    private fun jpegBytes(marker: Int) =
+        byteArrayOf(0xFF.toByte(), 0xD8.toByte(), marker.toByte(), 2, 3, 0xFF.toByte(), 0xD9.toByte())
 }

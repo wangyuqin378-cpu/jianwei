@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 显式导入内容身份与隐私抑制边界（当前最新 Android 权威摘要）：Photo Picker 与系统分享原来使用 provider 给出的 URI 字符串生成候选 `localId`，并在复制图片前按该 ID 直接返回已有记录。Provider 若把同一 URI 改指向新内容，用户重新选择后仍会拿到旧候选；同一图片从另一个 URI 再次进入时虽然会由 `sourceDigest` 去重，但已经标记 `NEVER_ANALYZE` / “太私人”的记录仍会被当成一次成功导入返回，数据库还保留已删除私有文件的路径字符串。
+
+当前显式导入先复制到 App 私有目录并流式计算 SHA-256，再以内容摘要而非 URI 建立负数本地身份；Provider URI 只用于一次性暂存文件名，不再决定候选。相同字节从 Picker/分享或不同 URI 进入时仍复用既有候选；同一 URI 内容改变会生成新候选；命中旧版或新版 `sourceDigest` 的 `NEVER_ANALYZE`/suppressed 记录会删除本次暂存副本并返回空结果，不会重新排入 WorkManager。旧 URI-ID 记录无需数据库迁移，仍由唯一摘要索引兼容识别；63 位 ID 极小概率冲突有 8 个确定性候选位，全部冲突时失败关闭。标记永不分析时同时删除私有文件并清空 Room 中的路径。设备回归还发现用户从设置页暂停分析后，LazyColumn 会保留旧卡片锚点，把新隐私横幅留在屏幕上方；现在暂停或云端删除未决时每日页会定位顶部，优先呈现真实停止状态。
+
+API 34 专项 3/3、完整 Data 83/83 与冷启动清空 AVD 后 App 25/25 instrumentation 通过；Android JVM 236/236（Domain 64、Data 106、App 66），API 契约、源码守卫 `contentAddressedImportIdentity=1`、Data/App Debug/Release Lint、Debug、R8 Release 与两个 androidTest APK 构建全部通过。Debug/未签名 Release/Data/App 测试 APK SHA-256 为 `41d68ff3c7168cad5c3bc54f0e779b6f6d8ab4c3e8f9281c0f5dba71f9cb0ddb` / `ddc353526919c5f2dc7db13da0cb7bed82bb50c7af6561a69545477b4c6bceba` / `e809bfcecbce9863bdf53d9ab926dc58f491f24ce9295e2a4d0c955e8c0754b5` / `8c411680b1625399e734be6e003bc0f473fd2737951bd24f11b4d371c69851bd`。这些本地工程证据不替代 Qwen 安全护栏授权、真实托管云、正式签名、国产 OEM、真人内容审核或 cohort，Beta 保持 `NO_GO`。
+
 2026-07-26 Retrofit 成功空正文边界（当前最新 Android 权威摘要）：除反馈接口外，Android 原来让 Retrofit suspend 方法直接返回非空 DTO。真实回归证明，即使把 Kotlin 返回类型改为可空，`204 No Content` 仍会在 Retrofit 内部 `KotlinExtensions` 先触发 NPE，业务校验无法把它转换成可观察、可重试的协议错误。注册、创建/完成任务、分页、提醒确认或云端删除一旦被旧服务、网关或错误环境改写为 `2xx + 空正文`，上层只能收到不带接口语义的运行时异常。
 
 当前网络边界拆为纯业务 `JianweiApi` 与唯一 Retrofit wire 接口：wire 的所有有正文操作返回 `Response<T>`，`StrictJianweiApi` 在交给仓库前统一拒绝非成功状态和成功空正文。非成功响应继续转换成带原 HTTP 状态的 `HttpException`，所以既有 401 匿名身份刷新与 429/5xx 重试分类保持有效；成功但无正文统一转成带 endpoint 上下文的 IOException。反馈接口仍保留原来的 `Response<FeedbackResponse>`，由已有 card/action/topic 绑定校验负责确认。Hilt 只装配严格适配器，Debug 授权图片评测入口也复用同一正文策略，不存在绕过的第二个 Retrofit 客户端。

@@ -104,24 +104,27 @@ class MediaPhotoRepository @Inject constructor(
         for (value in uris.distinct()) {
             if (remainingImportBytes <= 0) break
             val originalUri = runCatching { Uri.parse(value) }.getOrNull() ?: continue
-            val localId = stableId(value)
-            if (dao.isSuppressed(localId)) continue
-            val existing = dao.findById(localId)
-            if (existing != null) {
-                imported[existing.localId] = existing
-                continue
-            }
             val metadata = queryUriMetadata(originalUri)
             val privateCopy = copyIntoPrivateStorage(
                 originalUri,
-                localId,
+                stableId("staging:$value"),
                 minOf(MAX_IMPORT_SOURCE_BYTES, remainingImportBytes)
             ) ?: continue
             remainingImportBytes -= privateCopy.byteCount
             val contentDuplicate = dao.findBySourceDigest(privateCopy.sourceDigest)
             if (contentDuplicate != null) {
                 deletePrivateCopy(privateCopy.uri.toString())
-                imported[contentDuplicate.localId] = contentDuplicate
+                if (
+                    contentDuplicate.analysisState != AnalysisState.NEVER_ANALYZE.name &&
+                    !dao.isSuppressed(contentDuplicate.localId)
+                ) {
+                    imported[contentDuplicate.localId] = contentDuplicate
+                }
+                continue
+            }
+            val localId = availableImportedLocalId(privateCopy.sourceDigest)
+            if (localId == null || dao.isSuppressed(localId)) {
+                deletePrivateCopy(privateCopy.uri.toString())
                 continue
             }
             val entity = PhotoCandidateEntity(
@@ -149,6 +152,22 @@ class MediaPhotoRepository @Inject constructor(
             }
         }
         imported.values.map { it.toDomain() }
+    }
+
+    /**
+     * Explicit-import identity belongs to the selected bytes, not to a provider-controlled URI.
+     * Photo providers may recycle a URI for different content, while the same bytes can arrive
+     * through Photo Picker and Sharesheet aliases. Negative IDs keep this namespace separate from
+     * positive MediaStore IDs. Additional seeds only handle the vanishingly unlikely 63-bit clash.
+     */
+    private suspend fun availableImportedLocalId(sourceDigest: String): Long? {
+        repeat(MAX_IMPORTED_ID_ATTEMPTS) { attempt ->
+            val suffix = if (attempt == 0) "" else ":$attempt"
+            val localId = stableId("content:$sourceDigest$suffix")
+            val conflict = dao.findById(localId)
+            if (conflict == null || conflict.sourceDigest == sourceDigest) return localId
+        }
+        return null
     }
 
     override fun observeCandidatesByTokens(candidateTokens: Set<String>): Flow<List<PhotoCandidate>> {
@@ -181,7 +200,10 @@ class MediaPhotoRepository @Inject constructor(
     override suspend fun markNeverAnalyze(localId: Long) = withContext(Dispatchers.IO) {
         val entity = dao.findById(localId)
         dao.suppress(SuppressedPhotoEntity(localId, System.currentTimeMillis()))
-        if (entity != null && entity.origin != PhotoOrigin.MEDIA_STORE.name) deletePrivateCopy(entity.contentUri)
+        if (entity != null && entity.origin != PhotoOrigin.MEDIA_STORE.name) {
+            deletePrivateCopy(entity.contentUri)
+            dao.clearImportedContentUri(localId)
+        }
         dao.markNeverAnalyze(localId)
     }
 
@@ -418,6 +440,7 @@ class MediaPhotoRepository @Inject constructor(
 
     private companion object {
         const val IMPORT_DIRECTORY = "jianwei-imports"
+        const val MAX_IMPORTED_ID_ATTEMPTS = 8
         const val MAX_IMPORT_SOURCE_BYTES = 25L * 1024 * 1024
         const val MAX_IMPORT_BATCH_BYTES = 100L * 1024 * 1024
         val RAW_IMPORT_TTL: Duration = Duration.ofHours(24)
