@@ -266,6 +266,29 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun missingFeedbackFieldRetainsOutboxAndLocalAffinity() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            val localWeight = database.cards().findTopicAffinity("broom")!!.weight
+            api.feedbackResponseFactory = { cardId, request ->
+                FeedbackResponse(
+                    id = FEEDBACK_ID,
+                    cardId = cardId,
+                    action = request.action,
+                    createdAt = null,
+                    topicAffinities = listOf(TopicAffinityDto("broom", -2.0, emptyList()))
+                )
+            }
+
+            val failure = runCatching { repository.syncCards() }.exceptionOrNull()
+
+            assertThat(failure).isInstanceOf(IOException::class.java)
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.LIKE.name)).hasSize(1)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(localWeight)
+        }
+    }
+
+    @Test
     fun mismatchedFeedbackTopicRetainsOutboxAndDoesNotCreateForeignAffinity() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)

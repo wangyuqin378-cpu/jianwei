@@ -56,16 +56,26 @@ class FeedbackResponsePolicyTest {
             topicAffinities = listOf(TopicAffinityDto("broom", 0.7, emptyList()))
         )
         val invalid = listOf(
+            valid.copy(id = null),
             valid.copy(id = "not-a-uuid"),
+            valid.copy(cardId = null),
             valid.copy(cardId = OTHER_CARD_ID),
+            valid.copy(action = null),
             valid.copy(action = "DISLIKE"),
+            valid.copy(createdAt = null),
             valid.copy(createdAt = "not-an-instant"),
+            valid.copy(topicAffinities = null),
             valid.copy(topicAffinities = emptyList()),
+            valid.copy(topicAffinities = listOf(null)),
             valid.copy(topicAffinities = listOf(
                 TopicAffinityDto("broom", 0.7, emptyList()),
                 TopicAffinityDto("toothbrush", 0.2, emptyList())
             )),
-            valid.copy(topicAffinities = listOf(TopicAffinityDto("broom", Double.NaN, emptyList())))
+            valid.copy(topicAffinities = listOf(TopicAffinityDto(null, 0.7, emptyList()))),
+            valid.copy(topicAffinities = listOf(TopicAffinityDto("broom", null, emptyList()))),
+            valid.copy(topicAffinities = listOf(TopicAffinityDto("broom", Double.NaN, emptyList()))),
+            valid.copy(topicAffinities = listOf(TopicAffinityDto("broom", 0.7, null))),
+            valid.copy(topicAffinities = listOf(TopicAffinityDto("broom", 0.7, listOf(null))))
         )
 
         invalid.forEach { body ->

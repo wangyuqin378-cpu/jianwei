@@ -89,32 +89,42 @@ data class CompleteJobResponse(
     val status: String?,
     val card: CardDto?
 )
-data class CardsResponse(val items: List<CardDto>?, val nextCursor: String?)
-data class SourceDto(val sourceId: String, val title: String, val url: String, val publisher: String, val authority: String)
+data class CardsResponse(val items: List<CardDto?>?, val nextCursor: String?)
+data class SourceDto(
+    val sourceId: String?,
+    val title: String?,
+    val url: String?,
+    val publisher: String?,
+    val authority: String?
+)
 data class CardDto(
-    val cardId: String,
-    val candidateToken: String,
-    val topicId: String,
-    val factId: String,
-    val title: String,
-    val detectedObjectName: String,
-    val body: String,
-    val personalContext: String,
-    val confidence: Double,
-    val sources: List<SourceDto>,
-    val status: String,
-    val scheduledDate: String,
-    val createdAt: String
+    val cardId: String?,
+    val candidateToken: String?,
+    val topicId: String?,
+    val factId: String?,
+    val title: String?,
+    val detectedObjectName: String?,
+    val body: String?,
+    val personalContext: String?,
+    val confidence: Double?,
+    val sources: List<SourceDto?>?,
+    val status: String?,
+    val scheduledDate: String?,
+    val createdAt: String?
 )
 data class FeedbackRequest(val action: String)
 data class FeedbackResponse(
-    val id: String,
-    val cardId: String,
-    val action: String,
-    val createdAt: String,
-    val topicAffinities: List<TopicAffinityDto>
+    val id: String?,
+    val cardId: String?,
+    val action: String?,
+    val createdAt: String?,
+    val topicAffinities: List<TopicAffinityDto?>?
 )
-data class TopicAffinityDto(val topicId: String, val weight: Double, val aliases: List<String> = emptyList())
+data class TopicAffinityDto(
+    val topicId: String?,
+    val weight: Double?,
+    val aliases: List<String?>? = emptyList()
+)
 data class TrackRequest(val startedOn: String, val reminderDays: Int)
 data class TrackItemResponse(
     val id: String?,

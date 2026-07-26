@@ -415,22 +415,33 @@ internal fun feedbackAcknowledgementOrThrow(
     expectedAction: String,
     expectedTopicId: String?
 ): ValidatedFeedbackAcknowledgement {
+    fun invalid(reason: String): Nothing =
+        throw IOException("Feedback acknowledgement contains invalid $reason")
+
     if (!response.isSuccessful) throw retrofit2.HttpException(response)
     val body = response.body() ?: throw IOException("反馈接口成功响应缺少正文")
-    if (!UUID_VALUE.matches(expectedCardId) || body.cardId != expectedCardId) {
+    val acknowledgedCardId = body.cardId
+    if (!UUID_VALUE.matches(expectedCardId) || acknowledgedCardId != expectedCardId) {
         throw IOException("Feedback acknowledgement does not match the pending card")
     }
-    if (expectedAction !in FEEDBACK_ACTIONS || body.action != expectedAction) {
+    val acknowledgedAction = body.action
+    if (expectedAction !in FEEDBACK_ACTIONS || acknowledgedAction != expectedAction) {
         throw IOException("Feedback acknowledgement does not match the pending action")
     }
-    if (!UUID_VALUE.matches(body.id)) {
-        throw IOException("Feedback acknowledgement contains an invalid ID")
-    }
-    val createdAtMillis = runCatching { Instant.parse(body.createdAt).toEpochMilli() }.getOrNull()
+    val feedbackId = body.id?.takeIf(UUID_VALUE::matches) ?: invalid("ID")
+    val createdAtMillis = body.createdAt
+        ?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
         ?: throw IOException("Feedback acknowledgement contains an invalid creation time")
+    val responseAffinities = body.topicAffinities ?: invalid("topic affinities")
     val topicAffinities = validatedServerTopicAffinities(
-        body.topicAffinities.map { affinity ->
-            ServerTopicAffinity(affinity.topicId, affinity.weight, affinity.aliases)
+        responseAffinities.map { nullableAffinity ->
+            val affinity = nullableAffinity ?: invalid("topic affinity")
+            ServerTopicAffinity(
+                topicId = affinity.topicId ?: invalid("topic ID"),
+                weight = affinity.weight ?: invalid("topic weight"),
+                aliases = affinity.aliases?.map { alias -> alias ?: invalid("topic alias") }
+                    ?: invalid("topic aliases")
+            )
         }
     )
     if (topicAffinities.size != 1) {
@@ -447,9 +458,9 @@ internal fun feedbackAcknowledgementOrThrow(
         topicAffinities
     }
     return ValidatedFeedbackAcknowledgement(
-        feedbackId = body.id,
-        cardId = body.cardId,
-        action = body.action,
+        feedbackId = feedbackId,
+        cardId = acknowledgedCardId,
+        action = acknowledgedAction,
         createdAtMillis = createdAtMillis,
         topicAffinities = boundTopicAffinities
     )
@@ -483,17 +494,20 @@ internal fun CardsResponse.validatedForCursor(requestCursor: String?): Validated
     if (pageItems.size > MAX_CARD_PAGE_SIZE) {
         throw IOException("Card page exceeded the requested size")
     }
+    val validatedItems = pageItems.map { item ->
+        item ?: throw IOException("Card page contains a null item")
+    }
     val validatedCursor = nextCursor?.also { cursor ->
         if (!UUID_VALUE.matches(cursor)) throw IOException("Card page contains an invalid cursor")
         if (cursor == requestCursor) throw IOException("Card page repeated the requested cursor")
     }
-    return ValidatedCardsPage(pageItems, validatedCursor)
+    return ValidatedCardsPage(validatedItems, validatedCursor)
 }
 
 internal fun cn.jianwei.data.network.CardDto.validatedIdentity(): ValidatedCardIdentity {
-    fun uuid(value: String, field: String): String {
-        if (!UUID_VALUE.matches(value)) throw IOException("Card contains an invalid $field")
-        return value
+    fun uuid(value: String?, field: String): String {
+        return value?.takeIf(UUID_VALUE::matches)
+            ?: throw IOException("Card contains an invalid $field")
     }
 
     return ValidatedCardIdentity(
@@ -506,28 +520,34 @@ internal fun cn.jianwei.data.network.CardDto.validatedForPersistence(
     identity: ValidatedCardIdentity = validatedIdentity()
 ): ValidatedCardPayload {
 
-    fun identifier(value: String, field: String): String {
-        if (!CARD_IDENTIFIER.matches(value)) throw IOException("Card contains an invalid $field")
-        return value
+    fun identifier(value: String?, field: String): String {
+        return value?.takeIf(CARD_IDENTIFIER::matches)
+            ?: throw IOException("Card contains an invalid $field")
     }
 
-    fun text(value: String, field: String, maxCodePoints: Int): String {
+    fun text(value: String?, field: String, maxCodePoints: Int): String {
+        if (value == null) throw IOException("Card contains an invalid $field")
         val normalized = value.trim()
         val length = normalized.codePointCount(0, normalized.length)
         if (length !in 1..maxCodePoints) throw IOException("Card contains an invalid $field")
         return normalized
     }
 
-    val parsedDate = runCatching { LocalDate.parse(scheduledDate) }.getOrNull()
-    if (parsedDate == null || parsedDate.toString() != scheduledDate) {
+    val scheduledDateValue = scheduledDate
+        ?: throw IOException("Card contains an invalid scheduled date")
+    val parsedDate = runCatching { LocalDate.parse(scheduledDateValue) }.getOrNull()
+    if (parsedDate == null || parsedDate.toString() != scheduledDateValue) {
         throw IOException("Card contains an invalid scheduled date")
     }
-    val createdAtMillis = runCatching { Instant.parse(createdAt).toEpochMilli() }.getOrNull()
+    val createdAtMillis = createdAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
         ?: throw IOException("Card contains an invalid creation time")
-    if (!confidence.isFinite() || confidence !in 0.0..1.0) {
+    val confidenceValue = confidence
+    if (confidenceValue == null || !confidenceValue.isFinite() || confidenceValue !in 0.0..1.0) {
         throw IOException("Card contains an invalid confidence")
     }
-    if (status !in CARD_STATUSES) throw IOException("Card contains an invalid status")
+    val statusValue = status?.takeIf { it in CARD_STATUSES }
+        ?: throw IOException("Card contains an invalid status")
+    val sourceValues = sources ?: throw IOException("Card contains invalid knowledge sources")
 
     return ValidatedCardPayload(
         cardId = identity.cardId,
@@ -538,32 +558,34 @@ internal fun cn.jianwei.data.network.CardDto.validatedForPersistence(
         detectedObjectName = text(detectedObjectName, "object name", MAX_OBJECT_NAME_CODE_POINTS),
         body = text(body, "body", MAX_CARD_BODY_CODE_POINTS),
         personalContext = text(personalContext, "personal context", MAX_PERSONAL_CONTEXT_CODE_POINTS),
-        confidence = confidence,
-        sources = sources.validatedSources(),
-        status = status,
-        scheduledDate = scheduledDate,
+        confidence = confidenceValue,
+        sources = sourceValues.validatedSources(),
+        status = statusValue,
+        scheduledDate = scheduledDateValue,
         createdAtMillis = createdAtMillis
     )
 }
 
-private fun List<SourceDto>.validatedSources(): List<KnowledgeSource> {
+private fun List<SourceDto?>.validatedSources(): List<KnowledgeSource> {
     if (size !in 1..3) throw IOException("Card must contain between one and three sources")
     val seenIds = mutableSetOf<String>()
-    return map { source ->
-        val sourceId = source.sourceId.trim()
-        val title = source.title.trim()
-        val publisher = source.publisher.trim()
-        val safeUrl = normalizedSafeKnowledgeSourceUrl(source.url)
+    return map { nullableSource ->
+        val source = nullableSource ?: throw IOException("Card contains an invalid knowledge source")
+        val sourceId = source.sourceId?.trim().orEmpty()
+        val title = source.title?.trim().orEmpty()
+        val publisher = source.publisher?.trim().orEmpty()
+        val safeUrl = source.url?.let(::normalizedSafeKnowledgeSourceUrl)
+        val authority = source.authority?.takeIf { it in SAFE_SOURCE_AUTHORITIES }
         if (
             sourceId.isEmpty() || sourceId.length > 100 || !seenIds.add(sourceId) ||
             title.isEmpty() || title.length > 200 ||
             publisher.isEmpty() || publisher.length > 120 ||
-            source.authority !in SAFE_SOURCE_AUTHORITIES ||
+            authority == null ||
             safeUrl == null
         ) {
             throw IOException("Card contains an invalid knowledge source")
         }
-        KnowledgeSource(sourceId, title, safeUrl, publisher, source.authority)
+        KnowledgeSource(sourceId, title, safeUrl, publisher, authority)
     }
 }
 

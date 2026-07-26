@@ -27,17 +27,32 @@ class CardPayloadValidationTest {
     @Test
     fun `malformed remote card is rejected before it can poison Room`() {
         val invalidCards = listOf(
+            validCard().copy(cardId = null),
             validCard().copy(cardId = "not-a-uuid"),
+            validCard().copy(candidateToken = null),
             validCard().copy(candidateToken = "not-a-uuid"),
+            validCard().copy(topicId = null),
             validCard().copy(topicId = "topic/with/path"),
+            validCard().copy(factId = null),
+            validCard().copy(title = null),
             validCard().copy(title = " "),
+            validCard().copy(detectedObjectName = null),
             validCard().copy(detectedObjectName = "物".repeat(61)),
+            validCard().copy(body = null),
             validCard().copy(body = "知".repeat(241)),
+            validCard().copy(personalContext = null),
             validCard().copy(personalContext = ""),
+            validCard().copy(confidence = null),
             validCard().copy(confidence = Double.NaN),
             validCard().copy(confidence = 1.01),
+            validCard().copy(sources = null),
+            validCard().copy(sources = listOf(null)),
+            validCard().copy(sources = listOf(validSource().copy(url = null))),
+            validCard().copy(status = null),
             validCard().copy(status = "scheduled "),
+            validCard().copy(scheduledDate = null),
             validCard().copy(scheduledDate = "2026-02-30"),
+            validCard().copy(createdAt = null),
             validCard().copy(createdAt = "not-an-instant")
         )
 
@@ -51,6 +66,7 @@ class CardPayloadValidationTest {
         val validCursor = "8a1b6f90-2c14-4ea9-96a4-9a2416778880"
         val invalidPages = listOf(
             CardsResponse(null, null) to null,
+            CardsResponse(listOf(null), null) to null,
             CardsResponse(List(51) { validCard() }, null) to null,
             CardsResponse(emptyList(), "not-a-uuid") to null,
             CardsResponse(emptyList(), validCursor) to validCursor
@@ -74,17 +90,17 @@ class CardPayloadValidationTest {
         body = "现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。",
         personalContext = "它来自你主动授权的照片，所以今天从「扫帚」讲起。",
         confidence = 0.91,
-        sources = listOf(
-            SourceDto(
-                sourceId = "source-001",
-                title = "Broom construction",
-                url = "https://patents.google.com/patent/US4756039A/en",
-                publisher = "Google Patents",
-                authority = "reference"
-            )
-        ),
+        sources = listOf(validSource()),
         status = "scheduled",
         scheduledDate = "2026-07-26",
         createdAt = "2026-07-26T00:00:00.000Z"
+    )
+
+    private fun validSource() = SourceDto(
+        sourceId = "source-001",
+        title = "Broom construction",
+        url = "https://patents.google.com/patent/US4756039A/en",
+        publisher = "Google Patents",
+        authority = "reference"
     )
 }

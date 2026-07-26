@@ -80,6 +80,10 @@ class AnalysisJobResponseBindingTest {
             completeResponse(status = null),
             completeResponse(card = validCard().copy(candidateToken = OTHER_CANDIDATE_ID)),
             completeResponse(card = validCard().copy(cardId = "not-a-uuid")),
+            completeResponse(card = validCard().copy(body = null)),
+            completeResponse(card = validCard().copy(sources = listOf(SourceDto(
+                "source-1", "Source", null, "Publisher", "reference"
+            )))),
             completeResponse(card = null),
             completeResponse(status = "processing"),
             completeResponse(status = "rejected"),

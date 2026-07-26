@@ -5,6 +5,7 @@ import com.google.gson.stream.JsonToken
 import cn.jianwei.data.photos.ImageSanitizer
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
+import cn.jianwei.data.cards.validatedForPersistence
 import cn.jianwei.data.BuildConfig
 import cn.jianwei.data.control.AnalysisSessionGate
 import cn.jianwei.data.control.AnalysisSessionToken
@@ -204,13 +205,8 @@ internal fun CompleteJobResponse.validatedFor(
     when (boundStatus) {
         "completed" -> {
             val completedCard = card ?: reject("completed job has no card")
-            val completedCardId: String? = completedCard.cardId
-            val completedCandidateToken: String? = completedCard.candidateToken
-            if (
-                completedCardId == null || !UUID_PATH.matches(completedCardId) ||
-                completedCandidateToken == null || !UUID_PATH.matches(completedCandidateToken) ||
-                completedCandidateToken != expectedCandidateToken
-            ) {
+            val completedPayload = completedCard.validatedForPersistence()
+            if (completedPayload.candidateToken != expectedCandidateToken) {
                 reject("card binding")
             }
         }

@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 Android 网络响应空字段边界（当前最新 Android 权威摘要）：Gson 会把缺失或显式 `null` 的 JSON 字段写入 Kotlin 非空属性，原 Card/Source/Feedback wire DTO 因此只能在编译期看似非空；错误环境、代理或服务端回归返回缺字段时，卡片同步可能抛出未受控 NPE，反馈确认也可能绕开预期的可重试 I/O 失败。分析任务 `completed` 分支原来只校验 card/candidate 身份，还会在完整卡片载荷进入 Room 前提前接受终态。
+
+当前所有卡片、来源、分页项、反馈确认和 topic affinity 的网络字段均按运行时真实 JSON 建模为可空；边界层先验证完整集合，再构造非空持久化模型。缺失/null 卡片字段、来源、分页项、反馈 ID/card/action/time/topic/weight/aliases，或完成响应中的不完整卡片，统一在候选终态、Room 提交、偏好写入和 outbox 确认前抛出 IOException。真实 Gson 反序列化回归证明“可解析”不等于“可接受”；API 34 真实 Room 回归证明缺失确认字段时 LIKE outbox 与本地权重均保持不变，可依赖服务端幂等性安全重试。
+
+API 34 关键同步专项 24/24、完整 Data instrumentation 80/80 通过；Android JVM 231/231（Domain 64、Data 101、App 66），API 契约 11 个合成绕过、源码守卫 `wireResponseNullability=1`、Data/App Debug Lint、App Release Lint、Debug/R8 Release 与 Data 测试 APK 构建全部通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `3d5d3499b225a7c2457dc51fa749744f1645e7559af7f822c916d1b1b5291113` / `428bf0e5f54a8e63ad92c61c53fa179ccf4aa2be43f28ed01417f0d9d1d3aac7` / `6e8e3ab876252b6e42a15089e4aa3ca7b88fc61e5491f659bc31767d1dc29a8e`。本轮未改后端/OpenAPI，严格公开契约继续为 GO；真实云/Qwen 安全护栏、正式签名、OEM 实体机、真人审核和 cohort 阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 卡片分页候选归属与公开响应边界（当前最新跨端权威摘要）：Android 原来会验证远端卡片字段、来源和分页上限，但只在本机候选存在时读取照片 URI；若服务端、代理缓存或错误环境返回一个结构完全合法、candidate token 却从未属于本安装的卡片，客户端仍会用空照片引用写入 Room。另一方面，用户清除本地照片索引后，已验证卡片仍应继续同步，否则隐私最小引用和已有知识会失去刷新能力。服务端虽然按匿名 device ID 查询卡片，`complete` 与 `/v1/cards` 却直接回传内部 `KnowledgeCard`，把 OpenAPI 和 Android 都不需要的匿名 `deviceId` 一并公开。
 
 当前客户端只接受两类卡片：candidate token 能绑定到本机候选，或 Room 已存在同一 card ID 且 candidate token 完全一致的可信卡；同 card ID 改绑、未知候选、缺失 items、超过 50 项、非法/自循环 UUID 游标都会在任何 Room 写入和 outbox 确认前以 IOException 失败关闭。全部分页仍先完整验证、再一次性 upsert，因此第二页外来卡不会留下第一页面更新；`TOO_PRIVATE`/`NEVER_ANALYZE` 屏障仍先于正文校验，清索引后同一可信卡仍能刷新并保留最小隐私引用。服务端新增显式 `publicCardResponse` 白名单，`complete` 和分页只返回 13 个公开卡片字段；OpenAPI 的 Card/CardsResponse 均禁止额外字段并固定页大小、状态、标识符与正文边界，编译产物 TCP E2E 同时检查两条响应不含 `deviceId`。
