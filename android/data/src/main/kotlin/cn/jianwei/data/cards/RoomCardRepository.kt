@@ -14,6 +14,7 @@ import cn.jianwei.data.network.DeviceIdentity
 import cn.jianwei.data.network.FeedbackRequest
 import cn.jianwei.data.network.FeedbackResponse
 import cn.jianwei.data.network.JianweiApi
+import cn.jianwei.data.network.CardsResponse
 import cn.jianwei.data.network.SourceDto
 import cn.jianwei.data.network.TrackRequest
 import cn.jianwei.data.network.requireBoundTo
@@ -103,20 +104,24 @@ class RoomCardRepository @Inject constructor(
                     throw IOException("Card pagination exceeded the safety limit")
                 }
                 session.requireActive()
-                val page = api.cards(bearer, cursor)
+                val page = api.cards(bearer, cursor).validatedForCursor(cursor)
                 session.requireActive()
-                if (page.items.size > MAX_CARD_PAGE_SIZE) {
-                    throw IOException("Card page exceeded the requested size")
-                }
                 page.items.forEach { dto ->
                     val cardIdentity = dto.validatedIdentity()
                     if (cardIdentity.cardId in privacyCardIds) return@forEach
                     val candidate = photos.findByToken(cardIdentity.candidateToken)
                     if (candidate?.analysisState == AnalysisState.NEVER_ANALYZE.name) return@forEach
+                    val existingCard = cards.findById(cardIdentity.cardId)
+                    if (existingCard != null && existingCard.candidateToken != cardIdentity.candidateToken) {
+                        throw IOException("Card identity cannot be rebound to another candidate")
+                    }
+                    if (candidate == null && existingCard == null) {
+                        throw IOException("Card candidate is not bound to this installation")
+                    }
                     val payload = dto.validatedForPersistence(cardIdentity)
                     val photoUri = candidate?.contentUri.orEmpty()
                     val privacyPhotoLocalId = candidate?.localId
-                        ?: cards.findById(payload.cardId)?.privacyPhotoLocalId
+                        ?: existingCard?.privacyPhotoLocalId
                     val entity = CardEntity(
                         cardId = payload.cardId,
                         candidateToken = payload.candidateToken,
@@ -467,6 +472,23 @@ internal data class ValidatedCardPayload(
 )
 
 internal data class ValidatedCardIdentity(val cardId: String, val candidateToken: String)
+
+internal data class ValidatedCardsPage(
+    val items: List<cn.jianwei.data.network.CardDto>,
+    val nextCursor: String?
+)
+
+internal fun CardsResponse.validatedForCursor(requestCursor: String?): ValidatedCardsPage {
+    val pageItems = items ?: throw IOException("Card page is missing items")
+    if (pageItems.size > MAX_CARD_PAGE_SIZE) {
+        throw IOException("Card page exceeded the requested size")
+    }
+    val validatedCursor = nextCursor?.also { cursor ->
+        if (!UUID_VALUE.matches(cursor)) throw IOException("Card page contains an invalid cursor")
+        if (cursor == requestCursor) throw IOException("Card page repeated the requested cursor")
+    }
+    return ValidatedCardsPage(pageItems, validatedCursor)
+}
 
 internal fun cn.jianwei.data.network.CardDto.validatedIdentity(): ValidatedCardIdentity {
     fun uuid(value: String, field: String): String {

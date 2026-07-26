@@ -89,7 +89,7 @@ data class CompleteJobResponse(
     val status: String?,
     val card: CardDto?
 )
-data class CardsResponse(val items: List<CardDto>, val nextCursor: String?)
+data class CardsResponse(val items: List<CardDto>?, val nextCursor: String?)
 data class SourceDto(val sourceId: String, val title: String, val url: String, val publisher: String, val authority: String)
 data class CardDto(
     val cardId: String,

@@ -1,6 +1,7 @@
 package cn.jianwei.data.cards
 
 import cn.jianwei.data.network.CardDto
+import cn.jianwei.data.network.CardsResponse
 import cn.jianwei.data.network.SourceDto
 import com.google.common.truth.Truth.assertThat
 import java.io.IOException
@@ -43,6 +44,24 @@ class CardPayloadValidationTest {
         invalidCards.forEach { card ->
             assertThrows(IOException::class.java) { card.validatedForPersistence() }
         }
+    }
+
+    @Test
+    fun `card page rejects missing items oversize and malformed cursors`() {
+        val validCursor = "8a1b6f90-2c14-4ea9-96a4-9a2416778880"
+        val invalidPages = listOf(
+            CardsResponse(null, null) to null,
+            CardsResponse(List(51) { validCard() }, null) to null,
+            CardsResponse(emptyList(), "not-a-uuid") to null,
+            CardsResponse(emptyList(), validCursor) to validCursor
+        )
+
+        invalidPages.forEach { (page, requestCursor) ->
+            assertThrows(IOException::class.java) { page.validatedForCursor(requestCursor) }
+        }
+
+        assertThat(CardsResponse(listOf(validCard()), validCursor).validatedForCursor(null).nextCursor)
+            .isEqualTo(validCursor)
     }
 
     private fun validCard() = CardDto(

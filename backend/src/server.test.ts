@@ -19,6 +19,10 @@ const INSTALLATION_ID = "a2c468a6-8c08-4bbd-a1f1-0cb9ec0f30ad";
 const SECOND_INSTALLATION_ID = "c31d7b10-5af0-4bdd-b7dd-5b65112cfa11";
 const CANDIDATE_ID = "126820f9-8f55-4f30-888c-d5baab090b52";
 const SECOND_CANDIDATE_ID = "7f684985-7f7a-49b5-8f02-2a893f875fee";
+const PUBLIC_CARD_FIELDS = [
+  "body", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
+  "personalContext", "scheduledDate", "sources", "status", "title", "topicId"
+];
 
 const cleanup: string[] = [];
 
@@ -240,12 +244,16 @@ describe("见微 API", () => {
     expect(card.detectedObjectName).toBe("扫帚");
     expect(card.body.length).toBeGreaterThanOrEqual(28);
     expect(card.sources[0].url).toMatch(/^https:\/\//);
+    expect(Object.keys(card).sort()).toEqual(PUBLIC_CARD_FIELDS);
+    expect(card).not.toHaveProperty("deviceId");
     expect(await readdir(objectDir)).toEqual([]);
 
     const listed = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
     expect(listed.statusCode).toBe(200);
     expect(listed.json().items).toHaveLength(1);
     expect(listed.json().items[0].detectedObjectName).toBe("扫帚");
+    expect(Object.keys(listed.json().items[0]).sort()).toEqual(PUBLIC_CARD_FIELDS);
+    expect(listed.json().items[0]).not.toHaveProperty("deviceId");
 
     const duplicate = await app.inject({
       method: "POST",

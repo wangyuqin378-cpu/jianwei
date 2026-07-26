@@ -455,7 +455,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
             )
             api.cardsHandler = { cursor ->
                 if (cursor == null) {
-                    CardsResponse(listOf(serverCard(title = "server-updated")), "second-page")
+                    CardsResponse(listOf(serverCard(title = "server-updated")), SECOND_PAGE_CURSOR)
                 } else {
                     CardsResponse(
                         listOf(
@@ -490,6 +490,33 @@ class TooPrivateSyncOrderingInstrumentedTest {
             val stored = database.cards().findById(CARD_ID)!!.toDomain()
             assertThat(stored.title).isEqualTo("server-updated")
             assertThat(stored.sources.single().url).isEqualTo("https://example.com/reference")
+        }
+    }
+
+    @Test
+    fun foreignCandidateOnLaterPageLeavesExistingCacheUntouched() = runBlocking {
+        withRepository { database, repository, _, api ->
+            api.cardsHandler = { cursor ->
+                if (cursor == null) {
+                    CardsResponse(listOf(serverCard(title = "server-updated")), SECOND_PAGE_CURSOR)
+                } else {
+                    CardsResponse(
+                        listOf(
+                            serverCard(
+                                cardId = MALFORMED_CARD_ID,
+                                candidateToken = FOREIGN_CANDIDATE_TOKEN
+                            )
+                        ),
+                        null
+                    )
+                }
+            }
+
+            val error = runCatching { repository.syncCards() }.exceptionOrNull()
+
+            assertThat(error).isInstanceOf(IOException::class.java)
+            assertThat(database.cards().findById(CARD_ID)?.title).isEqualTo("local-original")
+            assertThat(database.cards().findById(MALFORMED_CARD_ID)).isNull()
         }
     }
 
@@ -776,11 +803,12 @@ class TooPrivateSyncOrderingInstrumentedTest {
 
     private fun serverCard(
         cardId: String = CARD_ID,
+        candidateToken: String = CANDIDATE_TOKEN,
         title: String = "server-card",
         sources: List<SourceDto> = listOf(validSource())
     ) = CardDto(
         cardId = cardId,
-        candidateToken = CANDIDATE_TOKEN,
+        candidateToken = candidateToken,
         topicId = "broom",
         factId = "broom-001",
         title = title,
@@ -807,6 +835,8 @@ class TooPrivateSyncOrderingInstrumentedTest {
         const val CARD_ID = "2a7d8040-f311-4e83-a38c-1bcd09f21961"
         const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"
         const val CANDIDATE_TOKEN = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"
+        const val FOREIGN_CANDIDATE_TOKEN = "2a8c945f-767d-4c59-bce1-7b9a3c192fef"
+        const val SECOND_PAGE_CURSOR = "8a1b6f90-2c14-4ea9-96a4-9a2416778880"
         const val FEEDBACK_ID = "16d3e259-3ec1-4232-b542-f9a7d8719464"
         const val TRACKED_ITEM_ID = "a542bed7-fca8-43b1-8b7a-ff21f196d0d1"
     }

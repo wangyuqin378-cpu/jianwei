@@ -9,6 +9,7 @@ import type {
   Device,
   DeviceRepository,
   EvaluationLeaseDefinition,
+  KnowledgeCard,
   ObjectStore,
   VisionProvider
 } from "./domain/types.js";
@@ -349,7 +350,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
       jobId: result.job.id,
       candidateToken: result.job.candidateToken,
       status: result.job.status,
-      card: result.card
+      card: result.card ? publicCardResponse(result.card) : null
     });
   });
 
@@ -370,7 +371,11 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   app.get("/v1/cards", async (request, reply) => {
     const device = await authenticate(request);
     const query = cardsQuerySchema.parse(request.query);
-    return reply.send(await cards.list(device.id, query.cursor ?? null, query.limit));
+    const page = await cards.list(device.id, query.cursor ?? null, query.limit);
+    return reply.send({
+      items: page.items.map(publicCardResponse),
+      nextCursor: page.nextCursor
+    });
   });
 
   app.post("/v1/cards/:id/feedback", async (request, reply) => {
@@ -450,6 +455,24 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function publicCardResponse(card: KnowledgeCard) {
+  return {
+    cardId: card.cardId,
+    candidateToken: card.candidateToken,
+    topicId: card.topicId,
+    factId: card.factId,
+    title: card.title,
+    detectedObjectName: card.detectedObjectName,
+    body: card.body,
+    personalContext: card.personalContext,
+    confidence: card.confidence,
+    sources: card.sources,
+    status: card.status,
+    scheduledDate: card.scheduledDate,
+    createdAt: card.createdAt
+  };
 }
 
 function safeLogToken(value: unknown, fallback: string): string {

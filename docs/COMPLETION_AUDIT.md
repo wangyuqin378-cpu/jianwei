@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 卡片分页候选归属与公开响应边界（当前最新跨端权威摘要）：Android 原来会验证远端卡片字段、来源和分页上限，但只在本机候选存在时读取照片 URI；若服务端、代理缓存或错误环境返回一个结构完全合法、candidate token 却从未属于本安装的卡片，客户端仍会用空照片引用写入 Room。另一方面，用户清除本地照片索引后，已验证卡片仍应继续同步，否则隐私最小引用和已有知识会失去刷新能力。服务端虽然按匿名 device ID 查询卡片，`complete` 与 `/v1/cards` 却直接回传内部 `KnowledgeCard`，把 OpenAPI 和 Android 都不需要的匿名 `deviceId` 一并公开。
+
+当前客户端只接受两类卡片：candidate token 能绑定到本机候选，或 Room 已存在同一 card ID 且 candidate token 完全一致的可信卡；同 card ID 改绑、未知候选、缺失 items、超过 50 项、非法/自循环 UUID 游标都会在任何 Room 写入和 outbox 确认前以 IOException 失败关闭。全部分页仍先完整验证、再一次性 upsert，因此第二页外来卡不会留下第一页面更新；`TOO_PRIVATE`/`NEVER_ANALYZE` 屏障仍先于正文校验，清索引后同一可信卡仍能刷新并保留最小隐私引用。服务端新增显式 `publicCardResponse` 白名单，`complete` 和分页只返回 13 个公开卡片字段；OpenAPI 的 Card/CardsResponse 均禁止额外字段并固定页大小、状态、标识符与正文边界，编译产物 TCP E2E 同时检查两条响应不含 `deviceId`。
+
+API 34 真实 Room 专项 23/23、完整 Data instrumentation 79/79 通过；Android JVM 229/229（Domain 64、Data 99、App 66），后端 124/124、TypeScript check/build、API 契约 11 个合成绕过、源码守卫 `cardCandidateOwnershipBinding=1 publicCardProjection=1`、Data/App Debug Lint、App Release Lint、Debug/R8 Release 与编译后端 TCP `publicCardProjection=1` 全部通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `ba389535750c94b8cb26f79a2ec61fe7508c55ce5d2bbdc62592815926550169` / `3cf87f3f5aa503db798824eb16e993a7c836a15da6a5d69dbd54c7b08a700df8` / `26ac229e00a2b873c4a16a3afe44d0c424be72610bb7adcd86084381760156d4`。后端应优先部署以停止内部字段暴露；新旧 APK 对字段移除均兼容。真实云/Qwen 安全护栏、正式签名、OEM 实体机、真人内容审核和 cohort 仍未形成，Beta 保持 `NO_GO`。
+
 2026-07-26 提醒同步确认绑定（当前最新跨端权威摘要）：Android 原来丢弃 POST track 的完整成功正文，并在 DELETE 的空 204 后直接确认 Room outbox。合法但串 card/日期/周期的响应可让本地停止重试，而云端保留错误提醒；POST 还额外公开了客户端不需要的匿名 deviceId。当前创建响应缩为不含 deviceId 的五字段资源快照，取消响应改为幂等 `cardId + untracked`；Android 在任何 outbox 确认前精确绑定 card、日期、周期、ID、创建时间和删除终态，缺失或错配统一保留 outbox。
 
 API 34 真实 Room 测试证明串 card 的 UPSERT/DELETE 确认分别保留原动作，精确重试后才确认。OpenAPI 两个响应均严格，契约第 9 个绕过反例、后端 124/124、Android JVM 228/228、API 34 Data 78/78、Lint、Debug/R8 Release、编译后 TCP `reminderAckBinding=1` 和源码守卫 `reminderAcknowledgementBinding=1` 全部通过。按 `api-design` 的兼容策略必须先部署返回 200 取消确认的新后端，再分发新 APK；真实云、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。

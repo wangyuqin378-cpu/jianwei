@@ -119,6 +119,7 @@ try {
     "terminal job snapshot is not bound to the job and candidate"
   );
   const card = completed.body.card;
+  assertPublicCard(card, "complete response card");
   assertUuid(card?.cardId, "cardId");
   assert(card.candidateToken === broomCandidate, "card candidate token does not match the submitted candidate");
   assert(card.topicId === "broom", "local vision did not normalize broom topic");
@@ -145,6 +146,7 @@ try {
 
   const cards = await requestJson(`${baseUrl}/v1/cards?limit=20`, { token, expectedStatus: 200 });
   assert(cards.body.items?.length === 1 && cards.body.items[0].cardId === card.cardId, "card synchronization did not return the completed card");
+  assertPublicCard(cards.body.items[0], "paginated card");
   const feedback = await requestJson(`${baseUrl}/v1/cards/${card.cardId}/feedback`, {
     method: "POST",
     token,
@@ -224,7 +226,7 @@ try {
       objectFilesRemaining: 0
     }
   };
-  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 reminderAckBinding=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
+  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 publicCardProjection=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 reminderAckBinding=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
   await writeFile(resultJsonPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   await writeFile(resultTextPath, `${summary}\n`, "utf8");
   process.stdout.write(`${summary}\n`);
@@ -403,6 +405,19 @@ function assertWithin(parent, target) {
 
 function assertUuid(value, label) {
   assert(typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value), `${label} is not a UUID`);
+}
+
+function assertPublicCard(value, label) {
+  const expectedFields = [
+    "body", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
+    "personalContext", "scheduledDate", "sources", "status", "title", "topicId"
+  ];
+  assert(value && typeof value === "object", `${label} is missing`);
+  assert(
+    JSON.stringify(Object.keys(value).sort()) === JSON.stringify(expectedFields),
+    `${label} contains missing or internal fields`
+  );
+  assert(!Object.hasOwn(value, "deviceId"), `${label} exposed internal device identity`);
 }
 
 function sha256(bytes) {

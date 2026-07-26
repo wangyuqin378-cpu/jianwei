@@ -96,6 +96,33 @@ export function assessApiContract(input) {
   ) {
     failures.push("untrack success must return a strict bound UntrackItemResponse");
   }
+  const cardsSchema = contract.components?.schemas?.CardsResponse;
+  if (!cardsSchema || cardsSchema.additionalProperties !== false) {
+    failures.push("CardsResponse must be a strict object");
+  } else {
+    compareSets(
+      "CardsResponse required field",
+      new Set(cardsSchema.required ?? []),
+      new Set(["items", "nextCursor"]),
+      failures
+    );
+    if (
+      cardsSchema.properties?.items?.type !== "array" ||
+      cardsSchema.properties?.items?.maxItems !== 50 ||
+      cardsSchema.properties?.nextCursor?.format !== "uuid"
+    ) {
+      failures.push("CardsResponse must bind a bounded page to a UUID cursor");
+    }
+  }
+  const cardSchema = contract.components?.schemas?.Card;
+  if (
+    !cardSchema || cardSchema.additionalProperties !== false ||
+    Object.hasOwn(cardSchema.properties ?? {}, "deviceId") ||
+    cardSchema.properties?.status?.enum?.length !== 3 ||
+    cardSchema.properties?.body?.maxLength !== 240
+  ) {
+    failures.push("Card must be a strict bounded public response without internal device identity");
+  }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
   }
@@ -161,6 +188,8 @@ if (process.argv.includes("--self-test")) {
     ["removed registration binding", (value) => { value.openapi = value.openapi.replace('"installationBindingSha256", ', ""); }],
     ["removed job status binding", (value) => { value.openapi = value.openapi.replace("#/components/schemas/JobStatusResponse", "#/components/schemas/ErrorResponse"); }],
     ["removed reminder acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UntrackItemResponse", "#/components/schemas/ErrorResponse"); }],
+    ["loosened card page", (value) => { value.openapi = value.openapi.replace('"CardsResponse": { "type": "object", "additionalProperties": false', '"CardsResponse": { "type": "object"'); }],
+    ["loosened public card", (value) => { value.openapi = value.openapi.replace('"Card": {\n        "type": "object",\n        "additionalProperties": false', '"Card": {\n        "type": "object"'); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];
