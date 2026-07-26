@@ -75,6 +75,7 @@ data class CreateJobResponse(
     val candidateToken: String?,
     val status: String?,
     val uploadUrl: String?,
+    val uploadSessionId: String?,
     val expiresAt: String?
 )
 data class CompleteJobResponse(

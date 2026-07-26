@@ -1,5 +1,7 @@
 package cn.jianwei.data.network
 
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
 import cn.jianwei.data.photos.ImageSanitizer
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.photos.PhotoPermissionGate
@@ -25,6 +27,7 @@ import java.net.URI
 import java.io.IOException
 import java.security.MessageDigest
 import java.time.Instant
+import java.io.StringReader
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -113,7 +116,12 @@ class RemoteAnalysisClient @Inject constructor(
                 bearer = bearer
             ) { requireCurrentAccess(candidate, session) }
             http.newCall(upload).awaitResponse().use { response ->
-                requireSuccessfulUploadResponse(response)
+                requireSuccessfulUploadResponse(
+                    response = response,
+                    expectedJobId = job.jobId,
+                    expectedCandidateToken = candidate.candidateToken,
+                    expectedUploadSessionId = checkNotNull(job.uploadSessionId)
+                )
             }
             require(payloadMatchesDigest(image.bytes, sanitizedDigest)) { "上传过程中待分析字节发生变化" }
             requireCurrentAccess(candidate, session)
@@ -136,6 +144,7 @@ internal data class ValidatedCreateJobResponse(
     val candidateToken: String,
     val status: String,
     val uploadUrl: String?,
+    val uploadSessionId: String?,
     val expiresAt: Instant
 )
 
@@ -152,13 +161,21 @@ internal fun CreateJobResponse.validatedForCandidate(
     val expiration = expiresAt?.let { runCatching { Instant.parse(it) }.getOrNull() }
         ?: reject("expiration")
     val boundStatus = status ?: reject("status")
+    val boundUploadSessionId: String?
     when (boundStatus) {
         "awaiting_upload" -> {
             val target = uploadUrl ?: reject("missing upload target")
             if (!isAllowedUploadUrl(target, apiBaseUrl)) reject("upload target")
+            boundUploadSessionId = uploadSessionId?.takeIf(UUID_PATH::matches)
+                ?: reject("upload session")
+            if (allowedUploadSessionId(target, apiBaseUrl) != boundUploadSessionId) {
+                reject("upload session binding")
+            }
         }
         "uploaded", "completed", "needs_content", "rejected" -> {
             if (!uploadUrl.isNullOrEmpty()) reject("unexpected upload target")
+            if (uploadSessionId != null) reject("unexpected upload session")
+            boundUploadSessionId = null
         }
         else -> reject("status")
     }
@@ -167,6 +184,7 @@ internal fun CreateJobResponse.validatedForCandidate(
         candidateToken = boundCandidateToken,
         status = boundStatus,
         uploadUrl = uploadUrl,
+        uploadSessionId = boundUploadSessionId,
         expiresAt = expiration
     )
 }
@@ -202,9 +220,58 @@ internal fun CompleteJobResponse.validatedFor(
     return AnalysisJobOutcome(boundJobId, boundCandidateToken, boundStatus, card)
 }
 
-internal fun requireSuccessfulUploadResponse(response: Response) {
+internal fun requireSuccessfulUploadResponse(
+    response: Response,
+    expectedJobId: String,
+    expectedCandidateToken: String,
+    expectedUploadSessionId: String
+) {
     if (response.code == 401) throw AuthenticationExpiredException()
     if (!response.isSuccessful) throw UploadHttpStatusException(response.code)
+    if (response.code != 200) throw IOException("Upload response HTTP status is invalid")
+    val bytes = response.peekBody(MAX_UPLOAD_RESPONSE_BYTES + 1L).bytes()
+    if (bytes.size > MAX_UPLOAD_RESPONSE_BYTES) throw IOException("Upload response is too large")
+    val body = parseUploadResponse(bytes)
+    val jobId = body["jobId"]
+    val candidateToken = body["candidateToken"]
+    val uploadSessionId = body["uploadSessionId"]
+    val status = body["status"]
+    if (
+        jobId == null || !UUID_PATH.matches(jobId) || jobId != expectedJobId ||
+        candidateToken == null || !UUID_PATH.matches(candidateToken) || candidateToken != expectedCandidateToken ||
+        uploadSessionId == null || !UUID_PATH.matches(uploadSessionId) || uploadSessionId != expectedUploadSessionId ||
+        status != "uploaded"
+    ) {
+        throw IOException("Upload response identity or status is invalid")
+    }
+}
+
+private fun parseUploadResponse(bytes: ByteArray): Map<String, String> {
+    try {
+        JsonReader(StringReader(bytes.toString(Charsets.UTF_8))).use { reader ->
+            reader.isLenient = false
+            if (reader.peek() != JsonToken.BEGIN_OBJECT) throw IOException("Upload response must be an object")
+            reader.beginObject()
+            val values = linkedMapOf<String, String>()
+            while (reader.hasNext()) {
+                val name = reader.nextName()
+                if (name !in UPLOAD_RESPONSE_FIELDS || values.containsKey(name)) {
+                    throw IOException("Upload response fields are invalid")
+                }
+                if (reader.peek() != JsonToken.STRING) throw IOException("Upload response field type is invalid")
+                values[name] = reader.nextString()
+            }
+            reader.endObject()
+            if (reader.peek() != JsonToken.END_DOCUMENT || values.keys != UPLOAD_RESPONSE_FIELDS) {
+                throw IOException("Upload response fields are incomplete")
+            }
+            return values
+        }
+    } catch (error: IOException) {
+        throw error
+    } catch (error: RuntimeException) {
+        throw IOException("Upload response is not valid JSON", error)
+    }
 }
 
 internal fun payloadDigest(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(bytes)
@@ -275,6 +342,14 @@ internal fun isAllowedUploadUrl(uploadUrl: String, apiBaseUrl: String): Boolean 
     return sameOrigin(uploadUrl, apiBaseUrl) && isExpectedApiUploadPath(upload, apiBaseUrl)
 }
 
+internal fun allowedUploadSessionId(uploadUrl: String, apiBaseUrl: String): String? {
+    if (!isAllowedUploadUrl(uploadUrl, apiBaseUrl)) return null
+    val upload = URI(uploadUrl)
+    val api = URI(apiBaseUrl)
+    val prefix = "${api.path.orEmpty().trimEnd('/')}/v1/analysis-jobs/"
+    return upload.path.removePrefix(prefix).removeSuffix("/image").takeIf(UUID_PATH::matches)
+}
+
 private fun isExpectedApiUploadPath(upload: URI, apiBaseUrl: String): Boolean {
     if (upload.rawQuery != null || upload.rawFragment != null) return false
     val api = runCatching { URI(apiBaseUrl) }.getOrNull() ?: return false
@@ -297,3 +372,5 @@ private fun sameOrigin(first: String, second: String): Boolean {
 }
 
 private val UUID_PATH = Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
+private const val MAX_UPLOAD_RESPONSE_BYTES = 4 * 1024
+private val UPLOAD_RESPONSE_FIELDS = setOf("jobId", "candidateToken", "uploadSessionId", "status")

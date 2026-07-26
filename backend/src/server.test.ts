@@ -204,8 +204,10 @@ describe("见微 API", () => {
     expect(created.statusCode).toBe(201);
     const jobId = created.json().jobId as string;
     expect(created.json().candidateToken).toBe(CANDIDATE_ID);
+    const uploadSessionId = created.json().uploadSessionId as string;
     const oneTimeUploadPath = uploadPath(created.json().uploadUrl as string);
     expect(oneTimeUploadPath).toMatch(/^\/v1\/analysis-jobs\/[0-9a-f-]{36}\/image$/);
+    expect(oneTimeUploadPath).toBe(`/v1/analysis-jobs/${uploadSessionId}/image`);
     expect(oneTimeUploadPath).not.toBe(`/v1/analysis-jobs/${jobId}/image`);
 
     const uploaded = await app.inject({
@@ -215,7 +217,12 @@ describe("见微 API", () => {
       payload: jpegPayload(7)
     });
     expect(uploaded.statusCode).toBe(200);
-    expect(uploaded.json().status).toBe("uploaded");
+    expect(uploaded.json()).toEqual({
+      jobId,
+      candidateToken: CANDIDATE_ID,
+      uploadSessionId,
+      status: "uploaded"
+    });
 
     const completed = await app.inject({
       method: "POST",
@@ -257,6 +264,7 @@ describe("见微 API", () => {
     expect(duplicate.json().candidateToken).toBe(CANDIDATE_ID);
     expect(duplicate.json().status).toBe("completed");
     expect(duplicate.json().uploadUrl).toBe("");
+    expect(duplicate.json().uploadSessionId).toBeNull();
 
     const feedback = await app.inject({
       method: "POST",

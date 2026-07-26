@@ -79,7 +79,14 @@ try {
 
   const broomCandidate = randomUUID();
   const broomJob = await createJob(baseUrl, token, broomCandidate, ["broom"]);
-  await uploadJpeg(broomJob.uploadUrl, token, 200);
+  const uploadAck = await uploadJpeg(broomJob.uploadUrl, token, 200);
+  assert(
+    uploadAck.body.jobId === broomJob.jobId &&
+    uploadAck.body.candidateToken === broomCandidate &&
+    uploadAck.body.uploadSessionId === broomJob.uploadSessionId &&
+    uploadAck.body.status === "uploaded",
+    "upload acknowledgement is not bound to the job, candidate, and session"
+  );
   const replay = await uploadJpeg(broomJob.uploadUrl, token, 409);
   assert(replay.body?.error?.code === "upload_session_unavailable", "one-time upload session accepted a replay");
   const uploaded = await requestJson(`${baseUrl}/v1/analysis-jobs/${broomJob.jobId}`, { token, expectedStatus: 200 });
@@ -90,6 +97,8 @@ try {
     token,
     expectedStatus: 200
   });
+  assert(completed.body.jobId === broomJob.jobId, "completion response job identity drifted");
+  assert(completed.body.candidateToken === broomCandidate, "completion response candidate identity drifted");
   assert(completed.body.status === "completed", "broom job did not complete");
   const card = completed.body.card;
   assertUuid(card?.cardId, "cardId");
@@ -112,7 +121,9 @@ try {
     json: candidateRequest(broomCandidate, ["broom"])
   });
   assert(terminalReplay.body.jobId === broomJob.jobId && terminalReplay.body.status === "completed", "terminal candidate is not idempotent");
+  assert(terminalReplay.body.candidateToken === broomCandidate, "terminal candidate identity drifted");
   assert(terminalReplay.body.uploadUrl === "", "terminal candidate unexpectedly received a new upload capability");
+  assert(terminalReplay.body.uploadSessionId === null, "terminal candidate retained an active upload session");
 
   const cards = await requestJson(`${baseUrl}/v1/cards?limit=20`, { token, expectedStatus: 200 });
   assert(cards.body.items?.length === 1 && cards.body.items[0].cardId === card.cardId, "card synchronization did not return the completed card");
@@ -219,10 +230,13 @@ async function createJob(baseUrl, token, candidateToken, labels) {
     json: candidateRequest(candidateToken, labels)
   });
   assertUuid(response.body.jobId, "jobId");
+  assert(response.body.candidateToken === candidateToken, "new job candidate identity drifted");
   assert(response.body.status === "awaiting_upload", "new job did not await upload");
+  assertUuid(response.body.uploadSessionId, "uploadSessionId");
   const upload = new URL(response.body.uploadUrl);
   assert(upload.origin === baseUrl, "upload URL escaped the API origin");
   assert(/^\/v1\/analysis-jobs\/[0-9a-f-]{36}\/image$/i.test(upload.pathname), "upload URL path is invalid");
+  assert(upload.pathname === `/v1/analysis-jobs/${response.body.uploadSessionId}/image`, "upload URL is not bound to its session");
   assert(Number.isFinite(Date.parse(response.body.expiresAt)), "upload expiry is invalid");
   return response.body;
 }

@@ -315,6 +315,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
       candidateToken: result.job.candidateToken,
       status: result.job.status,
       uploadUrl: result.uploadUrl,
+      uploadSessionId: result.job.status === "awaiting_upload" ? result.job.uploadSessionId : null,
       expiresAt: result.expiresAt
     });
   });
@@ -326,7 +327,12 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     if (!Buffer.isBuffer(body)) throw new AppError("invalid_image", "请求体必须是图片", 400);
     const contentType = request.headers["content-type"]?.split(";")[0] ?? "application/octet-stream";
     const job = await analysis.recordUpload(device, id, body, contentType);
-    return reply.send({ jobId: job.id, status: job.status });
+    return reply.send({
+      jobId: job.id,
+      candidateToken: job.candidateToken,
+      uploadSessionId: id,
+      status: job.status
+    });
   });
 
   app.post("/v1/analysis-jobs/:id/complete", async (request, reply) => {

@@ -62,23 +62,35 @@ class HttpsCloudApi implements CloudAuditApi {
       typeof body.jobId !== "string" ||
       body.candidateToken !== candidateToken ||
       typeof body.uploadUrl !== "string" ||
+      typeof body.uploadSessionId !== "string" ||
       body.status !== "awaiting_upload"
     ) {
       throw new Error("Cloud analysis-job response is invalid");
     }
-    return { jobId: body.jobId, candidateToken: body.candidateToken, uploadUrl: body.uploadUrl };
+    return {
+      jobId: body.jobId,
+      candidateToken: body.candidateToken,
+      uploadUrl: body.uploadUrl,
+      uploadSessionId: body.uploadSessionId
+    };
   }
 
   async upload(token: string, uploadUrl: string, bytes: Buffer) {
     const target = new URL(uploadUrl);
     if (target.origin !== this.origin) throw new Error("Cloud upload URL escaped the API origin");
-    await this.requestAbsoluteJson(target.href, {
+    const body = await this.requestAbsoluteJson(target.href, {
       method: "PUT",
       expectedStatus: 200,
       token,
       headers: { "Content-Type": "image/jpeg" },
       body: Uint8Array.from(bytes)
     });
+    return {
+      jobId: String(body.jobId ?? ""),
+      candidateToken: String(body.candidateToken ?? ""),
+      uploadSessionId: String(body.uploadSessionId ?? ""),
+      status: String(body.status ?? "")
+    };
   }
 
   async getJob(token: string, jobId: string) {

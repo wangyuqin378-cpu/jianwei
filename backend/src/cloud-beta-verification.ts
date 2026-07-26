@@ -14,8 +14,18 @@ export interface CloudAuditApi {
     containerImageDigest: string;
   }>;
   register(): Promise<{ token: string }>;
-  createJob(token: string, candidateToken: string): Promise<{ jobId: string; candidateToken: string; uploadUrl: string }>;
-  upload(token: string, uploadUrl: string, bytes: Buffer): Promise<void>;
+  createJob(token: string, candidateToken: string): Promise<{
+    jobId: string;
+    candidateToken: string;
+    uploadUrl: string;
+    uploadSessionId: string;
+  }>;
+  upload(token: string, uploadUrl: string, bytes: Buffer): Promise<{
+    jobId: string;
+    candidateToken: string;
+    uploadSessionId: string;
+    status: string;
+  }>;
   getJob(token: string, jobId: string): Promise<{ status: string; errorCode: string | null; createdAt: string }>;
   complete(token: string, jobId: string): Promise<{ jobId: string; candidateToken: string; status: string }>;
   deleteDevice(token: string): Promise<void>;
@@ -177,7 +187,16 @@ async function runFixture(input: CloudVerificationInput, token: string, bytes: B
   assert(upload.origin === normalizedProductionOrigin(input.baseUrl) &&
     /^\/v1\/analysis-jobs\/[0-9a-f-]{36}\/image$/i.test(upload.pathname) && !upload.search && !upload.hash,
   "Cloud upload capability escaped the exact API origin/path boundary");
-  await input.api.upload(token, created.uploadUrl, bytes);
+  assert(upload.pathname === `/v1/analysis-jobs/${created.uploadSessionId}/image`,
+    "Cloud create response did not bind the upload session to its capability URL");
+  const uploadAck = await input.api.upload(token, created.uploadUrl, bytes);
+  assert(
+    uploadAck.jobId === created.jobId &&
+    uploadAck.candidateToken === candidateToken &&
+    uploadAck.uploadSessionId === created.uploadSessionId &&
+    uploadAck.status === "uploaded",
+    "Cloud upload acknowledgement crossed the job, candidate, or session boundary"
+  );
   const uploaded = await input.api.getJob(token, created.jobId);
   const objectKey = await input.objects.findJobObject(created.jobId, uploaded.createdAt);
   assert(objectKey, `Uploaded ${sensitive ? "sensitive" : "safe"} fixture was not observed in OSS`);

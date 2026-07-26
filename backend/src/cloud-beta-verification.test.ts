@@ -31,12 +31,14 @@ function deploymentReceipt() {
 function fixture({
   leaveObject = false,
   crossCandidateResponse = false,
+  crossUploadAcknowledgement = false,
   catalogVersion = "catalog-17",
   backendReleaseSha256 = "d".repeat(64),
   containerImageDigest = CONTAINER_IMAGE_DIGEST
 } = {}) {
   const objects = new Set<string>();
-  const jobs = new Map<string, { candidateToken: string; createdAt: string; status: string; errorCode: string | null; key: string }>();
+  const jobs = new Map<string, { candidateToken: string; uploadSessionId: string; createdAt: string; status: string; errorCode: string | null; key: string }>();
+  const uploadSessions = new Map<string, string>();
   let sequence = 0;
   let deleted = false;
   const api: CloudAuditApi = {
@@ -45,19 +47,29 @@ function fixture({
     createJob: async (_token, candidateToken) => {
       sequence += 1;
       const jobId = `00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
+      const uploadSessionId = `10000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
       const key = `analysis/2026-07-19/${jobId}.image`;
-      jobs.set(jobId, { candidateToken, createdAt: "2026-07-19T00:00:00.000Z", status: "awaiting_upload", errorCode: null, key });
+      jobs.set(jobId, { candidateToken, uploadSessionId, createdAt: "2026-07-19T00:00:00.000Z", status: "awaiting_upload", errorCode: null, key });
+      uploadSessions.set(uploadSessionId, jobId);
       return {
         jobId,
         candidateToken: crossCandidateResponse ? "00000000-0000-4000-8000-999999999999" : candidateToken,
-        uploadUrl: `https://beta.jianwei.example/v1/analysis-jobs/${jobId}/image`
+        uploadUrl: `https://beta.jianwei.example/v1/analysis-jobs/${uploadSessionId}/image`,
+        uploadSessionId
       };
     },
     upload: async (_token, uploadUrl) => {
-      const jobId = uploadUrl.split("/").at(-2)!;
+      const uploadSessionId = uploadUrl.split("/").at(-2)!;
+      const jobId = uploadSessions.get(uploadSessionId)!;
       const job = jobs.get(jobId)!;
       job.status = "uploaded";
       objects.add(job.key);
+      return {
+        jobId,
+        candidateToken: crossUploadAcknowledgement ? "00000000-0000-4000-8000-999999999999" : job.candidateToken,
+        uploadSessionId,
+        status: job.status
+      };
     },
     getJob: async (_token, jobId) => {
       const job = jobs.get(jobId)!;
@@ -128,6 +140,24 @@ describe("verifyCloudBeta", () => {
       sensitiveFixture: jpeg(2),
       expectedSensitiveType: "face"
     })).rejects.toThrow(/crossed the submitted candidate boundary/);
+
+    const crossedUpload = fixture({ crossUploadAcknowledgement: true });
+    await expect(verifyCloudBeta({
+      api: crossedUpload.api,
+      objects: crossedUpload.inspector,
+      baseUrl: "https://beta.jianwei.example/",
+      runId: "cloud-beta-17",
+      evidenceRef: "controlled://cloud/beta-17",
+      appVersion: "0.1.0-beta17",
+      releaseApkSha256: "e".repeat(64),
+      backendReleaseSha256: "d".repeat(64),
+      deploymentReceipt: deploymentReceipt(),
+      modelVersion: "qwen-fixed-17",
+      catalogVersion: "catalog-17",
+      safeFixture: jpeg(1),
+      sensitiveFixture: jpeg(2),
+      expectedSensitiveType: "face"
+    })).rejects.toThrow(/upload acknowledgement crossed/);
 
     const drift = fixture({ catalogVersion: "old-catalog" });
     await expect(verifyCloudBeta({

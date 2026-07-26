@@ -23,6 +23,25 @@ export function assessApiContract(input) {
   if (rawOperations.length !== 1 || rawOperations[0][0] !== "PUT /v1/analysis-jobs/{id}/image") {
     failures.push("OpenAPI must declare exactly one Android raw upload operation");
   }
+  const rawUpload = operations.get("PUT /v1/analysis-jobs/{id}/image");
+  const rawUploadResponseRef = rawUpload?.responses?.["200"]?.content?.["application/json"]?.schema?.$ref;
+  if (rawUploadResponseRef !== "#/components/schemas/UploadJobResponse") {
+    failures.push("raw upload success response must use UploadJobResponse");
+  }
+  const rawUploadSchema = contract.components?.schemas?.UploadJobResponse;
+  if (!rawUploadSchema || rawUploadSchema.additionalProperties !== false) {
+    failures.push("UploadJobResponse must be a strict object");
+  } else {
+    compareSets(
+      "UploadJobResponse required field",
+      new Set(rawUploadSchema.required ?? []),
+      new Set(["jobId", "candidateToken", "uploadSessionId", "status"]),
+      failures
+    );
+    if (rawUploadSchema.properties?.status?.const !== "uploaded") {
+      failures.push("UploadJobResponse status must be uploaded");
+    }
+  }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
   }
@@ -84,6 +103,7 @@ if (process.argv.includes("--self-test")) {
     ["missing server route", (value) => { value.server = value.server.replace('app.get("/health/live"', 'app.get("/health/live-broken"'); }],
     ["drifted Retrofit route", (value) => { value.androidApi = value.androidApi.replace('@GET("v1/cards")', '@GET("v2/cards")'); }],
     ["removed raw upload guard", (value) => { value.remoteAnalysis = value.remoteAnalysis.replaceAll("isExpectedApiUploadPath", "removedUploadPathGuard"); }],
+    ["removed raw upload acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UploadJobResponse", "#/components/schemas/ErrorResponse"); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];

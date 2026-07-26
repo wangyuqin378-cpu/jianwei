@@ -15,15 +15,16 @@ class AnalysisJobResponseBindingTest {
         assertThat(validated.jobId).isEqualTo(JOB_ID)
         assertThat(validated.candidateToken).isEqualTo(CANDIDATE_ID)
         assertThat(validated.status).isEqualTo("awaiting_upload")
+        assertThat(validated.uploadSessionId).isEqualTo(UPLOAD_SESSION_ID)
     }
 
     @Test
     fun `accepts terminal and already-uploaded create responses only without upload targets`() {
         for (status in listOf("uploaded", "completed", "needs_content", "rejected")) {
-            val response = createResponse(status = status, uploadUrl = "")
+            val response = createResponse(status = status, uploadUrl = "", uploadSessionId = null)
             assertThat(response.validatedForCandidate(CANDIDATE_ID, apiBaseUrl).status).isEqualTo(status)
         }
-        assertThat(createResponse(status = "completed", uploadUrl = null)
+        assertThat(createResponse(status = "completed", uploadUrl = null, uploadSessionId = null)
             .validatedForCandidate(CANDIDATE_ID, apiBaseUrl).uploadUrl).isNull()
     }
 
@@ -38,7 +39,10 @@ class AnalysisJobResponseBindingTest {
             createResponse(status = "processing", uploadUrl = null),
             createResponse(uploadUrl = null),
             createResponse(uploadUrl = "https://attacker.example/upload"),
+            createResponse(uploadSessionId = null),
+            createResponse(uploadSessionId = OTHER_UPLOAD_SESSION_ID),
             createResponse(status = "completed"),
+            createResponse(status = "completed", uploadUrl = "", uploadSessionId = UPLOAD_SESSION_ID),
             createResponse(expiresAt = "tomorrow")
         )
 
@@ -92,8 +96,9 @@ class AnalysisJobResponseBindingTest {
         candidateToken: String? = CANDIDATE_ID,
         status: String? = "awaiting_upload",
         uploadUrl: String? = "${apiBaseUrl}v1/analysis-jobs/$UPLOAD_SESSION_ID/image",
+        uploadSessionId: String? = UPLOAD_SESSION_ID,
         expiresAt: String? = "2026-07-26T08:00:00Z"
-    ) = CreateJobResponse(jobId, candidateToken, status, uploadUrl, expiresAt)
+    ) = CreateJobResponse(jobId, candidateToken, status, uploadUrl, uploadSessionId, expiresAt)
 
     private fun completeResponse(
         jobId: String? = JOB_ID,
@@ -124,6 +129,7 @@ class AnalysisJobResponseBindingTest {
         const val JOB_ID = "126820f9-8f55-4f30-888c-d5baab090b52"
         const val OTHER_JOB_ID = "226820f9-8f55-4f30-888c-d5baab090b52"
         const val UPLOAD_SESSION_ID = "326820f9-8f55-4f30-888c-d5baab090b52"
+        const val OTHER_UPLOAD_SESSION_ID = "426820f9-8f55-4f30-888c-d5baab090b52"
         const val CANDIDATE_ID = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"
         const val OTHER_CANDIDATE_ID = "8ff7a59e-2791-38b4-bdbe-3e8274eed084"
         const val CARD_ID = "9ff7a59e-2791-48b4-bdbe-3e8274eed084"
