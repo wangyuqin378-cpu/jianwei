@@ -1,6 +1,6 @@
 # 见微完成度审计
 
-2026-07-26 生产 Qwen 安全护栏最新外部状态（当前最新 Provider 权威摘要）：使用现有北京百炼业务空间 Key 于 `2026-07-26T09:49:39.869Z` 再次执行文本-only、最多 32 token、携带生产 `X-DashScope-DataInspection: {"input":"cip","output":"cip"}` 的最小探针；固定 `qwen3.6-flash-2026-04-16` 返回 HTTP 403 / `access_denied`，没有读取或上传照片，也没有输出/落盘 API Key。阿里云官方文档确认这不是 Qwen token 套餐不足：主账号必须先开通 AI 安全护栏按量付费并允许创建 `AliyunServiceRoleForSFMAccessingCIP`，再到百炼安全管理执行内容安全授权。开通本身不收费，实际护栏调用按量计费；当前无需购买大规格预付费资源包。生产 Provider 继续失败关闭，完整授权图片验证不得在文本探针 GO 前执行，Beta 保持 `NO_GO`。
+2026-07-26 生产 Qwen 安全护栏最新外部状态（当前最新 Provider 权威摘要）：使用现有北京百炼业务空间 Key 于 `2026-07-26T13:10:57.561Z` 执行文本-only、最多 32 token、携带生产 `X-DashScope-DataInspection: {"input":"cip","output":"cip"}` 的最小探针；固定 `qwen3.6-flash-2026-04-16` 已返回 HTTP 200，机器结论 `guardrailAccess=GO`。本次没有读取或上传照片，没有输出或落盘 API Key，证明当前工作空间的 AI Safety Guardrails、服务关联角色和生产 Header 已可用。完整视觉 Provider 仍须用明确授权的非个人测试图再验证一次；外发图片的审批未获准，因此本轮没有绕过审批、没有产生新的图片调用或 Provider 报告。后端 124/124 基础测试通过（另 14 项 PostgreSQL 按环境跳过），TypeScript check/build、API 契约、运行时预算和源码守卫均为 `GO`。这关闭了“护栏未开通”阻断，但不替代图片级 Provider、真人内容审核、真实托管云、正式签名、实体机和 cohort 证据，Beta 保持 `NO_GO`。
 
 2026-07-26 显式导入结果崩溃恢复与迟到结果隔离（当前最新 Android 权威摘要）：Picker/系统分享的候选先提交 Room，随后 App 才把随机 candidate token 写入独立的结果交接状态。若进程恰好在候选 token 被重选替换、清理或 Room 提交之后而交接状态更新之前退出，重启会恢复一个已不属于任何候选的旧 token；原结果策略把候选缺失永久解释成“还在处理”，用户会一直看到进度态。另一竞态是旧请求的 Room/card emission 可能在新一轮选图已经写入后迟到，原无条件 `complete` 会清掉新请求，让真正的新照片失去结果追踪。
 
@@ -108,13 +108,13 @@ JVM 回归覆盖空正文、错误 feedback ID/card/action/time、空/多项/NaN
 
 专项回归覆盖身份异常、Retrofit 401/403、瞬态错误和候选终态，完整 Android JVM 209/209（Domain 62、Data 81、App 66）；Data/App Debug Lint 与 App Release Lint 均 0 error，Debug 与 R8 Release 构建、源码守卫 `authFailureCandidateRetention=1` 和差异检查通过。Debug/未签名 Release APK SHA-256 为 `0825aa7f40a77dfd478d56709668e8571a80caed5f95743e6f7b97ff3c17a1ee` / `deca69ed8e913edf292a4a4dc855f0b55bd1dbfcfc637c3b9aa65119aa10e6a3`。这不替代真实云、正式签名或实体机证据，Beta 保持 `NO_GO`。
 
-2026-07-26 百炼 AI 安全护栏文本预检（当前最新权威摘要）：新增独立命令 `pnpm verify:qwen-guardrail-access -- --credentials-file <csv>`，用于在不读取或上传任何图片的情况下检查账号侧阻断。命令只发送一条无敏感文本，携带与生产完全相同的 `X-DashScope-DataInspection={"input":"cip","output":"cip"}`，输出仅包含北京区域、固定模型、HTTP 状态和受限错误码；API Key、完整工作空间端点、凭据路径和上游错误正文均不进入输出。专项测试同时断言请求体不存在 `image_url`。
+2026-07-26 百炼 AI 安全护栏文本预检：独立命令 `pnpm verify:qwen-guardrail-access -- --credentials-file <csv>` 可在不读取或上传任何图片的情况下检查账号侧阻断。命令只发送一条无敏感文本，携带与生产完全相同的 `X-DashScope-DataInspection={"input":"cip","output":"cip"}`，输出仅包含北京区域、固定模型、HTTP 状态和受限错误码；API Key、完整工作空间端点、凭据路径和上游错误正文均不进入输出。专项测试同时断言请求体不存在 `image_url`。
 
-使用当前下载的北京百炼按量付费工作空间 CSV 真实执行后，固定 `qwen3.6-flash-2026-04-16` 仍返回 `403 access_denied`。这直接证明截至本次检查，AI Safety Guardrails 尚未对当前工作空间完成授权；所需服务关联角色仍为 `AliyunServiceRoleForSFMAccessingCIP`。根据阿里云当前官方流程，仍需先开通按量付费 AI 安全护栏，再在百炼北京地域“安全管理”中授权内容审核。预检未来返回 GO 也只证明角色和生产 Header 可用，之后仍须用明确授权的非个人图片重跑完整视觉 Provider 验证。后端 TypeScript check/build、118/118 基础测试（另 13 项 PostgreSQL 环境测试 skipped）、源码护栏 `qwenGuardrailPreflight=1` 和差异检查通过；Beta 保持 `NO_GO`。
+使用当前下载的北京百炼按量付费工作空间 CSV 于 `2026-07-26T13:10:57.561Z` 真实执行后，固定 `qwen3.6-flash-2026-04-16` 返回 HTTP 200 / `guardrailAccess=GO`，取代同日较早的 `403 access_denied`。这证明当前工作空间已完成 `AliyunServiceRoleForSFMAccessingCIP` 与内容安全授权；仍须用明确授权的非个人图片重跑完整视觉 Provider 验证。当前后端 TypeScript check/build、124/124 基础测试（另 14 项 PostgreSQL 环境测试 skipped）、源码护栏 `qwenGuardrailPreflight=1`、API 契约和运行时预算通过；Beta 保持 `NO_GO`。
 
-2026-07-26 真实 Qwen Provider 验证（当前最新权威摘要）：使用用户下载的北京百炼工作空间按量付费 Key 和仓库自有、无人物的扫帚示例图，真实调用固定模型 `qwen3.6-flash-2026-04-16`。生产请求携带强制内容安全 Header 时返回 `403 access_denied`；随后只用于定位的无内容安全文本探针返回 200，无内容安全视觉诊断识别为 `broom / 扫帚 / 0.98` 且无敏感标记。这证明当前 Key、北京工作空间端点和固定视觉模型可达，但也精确证明生产要求的 AI Safety Guardrails 尚未对该工作空间授权；服务器运行时仍强制该 Header，不会为了跑通而降级。
+2026-07-26 上一轮完整图片 Provider 基线：使用用户下载的北京百炼工作空间按量付费 Key 和仓库自有、无人物的扫帚示例图，真实调用固定模型 `qwen3.6-flash-2026-04-16`。当时生产请求携带强制内容安全 Header 返回 `403 access_denied`；随后只用于定位的无内容安全文本探针返回 200，无内容安全视觉诊断识别为 `broom / 扫帚 / 0.98` 且无敏感标记。该 403 已被 `2026-07-26T13:10:57.561Z` 的生产 Header 文本探针 HTTP 200 所取代；服务器运行时始终强制该 Header，不会为了跑通而降级。图片级完整复验仍待一次明确的外发授权。
 
-Provider 验证器现在把失败路径收敛为一份机读报告：`providerGate=NO_GO`、`releaseEvidence=false`，显式记录本轮实际 3 个请求，而不是只显示产品单卡的 1 次模型调用。原 JPEG 的 JFIF/EXIF 段在内存中移除，报告只保留净化字节 SHA-256 与大小；写出前扫描 API Key、完整工作空间端点、凭据路径和图片路径，命中即拒绝。报告以 `0600` 和 `wx` 写入，拒绝覆盖旧证据。本轮真实报告位于忽略目录 `.tooling/qwen-provider-verification-2026-07-26.json`，SHA-256 为 `4cbb927227fad5dcaf3f362f3081f6db33e2cb421de03ab9a6ae528a29a1ff2b`；二次检查确认四类敏感值均不存在。它是本地诊断证据，不是发布证据。下一外部动作仍需阿里云主账号开通按量付费 AI Safety Guardrails、授权同一百炼工作空间并允许创建 `AliyunServiceRoleForSFMAccessingCIP`，随后重跑到生产 Header 请求本身通过；Beta 保持 `NO_GO`。
+Provider 验证器把失败路径收敛为一份机读报告：`providerGate=NO_GO`、`releaseEvidence=false`，显式记录上一轮实际 3 个请求，而不是只显示产品单卡的 1 次模型调用。原 JPEG 的 JFIF/EXIF 段在内存中移除，报告只保留净化字节 SHA-256 与大小；写出前扫描 API Key、完整工作空间端点、凭据路径和图片路径，命中即拒绝。报告以 `0600` 和 `wx` 写入，拒绝覆盖旧证据。上一轮真实报告位于忽略目录 `.tooling/qwen-provider-verification-2026-07-26.json`，SHA-256 为 `4cbb927227fad5dcaf3f362f3081f6db33e2cb421de03ab9a6ae528a29a1ff2b`；二次检查确认四类敏感值均不存在。它是已被新文本探针部分取代的本地诊断证据，不是发布证据；下一外部动作仅剩对明确授权非个人图片的完整复验。Beta 保持 `NO_GO`。
 
 2026-07-25 每天一张自然日配额（当前最新权威摘要）：上一版把 `AUTOMATIC_DAILY_ONE` 的单个供给计划限制为 1 个候选，但用户选择、首次启动、权限调整和 WorkManager 重试都可能形成独立自动链，因此“每个自动周期最多 1 张”不能证明“每天随机挑一张”。这是业务语义偏差，不是文案问题。
 
