@@ -352,6 +352,13 @@ class TooPrivateSyncOrderingInstrumentedTest {
     @Test
     fun invalidSourceOnLaterPageLeavesExistingCacheUntouched() = runBlocking {
         withRepository { database, repository, _, api ->
+            database.cards().enqueueFeedback(
+                PendingFeedbackEntity(
+                    cardId = CARD_ID,
+                    action = FeedbackAction.LIKE.name,
+                    createdAtMillis = 10L
+                )
+            )
             api.cardsHandler = { cursor ->
                 if (cursor == null) {
                     CardsResponse(listOf(serverCard(title = "server-updated")), "second-page")
@@ -359,7 +366,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
                     CardsResponse(
                         listOf(
                             serverCard(
-                                cardId = "card-malicious",
+                                cardId = MALFORMED_CARD_ID,
                                 sources = listOf(validSource().copy(url = "javascript:alert(1)"))
                             )
                         ),
@@ -372,7 +379,10 @@ class TooPrivateSyncOrderingInstrumentedTest {
 
             assertThat(error).isInstanceOf(IOException::class.java)
             assertThat(database.cards().findById(CARD_ID)?.title).isEqualTo("local-original")
-            assertThat(database.cards().findById("card-malicious")).isNull()
+            assertThat(database.cards().findById(MALFORMED_CARD_ID)).isNull()
+            assertThat(database.cards().pendingFeedback().map { it.action })
+                .containsExactly(FeedbackAction.LIKE.name)
+            assertThat(api.events).doesNotContain("feedback:LIKE")
         }
     }
 
@@ -659,7 +669,8 @@ class TooPrivateSyncOrderingInstrumentedTest {
     )
 
     private companion object {
-        const val CARD_ID = "card-private"
-        const val CANDIDATE_TOKEN = "candidate-private"
+        const val CARD_ID = "2a7d8040-f311-4e83-a38c-1bcd09f21961"
+        const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"
+        const val CANDIDATE_TOKEN = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"
     }
 }

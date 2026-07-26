@@ -108,31 +108,32 @@ class RoomCardRepository @Inject constructor(
                     throw IOException("Card page exceeded the requested size")
                 }
                 page.items.forEach { dto ->
-                    if (dto.cardId in privacyCardIds) return@forEach
-                    val candidate = photos.findByToken(dto.candidateToken)
+                    val cardIdentity = dto.validatedIdentity()
+                    if (cardIdentity.cardId in privacyCardIds) return@forEach
+                    val candidate = photos.findByToken(cardIdentity.candidateToken)
                     if (candidate?.analysisState == AnalysisState.NEVER_ANALYZE.name) return@forEach
+                    val payload = dto.validatedForPersistence(cardIdentity)
                     val photoUri = candidate?.contentUri.orEmpty()
                     val privacyPhotoLocalId = candidate?.localId
-                        ?: cards.findById(dto.cardId)?.privacyPhotoLocalId
-                    val sources = dto.sources.validatedSources()
+                        ?: cards.findById(payload.cardId)?.privacyPhotoLocalId
                     val entity = CardEntity(
-                        cardId = dto.cardId,
-                        candidateToken = dto.candidateToken,
+                        cardId = payload.cardId,
+                        candidateToken = payload.candidateToken,
                         photoUri = photoUri,
                         privacyPhotoLocalId = privacyPhotoLocalId,
-                        topicId = dto.topicId,
-                        factId = dto.factId,
-                        title = dto.title,
-                        detectedObjectName = dto.detectedObjectName,
-                        body = dto.body,
-                        personalContext = dto.personalContext,
-                        confidence = dto.confidence,
-                        sources = sourcesToJson(sources),
-                        status = if (dto.cardId in wrongObjectCardIds) "archived" else dto.status,
-                        scheduledDate = dto.scheduledDate,
-                        createdAtMillis = Instant.parse(dto.createdAt).toEpochMilli()
+                        topicId = payload.topicId,
+                        factId = payload.factId,
+                        title = payload.title,
+                        detectedObjectName = payload.detectedObjectName,
+                        body = payload.body,
+                        personalContext = payload.personalContext,
+                        confidence = payload.confidence,
+                        sources = sourcesToJson(payload.sources),
+                        status = if (payload.cardId in wrongObjectCardIds) "archived" else payload.status,
+                        scheduledDate = payload.scheduledDate,
+                        createdAtMillis = payload.createdAtMillis
                     )
-                    if (entitiesById.putIfAbsent(dto.cardId, entity) != null) {
+                    if (entitiesById.putIfAbsent(payload.cardId, entity) != null) {
                         throw IOException("Duplicate card ID across paginated response")
                     }
                 }
@@ -395,6 +396,80 @@ internal fun feedbackBodyOrThrow(response: retrofit2.Response<FeedbackResponse>)
     return response.body() ?: throw java.io.IOException("反馈接口成功响应缺少正文")
 }
 
+internal data class ValidatedCardPayload(
+    val cardId: String,
+    val candidateToken: String,
+    val topicId: String,
+    val factId: String,
+    val title: String,
+    val detectedObjectName: String,
+    val body: String,
+    val personalContext: String,
+    val confidence: Double,
+    val sources: List<KnowledgeSource>,
+    val status: String,
+    val scheduledDate: String,
+    val createdAtMillis: Long
+)
+
+internal data class ValidatedCardIdentity(val cardId: String, val candidateToken: String)
+
+internal fun cn.jianwei.data.network.CardDto.validatedIdentity(): ValidatedCardIdentity {
+    fun uuid(value: String, field: String): String {
+        if (!UUID_VALUE.matches(value)) throw IOException("Card contains an invalid $field")
+        return value
+    }
+
+    return ValidatedCardIdentity(
+        cardId = uuid(cardId, "ID"),
+        candidateToken = uuid(candidateToken, "candidate token")
+    )
+}
+
+internal fun cn.jianwei.data.network.CardDto.validatedForPersistence(
+    identity: ValidatedCardIdentity = validatedIdentity()
+): ValidatedCardPayload {
+
+    fun identifier(value: String, field: String): String {
+        if (!CARD_IDENTIFIER.matches(value)) throw IOException("Card contains an invalid $field")
+        return value
+    }
+
+    fun text(value: String, field: String, maxCodePoints: Int): String {
+        val normalized = value.trim()
+        val length = normalized.codePointCount(0, normalized.length)
+        if (length !in 1..maxCodePoints) throw IOException("Card contains an invalid $field")
+        return normalized
+    }
+
+    val parsedDate = runCatching { LocalDate.parse(scheduledDate) }.getOrNull()
+    if (parsedDate == null || parsedDate.toString() != scheduledDate) {
+        throw IOException("Card contains an invalid scheduled date")
+    }
+    val createdAtMillis = runCatching { Instant.parse(createdAt).toEpochMilli() }.getOrNull()
+        ?: throw IOException("Card contains an invalid creation time")
+    if (!confidence.isFinite() || confidence !in 0.0..1.0) {
+        throw IOException("Card contains an invalid confidence")
+    }
+    if (status !in CARD_STATUSES) throw IOException("Card contains an invalid status")
+
+    return ValidatedCardPayload(
+        cardId = identity.cardId,
+        candidateToken = identity.candidateToken,
+        topicId = identifier(topicId, "topic ID"),
+        factId = identifier(factId, "fact ID"),
+        title = text(title, "title", MAX_CARD_TITLE_CODE_POINTS),
+        detectedObjectName = text(detectedObjectName, "object name", MAX_OBJECT_NAME_CODE_POINTS),
+        body = text(body, "body", MAX_CARD_BODY_CODE_POINTS),
+        personalContext = text(personalContext, "personal context", MAX_PERSONAL_CONTEXT_CODE_POINTS),
+        confidence = confidence,
+        sources = sources.validatedSources(),
+        status = status,
+        scheduledDate = scheduledDate,
+        createdAtMillis = createdAtMillis
+    )
+}
+
 private fun List<SourceDto>.validatedSources(): List<KnowledgeSource> {
     if (size !in 1..3) throw IOException("Card must contain between one and three sources")
     val seenIds = mutableSetOf<String>()
@@ -417,3 +492,10 @@ private fun List<SourceDto>.validatedSources(): List<KnowledgeSource> {
 }
 
 private val SAFE_SOURCE_AUTHORITIES = setOf("reference", "official", "professional")
+private val CARD_STATUSES = setOf("scheduled", "shown", "archived")
+private val UUID_VALUE = Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
+private val CARD_IDENTIFIER = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$")
+private const val MAX_CARD_TITLE_CODE_POINTS = 60
+private const val MAX_OBJECT_NAME_CODE_POINTS = 60
+private const val MAX_CARD_BODY_CODE_POINTS = 240
+private const val MAX_PERSONAL_CONTEXT_CODE_POINTS = 500

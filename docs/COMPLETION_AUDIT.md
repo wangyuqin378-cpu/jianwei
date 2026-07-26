@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 远端卡片持久化边界（当前最新 Android 权威摘要）：卡片分页原来会先校验来源 URL、来源权威级别和游标，但其他 Card DTO 字段直接进入 Room。非法 `scheduledDate` 可以完成数据库提交，随后在 Room observer 的 domain 映射中反复触发 `LocalDate.parse()`；非法状态、非有限置信度、过长正文或不安全标识符也缺少客户端最后一道失败关闭边界。由于卡片同步还负责确认 `TOO_PRIVATE`、`WRONG_OBJECT` 和普通反馈 outbox，简单地把全部校验前置又会让一张已经被用户标为私密的陈旧卡片因坏正文而永久阻塞删除确认。
+
+当前实现把边界拆成两阶段：先严格校验 card ID 与 candidate token 的 UUID，再立即执行当前同步批次的 `TOO_PRIVATE` card ID 屏障和本地 `NEVER_ANALYZE` 候选屏障；只有仍有资格展示的卡片才继续校验 topic/fact ID、标题、对象名、正文、推送原因、有限且位于 0–1 的置信度、允许状态、规范 ISO 日期、可解析 Instant 与 1–3 个安全来源。所有展示文本按 Unicode code point 计数并只规范化边缘空白。整套分页在内存中全部通过后才单次写入 Room，因此后续页损坏不会产生半更新缓存，也不会提前确认任何 outbox。
+
+新增 JVM 回归覆盖无效 UUID/标识符、空或超长文本、NaN/越界置信度、非法状态/日期/时间和合法文本规范化；API 34 真实 Room 回归证明恶意后续页不会改变既有缓存、不会插入坏卡、不会消费 LIKE outbox，也不会发出 LIKE API 调用。最终完整 Data instrumentation 72/72；Android JVM 214/214（Domain 64、Data 84、App 66）；Data/App Debug Lint、App Release Lint、Debug 与 R8 Release、源码守卫 `remoteCardPayloadValidation=1` 和差异检查通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `8e246938e0957194acd5a8e8eedf6e1cf529a708cb68ab5f5f6e66bfb0faf2dd` / `460970e5311b469ef76876e2161d4d04faabaf3deb0105c4833379f00a79c773` / `a6fb472e76666567114d027d0848502aa7393ce00bd39bd1190abee5de8801a4`。同日无图片 Qwen 安全护栏预检仍返回 `403 access_denied`，所以没有执行视觉 Provider、没有上传图片；外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 跨端 processing lease 自动恢复（当前最新 Android 权威摘要）：服务端视觉处理 lease 是 210 秒，但 Android 上传链原来最多尝试 3 次，1 分钟指数退避只会让客户端在约 0、1、3 分钟运行。若服务端已经取得 processing claim、却在响应前退出或断网，第三次仍可能得到 409，随后客户端就在 lease 可恢复前约 30 秒宣告失败；服务端具备恢复能力，但产品无法自动走到它。现在 UploadWorker 独立使用 4 次尝试预算，四个创建入口共用 1 分钟 backoff，第四次最早约在第 7 分钟运行，确定跨过 210 秒窗口；中间的 409、IOException 继续保持候选 `READY`，显式导入副本也不会清理。其他 Worker 的三次预算没有扩大。
 
 新增 JVM 回归锁定尝试边界 0/1/2 可重试、3 终止，以及统一 backoff；跨语言来源门禁读取两端常量，计算指数退避累计覆盖时间必须大于服务端 lease，并要求四个 UploadWorker 构造入口全部使用该 backoff，输出 `processingLeaseRetryCoverage=1`。完整 Android JVM 212/212（Domain 64、Data 82、App 66），Data/App Debug Lint、App Release Lint、Debug 和 R8 Release 构建、来源守卫及差异检查通过。Debug/未签名 Release APK SHA-256 为 `e8ee6c74edef80eb547a6ee45584c6fcdd34f0256e9619dad88f096897f4e6e9` / `ed08ab4888e680eed882f9a07f999c7ea8f387f84b2c206e481af299bb3f9c84`。真实云、正式签名、OEM 实体机和 cohort 仍未满足，Beta 保持 `NO_GO`。

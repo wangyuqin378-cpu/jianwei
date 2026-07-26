@@ -140,6 +140,7 @@ const objectStoreSource = await readFile(path.join(root, "backend", "src", "infr
 const releaseBuild = await readFile(path.join(root, "scripts", "build-android-windows.ps1"), "utf8");
 const appBuild = await readFile(path.join(root, "android", "app", "build.gradle.kts"), "utf8");
 const cardRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "cards", "RoomCardRepository.kt"), "utf8");
+const cardPayloadValidationTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "cards", "CardPayloadValidationTest.kt"), "utf8");
 const analysisSessionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "control", "AnalysisSessionGate.kt"), "utf8");
 const sessionBarrierTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "control", "SessionBarrierTest.kt"), "utf8");
 const cardMappers = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "local", "Mappers.kt"), "utf8");
@@ -344,6 +345,26 @@ for (const marker of ["javascript:alert(1)", "https://127.0.0.1/fact", "https://
 for (const marker of ["val downloaded = identity.authenticated", "cards.upsertAll(downloaded)", "MAX_CARD_SYNC_PAGES", "seenCursors", "validatedSources"]) {
   check(cardRepository.includes(marker), `Atomic validated card pagination is missing marker: ${marker}`);
 }
+check(
+  cardRepository.indexOf("val cardIdentity = dto.validatedIdentity()") > 0 &&
+    cardRepository.indexOf("val cardIdentity = dto.validatedIdentity()") <
+      cardRepository.indexOf("photos.findByToken(cardIdentity.candidateToken)") &&
+    cardRepository.indexOf("val payload = dto.validatedForPersistence(cardIdentity)") <
+      cardRepository.indexOf("val entity = CardEntity(") &&
+    cardRepository.includes("UUID_VALUE.matches(value)") &&
+    cardRepository.includes("CARD_IDENTIFIER.matches(value)") &&
+    cardRepository.includes("LocalDate.parse(scheduledDate)") &&
+    cardRepository.includes("Instant.parse(createdAt).toEpochMilli()") &&
+    cardRepository.includes("!confidence.isFinite() || confidence !in 0.0..1.0") &&
+    cardRepository.includes("status !in CARD_STATUSES") &&
+    cardRepository.includes("MAX_CARD_BODY_CODE_POINTS = 240") &&
+    cardPayloadValidationTest.includes("malformed remote card is rejected before it can poison Room") &&
+    cardPayloadValidationTest.includes("scheduledDate = \"2026-02-30\"") &&
+    cardPayloadValidationTest.includes("confidence = Double.NaN") &&
+    sourceSyncDeviceTest.includes("invalidSourceOnLaterPageLeavesExistingCacheUntouched") &&
+    sourceSyncDeviceTest.includes("doesNotContain(\"feedback:LIKE\")"),
+  "A malformed remote card can be persisted before validation and poison Room observers"
+);
 check(cardMappers.includes("normalizedSafeKnowledgeSourceUrl") && cardMappers.includes("getOrDefault(emptyList())"), "Legacy Room source data is not filtered fail-closed");
 check(mainActivity.includes("safeSources.forEach") && mainActivity.includes("runCatching { uriHandler.openUri(source.url) }") && mainActivity.includes("来源链接暂不可用"), "Card source click path is not revalidated and failure-safe");
 for (const marker of ["invalidSourceOnLaterPageLeavesExistingCacheUntouched", "validPublicHttpsSourceIsStoredAfterCompletePagination", "corruptLegacyRoomSourceIsFilteredWithoutCrashing"]) {
@@ -830,7 +851,7 @@ check(
     cardDaos.includes("action NOT IN ('TOO_PRIVATE', 'WRONG_OBJECT')") &&
     cardDaos.includes("AND card.status = 'scheduled'") &&
     cardRepository.includes("flushWrongObjectFeedback(session)") &&
-    cardRepository.includes('status = if (dto.cardId in wrongObjectCardIds) "archived" else dto.status') &&
+    cardRepository.includes('status = if (payload.cardId in wrongObjectCardIds) "archived" else payload.status') &&
     cardRepository.includes("acknowledgeWrongObjectFeedback(wrongObjectFeedback)") &&
     sourceSyncDeviceTest.includes("wrongObjectBarrierSurvivesCrashRestart") &&
     sourceSyncDeviceTest.includes("wrongObjectHidesCardRevokesSaveAndCannotBeResurrectedByStaleSync") &&
@@ -861,7 +882,7 @@ check(
   databaseSource.includes("MIGRATION_10_11") &&
     databaseSource.includes("privacyPhotoLocalId") &&
     localEntities.includes("val privacyPhotoLocalId: Long? = null") &&
-    cardRepository.includes("cards.findById(dto.cardId)?.privacyPhotoLocalId") &&
+    cardRepository.includes("cards.findById(payload.cardId)?.privacyPhotoLocalId") &&
     cardDaos.includes("photo?.localId ?: card?.privacyPhotoLocalId") &&
     databaseMigrationDeviceTest.includes("migratesVersion10To11BackfillsMinimalCardPrivacyReference") &&
     sourceSyncDeviceTest.includes("privateBarrierCanStillSuppressPhotoAfterLocalIndexWasCleared") &&
@@ -997,7 +1018,7 @@ check(
   cardRepository.indexOf("flushPrivacyFeedback(session)") < cardRepository.indexOf("api.cards(bearer, cursor)") &&
     cardRepository.includes("pendingFeedbackByAction(FeedbackAction.TOO_PRIVATE.name)") &&
     cardRepository.indexOf("acknowledgePrivacyFeedback(privacyFeedback)") > cardRepository.indexOf("} while (cursor != null)") &&
-    cardRepository.includes("if (dto.cardId in privacyCardIds) return@forEach") &&
+    cardRepository.includes("if (cardIdentity.cardId in privacyCardIds) return@forEach") &&
     cardRepository.includes("candidate?.analysisState == AnalysisState.NEVER_ANALYZE.name") &&
     !cardRepository.slice(
       cardRepository.indexOf("private suspend fun flushPrivacyFeedback("),
@@ -1187,7 +1208,7 @@ check(
     openApi.components?.schemas?.Card?.properties?.detectedObjectName?.maxLength === 60,
   "OpenAPI Card schema does not require the bounded detected object name"
 );
-for (const marker of ["val detectedObjectName: String", "detectedObjectName = dto.detectedObjectName"]) {
+for (const marker of ["val detectedObjectName: String", "detectedObjectName = payload.detectedObjectName"]) {
   check(
     localEntities.includes(marker) || androidApiSource.includes(marker) || cardRepository.includes(marker),
     `Android card pipeline is missing explicit object identity marker: ${marker}`
@@ -1897,7 +1918,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 remoteCardPayloadValidation=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);
