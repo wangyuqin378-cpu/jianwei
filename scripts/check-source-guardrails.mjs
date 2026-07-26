@@ -144,6 +144,7 @@ const cardPayloadValidationTest = await readFile(path.join(root, "android", "dat
 const topicAffinityStore = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "cards", "LocalTopicAffinityStore.kt"), "utf8");
 const topicAffinityPolicyTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "cards", "TopicAffinityPolicyTest.kt"), "utf8");
 const topicAffinityDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "cards", "TopicAffinityPersistenceInstrumentedTest.kt"), "utf8");
+const feedbackResponsePolicyTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "cards", "FeedbackResponsePolicyTest.kt"), "utf8");
 const analysisSessionGate = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "control", "AnalysisSessionGate.kt"), "utf8");
 const sessionBarrierTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "control", "SessionBarrierTest.kt"), "utf8");
 const cardMappers = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "local", "Mappers.kt"), "utf8");
@@ -446,10 +447,30 @@ const feedbackSenderBlock = cardRepository.slice(
   cardRepository.indexOf("private suspend fun flushTrackedItems(")
 );
 check(
-  ordinaryFeedbackBlock.indexOf("sendPendingFeedback(session, pending)") >= 0 &&
+    ordinaryFeedbackBlock.indexOf("sendPendingFeedback(session, pending)") >= 0 &&
     ordinaryFeedbackBlock.indexOf("cards.removeFeedback(pending.id)") > ordinaryFeedbackBlock.indexOf("sendPendingFeedback(session, pending)") &&
-    feedbackSenderBlock.includes("feedbackBodyOrThrow(api.feedback("),
+    feedbackSenderBlock.includes("feedbackAcknowledgementOrThrow(") &&
+    feedbackSenderBlock.includes("expectedCardId = pending.cardId") &&
+    feedbackSenderBlock.includes("expectedAction = pending.action"),
   "Non-private feedback can be removed before a successful acknowledged response"
+);
+const feedbackResponseSchema = openApi.components.schemas.FeedbackResponse;
+check(
+  Array.isArray(feedbackResponseSchema.required) &&
+    ["id", "cardId", "action", "createdAt", "topicAffinities"].every((field) => feedbackResponseSchema.required.includes(field)) &&
+    feedbackResponseSchema.additionalProperties === false &&
+    feedbackResponseSchema.properties.topicAffinities.minItems === 1 &&
+    feedbackResponseSchema.properties.topicAffinities.maxItems === 1 &&
+    cardRepository.includes("body.cardId != expectedCardId") &&
+    cardRepository.includes("body.action != expectedAction") &&
+    cardRepository.includes("!UUID_VALUE.matches(body.id)") &&
+    cardRepository.includes("Instant.parse(body.createdAt).toEpochMilli()") &&
+    cardRepository.includes("topicAffinities.size != 1") &&
+    feedbackResponsePolicyTest.includes("mismatched or malformed acknowledgement cannot consume an outbox row") &&
+    feedbackResponsePolicyTest.includes("valid.copy(cardId = OTHER_CARD_ID)") &&
+    sourceSyncDeviceTest.includes("mismatchedFeedbackAcknowledgementRetainsOutboxAndLocalAffinity") &&
+    sourceSyncDeviceTest.includes("pendingFeedbackByAction(FeedbackAction.LIKE.name)).hasSize(1)"),
+  "A feedback 201 response can acknowledge a different card or action and consume the wrong outbox row"
 );
 check(
   (() => {
@@ -1945,7 +1966,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 remoteCardPayloadValidation=1 feedbackAffinityPayloadValidation=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 remoteCardPayloadValidation=1 feedbackAffinityPayloadValidation=1 feedbackAcknowledgementBinding=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

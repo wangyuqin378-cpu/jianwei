@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 反馈确认身份绑定（当前最新跨端权威摘要）：后端的两条反馈成功分支实际都返回 `id`、`cardId`、`action`、`createdAt` 和 `topicAffinities`，但旧 OpenAPI 只描述一个可空偏好数组，Android DTO 因而主动丢弃确认身份。客户端只检查 HTTP 成功和正文存在，就会应用偏好并由调用方删除当前 outbox；一个合法结构但属于另一张卡或另一动作的 201 响应可以错误确认当前本地事件。
+
+当前 OpenAPI 将反馈响应设为无额外字段的严格对象，五字段全部必填，偏好数组必须恰好一项；TopicAffinity 同步声明安全 ID、-2..2 权重及别名数量/长度边界。Android `feedbackAcknowledgementOrThrow` 以 pending 为权威，要求响应 card ID 与 action 精确匹配、feedback/card ID 为 UUID、action 为已知枚举、createdAt 可解析，并在返回前完成偏好整批校验。只有该确认返回后才允许 `applyServerWeights`，也只有整个 `sendPendingFeedback` 成功后调用方才删除 pending 行。错配会失败关闭，但服务端反馈的 `(device, card, action)` 幂等边界允许安全重试。
+
+JVM 回归覆盖空正文、错误 feedback ID/card/action/time、空/多项/NaN 偏好；API 34 真实 Room 注入“请求 CARD_ID 的 LIKE、响应 MALFORMED_CARD_ID 与 -2.0”，验证异常后 LIKE outbox 仍为一条、本地 LIKE 权重不变。首次 74 项设备回归准确发现旧 RecordingApi 把必填权重模拟为 0.0，导致同步后错误覆盖 0.35；测试桩已按真实服务端规则返回 LIKE=0.4 等权威快照，最终 74/74 通过。后端 120/120、TypeScript check/build、API 契约门禁、Android JVM 216/216（Domain 64、Data 86、App 66）、Data/App Debug Lint、App Release Lint、Debug/R8 Release、源码守卫 `feedbackAcknowledgementBinding=1` 和差异检查均通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `ad3d5ddcb5d9da5c1f50b6514da31068a5a7fd6537883fe44f8c6dbef4b901cd` / `0700bdd6776810ef1ae93ed100953b9cfa635ecc02d179ef1f6e7e5a4e3c7ef3` / `af6f34a99e79d40d5a39462b98fcab57d54182b43f340c4db801a51c56bcae98`。外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 反馈偏好响应持久化边界（当前最新 Android 权威摘要）：服务端确认 LIKE、DISLIKE、SAVE、WRONG_OBJECT 或 TOO_PRIVATE 后会返回当前 topic 权重快照，客户端原来逐项调用 Room upsert。其唯一输入检查是 topic ID 非空；权重依赖 `coerceIn(-2, 2)`，但 NaN 与上下界的比较都为 false，仍会原样流入持久层。异常/重复 topic ID、过多别名、控制字符和超大响应也未拒绝；更重要的是，如果第二项才损坏，第一项已经提交，重试前本地推荐状态会成为服务端从未发布过的半份快照。
 
 当前 `LocalTopicAffinityStore` 在任何 DAO 查询或写入前先验证并规范化完整集合：最多 20 个 topic，ID 使用与卡片相同的有界安全字符集且不可重复；权重必须 finite 且位于 domain 的 -2..2；每个 topic 最多 12 个别名，每个别名去边缘空白并小写后须为 2–48 Unicode code point、不得含 ISO 控制字符，最后才去重。任意一项失败都会抛出 I/O 失败，使反馈 outbox 保留并依赖服务端已有幂等性重试；不会静默截断坏权重或部分改变 Room。

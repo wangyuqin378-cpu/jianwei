@@ -342,10 +342,12 @@ class RoomCardRepository @Inject constructor(
         session.requireActive()
         identity.authenticated(session::requireActive) {
             session.requireActive()
-            feedbackBodyOrThrow(api.feedback(it, pending.cardId, FeedbackRequest(pending.action)))
-                .topicAffinities
-                ?.map { affinity -> ServerTopicAffinity(affinity.topicId, affinity.weight, affinity.aliases) }
-                ?.let { weights -> affinities.applyServerWeights(weights) }
+            val acknowledgement = feedbackAcknowledgementOrThrow(
+                response = api.feedback(it, pending.cardId, FeedbackRequest(pending.action)),
+                expectedCardId = pending.cardId,
+                expectedAction = pending.action
+            )
+            affinities.applyServerWeights(acknowledgement.topicAffinities)
         }
     }
 
@@ -391,9 +393,47 @@ private const val TRACK_DELETE = "DELETE"
 private const val MAX_CARD_PAGE_SIZE = 50
 private const val MAX_CARD_SYNC_PAGES = 200
 
-internal fun feedbackBodyOrThrow(response: retrofit2.Response<FeedbackResponse>): FeedbackResponse {
+internal data class ValidatedFeedbackAcknowledgement(
+    val feedbackId: String,
+    val cardId: String,
+    val action: String,
+    val createdAtMillis: Long,
+    val topicAffinities: List<ServerTopicAffinity>
+)
+
+internal fun feedbackAcknowledgementOrThrow(
+    response: retrofit2.Response<FeedbackResponse>,
+    expectedCardId: String,
+    expectedAction: String
+): ValidatedFeedbackAcknowledgement {
     if (!response.isSuccessful) throw retrofit2.HttpException(response)
-    return response.body() ?: throw java.io.IOException("反馈接口成功响应缺少正文")
+    val body = response.body() ?: throw IOException("反馈接口成功响应缺少正文")
+    if (!UUID_VALUE.matches(expectedCardId) || body.cardId != expectedCardId) {
+        throw IOException("Feedback acknowledgement does not match the pending card")
+    }
+    if (expectedAction !in FEEDBACK_ACTIONS || body.action != expectedAction) {
+        throw IOException("Feedback acknowledgement does not match the pending action")
+    }
+    if (!UUID_VALUE.matches(body.id)) {
+        throw IOException("Feedback acknowledgement contains an invalid ID")
+    }
+    val createdAtMillis = runCatching { Instant.parse(body.createdAt).toEpochMilli() }.getOrNull()
+        ?: throw IOException("Feedback acknowledgement contains an invalid creation time")
+    val topicAffinities = validatedServerTopicAffinities(
+        body.topicAffinities.map { affinity ->
+            ServerTopicAffinity(affinity.topicId, affinity.weight, affinity.aliases)
+        }
+    )
+    if (topicAffinities.size != 1) {
+        throw IOException("Feedback acknowledgement must contain exactly one topic affinity")
+    }
+    return ValidatedFeedbackAcknowledgement(
+        feedbackId = body.id,
+        cardId = body.cardId,
+        action = body.action,
+        createdAtMillis = createdAtMillis,
+        topicAffinities = topicAffinities
+    )
 }
 
 internal data class ValidatedCardPayload(
@@ -493,6 +533,7 @@ private fun List<SourceDto>.validatedSources(): List<KnowledgeSource> {
 
 private val SAFE_SOURCE_AUTHORITIES = setOf("reference", "official", "professional")
 private val CARD_STATUSES = setOf("scheduled", "shown", "archived")
+private val FEEDBACK_ACTIONS = FeedbackAction.entries.mapTo(mutableSetOf()) { it.name }
 private val UUID_VALUE = Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
 private val CARD_IDENTIFIER = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$")
 private const val MAX_CARD_TITLE_CODE_POINTS = 60

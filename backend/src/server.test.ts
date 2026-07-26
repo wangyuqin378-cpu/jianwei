@@ -261,7 +261,10 @@ describe("见微 API", () => {
       payload: { action: "LIKE" }
     });
     expect(feedback.statusCode).toBe(201);
+    expect(feedback.json().id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(feedback.json().cardId).toBe(card.cardId);
     expect(feedback.json().action).toBe("LIKE");
+    expect(Number.isNaN(Date.parse(feedback.json().createdAt))).toBe(false);
     expect(feedback.json().topicAffinities).toEqual([
       { topicId: "broom", weight: 0.4, aliases: [] }
     ]);
@@ -383,6 +386,10 @@ describe("见微 API", () => {
       payload: { action: "TOO_PRIVATE" }
     });
     expect(tooPrivate.statusCode).toBe(201);
+    expect(tooPrivate.json().id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(tooPrivate.json().cardId).toBe(card.cardId);
+    expect(tooPrivate.json().action).toBe("TOO_PRIVATE");
+    expect(Number.isNaN(Date.parse(tooPrivate.json().createdAt))).toBe(false);
     const tooPrivateAgain = await app.inject({
       method: "POST",
       url: `/v1/cards/${card.cardId}/feedback`,

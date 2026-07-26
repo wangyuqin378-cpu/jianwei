@@ -24,6 +24,7 @@ import cn.jianwei.data.network.TrackRequest
 import cn.jianwei.data.network.CardsResponse
 import cn.jianwei.data.network.CardDto
 import cn.jianwei.data.network.SourceDto
+import cn.jianwei.data.network.TopicAffinityDto
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.data.work.DailyPipelineKickWorker
 import cn.jianwei.domain.metrics.FirstCardMetricRecorder
@@ -197,6 +198,30 @@ class TooPrivateSyncOrderingInstrumentedTest {
     }
 
     @Test
+    fun mismatchedFeedbackAcknowledgementRetainsOutboxAndLocalAffinity() = runBlocking {
+        withRepository { database, repository, _, api ->
+            repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
+            val localWeight = database.cards().findTopicAffinity("broom")!!.weight
+            api.feedbackResponseFactory = { _, request ->
+                FeedbackResponse(
+                    id = FEEDBACK_ID,
+                    cardId = MALFORMED_CARD_ID,
+                    action = request.action,
+                    createdAt = "2026-07-26T00:00:00.000Z",
+                    topicAffinities = listOf(TopicAffinityDto("broom", -2.0, emptyList()))
+                )
+            }
+
+            val failure = runCatching { repository.syncCards() }.exceptionOrNull()
+
+            assertThat(failure).isInstanceOf(IOException::class.java)
+            assertThat(database.cards().pendingFeedbackByAction(FeedbackAction.LIKE.name)).hasSize(1)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(localWeight)
+            assertThat(api.events).contains("feedback:LIKE")
+        }
+    }
+
+    @Test
     fun syncedPrivacyReferenceSurvivesIndexClearAndServerRefresh() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.syncCards()
@@ -238,7 +263,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
                 .isEqualTo(FeedbackAction.LIKE)
             assertThat(api.events.count { it == "feedback:LIKE" }).isEqualTo(1)
             assertThat(api.events).doesNotContain("feedback:DISLIKE")
-            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.35)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.4)
         }
     }
 
@@ -587,6 +612,27 @@ class TooPrivateSyncOrderingInstrumentedTest {
         var onSuccessfulPrivacy: suspend () -> Unit = {}
         var onCards: suspend () -> Unit = {}
         var cardsHandler: suspend (String?) -> CardsResponse = { error("cards handler not configured") }
+        var feedbackResponseFactory: (String, FeedbackRequest) -> FeedbackResponse = { cardId, request ->
+            FeedbackResponse(
+                id = FEEDBACK_ID,
+                cardId = cardId,
+                action = request.action,
+                createdAt = "2026-07-26T00:00:00.000Z",
+                topicAffinities = listOf(
+                    TopicAffinityDto(
+                        "broom",
+                        when (request.action) {
+                            "LIKE" -> 0.4
+                            "SAVE" -> 0.5
+                            "DISLIKE" -> -0.4
+                            "TOO_PRIVATE" -> -0.8
+                            else -> 0.0
+                        },
+                        emptyList()
+                    )
+                )
+            )
+        }
 
         override suspend fun register(request: RegisterRequest): RegisterResponse {
             events += "register"
@@ -607,7 +653,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
             events += "feedback:${request.action}"
             if (failPrivacy) return Response.error(503, "unavailable".toResponseBody())
             onSuccessfulPrivacy()
-            return Response.success(FeedbackResponse())
+            return Response.success(feedbackResponseFactory(cardId, request))
         }
 
         override suspend fun createJob(
@@ -672,5 +718,6 @@ class TooPrivateSyncOrderingInstrumentedTest {
         const val CARD_ID = "2a7d8040-f311-4e83-a38c-1bcd09f21961"
         const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"
         const val CANDIDATE_TOKEN = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"
+        const val FEEDBACK_ID = "16d3e259-3ec1-4232-b542-f9a7d8719464"
     }
 }

@@ -90,6 +90,12 @@ data class CardDto(
     val createdAt: String
 )
 data class FeedbackRequest(val action: String)
-data class FeedbackResponse(val topicAffinities: List<TopicAffinityDto>? = null)
+data class FeedbackResponse(
+    val id: String,
+    val cardId: String,
+    val action: String,
+    val createdAt: String,
+    val topicAffinities: List<TopicAffinityDto>
+)
 data class TopicAffinityDto(val topicId: String, val weight: Double, val aliases: List<String> = emptyList())
 data class TrackRequest(val startedOn: String, val reminderDays: Int)
