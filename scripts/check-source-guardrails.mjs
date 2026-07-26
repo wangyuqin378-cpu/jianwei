@@ -107,6 +107,7 @@ const androidApiClient = await readFile(path.join(root, "android", "data", "src"
 const authorizedEvaluationClient = await readFile(path.join(root, "android", "data", "src", "debug", "kotlin", "cn", "jianwei", "data", "network", "AuthorizedEvaluationAnalysisClient.kt"), "utf8");
 const cloudEvidenceCore = await readFile(path.join(root, "backend", "src", "cloud-beta-verification.ts"), "utf8");
 const cloudEvidenceCli = await readFile(path.join(root, "backend", "src", "verify-cloud-beta.ts"), "utf8");
+const cloudEvidenceTest = await readFile(path.join(root, "backend", "src", "cloud-beta-verification.test.ts"), "utf8");
 const deploymentReceiptVerifier = await readFile(path.join(root, "backend", "src", "deployment-receipt.ts"), "utf8");
 const assemblyDeploymentReceiptVerifier = await readFile(path.join(root, "scripts", "lib", "deployment-receipt.mjs"), "utf8");
 const backendReleaseIdentity = await readFile(path.join(root, "backend", "src", "release-identity.ts"), "utf8");
@@ -141,6 +142,7 @@ const releaseBuild = await readFile(path.join(root, "scripts", "build-android-wi
 const appBuild = await readFile(path.join(root, "android", "app", "build.gradle.kts"), "utf8");
 const cardRepository = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "cards", "RoomCardRepository.kt"), "utf8");
 const cardPayloadValidationTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "cards", "CardPayloadValidationTest.kt"), "utf8");
+const analysisJobResponseBindingTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "network", "AnalysisJobResponseBindingTest.kt"), "utf8");
 const topicAffinityStore = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "cards", "LocalTopicAffinityStore.kt"), "utf8");
 const topicAffinityPolicyTest = await readFile(path.join(root, "android", "data", "src", "test", "kotlin", "cn", "jianwei", "data", "cards", "TopicAffinityPolicyTest.kt"), "utf8");
 const topicAffinityDeviceTest = await readFile(path.join(root, "android", "data", "src", "androidTest", "kotlin", "cn", "jianwei", "data", "cards", "TopicAffinityPersistenceInstrumentedTest.kt"), "utf8");
@@ -378,6 +380,32 @@ check(openApi.components?.schemas?.Source?.properties?.url?.pattern === "^https:
 check(openApi.components?.schemas?.Source?.properties?.authority?.enum?.length === 3, "OpenAPI Source authority enum is incomplete");
 check(openApi.components?.schemas?.Card?.properties?.sources?.minItems === 1 && openApi.components?.schemas?.Card?.properties?.sources?.maxItems === 3, "OpenAPI Card source cardinality is incomplete");
 check(openApi.components?.schemas?.ErrorResponse && !openApi.components.schemas.TopicAffinity.ErrorResponse, "OpenAPI schemas are structurally nested under TopicAffinity");
+check(
+  serverSource.includes("candidateToken: result.job.candidateToken") &&
+    serverSource.includes("uploadUrl: result.uploadUrl") &&
+    androidApiClient.split("val candidateToken: String?").length - 1 === 2 &&
+    remoteAnalysis.includes("data class AnalysisJobOutcome(") &&
+    remoteAnalysis.includes("data class ValidatedCreateJobResponse(") &&
+    remoteAnalysis.includes(".validatedForCandidate(candidate.candidateToken, BuildConfig.API_BASE_URL)") &&
+    remoteAnalysis.split(".validatedFor(job.jobId, candidate.candidateToken)").length - 1 === 2 &&
+    remoteAnalysis.includes("completed job has no card") &&
+    remoteAnalysis.includes("non-card terminal status has a card") &&
+    openApi.components?.schemas?.CreateJobResponse?.required?.includes("candidateToken") &&
+    openApi.components?.schemas?.CompleteJobResponse?.required?.includes("candidateToken") &&
+    openApi.components?.schemas?.CreateJobResponse?.properties?.uploadUrl?.oneOf?.some((item) => item.type === "null") &&
+    openApi.components?.schemas?.CreateJobResponse?.properties?.uploadUrl?.oneOf?.some((item) => item.maxLength === 0) &&
+    analysisJobResponseBindingTest.includes("rejects create responses that are not exactly bound and internally consistent") &&
+    analysisJobResponseBindingTest.includes("rejects complete responses that can cross a job or candidate boundary") &&
+    analysisJobResponseBindingTest.includes("createResponse(candidateToken = null)") &&
+    analysisJobResponseBindingTest.includes("completeResponse(jobId = null)"),
+  "Analysis job responses can cross a local candidate or accept inconsistent terminal state"
+);
+check(
+  cloudEvidenceCore.includes("created.candidateToken === candidateToken") &&
+    cloudEvidenceCore.includes("completed.jobId === created.jobId && completed.candidateToken === candidateToken") &&
+    cloudEvidenceTest.includes("crossed the submitted candidate boundary"),
+  "Cloud Beta evidence can accept a response for a different job or candidate"
+);
 check(releaseBuild.includes("keystore.properties"), "Formal Release signing guard is missing");
 check(appBuild.includes('manifestPlaceholders["usesCleartextTraffic"] = "false"'), "Release cleartext default is not disabled");
 check(appBuild.includes('manifestPlaceholders["usesCleartextTraffic"] = "true"'), "Debug cleartext override is missing");
@@ -1982,7 +2010,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 remoteCardPayloadValidation=1 feedbackAffinityPayloadValidation=1 feedbackAcknowledgementBinding=1 feedbackTopicBinding=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 remoteCardPayloadValidation=1 feedbackAffinityPayloadValidation=1 feedbackAcknowledgementBinding=1 feedbackTopicBinding=1 analysisJobResponseBinding=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

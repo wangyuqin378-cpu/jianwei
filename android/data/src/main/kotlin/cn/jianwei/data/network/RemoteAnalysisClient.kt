@@ -24,10 +24,18 @@ import okio.BufferedSink
 import java.net.URI
 import java.io.IOException
 import java.security.MessageDigest
+import java.time.Instant
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-data class AnalyzedCandidate(val response: CompleteJobResponse, val sanitizedBytes: ByteArray)
+data class AnalysisJobOutcome(
+    val jobId: String,
+    val candidateToken: String,
+    val status: String,
+    val card: CardDto?
+)
+
+data class AnalyzedCandidate(val response: AnalysisJobOutcome, val sanitizedBytes: ByteArray)
 
 class UploadHttpStatusException(val statusCode: Int) : Exception("Candidate upload failed with HTTP $statusCode")
 
@@ -81,21 +89,24 @@ class RemoteAnalysisClient @Inject constructor(
                     contentType = image.contentType,
                     evaluationContext = null
                 )
-            )
+            ).validatedForCandidate(candidate.candidateToken, BuildConfig.API_BASE_URL)
             if (job.status in setOf("completed", "needs_content", "rejected")) {
-                return@authenticated CompleteJobResponse(job.jobId, job.status, null)
+                return@authenticated AnalysisJobOutcome(
+                    jobId = job.jobId,
+                    candidateToken = job.candidateToken,
+                    status = job.status,
+                    card = null
+                )
             }
             if (job.status == "uploaded") {
                 requireCurrentAccess(candidate, session)
                 return@authenticated api.completeJob(bearer, job.jobId)
+                    .validatedFor(job.jobId, candidate.candidateToken)
             }
             requireCurrentAccess(candidate, session)
             require(payloadMatchesDigest(image.bytes, sanitizedDigest)) { "创建上传请求前字节发生变化" }
-            require(isAllowedUploadUrl(job.uploadUrl, BuildConfig.API_BASE_URL)) {
-                "服务端返回了不受信任的上传地址"
-            }
             val upload = buildUploadRequest(
-                uploadUrl = job.uploadUrl,
+                uploadUrl = checkNotNull(job.uploadUrl),
                 contentType = image.contentType,
                 bytes = image.bytes,
                 apiBaseUrl = BuildConfig.API_BASE_URL,
@@ -107,6 +118,7 @@ class RemoteAnalysisClient @Inject constructor(
             require(payloadMatchesDigest(image.bytes, sanitizedDigest)) { "上传过程中待分析字节发生变化" }
             requireCurrentAccess(candidate, session)
             api.completeJob(bearer, job.jobId)
+                .validatedFor(job.jobId, candidate.candidateToken)
         }
         return AnalyzedCandidate(response, image.bytes)
     }
@@ -117,6 +129,77 @@ class RemoteAnalysisClient @Inject constructor(
             throw SecurityException("MediaStore item permission was revoked before upload")
         }
     }
+}
+
+internal data class ValidatedCreateJobResponse(
+    val jobId: String,
+    val candidateToken: String,
+    val status: String,
+    val uploadUrl: String?,
+    val expiresAt: Instant
+)
+
+internal fun CreateJobResponse.validatedForCandidate(
+    expectedCandidateToken: String,
+    apiBaseUrl: String
+): ValidatedCreateJobResponse {
+    fun reject(reason: String): Nothing = throw IOException("Invalid create-job response: $reason")
+    val boundJobId = jobId?.takeIf(UUID_PATH::matches) ?: reject("job ID")
+    val boundCandidateToken = candidateToken?.takeIf(UUID_PATH::matches)
+    if (boundCandidateToken == null || boundCandidateToken != expectedCandidateToken) {
+        reject("candidate binding")
+    }
+    val expiration = expiresAt?.let { runCatching { Instant.parse(it) }.getOrNull() }
+        ?: reject("expiration")
+    val boundStatus = status ?: reject("status")
+    when (boundStatus) {
+        "awaiting_upload" -> {
+            val target = uploadUrl ?: reject("missing upload target")
+            if (!isAllowedUploadUrl(target, apiBaseUrl)) reject("upload target")
+        }
+        "uploaded", "completed", "needs_content", "rejected" -> {
+            if (!uploadUrl.isNullOrEmpty()) reject("unexpected upload target")
+        }
+        else -> reject("status")
+    }
+    return ValidatedCreateJobResponse(
+        jobId = boundJobId,
+        candidateToken = boundCandidateToken,
+        status = boundStatus,
+        uploadUrl = uploadUrl,
+        expiresAt = expiration
+    )
+}
+
+internal fun CompleteJobResponse.validatedFor(
+    expectedJobId: String,
+    expectedCandidateToken: String
+): AnalysisJobOutcome {
+    fun reject(reason: String): Nothing = throw IOException("Invalid complete-job response: $reason")
+    val boundJobId = jobId?.takeIf(UUID_PATH::matches)
+    if (boundJobId == null || boundJobId != expectedJobId) reject("job binding")
+    val boundCandidateToken = candidateToken?.takeIf(UUID_PATH::matches)
+    if (boundCandidateToken == null || boundCandidateToken != expectedCandidateToken) {
+        reject("candidate binding")
+    }
+    val boundStatus = status ?: reject("status")
+    when (boundStatus) {
+        "completed" -> {
+            val completedCard = card ?: reject("completed job has no card")
+            val completedCardId: String? = completedCard.cardId
+            val completedCandidateToken: String? = completedCard.candidateToken
+            if (
+                completedCardId == null || !UUID_PATH.matches(completedCardId) ||
+                completedCandidateToken == null || !UUID_PATH.matches(completedCandidateToken) ||
+                completedCandidateToken != expectedCandidateToken
+            ) {
+                reject("card binding")
+            }
+        }
+        "needs_content", "rejected" -> if (card != null) reject("non-card terminal status has a card")
+        else -> reject("status")
+    }
+    return AnalysisJobOutcome(boundJobId, boundCandidateToken, boundStatus, card)
 }
 
 internal fun requireSuccessfulUploadResponse(response: Response) {

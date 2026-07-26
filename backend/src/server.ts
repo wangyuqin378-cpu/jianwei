@@ -312,6 +312,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     } : undefined);
     return reply.status(201).send({
       jobId: result.job.id,
+      candidateToken: result.job.candidateToken,
       status: result.job.status,
       uploadUrl: result.uploadUrl,
       expiresAt: result.expiresAt
@@ -332,7 +333,12 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     const device = await authenticate(request);
     const { id } = idParamSchema.parse(request.params);
     const result = await analysis.complete(device, id);
-    return reply.send({ jobId: result.job.id, status: result.job.status, card: result.card });
+    return reply.send({
+      jobId: result.job.id,
+      candidateToken: result.job.candidateToken,
+      status: result.job.status,
+      card: result.card
+    });
   });
 
   app.get("/v1/analysis-jobs/:id", async (request, reply) => {

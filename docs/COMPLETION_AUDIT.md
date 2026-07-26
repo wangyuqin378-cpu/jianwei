@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 分析任务响应身份绑定（当前最新跨端权威摘要）：创建分析任务时，客户端提交的是本地随机 `candidateToken`，但旧成功响应没有回传它；完成接口也没有独立候选身份，Android 只按响应 `status` 把当前照片标成 COMPLETED 或 FILTERED。代理串包、错误服务实现或响应错配只要保持 JSON 结构合法，就可能把另一个 candidate/job 的结果提交给当前 Worker。上传 URL 的路径 UUID 是独立的一次性 upload session，不是 jobId，因此把两者强行比较并不能解决身份问题。
+
+当前 Create/Complete 响应都强制包含 `candidateToken`。Android 不再让 Gson 原始 DTO 直接进入 Worker：wire 字段按运行时真实情况保持可空，`RemoteAnalysisClient` 只有在全部验证后才构造非空 `ValidatedCreateJobResponse/AnalysisJobOutcome`。验证要求 job/candidate/card UUID 合法，create candidate 与本地候选相等，complete job 与请求 job 相等且 candidate 仍相等；create 只允许 awaiting_upload/uploaded/completed/needs_content/rejected，complete 只允许 completed/needs_content/rejected；awaiting_upload 必须携带同源精确一次性路径，其余 create 状态必须没有上传目标；completed 必须有同 candidate 卡片，另外两个终态不得携带卡片；expiresAt 必须可解析。缺字段或错配都抛出 IOException，沿既有上传故障策略保持候选 READY 和显式导入副本，不会因 Gson 的运行时 null 变成 NPE 后提交终态或清理导入副本。为支持先后端、后 APK 的滚动升级，服务端暂时保留旧 APK 使用的终态空字符串，新 Android 双读空字符串/null，OpenAPI 明确兼容形态并固定状态枚举。
+
+正式云验证器也要求 create candidate、complete job/candidate 与本轮随机夹具精确相等，新增合成串候选反例会在上传前失败，因此发布证据链不能绕过 App 的身份边界。协议为兼容增强，发布顺序固定为先部署新后端、再分发新 APK。最终后端 120/120、TypeScript check/build、API 契约、云验证负面用例与 TCP E2E 自测通过；Android JVM 223/223（Domain 64、Data 93、App 66），Data/App Debug Lint、App Release Lint、Debug/R8 Release 和 Data androidTest APK 构建通过；源码守卫输出 `analysisJobResponseBinding=1`。Debug/未签名 Release/Data 测试 APK SHA-256 为 `094cb275d1944fabe54d30a98a9882ce1c5baad9e7abeade69ecb83c5917d55e` / `4a3eceb6fed1e3bc74fcd1b61087a321b747db31b7dffdcb85311c8d5ae31c10` / `514f089be015b4e643c1f5ebcd6be497d5ac43277ad2f225eb3dc6d4dea0d204`。真实云尚未执行且现有 Qwen 安全护栏仍未放行，正式签名、OEM、真人内容审核与 cohort 阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 反馈 topic 身份绑定（当前最新 Android 权威摘要）：card/action 绑定仍不足以证明偏好快照属于当前知识主题。旧 pending 表没有 topic，合法的 broom/LIKE 确认可以携带 toothbrush 权重并通过所有上一轮校验，随后既删除 broom outbox 又污染另一个主题的候选排序。
 
 Room 13 为 `pending_feedback` 增加可空 `topicId`，所有新建普通反馈、收藏和隐私反馈都在读取卡片的同一事务内写入真实 topic。12→13 迁移通过 cardId 仅回填仍存在的卡片；旧 TOO_PRIVATE 可能已删除卡片，因此保持 null，禁止从其他偏好或标题猜测。确认处理在应用快照前要求非空 expected topic 使用安全 ID 且与响应唯一 topic 精确相等。升级遗留 null 行只确认已由 card/action 绑定的幂等服务端事件，返回空快照，不把无法证明归属的权重写入 Room。

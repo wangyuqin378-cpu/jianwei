@@ -58,10 +58,15 @@ class HttpsCloudApi implements CloudAuditApi {
         contentType: "image/jpeg"
       }
     });
-    if (typeof body.jobId !== "string" || typeof body.uploadUrl !== "string" || body.status !== "awaiting_upload") {
+    if (
+      typeof body.jobId !== "string" ||
+      body.candidateToken !== candidateToken ||
+      typeof body.uploadUrl !== "string" ||
+      body.status !== "awaiting_upload"
+    ) {
       throw new Error("Cloud analysis-job response is invalid");
     }
-    return { jobId: body.jobId, uploadUrl: body.uploadUrl };
+    return { jobId: body.jobId, candidateToken: body.candidateToken, uploadUrl: body.uploadUrl };
   }
 
   async upload(token: string, uploadUrl: string, bytes: Buffer) {
@@ -91,7 +96,11 @@ class HttpsCloudApi implements CloudAuditApi {
       expectedStatus: 200,
       token
     });
-    return { status: String(body.status ?? "") };
+    return {
+      jobId: String(body.jobId ?? ""),
+      candidateToken: String(body.candidateToken ?? ""),
+      status: String(body.status ?? "")
+    };
   }
 
   async deleteDevice(token: string) {

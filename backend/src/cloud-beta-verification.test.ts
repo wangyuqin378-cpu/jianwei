@@ -30,23 +30,28 @@ function deploymentReceipt() {
 
 function fixture({
   leaveObject = false,
+  crossCandidateResponse = false,
   catalogVersion = "catalog-17",
   backendReleaseSha256 = "d".repeat(64),
   containerImageDigest = CONTAINER_IMAGE_DIGEST
 } = {}) {
   const objects = new Set<string>();
-  const jobs = new Map<string, { createdAt: string; status: string; errorCode: string | null; key: string }>();
+  const jobs = new Map<string, { candidateToken: string; createdAt: string; status: string; errorCode: string | null; key: string }>();
   let sequence = 0;
   let deleted = false;
   const api: CloudAuditApi = {
     ready: async () => ({ ok: true, mode: "qwen", catalogVersion, backendReleaseSha256, containerImageDigest }),
     register: async () => ({ token: "t".repeat(48) }),
-    createJob: async () => {
+    createJob: async (_token, candidateToken) => {
       sequence += 1;
       const jobId = `00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
       const key = `analysis/2026-07-19/${jobId}.image`;
-      jobs.set(jobId, { createdAt: "2026-07-19T00:00:00.000Z", status: "awaiting_upload", errorCode: null, key });
-      return { jobId, uploadUrl: `https://beta.jianwei.example/v1/analysis-jobs/${jobId}/image` };
+      jobs.set(jobId, { candidateToken, createdAt: "2026-07-19T00:00:00.000Z", status: "awaiting_upload", errorCode: null, key });
+      return {
+        jobId,
+        candidateToken: crossCandidateResponse ? "00000000-0000-4000-8000-999999999999" : candidateToken,
+        uploadUrl: `https://beta.jianwei.example/v1/analysis-jobs/${jobId}/image`
+      };
     },
     upload: async (_token, uploadUrl) => {
       const jobId = uploadUrl.split("/").at(-2)!;
@@ -66,7 +71,7 @@ function fixture({
         job.errorCode = "server_sensitive_face";
       }
       if (!leaveObject) objects.delete(job.key);
-      return { status: job.status };
+      return { jobId, candidateToken: job.candidateToken, status: job.status };
     },
     deleteDevice: async () => { deleted = true; },
     cardsStatus: async () => deleted ? 401 : 200
@@ -106,6 +111,24 @@ describe("verifyCloudBeta", () => {
   });
 
   it("fails closed on catalog drift and retained terminal objects", async () => {
+    const crossed = fixture({ crossCandidateResponse: true });
+    await expect(verifyCloudBeta({
+      api: crossed.api,
+      objects: crossed.inspector,
+      baseUrl: "https://beta.jianwei.example/",
+      runId: "cloud-beta-17",
+      evidenceRef: "controlled://cloud/beta-17",
+      appVersion: "0.1.0-beta17",
+      releaseApkSha256: "e".repeat(64),
+      backendReleaseSha256: "d".repeat(64),
+      deploymentReceipt: deploymentReceipt(),
+      modelVersion: "qwen-fixed-17",
+      catalogVersion: "catalog-17",
+      safeFixture: jpeg(1),
+      sensitiveFixture: jpeg(2),
+      expectedSensitiveType: "face"
+    })).rejects.toThrow(/crossed the submitted candidate boundary/);
+
     const drift = fixture({ catalogVersion: "old-catalog" });
     await expect(verifyCloudBeta({
       api: drift.api,

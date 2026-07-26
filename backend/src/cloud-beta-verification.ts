@@ -14,10 +14,10 @@ export interface CloudAuditApi {
     containerImageDigest: string;
   }>;
   register(): Promise<{ token: string }>;
-  createJob(token: string, candidateToken: string): Promise<{ jobId: string; uploadUrl: string }>;
+  createJob(token: string, candidateToken: string): Promise<{ jobId: string; candidateToken: string; uploadUrl: string }>;
   upload(token: string, uploadUrl: string, bytes: Buffer): Promise<void>;
   getJob(token: string, jobId: string): Promise<{ status: string; errorCode: string | null; createdAt: string }>;
-  complete(token: string, jobId: string): Promise<{ status: string }>;
+  complete(token: string, jobId: string): Promise<{ jobId: string; candidateToken: string; status: string }>;
   deleteDevice(token: string): Promise<void>;
   cardsStatus(token: string): Promise<number>;
 }
@@ -172,6 +172,7 @@ export async function verifyCloudBeta(input: CloudVerificationInput) {
 async function runFixture(input: CloudVerificationInput, token: string, bytes: Buffer, sensitive: boolean) {
   const candidateToken = randomUUID();
   const created = await input.api.createJob(token, candidateToken);
+  assert(created.candidateToken === candidateToken, "Cloud create response crossed the submitted candidate boundary");
   const upload = new URL(created.uploadUrl);
   assert(upload.origin === normalizedProductionOrigin(input.baseUrl) &&
     /^\/v1\/analysis-jobs\/[0-9a-f-]{36}\/image$/i.test(upload.pathname) && !upload.search && !upload.hash,
@@ -181,6 +182,8 @@ async function runFixture(input: CloudVerificationInput, token: string, bytes: B
   const objectKey = await input.objects.findJobObject(created.jobId, uploaded.createdAt);
   assert(objectKey, `Uploaded ${sensitive ? "sensitive" : "safe"} fixture was not observed in OSS`);
   const completed = await input.api.complete(token, created.jobId);
+  assert(completed.jobId === created.jobId && completed.candidateToken === candidateToken,
+    "Cloud completion response crossed the job or candidate boundary");
   const terminal = await input.api.getJob(token, created.jobId);
   assert(completed.status === terminal.status, "Cloud completion and job terminal status disagree");
   if (sensitive) {

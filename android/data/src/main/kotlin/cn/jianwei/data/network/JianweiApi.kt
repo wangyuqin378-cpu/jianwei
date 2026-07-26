@@ -70,8 +70,19 @@ data class EvaluationContextRequest(
     val labelsSha256: String,
     val sampleId: String
 )
-data class CreateJobResponse(val jobId: String, val status: String, val uploadUrl: String, val expiresAt: String)
-data class CompleteJobResponse(val jobId: String, val status: String, val card: CardDto?)
+data class CreateJobResponse(
+    val jobId: String?,
+    val candidateToken: String?,
+    val status: String?,
+    val uploadUrl: String?,
+    val expiresAt: String?
+)
+data class CompleteJobResponse(
+    val jobId: String?,
+    val candidateToken: String?,
+    val status: String?,
+    val card: CardDto?
+)
 data class CardsResponse(val items: List<CardDto>, val nextCursor: String?)
 data class SourceDto(val sourceId: String, val title: String, val url: String, val publisher: String, val authority: String)
 data class CardDto(

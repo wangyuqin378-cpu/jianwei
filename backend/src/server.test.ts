@@ -203,6 +203,7 @@ describe("见微 API", () => {
     });
     expect(created.statusCode).toBe(201);
     const jobId = created.json().jobId as string;
+    expect(created.json().candidateToken).toBe(CANDIDATE_ID);
     const oneTimeUploadPath = uploadPath(created.json().uploadUrl as string);
     expect(oneTimeUploadPath).toMatch(/^\/v1\/analysis-jobs\/[0-9a-f-]{36}\/image$/);
     expect(oneTimeUploadPath).not.toBe(`/v1/analysis-jobs/${jobId}/image`);
@@ -223,6 +224,8 @@ describe("见微 API", () => {
     });
     expect(completed.statusCode).toBe(200);
     const card = completed.json().card;
+    expect(completed.json().jobId).toBe(jobId);
+    expect(completed.json().candidateToken).toBe(CANDIDATE_ID);
     expect(completed.json().status).toBe("completed");
     expect(card.topicId).toBe("broom");
     expect(card.factId).toBe("broom-001");
@@ -251,6 +254,7 @@ describe("见微 API", () => {
     });
     expect(duplicate.statusCode).toBe(201);
     expect(duplicate.json().jobId).toBe(jobId);
+    expect(duplicate.json().candidateToken).toBe(CANDIDATE_ID);
     expect(duplicate.json().status).toBe("completed");
     expect(duplicate.json().uploadUrl).toBe("");
 
