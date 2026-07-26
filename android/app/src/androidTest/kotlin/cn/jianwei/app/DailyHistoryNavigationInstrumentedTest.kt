@@ -71,17 +71,24 @@ class DailyHistoryNavigationInstrumentedTest {
             assertThat(findNode(instrumentation.uiAutomation.rootInActiveWindow, HISTORY_CONTEXT)).isNull()
 
             screenshot(context, instrumentation, COLLECTION_SCREENSHOT_NAME)
-            click(historyEntry)
+            click(
+                awaitNodeWithScroll(
+                    instrumentation,
+                    "打开往日知识卡：$HISTORY_TITLE"
+                )
+            )
             assertThat(awaitNode(instrumentation, "从往日一知打开")).isNotNull()
             assertThat(awaitNode(instrumentation, "返回每日卡片")).isNotNull()
             assertThat(awaitNodeWithScroll(instrumentation, HISTORY_CONTEXT)).isNotNull()
-            screenshot(context, instrumentation, DETAIL_SCREENSHOT_NAME)
             assertThat(
                 awaitNodeWithScroll(
                     instrumentation,
                     "查看来源：Wikipedia，Everyday object design"
                 )
             ).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, "来源 · Wikipedia")).isNotNull()
+            assertThat(awaitNodeWithScroll(instrumentation, "Everyday object design")).isNotNull()
+            screenshot(context, instrumentation, DETAIL_SCREENSHOT_NAME)
             instrumentation.uiAutomation.executeShellCommand("input keyevent 4").close()
             assertThat(awaitNode(instrumentation, HISTORY_TITLE)).isNotNull()
             assertThat(database.cards().findById(HISTORY_CARD_ID)?.cardId).isEqualTo(HISTORY_CARD_ID)

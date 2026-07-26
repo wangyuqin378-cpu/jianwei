@@ -2247,7 +2247,12 @@ private fun KnowledgeCardView(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
-                        safeSources.forEach { source ->
+                        safeSources.forEachIndexed { index, source ->
+                            val sourcePresentation = knowledgeSourcePresentation(
+                                source = source,
+                                index = index,
+                                total = safeSources.size
+                            )
                             TextButton(
                                 onClick = {
                                     val opened = runCatching { uriHandler.openUri(source.url) }.isSuccess
@@ -2257,13 +2262,32 @@ private fun KnowledgeCardView(
                                         Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
                                     }
                                 },
-                                contentPadding = PaddingValues(0.dp),
-                                modifier = Modifier.semantics {
-                                    contentDescription =
-                                        "查看来源：${source.publisher}，${source.title}"
-                                }
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .semantics {
+                                        contentDescription = sourcePresentation.accessibilityLabel
+                                    }
                             ) {
-                                Text("查看来源 · ${source.publisher}")
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        sourcePresentation.eyebrow,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    sourcePresentation.title?.let { title ->
+                                        Text(
+                                            title,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                         }
                         if (safeSources.isEmpty()) {

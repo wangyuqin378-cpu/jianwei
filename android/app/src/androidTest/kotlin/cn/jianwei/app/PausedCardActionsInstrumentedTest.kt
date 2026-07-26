@@ -183,18 +183,25 @@ class PausedCardActionsInstrumentedTest {
         timeoutMillis: Long
     ): AccessibilityNodeInfo {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        var scrollForward = forward
+        var swipesInDirection = 0
         while (SystemClock.uptimeMillis() < deadline) {
             findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)?.let { return it }
             val metrics = instrumentation.targetContext.resources.displayMetrics
             val centerX = metrics.widthPixels / 2
             val low = (metrics.heightPixels * 0.78f).toInt()
             val high = (metrics.heightPixels * 0.32f).toInt()
-            val startY = if (forward) low else high
-            val endY = if (forward) high else low
+            val startY = if (scrollForward) low else high
+            val endY = if (scrollForward) high else low
             instrumentation.uiAutomation.executeShellCommand(
                 "input swipe $centerX $startY $centerX $endY 250"
             ).close()
             SystemClock.sleep(250)
+            swipesInDirection += 1
+            if (swipesInDirection == SWIPES_BEFORE_REVERSING) {
+                scrollForward = !scrollForward
+                swipesInDirection = 0
+            }
         }
         error("Timed out scrolling to accessibility node: $text")
     }
@@ -218,5 +225,6 @@ class PausedCardActionsInstrumentedTest {
         const val PRIVACY_PHOTO_ID = 9_876_543_210L
         const val SCHEDULER_PREFS = "analysis_scheduler"
         const val PAUSED_KEY = "analysis_paused"
+        const val SWIPES_BEFORE_REVERSING = 4
     }
 }
