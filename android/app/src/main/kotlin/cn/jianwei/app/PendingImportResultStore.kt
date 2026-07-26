@@ -64,6 +64,28 @@ class PendingImportResultStore @Inject constructor(
         notice: ImportedPhotoResultNotice?,
         retryCandidateTokens: List<String> = emptyList()
     ) {
+        writeCompletion(focusedCardId, notice, retryCandidateTokens)
+    }
+
+    /** Refuses to let a late Room/card emission erase a newer Picker or Sharesheet request. */
+    @Synchronized
+    fun completeIfCurrent(
+        expectedCandidateTokens: List<String>,
+        focusedCardId: String?,
+        notice: ImportedPhotoResultNotice?,
+        retryCandidateTokens: List<String> = emptyList()
+    ): Boolean {
+        val expected = normalizedPendingImportTokens(expectedCandidateTokens)
+        if (expected.isEmpty() || readTokens(KEY_TOKENS) != expected) return false
+        writeCompletion(focusedCardId, notice, retryCandidateTokens)
+        return true
+    }
+
+    private fun writeCompletion(
+        focusedCardId: String?,
+        notice: ImportedPhotoResultNotice?,
+        retryCandidateTokens: List<String>
+    ) {
         val retryTokens = if (notice == ImportedPhotoResultNotice.FAILED) {
             normalizedPendingImportTokens(retryCandidateTokens)
         } else {

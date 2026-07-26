@@ -44,7 +44,10 @@ fun resolveImportedPhotoResult(
 
     val requestedCandidates = candidates.filter { it.candidateToken in requested }
     if (requestedCandidates.mapTo(mutableSetOf()) { it.candidateToken }.size < requested.size) {
-        return ImportedPhotoResultResolution.Pending
+        // Tokens are only exposed after their Room candidates commit. Once the paired Room query
+        // has emitted, a missing token cannot become analyzable again; it was cleared or replaced
+        // across a crash boundary and the user must select the photo again.
+        return ImportedPhotoResultResolution.Failed(canRetry = false)
     }
     val states = requestedCandidates.map { it.analysisState }
     if (analysisPhase == AnalysisPhase.FAILED) {

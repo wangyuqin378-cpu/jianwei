@@ -11,6 +11,7 @@ import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
+import cn.jianwei.domain.model.PhotoCandidate
 import cn.jianwei.domain.model.TrackedItem
 import cn.jianwei.domain.preferences.DEFAULT_INTEREST_SELECTION
 import cn.jianwei.domain.repository.AnalysisScheduler
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -66,6 +68,16 @@ data class MainUiState(
     val busy: Boolean get() = activeOperation != null
 }
 
+private data class PendingImportCandidateSnapshot(
+    val candidateTokens: List<String>,
+    val candidates: List<PhotoCandidate>
+)
+
+private data class PendingImportResolutionSnapshot(
+    val candidateTokens: List<String>,
+    val resolution: ImportedPhotoResultResolution
+)
+
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel @Inject constructor(
@@ -89,7 +101,13 @@ class MainViewModel @Inject constructor(
         restoredImportResult.candidateTokens
     )
     private val pendingImportCandidates = pendingImportTokens.flatMapLatest { tokens ->
-        if (tokens.isEmpty()) flowOf(emptyList()) else photos.observeCandidatesByTokens(tokens.toSet())
+        if (tokens.isEmpty()) {
+            flowOf(PendingImportCandidateSnapshot(emptyList(), emptyList()))
+        } else {
+            photos.observeCandidatesByTokens(tokens.toSet()).map { candidates ->
+                PendingImportCandidateSnapshot(tokens, candidates)
+            }
+        }
     }
     private val localState = MutableStateFlow(
         MainUiState(
@@ -171,33 +189,38 @@ class MainViewModel @Inject constructor(
             combine(
                 cards.observeCards(),
                 pendingImportCandidates,
-                analysisStatus.observeProgress(AnalysisProgressScope.EXPLICIT_IMPORT),
-                pendingImportTokens
-            ) { cardList, candidates, progress, tokens ->
-                if (tokens.isEmpty()) null else resolveImportedPhotoResult(
-                    candidateTokens = tokens,
-                    candidates = candidates,
-                    cards = cardList,
-                    analysisPhase = progress.phase
+                analysisStatus.observeProgress(AnalysisProgressScope.EXPLICIT_IMPORT)
+            ) { cardList, snapshot, progress ->
+                if (snapshot.candidateTokens.isEmpty()) null else PendingImportResolutionSnapshot(
+                    candidateTokens = snapshot.candidateTokens,
+                    resolution = resolveImportedPhotoResult(
+                        candidateTokens = snapshot.candidateTokens,
+                        candidates = snapshot.candidates,
+                        cards = cardList,
+                        analysisPhase = progress.phase
+                    )
                 )
-            }.collect { resolution ->
-                when (resolution) {
+            }.collect { snapshot ->
+                when (val resolution = snapshot?.resolution) {
                     null, ImportedPhotoResultResolution.Pending -> Unit
                     is ImportedPhotoResultResolution.CardReady -> completePendingImport(
+                        expectedCandidateTokens = snapshot.candidateTokens,
                         focusedCardId = resolution.cardId,
                         message = "已经从你刚选的照片找到一张知识卡"
                     )
                     ImportedPhotoResultResolution.NoMatch -> completePendingImport(
+                        expectedCandidateTokens = snapshot.candidateTokens,
                         notice = ImportedPhotoResultNotice.NO_MATCH
                     )
                     is ImportedPhotoResultResolution.Failed -> completePendingImport(
+                        expectedCandidateTokens = snapshot.candidateTokens,
                         notice = if (resolution.canRetry) {
                             ImportedPhotoResultNotice.FAILED
                         } else {
                             ImportedPhotoResultNotice.CANNOT_RETRY
                         },
                         retryCandidateTokens = if (resolution.canRetry) {
-                            pendingImportTokens.value
+                            snapshot.candidateTokens
                         } else {
                             emptyList()
                         }
@@ -518,12 +541,18 @@ class MainViewModel @Inject constructor(
     }
 
     private fun completePendingImport(
+        expectedCandidateTokens: List<String>,
         focusedCardId: String? = null,
         message: String? = null,
         notice: ImportedPhotoResultNotice? = null,
         retryCandidateTokens: List<String> = emptyList()
     ) {
-        pendingImportResults.complete(focusedCardId, notice, retryCandidateTokens)
+        if (!pendingImportResults.completeIfCurrent(
+                expectedCandidateTokens,
+                focusedCardId,
+                notice,
+                retryCandidateTokens
+            )) return
         pendingImportTokens.value = emptyList()
         localState.update { state ->
             state.copy(

@@ -22,6 +22,52 @@ import org.junit.Test
 
 class ImportedPhotoResultFlowInstrumentedTest {
     @Test
+    fun missingPersistedCandidateStopsWaitingAndAsksForAFreshPhoto() = runBlocking {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val database = buildJianweiDatabase(context)
+        val resultStore = PendingImportResultStore(context)
+        var scenario: ActivityScenario<MainActivity>? = null
+        try {
+            prepareEmptyHome(context, database, resultStore)
+            resultStore.remember(listOf("candidate-cleared-before-result-handoff"))
+
+            scenario = launchMain(context)
+            awaitCannotRetry(resultStore)
+            awaitNode(instrumentation, "这张照片需要重新选择")
+            assertThat(resultStore.snapshot().candidateTokens).isEmpty()
+        } finally {
+            scenario?.close()
+            resultStore.clearAll()
+            database.cards().clear()
+            database.photos().clear()
+            database.close()
+        }
+    }
+
+    @Test
+    fun lateResultCannotEraseANewerImportRequest() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val resultStore = PendingImportResultStore(context)
+        try {
+            resultStore.clearAll()
+            resultStore.remember(listOf("candidate-old-request"))
+            resultStore.remember(listOf("candidate-new-request"))
+
+            assertThat(resultStore.completeIfCurrent(
+                expectedCandidateTokens = listOf("candidate-old-request"),
+                focusedCardId = null,
+                notice = ImportedPhotoResultNotice.NO_MATCH
+            )).isFalse()
+            assertThat(resultStore.snapshot().candidateTokens)
+                .containsExactly("candidate-new-request")
+            assertThat(resultStore.snapshot().notice).isNull()
+        } finally {
+            resultStore.clearAll()
+        }
+    }
+
+    @Test
     fun importedCardOpensImmediatelyAndSurvivesANewActivitySession() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
@@ -112,6 +158,12 @@ class ImportedPhotoResultFlowInstrumentedTest {
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             prepareEmptyHome(context, database, resultStore)
+            database.photos().upsert(candidate(
+                localId = 902L,
+                candidateToken = RETRY_CANDIDATE_TOKEN,
+                sourceDigest = "import-result-retry-digest",
+                analysisState = "READY"
+            ))
             resultStore.complete(
                 null,
                 ImportedPhotoResultNotice.FAILED,
@@ -199,18 +251,23 @@ class ImportedPhotoResultFlowInstrumentedTest {
             .commit()
     }
 
-    private fun candidate() = PhotoCandidateEntity(
-        localId = 901L,
-        candidateToken = CANDIDATE_TOKEN,
+    private fun candidate(
+        localId: Long = 901L,
+        candidateToken: String = CANDIDATE_TOKEN,
+        sourceDigest: String = "import-result-test-digest",
+        analysisState: String = "COMPLETED"
+    ) = PhotoCandidateEntity(
+        localId = localId,
+        candidateToken = candidateToken,
         contentUri = "",
         capturedAtMillis = 1L,
         modifiedAtMillis = 1L,
-        sourceDigest = "import-result-test-digest",
+        sourceDigest = sourceDigest,
         perceptualHash = 10L,
         qualityScore = 0.9,
         localLabels = listOf("broom"),
         sensitiveFlags = emptySet(),
-        analysisState = "COMPLETED",
+        analysisState = analysisState,
         origin = "PHOTO_PICKER",
         width = 100,
         height = 100
@@ -341,6 +398,18 @@ class ImportedPhotoResultFlowInstrumentedTest {
             SystemClock.sleep(100)
         }
         error("Timed out waiting for failed import retry to start: ${store.snapshot()}")
+    }
+
+    private fun awaitCannotRetry(
+        store: PendingImportResultStore,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (store.snapshot().notice == ImportedPhotoResultNotice.CANNOT_RETRY) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for stale import recovery: ${store.snapshot()}")
     }
 
     private companion object {

@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 显式导入结果崩溃恢复与迟到结果隔离（当前最新 Android 权威摘要）：Picker/系统分享的候选先提交 Room，随后 App 才把随机 candidate token 写入独立的结果交接状态。若进程恰好在候选 token 被重选替换、清理或 Room 提交之后而交接状态更新之前退出，重启会恢复一个已不属于任何候选的旧 token；原结果策略把候选缺失永久解释成“还在处理”，用户会一直看到进度态。另一竞态是旧请求的 Room/card emission 可能在新一轮选图已经写入后迟到，原无条件 `complete` 会清掉新请求，让真正的新照片失去结果追踪。
+
+当前 `MainViewModel` 不再分别 combine 可错位的 token 流与候选流，而是由 `flatMapLatest` 产出同一代 token + Room 查询结果的配对快照。配对查询稳定缺失时，domain 策略立即返回不可重试失败，持久状态转成现有“这张照片需要重新选择”结果页，不再无限转圈。每个完成结果同时携带其解析时的 token 集合，`PendingImportResultStore.completeIfCurrent` 只有在持久化当前 token 仍精确一致时才提交卡片/NO_MATCH/FAILED 并清空请求；旧请求迟到时失败关闭，不覆盖新的 Picker/分享导入。真实可重试失败仍要求 Room 中保留 READY/COMPLETED 等候选，点击后继续沿原 WorkManager 链分析。
+
+API 34 导入结果专项最终 6/6、完整 Data 85/85 与 App 27/27 instrumentation 通过；Android JVM 238/238（Domain 66、Data 106、App 66），API 契约、源码守卫 `staleImportResultRecovery=1`、Data/App Debug/Release Lint、Debug、R8 Release 与两个 androidTest APK 构建全部通过。Debug/未签名 Release/Data/App 测试 APK SHA-256 为 `15a199361c362fb5a10a9047f81953a263ce48f1761e69539c308fa607689df3` / `92e928f069669b25e68afb583ed62dfe12483d4fa7afa6b0c5a705e5887b4970` / `be6437cb830fb74b2f57c1017ab264124f4f9bb09d1474458d6b865ad018ae9d` / `b87c52a5a584112a763848ec14cd82282d6ff4b64a823bffef3ed5a9e1782e41`。隔离 API 34 模拟器和测试包已关闭/卸载；这些本地工程证据不替代 Qwen 安全护栏授权、真实托管云、正式签名、国产 OEM、真人内容审核或 cohort，Beta 保持 `NO_GO`。
+
 2026-07-26 显式导入可恢复终态重选（当前最新 Android 权威摘要）：内容寻址去重收口后，Picker/系统分享再次选择同一字节会复用既有候选；但 `FILTERED`、`FAILED` 或 `ACCESS_UNAVAILABLE` 这三类终态的私有副本已经被清理，Privacy Worker 又只消费 `DISCOVERED`，因此用户看到可以重新选图，实际却只拿到旧终态，既没有重新执行端侧隐私检查，也不可能生成新卡。
 
 当前把“是否重启显式导入”定义为 domain 业务策略：用户明确重选同一内容时，仅 `FILTERED`、`FAILED`、`ACCESS_UNAVAILABLE` 生成新的随机 candidate token、接管本次私有副本、清空旧标签/质量/感知哈希并回到 `DISCOVERED`，使完整隐私筛选链重新执行；旧私有路径只在新 Room 状态提交成功后删除。正在处理的候选和 `COMPLETED` 继续复用原身份，避免并发重复任务、重复卡片和额外模型成本；`NEVER_ANALYZE` 与 suppressed 仍在 repository 最前面失败关闭并删除本次暂存副本。摘要唯一索引竞争也复用同一策略，失败时不会泄漏刚复制的文件。该变化只更新既有记录，不需要 Room 迁移。

@@ -87,13 +87,17 @@ class ImportedPhotoResultPolicyTest {
     }
 
     @Test
-    fun `missing or active candidates remain pending`() {
+    fun `missing candidate asks for a fresh selection instead of waiting forever`() {
         assertThat(resolveImportedPhotoResult(
             listOf("first", "second"),
             listOf(candidate("first", AnalysisState.FILTERED)),
             emptyList(),
             AnalysisPhase.FILTERING
-        )).isEqualTo(ImportedPhotoResultResolution.Pending)
+        )).isEqualTo(ImportedPhotoResultResolution.Failed(canRetry = false))
+    }
+
+    @Test
+    fun `active candidate remains pending`() {
         assertThat(resolveImportedPhotoResult(
             listOf("first"),
             listOf(candidate("first", AnalysisState.DISCOVERED)),
