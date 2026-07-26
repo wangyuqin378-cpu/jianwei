@@ -35,6 +35,7 @@ import cn.jianwei.domain.card.shouldContinuePrivacyBatch
 import cn.jianwei.domain.card.shouldRunPrivacyBatch
 import cn.jianwei.domain.card.shouldSyncCardsImmediately
 import cn.jianwei.domain.card.toSupplyMode
+import cn.jianwei.domain.coroutines.throwIfCancellation
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgress
 import cn.jianwei.domain.model.AnalysisProgressScope
@@ -83,6 +84,7 @@ class ScanWorker @AssistedInject constructor(
             )
             Result.success()
         }.getOrElse { error ->
+            error.throwIfCancellation()
             if (error is SecurityException) {
                 status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
                 Result.success()
@@ -541,8 +543,9 @@ class CardSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
-        return runCatching { cards.syncCards(); Result.success() }.getOrElse {
-            if (it is AnalysisStoppedException) Result.success()
+        return runCatching { cards.syncCards(); Result.success() }.getOrElse { error ->
+            error.throwIfCancellation()
+            if (error is AnalysisStoppedException) Result.success()
             else if (runAttemptCount < MAX_WORK_ATTEMPTS - 1) Result.retry() else Result.failure()
         }
     }
@@ -562,7 +565,10 @@ class ImportedCopyCleanupWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = runCatching {
         photos.purgeExpiredImportedCopies(Instant.now())
         Result.success()
-    }.getOrElse { Result.retry() }
+    }.getOrElse { error ->
+        error.throwIfCancellation()
+        Result.retry()
+    }
 }
 
 fun scheduleImportedCopyCleanup(context: Context) {

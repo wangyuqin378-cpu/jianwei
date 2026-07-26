@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 Worker 取消传播（当前最新 Android 权威摘要）：`ScanWorker`、`CardSyncWorker`、导入副本清理和每日组件刷新原本会用 `runCatching` 把 `CancellationException` 转成产品失败或 `Result.retry()`；扫描尤其可能在用户暂停后反写“正在重试”。受控图片评测 Worker 也会把取消记录成普通失败，造成不真实的评测结果。现在 domain 的 `throwIfCancellation()` 在所有这些 Worker 进入重试/失败策略前原样抛回结构化取消；普通服务错误仍保留原有处理。两条 JVM 回归分别证明取消实例不被替换、普通异常不被吞。
+
+完整 Android JVM 211/211（Domain 64、Data 81、App 66）；Data/App Debug Lint 与 App Release Lint 均 0 error，Debug 与 R8 Release 构建、源码守卫 `workerCancellationPropagation=1` 和差异检查通过。Debug/未签名 Release APK SHA-256 为 `46fd5021e4f4d3ebe187b572c82e4267bbcd5093d042f12e73e4a8dd63bc869d` / `c2b31da856887511684168cf764c094a49f204c9bfe6eed698b5eb170e267dfe`。这不替代实体机或外部 Beta 证据，发布保持 `NO_GO`。
+
 2026-07-26 上传身份/授权故障照片保留（当前最新 Android 权威摘要）：上传链原本会把“照片不可处理”和“账号/服务不可用”混为同一终态。匿名身份自动刷新后仍失败、Retrofit 401/403 或原始上传抛出 `AuthenticationExpiredException` 时，候选会被写成 `FILTERED`，Photo Picker/分享导入的应用内副本随即删除，UploadWorker 还可能继续淘汰同批其余候选。现在上述身份与授权故障统一保持候选 `READY` 和应用内副本，终止本轮并明确显示候选仍在本机；用户可通过既有重新尝试入口恢复处理。明确的 400/410/413/415 和本地访问失效仍按候选终态处理，409/429/5xx 与 IOException 继续使用有界自动重试。
 
 专项回归覆盖身份异常、Retrofit 401/403、瞬态错误和候选终态，完整 Android JVM 209/209（Domain 62、Data 81、App 66）；Data/App Debug Lint 与 App Release Lint 均 0 error，Debug 与 R8 Release 构建、源码守卫 `authFailureCandidateRetention=1` 和差异检查通过。Debug/未签名 Release APK SHA-256 为 `0825aa7f40a77dfd478d56709668e8571a80caed5f95743e6f7b97ff3c17a1ee` / `deca69ed8e913edf292a4a4dc855f0b55bd1dbfcfc637c3b9aa65119aa10e6a3`。这不替代真实云、正式签名或实体机证据，Beta 保持 `NO_GO`。

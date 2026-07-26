@@ -16,6 +16,7 @@ import cn.jianwei.data.network.AuthorizedEvaluationRequest
 import cn.jianwei.data.photos.PrivacyFilter
 import cn.jianwei.data.work.shouldRetryAuthorizedEvaluationError
 import cn.jianwei.domain.model.AnalysisState
+import cn.jianwei.domain.coroutines.throwIfCancellation
 import cn.jianwei.domain.model.PhotoCandidate
 import cn.jianwei.domain.model.PhotoOrigin
 import dagger.hilt.EntryPoint
@@ -117,6 +118,7 @@ internal class AuthorizedImageEvaluationWorker(
                 )
             }
         } catch (error: Exception) {
+            error.throwIfCancellation()
             val retryable = shouldRetryAuthorizedEvaluationError(error)
             if (retryable && runAttemptCount < MAX_ATTEMPTS - 1) Result.retry()
             else Result.failure(failure(error::class.java.simpleName.take(80)))

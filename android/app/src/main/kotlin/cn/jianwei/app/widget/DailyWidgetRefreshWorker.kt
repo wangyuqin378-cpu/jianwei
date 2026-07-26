@@ -8,6 +8,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import cn.jianwei.domain.coroutines.throwIfCancellation
 import cn.jianwei.domain.time.ChinaCalendar
 import java.time.Clock
 import java.time.Duration
@@ -25,7 +26,10 @@ class DailyWidgetRefreshWorker(
         DailyWidget().updateAll(applicationContext)
         scheduleFutureDailyWidgetRefreshes(applicationContext)
         Result.success()
-    }.getOrElse { Result.retry() }
+    }.getOrElse { error ->
+        error.throwIfCancellation()
+        Result.retry()
+    }
 }
 
 internal fun scheduleDailyWidgetRefresh(
