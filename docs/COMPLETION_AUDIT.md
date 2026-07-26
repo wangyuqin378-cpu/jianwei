@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 Retrofit 成功空正文边界（当前最新 Android 权威摘要）：除反馈接口外，Android 原来让 Retrofit suspend 方法直接返回非空 DTO。真实回归证明，即使把 Kotlin 返回类型改为可空，`204 No Content` 仍会在 Retrofit 内部 `KotlinExtensions` 先触发 NPE，业务校验无法把它转换成可观察、可重试的协议错误。注册、创建/完成任务、分页、提醒确认或云端删除一旦被旧服务、网关或错误环境改写为 `2xx + 空正文`，上层只能收到不带接口语义的运行时异常。
+
+当前网络边界拆为纯业务 `JianweiApi` 与唯一 Retrofit wire 接口：wire 的所有有正文操作返回 `Response<T>`，`StrictJianweiApi` 在交给仓库前统一拒绝非成功状态和成功空正文。非成功响应继续转换成带原 HTTP 状态的 `HttpException`，所以既有 401 匿名身份刷新与 429/5xx 重试分类保持有效；成功但无正文统一转成带 endpoint 上下文的 IOException。反馈接口仍保留原来的 `Response<FeedbackResponse>`，由已有 card/action/topic 绑定校验负责确认。Hilt 只装配严格适配器，Debug 授权图片评测入口也复用同一正文策略，不存在绕过的第二个 Retrofit 客户端。
+
+真实内存 OkHttp/Retrofit 回归注入 `204 No Content`，证明请求到达严格适配器并以 IOException 失败关闭；独立 401 回归证明状态码仍可被认证刷新策略读取。Android JVM 236/236（Domain 64、Data 106、App 66），Android 14/API 34 Data 81/81 + App 25/25 instrumentation、API 契约、源码守卫 `strictApiResponseBodies=1`、Data/App Debug Lint、Debug/R8 Release 全部通过。Debug/未签名 Release/Data/App 测试 APK SHA-256 为 `6a112110d63482001fbe7291dc06aba5eca4f721320e8046555f2eab47dfca54` / `49532d0fca183b23ca1df845c2d78ba5de003403bae3970db8c6c83ee5bf0893` / `80617e96404e7672c3dc16b106089e61677d2eaa896d71c7b3b61393433e7a7d` / `8c411680b1625399e734be6e003bc0f473fd2737951bd24f11b4d371c69851bd`。模拟器使用仓库隔离 AVD 冷启动并在测试后关闭；这些参考设备证据仍不改变真实云、正式签名、国产 OEM、真人审核或 cohort 状态，Beta 保持 `NO_GO`。
+
 2026-07-26 云端数据删除确认绑定（当前最新跨端权威摘要）：`DELETE /v1/device-data` 原来只返回空 204，Android 仅凭任意成功状态就把持久删除状态改为 `DELETE_CONFIRMED`。错误环境、代理或响应串线即使没有证明删除的是本安装匿名设备，也会让后续 UI 清除本地恢复材料；已有“响应丢失后重注册空设备再删除”的崩溃恢复只能解决不确定失败，不能验证成功正文归属。
 
 当前后端完成对象清理和设备级联删除后返回严格最小 `{deviceId,status:"deleted"}`；OpenAPI `DeleteDeviceDataResponse` 要求且只允许这两个字段。Android 以加密持久化的当前 device ID 为权威，在第一次写入 `DELETE_CONFIRMED` 前要求 UUID 和终态逐字匹配；缺失、null、串设备或错误状态统一保留 `DELETE_PENDING`、bearer 和 installation 供安全重试。若旧安装意外缺少 device ID，客户端不会无绑定地直接确认，而是先用原 installation 重新取得经过绑定验证的匿名身份，再执行删除。正式云验证器和编译后端 TCP E2E 同样把删除确认绑定到本轮注册 device ID。按 `api-design` 的兼容策略，旧 APK 会忽略新后端的 200 正文；新 APK 面对旧 204 会失败关闭，因此部署顺序固定为先后端、后 APK。

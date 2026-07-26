@@ -9,6 +9,8 @@ import cn.jianwei.data.local.JianweiDatabase
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.local.PhotoDao
 import cn.jianwei.data.network.JianweiApi
+import cn.jianwei.data.network.RetrofitJianweiApi
+import cn.jianwei.data.network.StrictJianweiApi
 import cn.jianwei.data.network.DeviceIdentity
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.data.photos.MlKitPrivacyFilter
@@ -71,7 +73,9 @@ object DataProviders {
 
     @Provides
     @Singleton
-    fun api(retrofit: Retrofit): JianweiApi = retrofit.create(JianweiApi::class.java)
+    fun api(retrofit: Retrofit): JianweiApi = StrictJianweiApi(
+        retrofit.create(RetrofitJianweiApi::class.java)
+    )
 }
 
 @Module

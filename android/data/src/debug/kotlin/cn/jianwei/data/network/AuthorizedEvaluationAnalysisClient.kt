@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
 import javax.inject.Singleton
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.Header
@@ -26,7 +27,7 @@ interface AuthorizedEvaluationJianweiApi {
         @Header("Authorization") authorization: String,
         @Header("X-Jianwei-Evaluation-Lease") evaluationLease: String,
         @Body request: CreateJobRequest
-    ): CreateJobResponse
+    ): Response<CreateJobResponse>
 }
 
 @Singleton
@@ -53,7 +54,7 @@ class AuthorizedEvaluationAnalysisClient @Inject internal constructor(
                         authorization.sampleId
                     )
                 )
-            )
+            ).requireApiResponseBody("POST /v1/analysis-jobs")
         }
     }
 }
