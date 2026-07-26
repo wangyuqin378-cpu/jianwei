@@ -19,7 +19,9 @@ import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.network.DeviceIdentity
 import cn.jianwei.data.network.DeviceTokenCipher
 import cn.jianwei.data.network.JianweiApi
+import cn.jianwei.data.network.RegisterRequest
 import cn.jianwei.data.network.RegisterResponse
+import cn.jianwei.data.network.installationBindingSha256
 import cn.jianwei.data.photos.MediaPhotoRepository
 import cn.jianwei.domain.repository.AnalysisScheduler
 import com.google.common.truth.Truth.assertThat
@@ -140,7 +142,7 @@ class ShareReceiverFlowInstrumentedTest {
             photos.clearIndex()
             onboarding.edit().putBoolean("completed", true).commit()
             schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, true).commit()
-            assertThat(identity.bearer()).isEqualTo("Bearer pending-delete-token")
+            assertThat(identity.bearer()).isEqualTo("Bearer AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             assertThat(runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull())
                 .isInstanceOf(IllegalStateException::class.java)
             assertThat(identity.isUnresolved()).isTrue()
@@ -308,17 +310,22 @@ class ShareReceiverFlowInstrumentedTest {
         error("Unexpected API call while resetting identity: $methodName")
     }
 
-    private fun deletionFailureApi(): JianweiApi = proxyApi { methodName ->
+    private fun deletionFailureApi(): JianweiApi = Proxy.newProxyInstance(
+        JianweiApi::class.java.classLoader,
+        arrayOf(JianweiApi::class.java)
+    ) { _, method, args ->
+        val methodName = method.name
         when (methodName) {
             "register" -> RegisterResponse(
                 deviceId = PENDING_DELETE_DEVICE_ID,
-                deviceToken = "pending-delete-token",
+                deviceToken = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                installationBindingSha256 = installationBindingSha256((args?.first() as RegisterRequest).installationId),
                 created = true
             )
             "deleteDeviceData" -> throw IllegalStateException("response lost")
             else -> error("Unexpected API call while creating deletion barrier: $methodName")
         }
-    }
+    } as JianweiApi
 
     private fun proxyApi(handler: (String) -> Any?): JianweiApi = Proxy.newProxyInstance(
         JianweiApi::class.java.classLoader,

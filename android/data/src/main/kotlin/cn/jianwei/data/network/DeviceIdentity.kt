@@ -101,7 +101,7 @@ class DeviceIdentity @Inject constructor(
         val installationId = storedInstallation?.let(cipher::decrypt)
             ?: throw AuthenticationExpiredException()
         val expectedDeviceId = preferences[DEVICE_ID]?.let(cipher::decrypt)
-        val registered = api.register(RegisterRequest(installationId))
+        val registered = api.register(RegisterRequest(installationId)).validatedForInstallation(installationId)
         if (expectedDeviceId != null && expectedDeviceId != registered.deviceId && !registered.created) {
             throw AuthenticationExpiredException()
         }
@@ -140,7 +140,7 @@ class DeviceIdentity @Inject constructor(
             context.identityStore.edit { it[INSTALLATION] = cipher.encrypt(decryptedInstallation) }
         }
         requireActive()
-        val registered = api.register(RegisterRequest(installationId))
+        val registered = api.register(RegisterRequest(installationId)).validatedForInstallation(installationId)
         requireActive()
         context.identityStore.edit {
             it[TOKEN] = cipher.encrypt(registered.deviceToken)

@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 匿名注册响应 installation 绑定（当前最新跨端权威摘要）：旧注册成功响应没有携带任何可由当前请求验证的 installation 身份，Android 会把 `deviceId/deviceToken/created` 直接加密落盘。另一个 installation 的合法缓存响应、缺字段产生的 Gson 运行时 null 或格式异常 token 都可能污染匿名身份。当前后端只公开带域分隔的 `installationBindingSha256`，不回显原始 installation；Android 在首次 bearer/设备 ID 写入前严格校验规范 UUID、43 位 base64url token、精确摘要和非空 `created`，失败时不留下 bearer，并可用原 installation 安全重试。
+
+TypeScript 与 Kotlin 共享固定 SHA-256 向量；OpenAPI 固定严格四字段、token 长度/字符集与摘要格式，云 Beta 校验器在任何图片上传前执行同一绑定检查，编译后端真实 TCP E2E 也验证绑定。API 契约第 7 个合成绕过和 API 34 DataStore 回归分别证明删除字段与串 installation 会失败关闭。后端 122/122、Android JVM 226/226、API 34 Data 77/77 + App 25/25、Lint、Debug/R8 Release 与源码守卫 `registrationResponseBinding=1` 全部通过。该字段要求后端先部署；真实云、正式签名、OEM、真人审核和 cohort 仍未形成，Beta 保持 `NO_GO`。
+
 2026-07-26 一次性上传会话与 PUT 确认绑定（当前最新跨端权威摘要）：create/complete 身份绑定仍遗漏了中间的原始图片 PUT。旧 create 响应只有 upload URL，没有独立 session 字段；Android 确认 URL 同源且路径像 UUID 后便上传，随后只要 HTTP 属于任意 2xx 就继续 complete，成功正文中的 jobId/status 从未读取。OpenAPI 的 raw PUT 200 也没有响应 Schema。因此 URL/响应串到同设备另一任务时，客户端无法证明哪些字节进入了哪个 job。
 
 当前 create 新增必填可空 `uploadSessionId`；awaiting_upload 必须为合法 UUID，并与 uploadUrl 路径逐字相等，其他状态必须没有 session。PUT 200 新增严格 `UploadJobResponse`，后端返回认领后的 jobId、candidateToken、当前路由 uploadSessionId 和常量 uploaded。Android 只接受 HTTP 200；成功正文先以 4 KiB 上限读取，再用 `JsonReader` 非宽松逐字段解析，字段集合必须精确等于四项，重复键、额外/缺失字段、非字符串值、尾随 JSON、非法 UUID、job/candidate/session 任一错配或非 uploaded 状态都会抛 IOException。该失败不会进入 FILTERED；候选和显式导入副本保留，若上传实际已成功，重试 create 会从 uploaded 安全续接 complete。

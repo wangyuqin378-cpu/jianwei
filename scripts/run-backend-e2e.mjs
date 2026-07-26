@@ -60,13 +60,19 @@ try {
   const unauthorized = await requestJson(`${baseUrl}/v1/cards`, { expectedStatus: 401 });
   assert(unauthorized.body?.error?.code === "unauthorized", "unauthenticated cards request did not fail closed");
 
+  const installationId = randomUUID();
   const register = await requestJson(`${baseUrl}/v1/devices/register`, {
     method: "POST",
     expectedStatus: 201,
-    json: { installationId: randomUUID() }
+    json: { installationId }
   });
   assertUuid(register.body.deviceId, "deviceId");
-  assert(typeof register.body.deviceToken === "string" && register.body.deviceToken.length >= 32, "device token is invalid");
+  assert(typeof register.body.deviceToken === "string" && /^[A-Za-z0-9_-]{43}$/.test(register.body.deviceToken), "device token is invalid");
+  const expectedInstallationBinding = createHash("sha256")
+    .update("jianwei-installation-binding-v1\0", "utf8")
+    .update(installationId, "utf8")
+    .digest("hex");
+  assert(register.body.installationBindingSha256 === expectedInstallationBinding, "registration response crossed the installation boundary");
   const token = register.body.deviceToken;
 
   const sensitive = await requestJson(`${baseUrl}/v1/analysis-jobs`, {

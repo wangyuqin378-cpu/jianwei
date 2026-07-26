@@ -516,7 +516,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
     @Test
     fun failedCloudDeletionPreservesCardsFeedbackAndTrackedOutbox() = runBlocking {
         withRepository { database, repository, identity, api ->
-            assertThat(identity.bearer()).isEqualTo("Bearer token")
+            assertThat(identity.bearer()).isEqualTo("Bearer $DEVICE_TOKEN")
             repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
             repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
             api.failDelete = true
@@ -528,14 +528,14 @@ class TooPrivateSyncOrderingInstrumentedTest {
             assertThat(database.cards().findById(CARD_ID)).isNotNull()
             assertThat(database.cards().pendingFeedback().single().action).isEqualTo(FeedbackAction.LIKE.name)
             assertThat(database.cards().pendingTrackedItems().single().cardId).isEqualTo(CARD_ID)
-            assertThat(identity.existingBearer()).isEqualTo("Bearer token")
+            assertThat(identity.existingBearer()).isEqualTo("Bearer $DEVICE_TOKEN")
         }
     }
 
     @Test
     fun successfulCloudDeletionClearsCardsOutboxesAndIdentity() = runBlocking {
         withRepository { database, repository, identity, api ->
-            assertThat(identity.bearer()).isEqualTo("Bearer token")
+            assertThat(identity.bearer()).isEqualTo("Bearer $DEVICE_TOKEN")
             repository.setSaved(CARD_ID, true)
             repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
             repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
@@ -661,7 +661,12 @@ class TooPrivateSyncOrderingInstrumentedTest {
 
         override suspend fun register(request: RegisterRequest): RegisterResponse {
             events += "register"
-            return RegisterResponse("device", "token", created = events.count { it == "register" } == 1)
+            return RegisterResponse(
+                "00000000-0000-4000-8000-000000000001",
+                DEVICE_TOKEN,
+                cn.jianwei.data.network.installationBindingSha256(request.installationId),
+                created = events.count { it == "register" } == 1
+            )
         }
 
         override suspend fun cards(authorization: String, cursor: String?, limit: Int): CardsResponse {
@@ -706,7 +711,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
         override suspend fun deleteDeviceData(authorization: String) {
             deleteCalls += 1
             if (failDelete) throw HttpException(Response.error<Any>(503, "unavailable".toResponseBody()))
-            check(authorization == "Bearer token")
+            check(authorization == "Bearer $DEVICE_TOKEN")
         }
 
     }
@@ -740,6 +745,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
     )
 
     private companion object {
+        const val DEVICE_TOKEN = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val CARD_ID = "2a7d8040-f311-4e83-a38c-1bcd09f21961"
         const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"
         const val CANDIDATE_TOKEN = "7ff7a59e-2791-38b4-bdbe-3e8274eed084"

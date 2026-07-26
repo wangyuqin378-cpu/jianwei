@@ -137,7 +137,7 @@
     "responses": { "Error": { "description": "Structured API error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } } },
     "schemas": {
       "RegisterRequest": { "type": "object", "additionalProperties": false, "required": ["installationId"], "properties": { "installationId": { "type": "string", "format": "uuid" } } },
-      "RegisterResponse": { "type": "object", "additionalProperties": false, "required": ["deviceId", "deviceToken", "created"], "properties": { "deviceId": { "type": "string", "format": "uuid" }, "deviceToken": { "type": "string" }, "created": { "type": "boolean" } } },
+      "RegisterResponse": { "type": "object", "additionalProperties": false, "required": ["deviceId", "deviceToken", "installationBindingSha256", "created"], "properties": { "deviceId": { "type": "string", "format": "uuid" }, "deviceToken": { "type": "string", "minLength": 43, "maxLength": 43, "pattern": "^[A-Za-z0-9_-]{43}$" }, "installationBindingSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$", "description": "Domain-separated SHA-256 binding to the submitted installationId; the raw installation identifier is never echoed." }, "created": { "type": "boolean" } } },
       "CreateJobRequest": {
         "type": "object",
         "additionalProperties": false,

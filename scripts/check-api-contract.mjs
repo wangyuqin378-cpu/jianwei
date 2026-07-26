@@ -42,6 +42,18 @@ export function assessApiContract(input) {
       failures.push("UploadJobResponse status must be uploaded");
     }
   }
+  const registerResponseSchema = contract.components?.schemas?.RegisterResponse;
+  const registerToken = registerResponseSchema?.properties?.deviceToken;
+  const registerBinding = registerResponseSchema?.properties?.installationBindingSha256;
+  if (
+    !registerResponseSchema || registerResponseSchema.additionalProperties !== false ||
+    !new Set(registerResponseSchema.required ?? []).has("installationBindingSha256") ||
+    registerToken?.minLength !== 43 || registerToken?.maxLength !== 43 ||
+    registerToken?.pattern !== "^[A-Za-z0-9_-]{43}$" ||
+    registerBinding?.pattern !== "^[a-f0-9]{64}$"
+  ) {
+    failures.push("RegisterResponse must bind a strict bearer identity to the submitted installation");
+  }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
   }
@@ -104,6 +116,7 @@ if (process.argv.includes("--self-test")) {
     ["drifted Retrofit route", (value) => { value.androidApi = value.androidApi.replace('@GET("v1/cards")', '@GET("v2/cards")'); }],
     ["removed raw upload guard", (value) => { value.remoteAnalysis = value.remoteAnalysis.replaceAll("isExpectedApiUploadPath", "removedUploadPathGuard"); }],
     ["removed raw upload acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UploadJobResponse", "#/components/schemas/ErrorResponse"); }],
+    ["removed registration binding", (value) => { value.openapi = value.openapi.replace('"installationBindingSha256", ', ""); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];

@@ -9,6 +9,7 @@ import { hasSafeAnalysisLifecycle, isDisabledBucketVersioning } from "./infrastr
 import { computeBackendReleaseIdentity } from "./release-identity.js";
 import { verifyDeploymentReceipt } from "./deployment-receipt.js";
 import { isMainModule } from "./main-module.js";
+import { validateRegistrationResponse } from "./registration-binding.js";
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -35,13 +36,14 @@ class HttpsCloudApi implements CloudAuditApi {
   }
 
   async register() {
+    const installationId = randomUUID();
     const body = await this.requestJson("/v1/devices/register", {
       method: "POST",
       expectedStatus: 201,
-      json: { installationId: randomUUID() }
+      json: { installationId }
     });
-    if (typeof body.deviceToken !== "string") throw new Error("Cloud registration response is invalid");
-    return { token: body.deviceToken };
+    const registration = validateRegistrationResponse(installationId, body);
+    return { token: registration.deviceToken };
   }
 
   async createJob(token: string, candidateToken: string) {

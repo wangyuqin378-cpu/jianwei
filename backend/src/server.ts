@@ -36,6 +36,7 @@ import { LocalVisionProvider } from "./providers/local-providers.js";
 import { ConfidenceFallbackVisionProvider, QwenVisionProvider } from "./providers/qwen-providers.js";
 import { KimiVisionProvider } from "./providers/kimi-providers.js";
 import { loadBackendReleaseSha256 } from "./release-identity.js";
+import { installationBindingSha256 } from "./registration-binding.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -292,7 +293,12 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     const body = registerDeviceSchema.parse(request.body);
     const deviceToken = randomBytes(32).toString("base64url");
     const device = await devices.register(hashToken(body.installationId), hashToken(deviceToken));
-    return reply.status(201).send({ deviceId: device.id, deviceToken, created: device.created });
+    return reply.status(201).send({
+      deviceId: device.id,
+      deviceToken,
+      installationBindingSha256: installationBindingSha256(body.installationId),
+      created: device.created
+    });
   });
 
   app.post("/v1/analysis-jobs", async (request, reply) => {

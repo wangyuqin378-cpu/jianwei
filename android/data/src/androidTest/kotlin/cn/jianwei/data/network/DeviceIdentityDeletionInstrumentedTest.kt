@@ -14,11 +14,28 @@ import retrofit2.Response
 
 class DeviceIdentityDeletionInstrumentedTest {
     @Test
+    fun crossedRegistrationResponse_isRejectedBeforeBearerPersistence_andRetryCanRecover() = runBlocking {
+        val api = RotatingTokenApi().apply { crossInstallationBinding = true }
+        val identity = freshIdentity(api)
+        try {
+            assertThat(runCatching { identity.bearer() }.exceptionOrNull())
+                .isInstanceOf(IOException::class.java)
+            assertThat(identity.existingBearer()).isNull()
+
+            api.crossInstallationBinding = false
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(2)}")
+            assertThat(api.registerCount).isEqualTo(2)
+        } finally {
+            identity.reset()
+        }
+    }
+
+    @Test
     fun staleToken_reclaimsSameInstallation_andDeletesOriginalDevice() = runBlocking {
         val api = RotatingTokenApi()
         val identity = freshIdentity(api)
         try {
-            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
             api.rotateServerToken()
 
             assertThat(identity.deleteExistingDeviceData()).isTrue()
@@ -35,7 +52,7 @@ class DeviceIdentityDeletionInstrumentedTest {
         val api = RotatingTokenApi()
         val identity = freshIdentity(api)
         try {
-            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
             api.rotateServerToken()
             api.registrationDeviceId = DEVICE_B
 
@@ -43,7 +60,7 @@ class DeviceIdentityDeletionInstrumentedTest {
 
             assertThat(failure).isInstanceOf(AuthenticationExpiredException::class.java)
             assertThat(api.deletedDeviceId).isNull()
-            assertThat(identity.existingBearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.existingBearer()).isEqualTo("Bearer ${tokenFor(1)}")
         } finally {
             identity.reset()
         }
@@ -54,7 +71,7 @@ class DeviceIdentityDeletionInstrumentedTest {
         val api = RotatingTokenApi()
         val identity = freshIdentity(api)
         try {
-            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
             api.loseSuccessfulDeleteResponse = true
 
             val ambiguousFailure = runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull()
@@ -79,7 +96,7 @@ class DeviceIdentityDeletionInstrumentedTest {
         val identity = freshIdentity(api)
         try {
             assertThat(identity.isUnresolved()).isFalse()
-            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
             api.loseSuccessfulDeleteResponse = true
             assertThat(runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull())
                 .isInstanceOf(IOException::class.java)
@@ -105,7 +122,7 @@ class DeviceIdentityDeletionInstrumentedTest {
 
             identity.reset()
             assertThat(identity.isUnresolved()).isFalse()
-            assertThat(identity.bearer()).isEqualTo("Bearer token-3")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(3)}")
         } finally {
             identity.reset()
         }
@@ -116,7 +133,7 @@ class DeviceIdentityDeletionInstrumentedTest {
         val api = RotatingTokenApi()
         val identity = freshIdentity(api)
         try {
-            assertThat(identity.bearer()).isEqualTo("Bearer token-1")
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
             assertThat(identity.deleteExistingDeviceData()).isTrue()
 
             assertThat(identity.deleteExistingDeviceData()).isTrue()
@@ -165,20 +182,22 @@ class DeviceIdentityDeletionInstrumentedTest {
         var deletedDeviceId: String? = null
         val deletedDeviceIds = mutableListOf<String>()
         var loseSuccessfulDeleteResponse = false
+        var crossInstallationBinding = false
         private var currentToken = ""
 
         override suspend fun register(request: RegisterRequest): RegisterResponse {
             registerCount += 1
-            currentToken = "token-$registerCount"
+            currentToken = tokenFor(registerCount)
             return RegisterResponse(
                 registrationDeviceId,
                 currentToken,
+                if (crossInstallationBinding) "f".repeat(64) else installationBindingSha256(request.installationId),
                 created = registerCount == 1 || registrationCreated
             )
         }
 
         fun rotateServerToken() {
-            currentToken = "server-rotated-token"
+            currentToken = TOKEN_ROTATED
         }
 
         override suspend fun deleteDeviceData(authorization: String) {
@@ -187,7 +206,7 @@ class DeviceIdentityDeletionInstrumentedTest {
             deletedDeviceIds += registrationDeviceId
             if (loseSuccessfulDeleteResponse) {
                 loseSuccessfulDeleteResponse = false
-                currentToken = "deleted-device-token"
+                currentToken = TOKEN_DELETED
                 registrationDeviceId = DEVICE_B
                 registrationCreated = true
                 throw IOException("response lost after server deletion")
@@ -222,5 +241,9 @@ class DeviceIdentityDeletionInstrumentedTest {
     private companion object {
         const val DEVICE_A = "00000000-0000-4000-8000-000000000001"
         const val DEVICE_B = "00000000-0000-4000-8000-000000000002"
+        const val TOKEN_ROTATED = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        const val TOKEN_DELETED = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+
+        fun tokenFor(sequence: Int): String = "A".repeat(42) + sequence
     }
 }

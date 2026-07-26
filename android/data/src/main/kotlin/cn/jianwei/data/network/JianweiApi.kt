@@ -54,7 +54,12 @@ interface JianweiApi {
 }
 
 data class RegisterRequest(val installationId: String)
-data class RegisterResponse(val deviceId: String, val deviceToken: String, val created: Boolean)
+data class RegisterResponse(
+    val deviceId: String?,
+    val deviceToken: String?,
+    val installationBindingSha256: String?,
+    val created: Boolean?
+)
 data class CreateJobRequest(
     val candidateToken: String,
     val capturedAtBucket: String?,

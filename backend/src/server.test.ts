@@ -13,6 +13,7 @@ import {
   updateOssCredentialsFromFcHeaders
 } from "./server.js";
 import { evaluationCandidateToken } from "./services/evaluation-lease.js";
+import { installationBindingSha256 } from "./registration-binding.js";
 
 const INSTALLATION_ID = "a2c468a6-8c08-4bbd-a1f1-0cb9ec0f30ad";
 const SECOND_INSTALLATION_ID = "c31d7b10-5af0-4bdd-b7dd-5b65112cfa11";
@@ -998,6 +999,10 @@ describe("见微 API", () => {
     expect(second.json().created).toBe(false);
     expect(first.json().deviceToken).not.toBe(second.json().deviceToken);
     expect(first.json().deviceToken).not.toBe(INSTALLATION_ID);
+    expect(first.json().deviceToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(first.json().installationBindingSha256).toBe(installationBindingSha256(INSTALLATION_ID));
+    expect(second.json().installationBindingSha256).toBe(first.json().installationBindingSha256);
+    expect(JSON.stringify(first.json())).not.toContain(INSTALLATION_ID);
 
     const oldTokenResponse = await app.inject({
       method: "GET",
