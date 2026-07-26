@@ -1,6 +1,7 @@
 package cn.jianwei.data.work
 
 import cn.jianwei.data.control.AnalysisStoppedException
+import cn.jianwei.data.network.AuthenticationExpiredException
 import cn.jianwei.data.network.UploadHttpStatusException
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisState
@@ -54,6 +55,7 @@ class UploadRetryPolicyTest {
             assertThat(disposition.statusCode).isEqualTo(status)
             assertThat(disposition.state).isEqualTo(AnalysisState.READY)
             assertThat(disposition.retryWork).isTrue()
+            assertThat(disposition.terminateWork).isTrue()
             assertThat(disposition.keepImportedCopy).isTrue()
         }
     }
@@ -69,7 +71,26 @@ class UploadRetryPolicyTest {
             assertThat(disposition.statusCode).isEqualTo(status)
             assertThat(disposition.state).isEqualTo(AnalysisState.FILTERED)
             assertThat(disposition.retryWork).isFalse()
+            assertThat(disposition.terminateWork).isFalse()
             assertThat(disposition.keepImportedCopy).isFalse()
+        }
+    }
+
+    @Test
+    fun `authentication and authorization failures preserve explicit import and stop the batch`() {
+        listOf(
+            AuthenticationExpiredException(),
+            http(401),
+            http(403)
+        ).forEach { error ->
+            val disposition = candidateUploadFailureDisposition(error, PhotoOrigin.PHOTO_PICKER)
+
+            assertThat(disposition.state).isEqualTo(AnalysisState.READY)
+            assertThat(disposition.retryWork).isFalse()
+            assertThat(disposition.terminateWork).isTrue()
+            assertThat(disposition.keepImportedCopy).isTrue()
+            assertThat(candidateUploadFailureProgress(disposition, retrying = false).detail)
+                .contains("仍保留在本机")
         }
     }
 

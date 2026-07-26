@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 上传身份/授权故障照片保留（当前最新 Android 权威摘要）：上传链原本会把“照片不可处理”和“账号/服务不可用”混为同一终态。匿名身份自动刷新后仍失败、Retrofit 401/403 或原始上传抛出 `AuthenticationExpiredException` 时，候选会被写成 `FILTERED`，Photo Picker/分享导入的应用内副本随即删除，UploadWorker 还可能继续淘汰同批其余候选。现在上述身份与授权故障统一保持候选 `READY` 和应用内副本，终止本轮并明确显示候选仍在本机；用户可通过既有重新尝试入口恢复处理。明确的 400/410/413/415 和本地访问失效仍按候选终态处理，409/429/5xx 与 IOException 继续使用有界自动重试。
+
+专项回归覆盖身份异常、Retrofit 401/403、瞬态错误和候选终态，完整 Android JVM 209/209（Domain 62、Data 81、App 66）；Data/App Debug Lint 与 App Release Lint 均 0 error，Debug 与 R8 Release 构建、源码守卫 `authFailureCandidateRetention=1` 和差异检查通过。Debug/未签名 Release APK SHA-256 为 `0825aa7f40a77dfd478d56709668e8571a80caed5f95743e6f7b97ff3c17a1ee` / `deca69ed8e913edf292a4a4dc855f0b55bd1dbfcfc637c3b9aa65119aa10e6a3`。这不替代真实云、正式签名或实体机证据，Beta 保持 `NO_GO`。
+
 2026-07-26 百炼 AI 安全护栏文本预检（当前最新权威摘要）：新增独立命令 `pnpm verify:qwen-guardrail-access -- --credentials-file <csv>`，用于在不读取或上传任何图片的情况下检查账号侧阻断。命令只发送一条无敏感文本，携带与生产完全相同的 `X-DashScope-DataInspection={"input":"cip","output":"cip"}`，输出仅包含北京区域、固定模型、HTTP 状态和受限错误码；API Key、完整工作空间端点、凭据路径和上游错误正文均不进入输出。专项测试同时断言请求体不存在 `image_url`。
 
 使用当前下载的北京百炼按量付费工作空间 CSV 真实执行后，固定 `qwen3.6-flash-2026-04-16` 仍返回 `403 access_denied`。这直接证明截至本次检查，AI Safety Guardrails 尚未对当前工作空间完成授权；所需服务关联角色仍为 `AliyunServiceRoleForSFMAccessingCIP`。根据阿里云当前官方流程，仍需先开通按量付费 AI 安全护栏，再在百炼北京地域“安全管理”中授权内容审核。预检未来返回 GO 也只证明角色和生产 Header 可用，之后仍须用明确授权的非个人图片重跑完整视觉 Provider 验证。后端 TypeScript check/build、118/118 基础测试（另 13 项 PostgreSQL 环境测试 skipped）、源码护栏 `qwenGuardrailPreflight=1` 和差异检查通过；Beta 保持 `NO_GO`。

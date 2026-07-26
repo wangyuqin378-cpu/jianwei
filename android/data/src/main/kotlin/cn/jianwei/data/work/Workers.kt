@@ -18,6 +18,7 @@ import cn.jianwei.data.local.CardDao
 import cn.jianwei.data.local.toDomain
 import cn.jianwei.data.cards.LocalTopicAffinityStore
 import cn.jianwei.data.control.AnalysisStoppedException
+import cn.jianwei.data.network.AuthenticationExpiredException
 import cn.jianwei.data.network.RemoteAnalysisClient
 import cn.jianwei.data.network.UploadHttpStatusException
 import cn.jianwei.data.photos.PrivacyFilter
@@ -370,11 +371,12 @@ class UploadWorker @AssistedInject constructor(
                         val disposition = candidateUploadFailureDisposition(error, candidate.origin)
                         photos.updateAnalysis(candidate.localId, disposition.state)
                         if (!disposition.keepImportedCopy) photos.discardImportedCopy(candidate.localId)
-                        if (disposition.retryWork) {
-                            val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
+                        if (disposition.terminateWork) {
+                            val willRetry = disposition.retryWork &&
+                                runAttemptCount < MAX_WORK_ATTEMPTS - 1
                             status.publishProgress(
                                 progressScope,
-                                analysisFailureProgress(willRetry, disposition.statusCode)
+                                candidateUploadFailureProgress(disposition, willRetry)
                             )
                             return if (willRetry) Result.retry() else Result.failure()
                         }
@@ -459,6 +461,7 @@ fun shouldRetryAuthorizedEvaluationError(error: Exception): Boolean {
 internal data class CandidateUploadFailureDisposition(
     val state: AnalysisState,
     val retryWork: Boolean,
+    val terminateWork: Boolean,
     val keepImportedCopy: Boolean,
     val statusCode: Int?
 )
@@ -472,17 +475,36 @@ internal fun candidateUploadFailureDisposition(
     val retryable = !permissionRevoked && (
         error is IOException || (statusCode != null && shouldRetryHttpStatus(statusCode))
     )
+    val authenticationOrAuthorizationFailure =
+        error is AuthenticationExpiredException || statusCode == 401 || statusCode == 403
     val accessUnavailable = permissionRevoked && origin == PhotoOrigin.MEDIA_STORE
     return CandidateUploadFailureDisposition(
         state = when {
             accessUnavailable -> AnalysisState.ACCESS_UNAVAILABLE
-            retryable -> AnalysisState.READY
+            retryable || authenticationOrAuthorizationFailure -> AnalysisState.READY
             else -> AnalysisState.FILTERED
         },
         retryWork = retryable,
-        keepImportedCopy = retryable || accessUnavailable,
+        terminateWork = retryable || authenticationOrAuthorizationFailure,
+        keepImportedCopy = retryable || accessUnavailable || authenticationOrAuthorizationFailure,
         statusCode = statusCode
     )
+}
+
+internal fun candidateUploadFailureProgress(
+    disposition: CandidateUploadFailureDisposition,
+    retrying: Boolean
+): AnalysisProgress = if (
+    !retrying &&
+    disposition.state == AnalysisState.READY &&
+    disposition.keepImportedCopy
+) {
+    AnalysisProgress(
+        phase = AnalysisPhase.FAILED,
+        detail = "这次处理未完成，照片候选仍保留在本机；服务恢复后可以再次尝试。"
+    )
+} else {
+    analysisFailureProgress(retrying, disposition.statusCode)
 }
 
 internal fun httpStatusCode(error: Throwable): Int? = when (error) {
