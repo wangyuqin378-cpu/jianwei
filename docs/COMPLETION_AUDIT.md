@@ -1,5 +1,9 @@
 # 见微完成度审计
 
+2026-07-26 跨端 processing lease 自动恢复（当前最新 Android 权威摘要）：服务端视觉处理 lease 是 210 秒，但 Android 上传链原来最多尝试 3 次，1 分钟指数退避只会让客户端在约 0、1、3 分钟运行。若服务端已经取得 processing claim、却在响应前退出或断网，第三次仍可能得到 409，随后客户端就在 lease 可恢复前约 30 秒宣告失败；服务端具备恢复能力，但产品无法自动走到它。现在 UploadWorker 独立使用 4 次尝试预算，四个创建入口共用 1 分钟 backoff，第四次最早约在第 7 分钟运行，确定跨过 210 秒窗口；中间的 409、IOException 继续保持候选 `READY`，显式导入副本也不会清理。其他 Worker 的三次预算没有扩大。
+
+新增 JVM 回归锁定尝试边界 0/1/2 可重试、3 终止，以及统一 backoff；跨语言来源门禁读取两端常量，计算指数退避累计覆盖时间必须大于服务端 lease，并要求四个 UploadWorker 构造入口全部使用该 backoff，输出 `processingLeaseRetryCoverage=1`。完整 Android JVM 212/212（Domain 64、Data 82、App 66），Data/App Debug Lint、App Release Lint、Debug 和 R8 Release 构建、来源守卫及差异检查通过。Debug/未签名 Release APK SHA-256 为 `e8ee6c74edef80eb547a6ee45584c6fcdd34f0256e9619dad88f096897f4e6e9` / `ed08ab4888e680eed882f9a07f999c7ea8f387f84b2c206e481af299bb3f9c84`。真实云、正式签名、OEM 实体机和 cohort 仍未满足，Beta 保持 `NO_GO`。
+
 2026-07-26 服务端上传租约恢复（当前最新后端权威摘要）：分析任务原本只给视觉处理阶段设置 lease。上传入口取得一次性会话后会先把任务原子置为 `uploading`；函数实例若在 OSS 写入或 `finishUpload` 前退出，任务会永久停在该状态，客户端轮询只能得到 `409 upload_in_progress`，重建会话也不会发生。现在上传 claim 有独立 60 秒 lease；创建会话和 GET 轮询都会原子恢复过期 claim 为 `failed/upload_lease_recovered`，随后尽力删除旧对象并用旧 session CAS 建立替代上传。对象键包含随机 upload session ID，因此旧请求即使迟到，也不能覆盖或删除替代会话的对象；旧 session 的完成提交同样被仓储拒绝。未过期 claim 保持互斥，不会被并发请求抢走。
 
 后端 TypeScript check/build、120/120 基础测试通过；隔离 PostgreSQL 17.10 实跑 13 个迁移、14/14 仓储集成测试和编译后端 TCP E2E，覆盖四个独立连接池、过期恢复、新鲜 claim 保护、旧/新 session 隔离、迟到完成拒绝及对象清理。源码守卫 `staleUploadLeaseRecovery=1` 和差异检查通过。此修复不放宽照片安全、内容审核或成本熔断；Qwen 安全护栏授权、真人审核、正式签名、OEM 实体机与真实 cohort 仍未满足，Beta 保持 `NO_GO`。

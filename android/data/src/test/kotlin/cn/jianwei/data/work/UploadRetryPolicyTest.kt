@@ -33,6 +33,15 @@ class UploadRetryPolicyTest {
     }
 
     @Test
+    fun `upload retry budget reaches beyond the server processing lease`() {
+        assertThat(shouldRetryUploadWork(0)).isTrue()
+        assertThat(shouldRetryUploadWork(1)).isTrue()
+        assertThat(shouldRetryUploadWork(2)).isTrue()
+        assertThat(shouldRetryUploadWork(3)).isFalse()
+        assertThat(UPLOAD_RETRY_BACKOFF).isEqualTo(java.time.Duration.ofMinutes(1))
+    }
+
+    @Test
     fun `authorized evaluation retries only interruptions throttling and server failures`() {
         assertThat(shouldRetryAuthorizedEvaluationError(IOException("offline"))).isTrue()
         assertThat(shouldRetryAuthorizedEvaluationError(AnalysisStoppedException())).isTrue()

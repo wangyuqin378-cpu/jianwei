@@ -294,6 +294,29 @@ check(
     postgresIntegrationTest.includes("recovers a stale upload claim and isolates the replacement session"),
   "A crashed upload claim can remain permanent or let a stale upload overwrite its replacement"
 );
+const processingLeaseMs = Number(
+  /PROCESSING_LEASE_MS\s*=\s*([\d_]+)/.exec(analysisService)?.[1]?.replaceAll("_", "")
+);
+const uploadAttemptLimit = Number(
+  /MAX_UPLOAD_WORK_ATTEMPTS\s*=\s*(\d+)/.exec(workersSource)?.[1]
+);
+const uploadBackoffMinutes = Number(
+  /UPLOAD_RETRY_BACKOFF:\s*Duration\s*=\s*Duration\.ofMinutes\((\d+)\)/.exec(workersSource)?.[1]
+);
+const uploadRecoveryCoverageMs = uploadBackoffMinutes * 60_000 * (2 ** (uploadAttemptLimit - 1) - 1);
+const uploadBackoffBindings = (workersSource + workManagerScheduler)
+  .match(/setBackoffCriteria\(BackoffPolicy\.EXPONENTIAL, UPLOAD_RETRY_BACKOFF\)/g)?.length ?? 0;
+check(
+  Number.isFinite(processingLeaseMs) &&
+    Number.isFinite(uploadAttemptLimit) &&
+    Number.isFinite(uploadBackoffMinutes) &&
+    uploadRecoveryCoverageMs > processingLeaseMs &&
+    workersSource.includes("shouldRetryUploadWork(runAttemptCount)") &&
+    workersSource.includes("runAttemptCount < MAX_UPLOAD_WORK_ATTEMPTS - 1") &&
+    uploadBackoffBindings === 4 &&
+    uploadRetryPolicyTest.includes("upload retry budget reaches beyond the server processing lease"),
+  "Android upload retries can expire before the backend processing lease is recoverable"
+);
 check(
   cancellationPolicy.includes("if (this is CancellationException) throw this") &&
     cancellationPolicyTest.includes("coroutine cancellation is rethrown unchanged") &&
@@ -1874,7 +1897,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

@@ -374,8 +374,7 @@ class UploadWorker @AssistedInject constructor(
                         photos.updateAnalysis(candidate.localId, disposition.state)
                         if (!disposition.keepImportedCopy) photos.discardImportedCopy(candidate.localId)
                         if (disposition.terminateWork) {
-                            val willRetry = disposition.retryWork &&
-                                runAttemptCount < MAX_WORK_ATTEMPTS - 1
+                            val willRetry = disposition.retryWork && shouldRetryUploadWork(runAttemptCount)
                             status.publishProgress(
                                 progressScope,
                                 candidateUploadFailureProgress(disposition, willRetry)
@@ -395,12 +394,12 @@ class UploadWorker @AssistedInject constructor(
         } catch (_: AnalysisStoppedException) {
             Result.success()
         } catch (_: IOException) {
-            val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
+            val willRetry = shouldRetryUploadWork(runAttemptCount)
             status.publishProgress(progressScope, analysisFailureProgress(willRetry, null))
             if (willRetry) Result.retry() else Result.failure()
         } catch (error: HttpException) {
             if (shouldRetryHttpStatus(error.code())) {
-                val willRetry = runAttemptCount < MAX_WORK_ATTEMPTS - 1
+                val willRetry = shouldRetryUploadWork(runAttemptCount)
                 status.publishProgress(progressScope, analysisFailureProgress(willRetry, error.code()))
                 if (willRetry) Result.retry() else Result.failure()
             } else {
@@ -450,6 +449,9 @@ internal fun parseUploadOriginScope(value: String?): UploadOriginScope? = value?
 
 internal fun shouldRetryHttpStatus(statusCode: Int): Boolean =
     statusCode == 409 || statusCode == 429 || statusCode >= 500
+
+internal fun shouldRetryUploadWork(runAttemptCount: Int): Boolean =
+    runAttemptCount < MAX_UPLOAD_WORK_ATTEMPTS - 1
 
 internal fun shouldRetryPrivacyAnalysisFailure(runAttemptCount: Int): Boolean =
     runAttemptCount < MAX_WORK_ATTEMPTS - 1
@@ -588,6 +590,8 @@ fun scheduleImportedCopyCleanup(context: Context) {
 }
 
 private const val MAX_WORK_ATTEMPTS = 3
+private const val MAX_UPLOAD_WORK_ATTEMPTS = 4
+internal val UPLOAD_RETRY_BACKOFF: Duration = Duration.ofMinutes(1)
 private const val IMPORTED_COPY_CLEANUP_NOW = "jianwei-imported-copy-cleanup-now"
 private const val IMPORTED_COPY_CLEANUP_PERIODIC = "jianwei-imported-copy-cleanup-periodic"
 private const val MAX_PRIVACY_QUEUE_INSPECTIONS = 500
@@ -632,7 +636,7 @@ class DailyPipelineKickWorker(
                     .setRequiresBatteryNotLow(true)
                     .build()
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, Duration.ofMinutes(1))
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, UPLOAD_RETRY_BACKOFF)
             .build()
         manager.beginUniqueWork(DAILY_PIPELINE, ExistingWorkPolicy.KEEP, scan)
             .then(privacy)
