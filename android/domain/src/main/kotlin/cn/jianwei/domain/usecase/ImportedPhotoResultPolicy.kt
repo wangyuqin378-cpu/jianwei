@@ -13,6 +13,19 @@ sealed interface ImportedPhotoResultResolution {
 }
 
 /**
+ * A fresh Picker/Sharesheet selection is explicit consent to retry a terminal local attempt.
+ * Active work and completed candidates retain their identity so retries remain idempotent and do
+ * not create another model charge. NEVER_ANALYZE is an installation-level privacy stop and is
+ * rejected by the repository before this policy is considered.
+ */
+fun shouldRestartExplicitImport(state: AnalysisState): Boolean = when (state) {
+    AnalysisState.FILTERED,
+    AnalysisState.FAILED,
+    AnalysisState.ACCESS_UNAVAILABLE -> true
+    else -> false
+}
+
+/**
  * Resolves one explicit Photo Picker or Sharesheet request without exposing its tokens to UI.
  * A COMPLETED candidate is kept pending until card synchronization reaches a terminal phase,
  * because the upload worker commits the candidate state immediately before its final card sync.

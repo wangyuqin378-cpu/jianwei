@@ -100,6 +100,78 @@ class ImportedPhotoDedupeInstrumentedTest {
         }
     }
 
+    @Test
+    fun explicitReselectionRestartsAFilteredContentCandidate() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val resolver = context.contentResolver
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        val bytes = jpegBytes(6)
+        val original = insertImage(context, "retry-a-${UUID.randomUUID()}.jpg", bytes)
+        val reselection = insertImage(context, "retry-b-${UUID.randomUUID()}.jpg", bytes)
+        val repository = MediaPhotoRepository(context, resolver, database.photos())
+
+        try {
+            val first = repository.importUris(listOf(original.toString())).single()
+            repository.updateAnalysis(
+                localId = first.localId,
+                state = AnalysisState.FILTERED,
+                perceptualHash = 123L,
+                qualityScore = 0.1,
+                labels = listOf("Document"),
+                sensitiveFlags = setOf("high_text_density")
+            )
+            repository.discardImportedCopy(first.localId)
+
+            val restarted = repository.importUris(listOf(reselection.toString())).single()
+            val stored = checkNotNull(database.photos().findById(first.localId))
+
+            assertThat(restarted.localId).isEqualTo(first.localId)
+            assertThat(restarted.candidateToken).isNotEqualTo(first.candidateToken)
+            assertThat(stored.analysisState).isEqualTo(AnalysisState.DISCOVERED.name)
+            assertThat(stored.contentUri).startsWith("file:")
+            assertThat(java.io.File(checkNotNull(Uri.parse(stored.contentUri).path)).exists()).isTrue()
+            assertThat(stored.perceptualHash).isNull()
+            assertThat(stored.qualityScore).isEqualTo(0.0)
+            assertThat(stored.localLabels).isEmpty()
+            assertThat(stored.sensitiveFlags).isEmpty()
+        } finally {
+            repository.clearIndex()
+            resolver.delete(original, null, null)
+            resolver.delete(reselection, null, null)
+            database.close()
+        }
+    }
+
+    @Test
+    fun completedContentIsReusedWithoutCreatingAnotherAnalysisAttempt() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val resolver = context.contentResolver
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        val bytes = jpegBytes(7)
+        val original = insertImage(context, "complete-a-${UUID.randomUUID()}.jpg", bytes)
+        val reselection = insertImage(context, "complete-b-${UUID.randomUUID()}.jpg", bytes)
+        val repository = MediaPhotoRepository(context, resolver, database.photos())
+
+        try {
+            val first = repository.importUris(listOf(original.toString())).single()
+            repository.updateAnalysis(first.localId, AnalysisState.COMPLETED)
+            repository.discardImportedCopy(first.localId)
+
+            val reused = repository.importUris(listOf(reselection.toString())).single()
+            val stored = checkNotNull(database.photos().findById(first.localId))
+
+            assertThat(reused.candidateToken).isEqualTo(first.candidateToken)
+            assertThat(stored.analysisState).isEqualTo(AnalysisState.COMPLETED.name)
+            assertThat(stored.contentUri).isEmpty()
+            assertThat(database.photos().importedContentUris().filter(String::isNotBlank)).isEmpty()
+        } finally {
+            repository.clearIndex()
+            resolver.delete(original, null, null)
+            resolver.delete(reselection, null, null)
+            database.close()
+        }
+    }
+
     private fun insertImage(context: Context, name: String, bytes: ByteArray): Uri {
         val resolver = context.contentResolver
         val values = ContentValues().apply {

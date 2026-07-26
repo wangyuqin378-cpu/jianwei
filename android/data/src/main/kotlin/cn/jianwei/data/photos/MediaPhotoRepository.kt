@@ -19,6 +19,7 @@ import cn.jianwei.domain.model.PhotoOrigin
 import cn.jianwei.domain.model.ScanRequest
 import cn.jianwei.domain.model.ScanResult
 import cn.jianwei.domain.repository.PhotoRepository
+import cn.jianwei.domain.usecase.shouldRestartExplicitImport
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.time.Instant
@@ -113,13 +114,8 @@ class MediaPhotoRepository @Inject constructor(
             remainingImportBytes -= privateCopy.byteCount
             val contentDuplicate = dao.findBySourceDigest(privateCopy.sourceDigest)
             if (contentDuplicate != null) {
-                deletePrivateCopy(privateCopy.uri.toString())
-                if (
-                    contentDuplicate.analysisState != AnalysisState.NEVER_ANALYZE.name &&
-                    !dao.isSuppressed(contentDuplicate.localId)
-                ) {
-                    imported[contentDuplicate.localId] = contentDuplicate
-                }
+                reuseOrRestartExplicitImport(contentDuplicate, privateCopy, metadata, now)
+                    ?.let { imported[it.localId] = it }
                 continue
             }
             val localId = availableImportedLocalId(privateCopy.sourceDigest)
@@ -145,13 +141,61 @@ class MediaPhotoRepository @Inject constructor(
                 height = metadata.height
             )
             if (dao.insertAll(listOf(entity)).single() == -1L) {
-                deletePrivateCopy(privateCopy.uri.toString())
-                dao.findBySourceDigest(privateCopy.sourceDigest)?.let { imported[it.localId] = it }
+                val winner = dao.findBySourceDigest(privateCopy.sourceDigest)
+                if (winner == null) {
+                    deletePrivateCopy(privateCopy.uri.toString())
+                } else {
+                    reuseOrRestartExplicitImport(winner, privateCopy, metadata, now)
+                        ?.let { imported[it.localId] = it }
+                }
             } else {
                 imported[entity.localId] = entity
             }
         }
         imported.values.map { it.toDomain() }
+    }
+
+    private suspend fun reuseOrRestartExplicitImport(
+        existing: PhotoCandidateEntity,
+        privateCopy: PrivateCopy,
+        metadata: UriMetadata,
+        now: Long
+    ): PhotoCandidateEntity? {
+        if (
+            existing.analysisState == AnalysisState.NEVER_ANALYZE.name ||
+            dao.isSuppressed(existing.localId)
+        ) {
+            deletePrivateCopy(privateCopy.uri.toString())
+            return null
+        }
+        val state = AnalysisState.valueOf(existing.analysisState)
+        if (!shouldRestartExplicitImport(state)) {
+            deletePrivateCopy(privateCopy.uri.toString())
+            return existing
+        }
+
+        val restarted = existing.copy(
+            candidateToken = UUID.randomUUID().toString(),
+            contentUri = privateCopy.uri.toString(),
+            capturedAtMillis = metadata.capturedAtMillis ?: existing.capturedAtMillis,
+            modifiedAtMillis = now,
+            sourceDigest = privateCopy.sourceDigest,
+            perceptualHash = null,
+            qualityScore = 0.0,
+            localLabels = emptyList(),
+            sensitiveFlags = metadata.initialFlags,
+            analysisState = AnalysisState.DISCOVERED.name,
+            width = metadata.width.takeIf { it > 0 } ?: existing.width,
+            height = metadata.height.takeIf { it > 0 } ?: existing.height
+        )
+        try {
+            dao.upsert(restarted)
+        } catch (error: Exception) {
+            deletePrivateCopy(privateCopy.uri.toString())
+            throw error
+        }
+        if (existing.contentUri != restarted.contentUri) deletePrivateCopy(existing.contentUri)
+        return restarted
     }
 
     /**

@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 显式导入可恢复终态重选（当前最新 Android 权威摘要）：内容寻址去重收口后，Picker/系统分享再次选择同一字节会复用既有候选；但 `FILTERED`、`FAILED` 或 `ACCESS_UNAVAILABLE` 这三类终态的私有副本已经被清理，Privacy Worker 又只消费 `DISCOVERED`，因此用户看到可以重新选图，实际却只拿到旧终态，既没有重新执行端侧隐私检查，也不可能生成新卡。
+
+当前把“是否重启显式导入”定义为 domain 业务策略：用户明确重选同一内容时，仅 `FILTERED`、`FAILED`、`ACCESS_UNAVAILABLE` 生成新的随机 candidate token、接管本次私有副本、清空旧标签/质量/感知哈希并回到 `DISCOVERED`，使完整隐私筛选链重新执行；旧私有路径只在新 Room 状态提交成功后删除。正在处理的候选和 `COMPLETED` 继续复用原身份，避免并发重复任务、重复卡片和额外模型成本；`NEVER_ANALYZE` 与 suppressed 仍在 repository 最前面失败关闭并删除本次暂存副本。摘要唯一索引竞争也复用同一策略，失败时不会泄漏刚复制的文件。该变化只更新既有记录，不需要 Room 迁移。
+
+API 34 专项 5/5、完整 Data 85/85 与 App 25/25 instrumentation 通过；Android JVM 237/237（Domain 65、Data 106、App 66），API 契约、源码守卫 `contentAddressedImportIdentity=1 explicitReselectionRecovery=1`、Data/App Debug/Release Lint、Debug、R8 Release 与两个 androidTest APK 构建全部通过。Debug/未签名 Release/Data/App 测试 APK SHA-256 为 `3484cbb87dce6b20e0a23ecca6ec14383dff24df00f341f6a4553778e4319cdb` / `386ea3edadbd1f9bf4a829d5112e0a31bffe77ae8c1083673ee1d7bd4ff01998` / `cc3172eda2f2c657139246d6ad4e88195f0a838e8000dc7518022b39e13766f3` / `8c411680b1625399e734be6e003bc0f473fd2737951bd24f11b4d371c69851bd`。隔离 API 34 模拟器和测试包已关闭/卸载；这些本地工程证据不替代 Qwen 安全护栏授权、真实托管云、正式签名、国产 OEM、真人内容审核或 cohort，Beta 保持 `NO_GO`。
+
 2026-07-26 显式导入内容身份与隐私抑制边界（当前最新 Android 权威摘要）：Photo Picker 与系统分享原来使用 provider 给出的 URI 字符串生成候选 `localId`，并在复制图片前按该 ID 直接返回已有记录。Provider 若把同一 URI 改指向新内容，用户重新选择后仍会拿到旧候选；同一图片从另一个 URI 再次进入时虽然会由 `sourceDigest` 去重，但已经标记 `NEVER_ANALYZE` / “太私人”的记录仍会被当成一次成功导入返回，数据库还保留已删除私有文件的路径字符串。
 
 当前显式导入先复制到 App 私有目录并流式计算 SHA-256，再以内容摘要而非 URI 建立负数本地身份；Provider URI 只用于一次性暂存文件名，不再决定候选。相同字节从 Picker/分享或不同 URI 进入时仍复用既有候选；同一 URI 内容改变会生成新候选；命中旧版或新版 `sourceDigest` 的 `NEVER_ANALYZE`/suppressed 记录会删除本次暂存副本并返回空结果，不会重新排入 WorkManager。旧 URI-ID 记录无需数据库迁移，仍由唯一摘要索引兼容识别；63 位 ID 极小概率冲突有 8 个确定性候选位，全部冲突时失败关闭。标记永不分析时同时删除私有文件并清空 Room 中的路径。设备回归还发现用户从设置页暂停分析后，LazyColumn 会保留旧卡片锚点，把新隐私横幅留在屏幕上方；现在暂停或云端删除未决时每日页会定位顶部，优先呈现真实停止状态。

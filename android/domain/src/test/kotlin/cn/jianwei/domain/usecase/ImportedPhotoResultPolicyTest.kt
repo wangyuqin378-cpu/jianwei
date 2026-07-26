@@ -12,6 +12,17 @@ import org.junit.Test
 
 class ImportedPhotoResultPolicyTest {
     @Test
+    fun `explicit reselection restarts only recoverable terminal attempts`() {
+        val restartable = AnalysisState.entries.filter(::shouldRestartExplicitImport)
+
+        assertThat(restartable).containsExactly(
+            AnalysisState.FILTERED,
+            AnalysisState.FAILED,
+            AnalysisState.ACCESS_UNAVAILABLE
+        )
+    }
+
+    @Test
     fun `generated card wins even when another requested photo is still processing`() {
         val result = resolveImportedPhotoResult(
             candidateTokens = listOf("first", "second"),
