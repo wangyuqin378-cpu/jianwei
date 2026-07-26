@@ -78,8 +78,10 @@ export function assessApiContract(input) {
   }
   const trackOperation = operations.get("POST /v1/items/{cardId}/track");
   const untrackOperation = operations.get("DELETE /v1/items/{cardId}/track");
+  const deleteDeviceOperation = operations.get("DELETE /v1/device-data");
   const trackSchema = contract.components?.schemas?.TrackItemResponse;
   const untrackSchema = contract.components?.schemas?.UntrackItemResponse;
+  const deleteDeviceSchema = contract.components?.schemas?.DeleteDeviceDataResponse;
   if (
     trackOperation?.responses?.["201"]?.content?.["application/json"]?.schema?.$ref !==
       "#/components/schemas/TrackItemResponse" ||
@@ -95,6 +97,22 @@ export function assessApiContract(input) {
     untrackSchema.properties?.status?.const !== "untracked"
   ) {
     failures.push("untrack success must return a strict bound UntrackItemResponse");
+  }
+  if (
+    deleteDeviceOperation?.responses?.["200"]?.content?.["application/json"]?.schema?.$ref !==
+      "#/components/schemas/DeleteDeviceDataResponse" ||
+    !deleteDeviceSchema || deleteDeviceSchema.additionalProperties !== false ||
+    deleteDeviceSchema.properties?.deviceId?.format !== "uuid" ||
+    deleteDeviceSchema.properties?.status?.const !== "deleted"
+  ) {
+    failures.push("device deletion success must return a strict bound DeleteDeviceDataResponse");
+  } else {
+    compareSets(
+      "DeleteDeviceDataResponse required field",
+      new Set(deleteDeviceSchema.required ?? []),
+      new Set(["deviceId", "status"]),
+      failures
+    );
   }
   const cardsSchema = contract.components?.schemas?.CardsResponse;
   if (!cardsSchema || cardsSchema.additionalProperties !== false) {
@@ -188,6 +206,7 @@ if (process.argv.includes("--self-test")) {
     ["removed registration binding", (value) => { value.openapi = value.openapi.replace('"installationBindingSha256", ', ""); }],
     ["removed job status binding", (value) => { value.openapi = value.openapi.replace("#/components/schemas/JobStatusResponse", "#/components/schemas/ErrorResponse"); }],
     ["removed reminder acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/UntrackItemResponse", "#/components/schemas/ErrorResponse"); }],
+    ["removed device deletion acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/DeleteDeviceDataResponse", "#/components/schemas/ErrorResponse"); }],
     ["loosened card page", (value) => { value.openapi = value.openapi.replace('"CardsResponse": { "type": "object", "additionalProperties": false', '"CardsResponse": { "type": "object"'); }],
     ["loosened public card", (value) => { value.openapi = value.openapi.replace('"Card": {\n        "type": "object",\n        "additionalProperties": false', '"Card": {\n        "type": "object"'); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],

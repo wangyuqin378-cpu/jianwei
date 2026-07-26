@@ -44,7 +44,7 @@ class HttpsCloudApi implements CloudAuditApi {
       json: { installationId }
     });
     const registration = validateRegistrationResponse(installationId, body);
-    return { token: registration.deviceToken };
+    return { token: registration.deviceToken, deviceId: registration.deviceId };
   }
 
   async createJob(token: string, candidateToken: string) {
@@ -114,8 +114,15 @@ class HttpsCloudApi implements CloudAuditApi {
     };
   }
 
-  async deleteDevice(token: string) {
-    await this.requestJson("/v1/device-data", { method: "DELETE", expectedStatus: 204, token });
+  async deleteDevice(token: string, expectedDeviceId: string) {
+    const body = await this.requestJson("/v1/device-data", { method: "DELETE", expectedStatus: 200, token });
+    if (
+      Object.keys(body).sort().join(",") !== "deviceId,status" ||
+      body.deviceId !== expectedDeviceId ||
+      body.status !== "deleted"
+    ) {
+      throw new Error("Cloud device deletion acknowledgement crossed the registered device boundary");
+    }
   }
 
   async cardsStatus(token: string) {

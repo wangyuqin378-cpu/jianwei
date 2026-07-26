@@ -50,7 +50,9 @@ interface JianweiApi {
     ): UntrackItemResponse
 
     @DELETE("v1/device-data")
-    suspend fun deleteDeviceData(@Header("Authorization") authorization: String)
+    suspend fun deleteDeviceData(
+        @Header("Authorization") authorization: String
+    ): DeleteDeviceDataResponse
 }
 
 data class RegisterRequest(val installationId: String)
@@ -134,3 +136,4 @@ data class TrackItemResponse(
     val createdAt: String?
 )
 data class UntrackItemResponse(val cardId: String?, val status: String?)
+data class DeleteDeviceDataResponse(val deviceId: String?, val status: String?)

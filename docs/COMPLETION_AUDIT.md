@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 云端数据删除确认绑定（当前最新跨端权威摘要）：`DELETE /v1/device-data` 原来只返回空 204，Android 仅凭任意成功状态就把持久删除状态改为 `DELETE_CONFIRMED`。错误环境、代理或响应串线即使没有证明删除的是本安装匿名设备，也会让后续 UI 清除本地恢复材料；已有“响应丢失后重注册空设备再删除”的崩溃恢复只能解决不确定失败，不能验证成功正文归属。
+
+当前后端完成对象清理和设备级联删除后返回严格最小 `{deviceId,status:"deleted"}`；OpenAPI `DeleteDeviceDataResponse` 要求且只允许这两个字段。Android 以加密持久化的当前 device ID 为权威，在第一次写入 `DELETE_CONFIRMED` 前要求 UUID 和终态逐字匹配；缺失、null、串设备或错误状态统一保留 `DELETE_PENDING`、bearer 和 installation 供安全重试。若旧安装意外缺少 device ID，客户端不会无绑定地直接确认，而是先用原 installation 重新取得经过绑定验证的匿名身份，再执行删除。正式云验证器和编译后端 TCP E2E 同样把删除确认绑定到本轮注册 device ID。按 `api-design` 的兼容策略，旧 APK 会忽略新后端的 200 正文；新 APK 面对旧 204 会失败关闭，因此部署顺序固定为先后端、后 APK。
+
+API 34 匿名身份删除专项 8/8、完整 Data instrumentation 81/81 通过；Android JVM 232/232（Domain 64、Data 102、App 66），后端 124/124、TypeScript check/build、API 契约 12 个合成绕过、源码守卫 `deviceDeletionAcknowledgement=1`、编译后端真实 TCP `deviceDeletionBinding=1`、Data/App Debug Lint、App Release Lint、Debug/R8 Release 与 Data 测试 APK 构建全部通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `ea86b6805f10dea5e208a302b8d4c8f6b5f1ceac626a89a8e358de130b21f74a` / `e17959973a6c0a882709970a4341df3780653db26c6b277060c04957217b4d90` / `e8f6f89daefd80bbdc7fcad5f288270b8f2858bb2b28d73bfb5d2fd7f180fa7f`。真实云/Qwen 安全护栏、正式签名、OEM 实体机、真人审核和 cohort 阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 Android 网络响应空字段边界（当前最新 Android 权威摘要）：Gson 会把缺失或显式 `null` 的 JSON 字段写入 Kotlin 非空属性，原 Card/Source/Feedback wire DTO 因此只能在编译期看似非空；错误环境、代理或服务端回归返回缺字段时，卡片同步可能抛出未受控 NPE，反馈确认也可能绕开预期的可重试 I/O 失败。分析任务 `completed` 分支原来只校验 card/candidate 身份，还会在完整卡片载荷进入 Room 前提前接受终态。
 
 当前所有卡片、来源、分页项、反馈确认和 topic affinity 的网络字段均按运行时真实 JSON 建模为可空；边界层先验证完整集合，再构造非空持久化模型。缺失/null 卡片字段、来源、分页项、反馈 ID/card/action/time/topic/weight/aliases，或完成响应中的不完整卡片，统一在候选终态、Room 提交、偏好写入和 outbox 确认前抛出 IOException。真实 Gson 反序列化回归证明“可解析”不等于“可接受”；API 34 真实 Room 回归证明缺失确认字段时 LIKE outbox 与本地权重均保持不变，可依赖服务端幂等性安全重试。

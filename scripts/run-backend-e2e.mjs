@@ -194,7 +194,11 @@ try {
   assert(needsContent.body.status === "needs_content" && needsContent.body.card === null, "unknown object produced an unsupported card");
   await waitForNoObjectFiles(objectsRoot);
 
-  await requestJson(`${baseUrl}/v1/device-data`, { method: "DELETE", token, expectedStatus: 204 });
+  const deletion = await requestJson(`${baseUrl}/v1/device-data`, { method: "DELETE", token, expectedStatus: 200 });
+  assert(
+    deletion.body.deviceId === register.body.deviceId && deletion.body.status === "deleted",
+    "device deletion acknowledgement crossed the registered device boundary"
+  );
   const afterDelete = await requestJson(`${baseUrl}/v1/cards`, { token, expectedStatus: 401 });
   assert(afterDelete.body?.error?.code === "unauthorized", "deleted device token remained authorized");
   await waitForNoObjectFiles(objectsRoot);
@@ -226,7 +230,7 @@ try {
       objectFilesRemaining: 0
     }
   };
-  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 publicCardProjection=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 reminderAckBinding=1 track=1 untrack=1 needsContent=1 delete=1 objectsRemaining=0`;
+  const summary = `BACKEND_TCP_E2E_GATE=GO repository=${repositoryMode} compiledDist=1 tcp=1 health=1 auth=1 sensitiveReject=1 upload=1 replay=1 jobStatusBinding=1 complete=1 publicCardProjection=1 deterministicTitle=1 idempotent=1 cards=1 feedback=1 reminderAckBinding=1 track=1 untrack=1 needsContent=1 deviceDeletionBinding=1 delete=1 objectsRemaining=0`;
   await writeFile(resultJsonPath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   await writeFile(resultTextPath, `${summary}\n`, "utf8");
   process.stdout.write(`${summary}\n`);

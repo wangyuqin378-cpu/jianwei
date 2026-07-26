@@ -88,9 +88,10 @@ class DeviceIdentity @Inject constructor(
             preferences = context.identityStore.data.first()
         }
         val token = storedToken?.let(cipher::decrypt)
-        if (token != null) {
+        val storedDeviceId = preferences[DEVICE_ID]?.let(cipher::decrypt)
+        if (token != null && storedDeviceId != null) {
             try {
-                api.deleteDeviceData("Bearer $token")
+                api.deleteDeviceData("Bearer $token").requireDeletedDevice(storedDeviceId)
                 markDeletionConfirmedLocked()
                 return@withLock true
             } catch (error: HttpException) {
@@ -100,9 +101,8 @@ class DeviceIdentity @Inject constructor(
 
         val installationId = storedInstallation?.let(cipher::decrypt)
             ?: throw AuthenticationExpiredException()
-        val expectedDeviceId = preferences[DEVICE_ID]?.let(cipher::decrypt)
         val registered = api.register(RegisterRequest(installationId)).validatedForInstallation(installationId)
-        if (expectedDeviceId != null && expectedDeviceId != registered.deviceId && !registered.created) {
+        if (storedDeviceId != null && storedDeviceId != registered.deviceId && !registered.created) {
             throw AuthenticationExpiredException()
         }
         context.identityStore.edit {
@@ -110,6 +110,7 @@ class DeviceIdentity @Inject constructor(
             it[DEVICE_ID] = cipher.encrypt(registered.deviceId)
         }
         api.deleteDeviceData("Bearer ${registered.deviceToken}")
+            .requireDeletedDevice(registered.deviceId)
         markDeletionConfirmedLocked()
         true
     }

@@ -13,7 +13,7 @@ export interface CloudAuditApi {
     backendReleaseSha256: string;
     containerImageDigest: string;
   }>;
-  register(): Promise<{ token: string }>;
+  register(): Promise<{ token: string; deviceId: string }>;
   createJob(token: string, candidateToken: string): Promise<{
     jobId: string;
     candidateToken: string;
@@ -35,7 +35,7 @@ export interface CloudAuditApi {
     updatedAt: string;
   }>;
   complete(token: string, jobId: string): Promise<{ jobId: string; candidateToken: string; status: string }>;
-  deleteDevice(token: string): Promise<void>;
+  deleteDevice(token: string, expectedDeviceId: string): Promise<void>;
   cardsStatus(token: string): Promise<number>;
 }
 
@@ -84,15 +84,20 @@ export async function verifyCloudBeta(input: CloudVerificationInput) {
     "OSS retention policy is not safe for Beta evidence");
 
   let token: string | null = null;
+  let deviceId: string | null = null;
   try {
-    token = (await input.api.register()).token;
+    const registration = await input.api.register();
+    token = registration.token;
+    deviceId = registration.deviceId;
     assert(typeof token === "string" && token.length >= 32, "Cloud registration returned an invalid bearer");
+    assert(typeof deviceId === "string" && deviceId.length > 0, "Cloud registration returned an invalid device ID");
     const safe = await runFixture(input, token, input.safeFixture, false);
     const sensitive = await runFixture(input, token, input.sensitiveFixture, true);
-    await input.api.deleteDevice(token);
+    await input.api.deleteDevice(token, deviceId);
     const afterDeleteStatus = await input.api.cardsStatus(token);
     assert(afterDeleteStatus === 401, "Deleted cloud device bearer remained authorized");
     token = null;
+    deviceId = null;
 
     const verifiedAt = now.toISOString();
     const checks = {
@@ -182,7 +187,7 @@ export async function verifyCloudBeta(input: CloudVerificationInput) {
       }
     };
   } finally {
-    if (token) await input.api.deleteDevice(token).catch(() => undefined);
+    if (token && deviceId) await input.api.deleteDevice(token, deviceId).catch(() => undefined);
   }
 }
 

@@ -14,6 +14,7 @@ import cn.jianwei.data.network.CompleteJobResponse
 import cn.jianwei.data.network.CreateJobRequest
 import cn.jianwei.data.network.CreateJobResponse
 import cn.jianwei.data.network.DeviceIdentity
+import cn.jianwei.data.network.DeleteDeviceDataResponse
 import cn.jianwei.data.network.DeviceTokenCipher
 import cn.jianwei.data.network.FeedbackRequest
 import cn.jianwei.data.network.FeedbackResponse
@@ -768,7 +769,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
         override suspend fun register(request: RegisterRequest): RegisterResponse {
             events += "register"
             return RegisterResponse(
-                "00000000-0000-4000-8000-000000000001",
+                DEVICE_ID,
                 DEVICE_TOKEN,
                 cn.jianwei.data.network.installationBindingSha256(request.installationId),
                 created = events.count { it == "register" } == 1
@@ -816,10 +817,11 @@ class TooPrivateSyncOrderingInstrumentedTest {
             return untrackResponseFactory(cardId)
         }
 
-        override suspend fun deleteDeviceData(authorization: String) {
+        override suspend fun deleteDeviceData(authorization: String): DeleteDeviceDataResponse {
             deleteCalls += 1
             if (failDelete) throw HttpException(Response.error<Any>(503, "unavailable".toResponseBody()))
             check(authorization == "Bearer $DEVICE_TOKEN")
+            return DeleteDeviceDataResponse(DEVICE_ID, "deleted")
         }
 
     }
@@ -854,6 +856,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
     )
 
     private companion object {
+        const val DEVICE_ID = "00000000-0000-4000-8000-000000000001"
         const val DEVICE_TOKEN = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val CARD_ID = "2a7d8040-f311-4e83-a38c-1bcd09f21961"
         const val MALFORMED_CARD_ID = "f8dd6a8b-5d4a-4c5a-881d-cddad8fd52c5"

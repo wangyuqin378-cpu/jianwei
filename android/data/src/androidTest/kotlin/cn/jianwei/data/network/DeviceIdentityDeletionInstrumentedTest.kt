@@ -67,6 +67,27 @@ class DeviceIdentityDeletionInstrumentedTest {
     }
 
     @Test
+    fun crossedDeletionAcknowledgement_failsClosed_andPreservesRecoveryIdentity() = runBlocking {
+        val api = RotatingTokenApi().apply { crossDeletionAcknowledgement = true }
+        val identity = freshIdentity(api)
+        try {
+            assertThat(identity.bearer()).isEqualTo("Bearer ${tokenFor(1)}")
+
+            val failure = runCatching { identity.deleteExistingDeviceData() }.exceptionOrNull()
+
+            assertThat(failure).isInstanceOf(IOException::class.java)
+            assertThat(identity.isUnresolved()).isTrue()
+            assertThat(identity.existingBearer()).isEqualTo("Bearer ${tokenFor(1)}")
+
+            api.crossDeletionAcknowledgement = false
+            assertThat(identity.deleteExistingDeviceData()).isTrue()
+            assertThat(api.deletedDeviceIds).containsExactly(DEVICE_A, DEVICE_A).inOrder()
+        } finally {
+            identity.reset()
+        }
+    }
+
+    @Test
     fun deletedDeviceAndLostResponse_reclaimsNewEmptyRegistrationAndFinishes() = runBlocking {
         val api = RotatingTokenApi()
         val identity = freshIdentity(api)
@@ -183,6 +204,7 @@ class DeviceIdentityDeletionInstrumentedTest {
         val deletedDeviceIds = mutableListOf<String>()
         var loseSuccessfulDeleteResponse = false
         var crossInstallationBinding = false
+        var crossDeletionAcknowledgement = false
         private var currentToken = ""
 
         override suspend fun register(request: RegisterRequest): RegisterResponse {
@@ -200,7 +222,7 @@ class DeviceIdentityDeletionInstrumentedTest {
             currentToken = TOKEN_ROTATED
         }
 
-        override suspend fun deleteDeviceData(authorization: String) {
+        override suspend fun deleteDeviceData(authorization: String): DeleteDeviceDataResponse {
             if (authorization != "Bearer $currentToken") throw unauthorized()
             deletedDeviceId = registrationDeviceId
             deletedDeviceIds += registrationDeviceId
@@ -211,6 +233,10 @@ class DeviceIdentityDeletionInstrumentedTest {
                 registrationCreated = true
                 throw IOException("response lost after server deletion")
             }
+            return DeleteDeviceDataResponse(
+                deviceId = if (crossDeletionAcknowledgement) DEVICE_B else registrationDeviceId,
+                status = "deleted"
+            )
         }
 
         override suspend fun createJob(authorization: String, request: CreateJobRequest): CreateJobResponse =

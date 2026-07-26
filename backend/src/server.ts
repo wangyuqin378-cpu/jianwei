@@ -447,7 +447,7 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     const keys = await jobs.listObjectKeys(device.id);
     await Promise.all(keys.map((key) => analysis.deleteOrQueueObject(key)));
     await devices.deleteCascade(device.id);
-    return reply.status(204).send();
+    return reply.send({ deviceId: device.id, status: "deleted" });
   });
 
   return app;

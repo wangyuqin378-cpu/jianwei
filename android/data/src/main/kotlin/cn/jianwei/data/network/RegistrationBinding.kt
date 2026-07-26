@@ -43,3 +43,13 @@ internal fun RegisterResponse.validatedForInstallation(installationId: String): 
     }
     return ValidatedRegisterResponse(validatedDeviceId, validatedToken, validatedCreated)
 }
+
+internal fun DeleteDeviceDataResponse.requireDeletedDevice(expectedDeviceId: String) {
+    if (
+        !DEVICE_ID_PATTERN.matches(expectedDeviceId) ||
+        deviceId != expectedDeviceId ||
+        status != "deleted"
+    ) {
+        throw IOException("Device deletion acknowledgement does not match the pending device")
+    }
+}

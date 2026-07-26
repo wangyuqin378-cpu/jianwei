@@ -461,7 +461,8 @@ describe("见微 API", () => {
     expect(resurrected.json().error.code).toBe("candidate_suppressed");
 
     const deleted = await app.inject({ method: "DELETE", url: "/v1/device-data", headers: bearer(token) });
-    expect(deleted.statusCode).toBe(204);
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.json()).toEqual({ deviceId: expect.stringMatching(/^[0-9a-f-]{36}$/), status: "deleted" });
     const afterDelete = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
     expect(afterDelete.statusCode).toBe(401);
     await app.close();
@@ -720,7 +721,8 @@ describe("见微 API", () => {
     expect(first.statusCode).toBe(201);
 
     const deleted = await app.inject({ method: "DELETE", url: "/v1/device-data", headers: bearer(firstToken) });
-    expect(deleted.statusCode).toBe(204);
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.json()).toEqual({ deviceId: expect.stringMatching(/^[0-9a-f-]{36}$/), status: "deleted" });
     const reinstalledToken = await register(app, SECOND_INSTALLATION_ID);
     const afterReinstall = await app.inject({
       method: "POST",
@@ -1211,7 +1213,8 @@ describe("见微 API", () => {
     expect(replay.statusCode).toBe(409);
 
     const removed = await app.inject({ method: "DELETE", url: "/v1/device-data", headers: bearer(token) });
-    expect(removed.statusCode).toBe(204);
+    expect(removed.statusCode).toBe(200);
+    expect(removed.json()).toEqual({ deviceId: expect.stringMatching(/^[0-9a-f-]{36}$/), status: "deleted" });
     expect(await readdir(objectDir)).toEqual([]);
     const oldBearerReplay = await app.inject({
       method: "PUT",
@@ -1309,7 +1312,9 @@ describe("见微 API", () => {
     expect(globalFuse.statusCode).toBe(429);
     expect(globalFuse.json().error.code).toBe("global_daily_budget_exceeded");
 
-    expect((await app.inject({ method: "DELETE", url: "/v1/device-data", headers: bearer(token) })).statusCode).toBe(204);
+    const deleted = await app.inject({ method: "DELETE", url: "/v1/device-data", headers: bearer(token) });
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.json()).toEqual({ deviceId: expect.stringMatching(/^[0-9a-f-]{36}$/), status: "deleted" });
     const reinstalled = await register(app);
     const revoked = await app.inject({
       method: "POST", url: "/v1/analysis-jobs",

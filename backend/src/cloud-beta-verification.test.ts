@@ -44,7 +44,7 @@ function fixture({
   let deleted = false;
   const api: CloudAuditApi = {
     ready: async () => ({ ok: true, mode: "qwen", catalogVersion, backendReleaseSha256, containerImageDigest }),
-    register: async () => ({ token: "t".repeat(48) }),
+    register: async () => ({ token: "t".repeat(48), deviceId: "00000000-0000-4000-8000-000000000001" }),
     createJob: async (_token, candidateToken) => {
       sequence += 1;
       const jobId = `00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`;
@@ -93,7 +93,10 @@ function fixture({
       if (!leaveObject) objects.delete(job.key);
       return { jobId, candidateToken: job.candidateToken, status: job.status };
     },
-    deleteDevice: async () => { deleted = true; },
+    deleteDevice: async (_token, expectedDeviceId) => {
+      if (expectedDeviceId !== "00000000-0000-4000-8000-000000000001") throw new Error("crossed device");
+      deleted = true;
+    },
     cardsStatus: async () => deleted ? 401 : 200
   };
   const inspector: CloudAuditObjects = {

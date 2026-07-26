@@ -26,8 +26,23 @@ class RegistrationBindingTest {
         assertInvalid(valid.copy(created = null))
     }
 
+    @Test
+    fun deletionAcknowledgement_requiresExactPendingDeviceAndTerminalStatus() {
+        DeleteDeviceDataResponse(DEVICE_ID, "deleted").requireDeletedDevice(DEVICE_ID)
+
+        assertDeletionInvalid(DeleteDeviceDataResponse(null, "deleted"))
+        assertDeletionInvalid(DeleteDeviceDataResponse("20000000-0000-4000-8000-000000000002", "deleted"))
+        assertDeletionInvalid(DeleteDeviceDataResponse(DEVICE_ID, null))
+        assertDeletionInvalid(DeleteDeviceDataResponse(DEVICE_ID, "pending"))
+    }
+
     private fun assertInvalid(response: RegisterResponse) {
         assertThat(runCatching { response.validatedForInstallation(INSTALLATION_ID) }.exceptionOrNull())
+            .isInstanceOf(IOException::class.java)
+    }
+
+    private fun assertDeletionInvalid(response: DeleteDeviceDataResponse) {
+        assertThat(runCatching { response.requireDeletedDevice(DEVICE_ID) }.exceptionOrNull())
             .isInstanceOf(IOException::class.java)
     }
 

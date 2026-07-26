@@ -162,8 +162,9 @@ interactive shell, inspect it without recording terminal output, and destroy the
    identity before binding it into the canonical cloud run.
 6. Kill a processing instance and observe the one-day lifecycle fallback removing the orphan;
    record elapsed time without treating asynchronous lifecycle execution as a strict 24-hour proof.
-7. Call `DELETE /v1/device-data`, verify the bearer is invalid and all owned jobs/cards/objects are
-   gone.
+7. Call `DELETE /v1/device-data`, require the 200 JSON acknowledgement to contain exactly the
+   registered `deviceId` and `status: "deleted"`, then verify the bearer is invalid and all owned
+   jobs/cards/objects are gone.
 8. Save redacted raw evidence in the format required by `evaluation/beta-evidence.example.json`;
    never place photos, tokens, database URLs or cloud credentials in the repository.
 

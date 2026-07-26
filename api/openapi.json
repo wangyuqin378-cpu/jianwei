@@ -119,8 +119,9 @@
       "delete": {
         "operationId": "deleteDeviceData",
         "x-android-client": "retrofit",
+        "x-android-response-model": "DeleteDeviceDataResponse",
         "security": [{ "deviceBearer": [] }],
-        "responses": { "204": { "description": "Deleted" }, "401": { "$ref": "#/components/responses/Error" } }
+        "responses": { "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeleteDeviceDataResponse" } } } }, "401": { "$ref": "#/components/responses/Error" } }
       }
     }
   },
@@ -175,6 +176,7 @@
       "TrackRequest": { "type": "object", "additionalProperties": false, "required": ["startedOn", "reminderDays"], "properties": { "startedOn": { "type": "string", "format": "date" }, "reminderDays": { "type": "integer", "minimum": 7, "maximum": 730 } } },
       "TrackItemResponse": { "type": "object", "additionalProperties": false, "required": ["id", "cardId", "startedOn", "reminderDays", "createdAt"], "properties": { "id": { "type": "string", "format": "uuid" }, "cardId": { "type": "string", "format": "uuid" }, "startedOn": { "type": "string", "format": "date" }, "reminderDays": { "type": "integer", "minimum": 7, "maximum": 730 }, "createdAt": { "type": "string", "format": "date-time" } } },
       "UntrackItemResponse": { "type": "object", "additionalProperties": false, "required": ["cardId", "status"], "properties": { "cardId": { "type": "string", "format": "uuid" }, "status": { "type": "string", "const": "untracked" } } },
+      "DeleteDeviceDataResponse": { "type": "object", "additionalProperties": false, "required": ["deviceId", "status"], "properties": { "deviceId": { "type": "string", "format": "uuid" }, "status": { "type": "string", "const": "deleted" } } },
       "TopicAffinity": { "type": "object", "additionalProperties": false, "required": ["topicId", "weight", "aliases"], "properties": { "topicId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "weight": { "type": "number", "minimum": -2, "maximum": 2 }, "aliases": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 2, "maxLength": 48 } } } },
       "Source": { "type": "object", "additionalProperties": false, "required": ["sourceId", "title", "url", "publisher", "authority"], "properties": { "sourceId": { "type": "string", "minLength": 1, "maxLength": 100 }, "title": { "type": "string", "minLength": 1, "maxLength": 200 }, "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" }, "publisher": { "type": "string", "minLength": 1, "maxLength": 120 }, "authority": { "type": "string", "enum": ["reference", "official", "professional"] } } },
       "Card": {
