@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { personalContextForPhoto, scheduledDateInChina } from "./analysis-service.js";
+import {
+  AnalysisService,
+  type CreateJobInput,
+  personalContextForPhoto,
+  scheduledDateInChina,
+  UPLOAD_CLAIM_LEASE_MS
+} from "./analysis-service.js";
 import { InMemoryRepositories } from "../infrastructure/in-memory-repositories.js";
 import { nextAvailableScheduledDate } from "../domain/card-scheduling.js";
+import type { ObjectStore, VisionProvider } from "../domain/types.js";
+import type { KnowledgeCatalogService } from "./knowledge-catalog.js";
 
 describe("China-local card scheduling", () => {
   it("uses the next China calendar day after 16:00 UTC", () => {
@@ -78,3 +86,116 @@ describe("pending object deletion scheduling", () => {
     )).toEqual(firstBatch);
   });
 });
+
+describe("upload claim recovery", () => {
+  it("replaces a stale upload claim without letting the old session finish the new upload", async () => {
+    const repositories = new InMemoryRepositories();
+    const device = await repositories.devicesRepository.register("upload-installation", "upload-token");
+    const objects = new TrackingObjectStore();
+    const service = analysisService(repositories, objects);
+    const input = createJobInput("00000000-0000-4000-8000-000000000015");
+    const first = await service.createJob(device, input);
+    const oldSessionId = first.job.uploadSessionId!;
+    const oldObjectKey = first.job.objectKey!;
+    expect(await repositories.jobsRepository.claimForUpload(
+      oldSessionId,
+      device.id,
+      new Date(Date.now() - UPLOAD_CLAIM_LEASE_MS - 1).toISOString()
+    )).toMatchObject({ status: "uploading" });
+
+    const retried = await service.createJob(device, input);
+
+    expect(retried.job.id).toBe(first.job.id);
+    expect(retried.job.status).toBe("awaiting_upload");
+    expect(retried.job.uploadSessionId).not.toBe(oldSessionId);
+    expect(retried.job.objectKey).not.toBe(oldObjectKey);
+    expect(objects.deleted).toEqual([oldObjectKey]);
+    await expect(repositories.jobsRepository.finishUpload(
+      first.job.id,
+      oldSessionId,
+      null
+    )).resolves.toBeNull();
+    await expect(repositories.jobsRepository.claimForUpload(
+      retried.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    )).resolves.toMatchObject({ status: "uploading" });
+  });
+
+  it("does not steal a fresh upload claim", async () => {
+    const repositories = new InMemoryRepositories();
+    const device = await repositories.devicesRepository.register("fresh-installation", "fresh-token");
+    const objects = new TrackingObjectStore();
+    const service = analysisService(repositories, objects);
+    const input = createJobInput("00000000-0000-4000-8000-000000000016");
+    const first = await service.createJob(device, input);
+    await repositories.jobsRepository.claimForUpload(
+      first.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    );
+
+    await expect(service.createJob(device, input)).rejects.toMatchObject({
+      code: "upload_in_progress",
+      statusCode: 409
+    });
+    expect(objects.deleted).toEqual([]);
+  });
+});
+
+function analysisService(repositories: InMemoryRepositories, objects: ObjectStore): AnalysisService {
+  const vision: VisionProvider = {
+    detect: async () => ({
+      canonicalTopicId: "broom",
+      displayName: "扫帚",
+      confidence: 0.9,
+      boundingBox: null,
+      alternatives: [],
+      sensitiveFlags: []
+    })
+  };
+  return new AnalysisService(
+    repositories.jobsRepository,
+    repositories.cardsRepository,
+    objects,
+    repositories.objectDeletionsRepository,
+    vision,
+    {} as KnowledgeCatalogService,
+    100,
+    1_000,
+    10_000,
+    100_000,
+    1,
+    10_000,
+    100_000,
+    true,
+    "https://api.example.test"
+  );
+}
+
+function createJobInput(candidateToken: string): CreateJobInput {
+  return {
+    candidateToken,
+    capturedAtBucket: "2026-07-26",
+    localLabels: ["broom"],
+    qualityScore: 0.9,
+    sensitiveFlags: [],
+    contentType: "image/jpeg"
+  };
+}
+
+class TrackingObjectStore implements ObjectStore {
+  readonly deleted: string[] = [];
+
+  async verifyRetentionPolicy(): Promise<void> {}
+  async createObjectKey(jobId: string, uploadSessionId: string): Promise<string> {
+    return `analysis/${jobId}/${uploadSessionId}.image`;
+  }
+  async put(): Promise<void> {}
+  async head(): Promise<{ size: number; contentType: string | null }> {
+    return { size: 64, contentType: "image/jpeg" };
+  }
+  async get(): Promise<Buffer> { return Buffer.alloc(64); }
+  async delete(objectKey: string): Promise<void> { this.deleted.push(objectKey); }
+  async purgeExpired(): Promise<number> { return 0; }
+}

@@ -21,8 +21,11 @@ afterEach(async () => {
 describe("OSS lifecycle guard", () => {
   it("creates only a private object key and never a direct OSS upload capability", async () => {
     const { store } = ossStoreWithPolicy(undefined);
-    await expect(store.createObjectKey("00000000-0000-4000-8000-000000000001")).resolves.toMatch(
-      /^analysis\/\d{4}-\d{2}-\d{2}\/00000000-0000-4000-8000-000000000001\.image$/
+    await expect(store.createObjectKey(
+      "00000000-0000-4000-8000-000000000001",
+      "00000000-0000-4000-8000-000000000002"
+    )).resolves.toMatch(
+      /^analysis\/\d{4}-\d{2}-\d{2}\/00000000-0000-4000-8000-000000000001-00000000-0000-4000-8000-000000000002\.image$/
     );
   });
 

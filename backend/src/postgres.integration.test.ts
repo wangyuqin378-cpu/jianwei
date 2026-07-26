@@ -381,6 +381,58 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
     )).toMatchObject({ status: "needs_content", errorCode: "verified" });
   });
 
+  it("recovers a stale upload claim and isolates the replacement session", async () => {
+    const device = await repositories[0].devicesRepository.register("upload-lease-installation", "upload-lease-token");
+    const oldSessionId = randomUUID();
+    const oldObjectKey = `analysis/test/${oldSessionId}.image`;
+    const result = await repositories[0].jobsRepository.createWithinBudget(
+      createInput(device.id, randomUUID()),
+      createBudget()
+    );
+    if (result.status !== "created") throw new Error("test setup failed");
+    expect(await repositories[0].jobsRepository.prepareUpload(result.job.id, null, {
+      objectKey: oldObjectKey,
+      uploadSessionId: oldSessionId,
+      uploadExpiresAt: new Date(Date.now() + 60_000).toISOString()
+    })).toMatchObject({ status: "awaiting_upload", uploadSessionId: oldSessionId });
+    expect(await repositories[0].jobsRepository.claimForUpload(
+      oldSessionId,
+      device.id,
+      new Date(Date.now() - 61_000).toISOString()
+    )).toMatchObject({ status: "uploading" });
+
+    expect(await repositories[1].jobsRepository.recoverStaleUpload(
+      result.job.id,
+      new Date(Date.now() - 60_000).toISOString()
+    )).toMatchObject({
+      status: "failed",
+      uploadClaimedAt: null,
+      errorCode: "upload_lease_recovered"
+    });
+    const newSessionId = randomUUID();
+    const replacement = await repositories[2].jobsRepository.prepareUpload(
+      result.job.id,
+      oldSessionId,
+      {
+        objectKey: `analysis/test/${newSessionId}.image`,
+        uploadSessionId: newSessionId,
+        uploadExpiresAt: new Date(Date.now() + 60_000).toISOString()
+      }
+    );
+    expect(replacement).toMatchObject({ status: "awaiting_upload", uploadSessionId: newSessionId });
+    expect(await repositories[0].jobsRepository.finishUpload(result.job.id, oldSessionId, null)).toBeNull();
+    expect(await repositories[3].jobsRepository.claimForUpload(
+      newSessionId,
+      device.id,
+      new Date().toISOString()
+    )).toMatchObject({ status: "uploading" });
+    expect(await repositories[3].jobsRepository.finishUpload(
+      result.job.id,
+      newSessionId,
+      null
+    )).toMatchObject({ status: "uploaded" });
+  });
+
   it("serializes concurrent card completions into contiguous per-device days and repairs gaps", async () => {
     const device = await repositories[0].devicesRepository.register("schedule-installation", "schedule-token");
     const baseDate = "2026-07-20";

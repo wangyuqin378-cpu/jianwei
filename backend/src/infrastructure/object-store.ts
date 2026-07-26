@@ -12,8 +12,8 @@ export class LocalObjectStore implements ObjectStore {
 
   async verifyRetentionPolicy(): Promise<void> {}
 
-  async createObjectKey(jobId: string): Promise<string> {
-    return `${jobId}.image`;
+  async createObjectKey(jobId: string, uploadSessionId: string): Promise<string> {
+    return `${jobId}-${uploadSessionId}.image`;
   }
 
   async put(objectKey: string, body: Buffer): Promise<void> {
@@ -80,10 +80,10 @@ export class OssObjectStore implements ObjectStore {
     }
   }
 
-  async createObjectKey(jobId: string): Promise<string> {
+  async createObjectKey(jobId: string, uploadSessionId: string): Promise<string> {
     // Upload authorization is owned by the authenticated API and its database
     // session. The OSS client never creates or returns a direct PUT capability.
-    return `analysis/${new Date().toISOString().slice(0, 10)}/${jobId}.image`;
+    return `analysis/${new Date().toISOString().slice(0, 10)}/${jobId}-${uploadSessionId}.image`;
   }
 
   async put(objectKey: string, body: Buffer): Promise<void> {

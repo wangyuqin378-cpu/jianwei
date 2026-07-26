@@ -209,6 +209,7 @@ export interface AnalysisJobRepository {
   ): Promise<AnalysisJob | null>;
   claimForUpload(uploadSessionId: string, deviceId: string, nowIso: string): Promise<AnalysisJob | null>;
   finishUpload(id: string, uploadSessionId: string, errorCode: string | null): Promise<AnalysisJob | null>;
+  recoverStaleUpload(id: string, staleBeforeIso: string): Promise<AnalysisJob | null>;
   recoverExpiredProcessing(id: string, nowIso: string): Promise<AnalysisJob | null>;
   claimForProcessing(id: string, claimToken: string, leaseExpiresAt: string): Promise<AnalysisJob | null>;
   finishProcessing(
@@ -247,7 +248,7 @@ export interface CardRepository {
 
 export interface ObjectStore {
   verifyRetentionPolicy(): Promise<void>;
-  createObjectKey(jobId: string): Promise<string>;
+  createObjectKey(jobId: string, uploadSessionId: string): Promise<string>;
   put(objectKey: string, body: Buffer, contentType: string): Promise<void>;
   head(objectKey: string): Promise<{ size: number; contentType: string | null }>;
   get(objectKey: string): Promise<Buffer>;

@@ -841,7 +841,9 @@ describe("见微 API", () => {
       headers: { ...bearer(token), "content-type": "image/jpeg" },
       payload: jpegPayload(9)
     });
-    await writeFile(path.join(objectDir, `${jobId}.image`), Buffer.from("not-a-jpeg".padEnd(64, "!")));
+    const [storedObject] = await readdir(objectDir);
+    expect(storedObject).toMatch(new RegExp(`^${jobId}-[0-9a-f-]{36}\\.image$`, "i"));
+    await writeFile(path.join(objectDir, storedObject!), Buffer.from("not-a-jpeg".padEnd(64, "!")));
 
     const completed = await app.inject({
       method: "POST",
@@ -886,7 +888,9 @@ describe("见微 API", () => {
       payload: jpegPayload(4)
     });
     expect(uploaded.statusCode).toBe(200);
-    await writeFile(path.join(objectDir, `${jobId}.image`), jpegPayload(4, 3 * 1024 * 1024 + 1));
+    const [storedObject] = await readdir(objectDir);
+    expect(storedObject).toMatch(new RegExp(`^${jobId}-[0-9a-f-]{36}\\.image$`, "i"));
+    await writeFile(path.join(objectDir, storedObject!), jpegPayload(4, 3 * 1024 * 1024 + 1));
 
     const completed = await app.inject({
       method: "POST",
@@ -1100,7 +1104,9 @@ describe("见微 API", () => {
       headers: bearer(token)
     });
     expect(completed.statusCode).toBe(200);
-    expect(await readdir(objectDir)).toEqual([`${jobId}.image`]);
+    expect(await readdir(objectDir)).toEqual([
+      expect.stringMatching(new RegExp(`^${jobId}-[0-9a-f-]{36}\\.image$`, "i"))
+    ]);
 
     const removed = await app.inject({
       method: "POST",

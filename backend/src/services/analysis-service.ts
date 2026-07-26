@@ -22,6 +22,7 @@ const BLOCKING_FLAGS = new Set([
 ]);
 
 export const UPLOAD_SESSION_TTL_MS = 10 * 60 * 1000;
+export const UPLOAD_CLAIM_LEASE_MS = 60_000;
 export const PROCESSING_LEASE_MS = 210_000;
 const RECENT_FACT_LOOKBACK_PER_TOPIC = 4;
 
@@ -66,6 +67,9 @@ export class AnalysisService {
     if (blocked) throw new AppError("sensitive_candidate", `候选图被端侧隐私规则拦截：${blocked}`, 422);
     if (input.qualityScore < 0.35) throw new AppError("low_quality", "候选图清晰度不足", 422);
     let existing = await this.jobs.findByCandidateToken(device.id, input.candidateToken);
+    if (existing?.status === "uploading") {
+      existing = await this.recoverStaleUpload(existing) ?? existing;
+    }
     if (existing?.status === "processing") {
       existing = await this.jobs.recoverExpiredProcessing(existing.id, new Date().toISOString()) ?? existing;
     }
@@ -183,8 +187,8 @@ export class AnalysisService {
     // Re-check on every new upload target so an operator cannot weaken the OSS lifecycle
     // after process startup and silently extend photo retention.
     await this.objects.verifyRetentionPolicy();
-    const objectKey = await this.objects.createObjectKey(job.id);
     const uploadSessionId = randomUUID();
+    const objectKey = await this.objects.createObjectKey(job.id, uploadSessionId);
     const uploadExpiresAt = new Date(Date.now() + UPLOAD_SESSION_TTL_MS).toISOString();
     const updated = await this.jobs.prepareUpload(job.id, job.uploadSessionId, {
       objectKey,
@@ -241,7 +245,6 @@ export class AnalysisService {
   }
 
   async complete(device: Device, jobId: string): Promise<{ job: AnalysisJob; card: KnowledgeCard | null }> {
-    await this.jobs.recoverExpiredProcessing(jobId, new Date().toISOString());
     const job = await this.requireOwnedJob(device, jobId);
     if (await this.jobs.isCandidateSuppressed(device.id, job.candidateToken)) {
       throw new AppError("candidate_suppressed", "该候选已被当前匿名设备排除", 410);
@@ -414,9 +417,22 @@ export class AnalysisService {
   }
 
   async requireOwnedJob(device: Device, jobId: string): Promise<AnalysisJob> {
-    const job = await this.jobs.findById(jobId);
+    let job = await this.jobs.findById(jobId);
     if (!job || job.deviceId !== device.id) throw new AppError("job_not_found", "分析任务不存在", 404);
+    if (job.status === "uploading") job = await this.recoverStaleUpload(job) ?? job;
+    if (job.status === "processing") {
+      job = await this.jobs.recoverExpiredProcessing(job.id, new Date().toISOString()) ?? job;
+    }
     return job;
+  }
+
+  private async recoverStaleUpload(job: AnalysisJob): Promise<AnalysisJob | null> {
+    const recovered = await this.jobs.recoverStaleUpload(
+      job.id,
+      new Date(Date.now() - UPLOAD_CLAIM_LEASE_MS).toISOString()
+    );
+    if (recovered?.objectKey) await this.deleteOrQueueObject(recovered.objectKey);
+    return recovered;
   }
 }
 

@@ -240,6 +240,21 @@ export class InMemoryRepositories {
     return updated;
   }
 
+  async recoverStaleUpload(id: string, staleBeforeIso: string): Promise<AnalysisJob | null> {
+    const current = this.jobs.get(id);
+    if (!current || current.status !== "uploading" || !current.uploadClaimedAt) return null;
+    if (current.uploadClaimedAt > staleBeforeIso) return null;
+    const updated: AnalysisJob = {
+      ...current,
+      status: "failed",
+      uploadClaimedAt: null,
+      errorCode: "upload_lease_recovered",
+      updatedAt: new Date().toISOString()
+    };
+    this.jobs.set(id, updated);
+    return updated;
+  }
+
   async recoverExpiredProcessing(id: string, nowIso: string): Promise<AnalysisJob | null> {
     const current = this.jobs.get(id);
     if (!current || current.status !== "processing" || !current.processingLeaseExpiresAt) return null;
@@ -539,6 +554,7 @@ export class InMemoryRepositories {
     prepareUpload: (id, expectedSessionId, input) => this.prepareUpload(id, expectedSessionId, input),
     claimForUpload: (uploadSessionId, deviceId, nowIso) => this.claimForUpload(uploadSessionId, deviceId, nowIso),
     finishUpload: (id, uploadSessionId, errorCode) => this.finishUpload(id, uploadSessionId, errorCode),
+    recoverStaleUpload: (id, staleBeforeIso) => this.recoverStaleUpload(id, staleBeforeIso),
     recoverExpiredProcessing: (id, nowIso) => this.recoverExpiredProcessing(id, nowIso),
     claimForProcessing: (id, claimToken, leaseExpiresAt) => this.claimForProcessing(id, claimToken, leaseExpiresAt),
     finishProcessing: (id, claimToken, status, errorCode) => this.finishProcessing(id, claimToken, status, errorCode),

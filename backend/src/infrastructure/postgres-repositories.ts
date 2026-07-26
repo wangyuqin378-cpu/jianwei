@@ -329,6 +329,19 @@ export class PostgresRepositories {
         RETURNING *`;
       return rows[0] ? jobFrom(rows[0]) : null;
     },
+    recoverStaleUpload: async (id, staleBeforeIso) => {
+      const rows = await this.sql<DbRow[]>`
+        UPDATE analysis_jobs SET
+          status = 'failed',
+          upload_claimed_at = NULL,
+          error_code = 'upload_lease_recovered',
+          updated_at = now()
+        WHERE id = ${id}
+          AND status = 'uploading'
+          AND upload_claimed_at <= ${staleBeforeIso}
+        RETURNING *`;
+      return rows[0] ? jobFrom(rows[0]) : null;
+    },
     recoverExpiredProcessing: async (id, nowIso) => {
       const rows = await this.sql<DbRow[]>`
         UPDATE analysis_jobs SET
