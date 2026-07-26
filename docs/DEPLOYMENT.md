@@ -53,6 +53,17 @@ fallback and is never release evidence.
 Before deployment, an operator can verify the workspace, fixed models and guardrail activation with
 one explicitly authorized, non-personal JPEG:
 
+This integration does **not** require buying another Qwen token plan or a large prepaid moderation
+package. The Alibaba Cloud primary account must first:
+
+1. Open AI Safety Guardrails pay-as-you-go and allow Alibaba Cloud to create
+   `AliyunServiceRoleForSFMAccessingCIP`. Activation itself is free; only actual guardrail calls are
+   billed. See the official [activation and billing guide](https://help.aliyun.com/zh/document_detail/2872706.html).
+2. Open Bailian **Security Management**, choose **Authorize**, and confirm content-safety access for
+   the same account/workspace. See the official [Bailian input/output guardrail guide](https://help.aliyun.com/zh/model-studio/content-security/).
+3. Run the text-only preflight below. Do not run the authorized-image verifier until it returns
+   `guardrailAccess: "GO"`.
+
 ```powershell
 cd backend
 pnpm verify:qwen-guardrail-access -- --credentials-file <absolute-path-to-downloaded-csv>

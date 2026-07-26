@@ -1,5 +1,7 @@
 # 见微完成度审计
 
+2026-07-26 生产 Qwen 安全护栏最新外部状态（当前最新 Provider 权威摘要）：使用现有北京百炼业务空间 Key 于 `2026-07-26T09:49:39.869Z` 再次执行文本-only、最多 32 token、携带生产 `X-DashScope-DataInspection: {"input":"cip","output":"cip"}` 的最小探针；固定 `qwen3.6-flash-2026-04-16` 返回 HTTP 403 / `access_denied`，没有读取或上传照片，也没有输出/落盘 API Key。阿里云官方文档确认这不是 Qwen token 套餐不足：主账号必须先开通 AI 安全护栏按量付费并允许创建 `AliyunServiceRoleForSFMAccessingCIP`，再到百炼安全管理执行内容安全授权。开通本身不收费，实际护栏调用按量计费；当前无需购买大规格预付费资源包。生产 Provider 继续失败关闭，完整授权图片验证不得在文本探针 GO 前执行，Beta 保持 `NO_GO`。
+
 2026-07-26 显式导入结果崩溃恢复与迟到结果隔离（当前最新 Android 权威摘要）：Picker/系统分享的候选先提交 Room，随后 App 才把随机 candidate token 写入独立的结果交接状态。若进程恰好在候选 token 被重选替换、清理或 Room 提交之后而交接状态更新之前退出，重启会恢复一个已不属于任何候选的旧 token；原结果策略把候选缺失永久解释成“还在处理”，用户会一直看到进度态。另一竞态是旧请求的 Room/card emission 可能在新一轮选图已经写入后迟到，原无条件 `complete` 会清掉新请求，让真正的新照片失去结果追踪。
 
 当前 `MainViewModel` 不再分别 combine 可错位的 token 流与候选流，而是由 `flatMapLatest` 产出同一代 token + Room 查询结果的配对快照。配对查询稳定缺失时，domain 策略立即返回不可重试失败，持久状态转成现有“这张照片需要重新选择”结果页，不再无限转圈。每个完成结果同时携带其解析时的 token 集合，`PendingImportResultStore.completeIfCurrent` 只有在持久化当前 token 仍精确一致时才提交卡片/NO_MATCH/FAILED 并清空请求；旧请求迟到时失败关闭，不覆盖新的 Picker/分享导入。真实可重试失败仍要求 Room 中保留 READY/COMPLETED 等候选，点击后继续沿原 WorkManager 链分析。

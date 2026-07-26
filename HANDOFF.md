@@ -132,7 +132,7 @@
 
 ## 当前阻断
 
-- 百炼按量付费 Key 与 Qwen 模型权限已验证可用；2026-07-26T08:05:23.847Z 再次执行无图片、最多 32 token 的生产护栏文本预检，固定 `qwen3.6-flash-2026-04-16` 仍返回 `403 access_denied`。AI 安全护栏和所需 `AliyunServiceRoleForSFMAccessingCIP` 服务关联角色尚未开通；在此之前生产 Provider 会按设计失败关闭，不能形成真实 Qwen 安全管线放行证据。
+- 百炼按量付费 Key 与 Qwen 模型权限已验证可用；2026-07-26T09:49:39.869Z 再次执行无图片、最多 32 token 的生产护栏文本预检，固定 `qwen3.6-flash-2026-04-16` 仍返回 `403 access_denied`。阿里云官方当前流程要求主账号先开通 AI 安全护栏按量付费并创建 `AliyunServiceRoleForSFMAccessingCIP`，再到百炼“安全管理”执行“去授权”；开通本身不收费，只有真实调用按量计费，不需要另买 Qwen token 套餐或大规格资源包。在此之前生产 Provider 会按设计失败关闭，不能形成真实 Qwen 安全管线放行证据。
 - 知识目录 200 个主题、624 条事实；613 draft、11 仅状态 approved、0 真人签注、0 ready topic。未提供受保护的 `JIANWEI_KNOWLEDGE_REVIEWER_IDS`。
 - 已有与当前目录绑定的全目录 531/531 来源可访问证据，但来源可访问不等于语义支持；624 条事实仍未经过受保护白名单中的责任人逐条审核。
 - 只有一张 CC0 图片的本地工程闭环；仍没有 300–500 张明确授权的隐私/识别评测集，也没有真实 Qwen/OSS 生产管线结果。
