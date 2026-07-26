@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-07-26 反馈偏好响应持久化边界（当前最新 Android 权威摘要）：服务端确认 LIKE、DISLIKE、SAVE、WRONG_OBJECT 或 TOO_PRIVATE 后会返回当前 topic 权重快照，客户端原来逐项调用 Room upsert。其唯一输入检查是 topic ID 非空；权重依赖 `coerceIn(-2, 2)`，但 NaN 与上下界的比较都为 false，仍会原样流入持久层。异常/重复 topic ID、过多别名、控制字符和超大响应也未拒绝；更重要的是，如果第二项才损坏，第一项已经提交，重试前本地推荐状态会成为服务端从未发布过的半份快照。
+
+当前 `LocalTopicAffinityStore` 在任何 DAO 查询或写入前先验证并规范化完整集合：最多 20 个 topic，ID 使用与卡片相同的有界安全字符集且不可重复；权重必须 finite 且位于 domain 的 -2..2；每个 topic 最多 12 个别名，每个别名去边缘空白并小写后须为 2–48 Unicode code point、不得含 ISO 控制字符，最后才去重。任意一项失败都会抛出 I/O 失败，使反馈 outbox 保留并依赖服务端已有幂等性重试；不会静默截断坏权重或部分改变 Room。
+
+新增 JVM 回归覆盖 NaN、Infinity、上下界外、异常/重复 ID、过大 topic/alias 集合、过短/过长/控制字符别名和合法规范化。API 34 使用真实内存 Room 传入“首项合法、第二项 NaN”，验证抛出后 `topic_affinities` 仍为空。最终 Android JVM 215/215（Domain 64、Data 85、App 66），完整 Data instrumentation 73/73；Data/App Debug Lint、App Release Lint、Debug 与 R8 Release、源码守卫 `feedbackAffinityPayloadValidation=1` 和差异检查通过。Debug/未签名 Release/Data 测试 APK SHA-256 为 `7bc2f381c9fcf05f6bd6d5cfcacfc3444c6ba8666d750afa1bac9f094b5261e6` / `22c0cb8a9a73a944fabff3c029c06802c46d8f28425396438fa2adc7593a37aa` / `13231431c9de47fcbe7de759039abdc59b7d4d75373e71852d00cf09b5eab3b2`。外部发布阻断不变，Beta 保持 `NO_GO`。
+
 2026-07-26 远端卡片持久化边界（当前最新 Android 权威摘要）：卡片分页原来会先校验来源 URL、来源权威级别和游标，但其他 Card DTO 字段直接进入 Room。非法 `scheduledDate` 可以完成数据库提交，随后在 Room observer 的 domain 映射中反复触发 `LocalDate.parse()`；非法状态、非有限置信度、过长正文或不安全标识符也缺少客户端最后一道失败关闭边界。由于卡片同步还负责确认 `TOO_PRIVATE`、`WRONG_OBJECT` 和普通反馈 outbox，简单地把全部校验前置又会让一张已经被用户标为私密的陈旧卡片因坏正文而永久阻塞删除确认。
 
 当前实现把边界拆成两阶段：先严格校验 card ID 与 candidate token 的 UUID，再立即执行当前同步批次的 `TOO_PRIVATE` card ID 屏障和本地 `NEVER_ANALYZE` 候选屏障；只有仍有资格展示的卡片才继续校验 topic/fact ID、标题、对象名、正文、推送原因、有限且位于 0–1 的置信度、允许状态、规范 ISO 日期、可解析 Instant 与 1–3 个安全来源。所有展示文本按 Unicode code point 计数并只规范化边缘空白。整套分页在内存中全部通过后才单次写入 Room，因此后续页损坏不会产生半更新缓存，也不会提前确认任何 outbox。

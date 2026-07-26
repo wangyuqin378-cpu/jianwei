@@ -7,6 +7,7 @@ import cn.jianwei.data.local.CardEntity
 import cn.jianwei.data.local.JianweiDatabase
 import cn.jianwei.domain.model.FeedbackAction
 import com.google.common.truth.Truth.assertThat
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -33,6 +34,27 @@ class TopicAffinityPersistenceInstrumentedTest {
         } finally {
             reopened.close()
             context.deleteDatabase(DATABASE_NAME)
+        }
+    }
+
+    @Test
+    fun malformedLaterServerAffinityLeavesRoomUntouched() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val database = Room.inMemoryDatabaseBuilder(context, JianweiDatabase::class.java).build()
+        try {
+            val failure = runCatching {
+                LocalTopicAffinityStore(database.cards()).applyServerWeights(
+                    listOf(
+                        ServerTopicAffinity("broom", 0.7, listOf("扫帚")),
+                        ServerTopicAffinity("toothbrush", Double.NaN, listOf("牙刷"))
+                    )
+                )
+            }.exceptionOrNull()
+
+            assertThat(failure).isInstanceOf(IOException::class.java)
+            assertThat(database.cards().topicAffinities()).isEmpty()
+        } finally {
+            database.close()
         }
     }
 
