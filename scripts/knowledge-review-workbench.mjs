@@ -36,13 +36,17 @@ const queue = JSON.parse(await readFile(queuePath, "utf8"));
 let loaded;
 
 if (args.has("--preflight")) {
+  const riskLevel = riskArgument(args);
+  const wholeTopics = args.has("--whole-topics");
   const batch = preflightReviewSession({
     catalogText,
     queue,
     limit: integerArgument(args, "--limit", 20, 1, 50),
-    topicId: typeof args.get("--topic") === "string" ? String(args.get("--topic")).trim() : null
+    topicId: typeof args.get("--topic") === "string" ? String(args.get("--topic")).trim() : null,
+    riskLevel,
+    wholeTopics
   });
-  process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_PREFLIGHT=GO catalog=${batch.catalogVersion} decisions=${batch.decisions.length} allPending=1 grantsApproval=0\n`);
+  process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_PREFLIGHT=GO catalog=${batch.catalogVersion} decisions=${batch.decisions.length} risk=${riskLevel ?? "all"} wholeTopics=${wholeTopics ? 1 : 0} allPending=1 grantsApproval=0\n`);
   process.exit(0);
 }
 
@@ -58,6 +62,8 @@ if (args.has("--resume")) {
   if (!args.has("--confirm-human-review-session")) {
     throw new Error("--confirm-human-review-session is required; this workbench is only for an accountable human reviewer");
   }
+  const riskLevel = riskArgument(args);
+  const wholeTopics = args.has("--whole-topics");
   const outputPath = await resolveControlledOutput(roots.outputRoot, path.resolve(process.cwd(), requiredString(args, "--output")));
   loaded = await createReviewSession({
     catalogText,
@@ -67,6 +73,8 @@ if (args.has("--resume")) {
     outputFileName: path.basename(outputPath),
     limit: integerArgument(args, "--limit", 20, 1, 50),
     topicId: typeof args.get("--topic") === "string" ? String(args.get("--topic")).trim() : null,
+    riskLevel,
+    wholeTopics,
     sessionRoot: roots.sessionRoot
   });
 }
@@ -99,6 +107,15 @@ function integerArgument(args, name, fallback, minimum, maximum) {
     throw new Error(`${name} must be an integer from ${minimum} to ${maximum}`);
   }
   return value;
+}
+
+function riskArgument(args) {
+  const value = args.get("--risk");
+  if (value === undefined) return null;
+  if (typeof value !== "string" || !["general", "health", "safety"].includes(value.trim())) {
+    throw new Error("--risk must be general, health or safety");
+  }
+  return value.trim();
 }
 
 async function runSelfTest() {
@@ -166,10 +183,15 @@ async function runSelfTest() {
       nextCatalogVersion: "fixture-2",
       outputFileName: "fixture-review.json",
       limit: 2,
+      riskLevel: "general",
+      wholeTopics: true,
       sessionRoot: roots.sessionRoot,
       now: new Date("2026-01-01T00:00:00.000Z"),
       sessionId: "a".repeat(32)
     });
+    if (created.state.selection.riskLevel !== "general" || created.state.selection.wholeTopics !== true) {
+      throw new Error("Workbench did not persist the launch-batch selection policy");
+    }
     workbench = await startReviewWorkbench({
       ...created,
       outputRoot: roots.outputRoot,
@@ -252,7 +274,7 @@ async function runSelfTest() {
     if (applied.metrics.approved !== 1 || applied.metrics.rejected !== 1 || JSON.stringify(originalCatalog) !== JSON.stringify(fixtureCatalog())) {
       throw new Error("Workbench output was not apply-compatible or mutated the source catalog");
     }
-    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 decisionIdentityPreserved=1 autosaveRaceSafe=1 conflictPreservesInput=1 finalizeFlush=1 decisionPreflight=1 highRiskGuidance=1 recoveryDraft=1 autoApply=0\n`);
+    process.stdout.write(`KNOWLEDGE_REVIEW_WORKBENCH_SELF_TEST=GO synthetic=1 releaseEvidence=0 loopbackOnly=1 hostRejected=1 csrfRejected=1 oneTimeBootstrap=1 pathEscapeRejected=1 symlinkRejected=${symlinkRejected ? 1 : 0} aiReviewerRejected=1 preconfirmedRejected=1 revisionDigestRejected=1 staleRevisionRejected=1 humanCheckpoint=1 atomicFinalOutput=1 decisionIdentityPreserved=1 autosaveRaceSafe=1 conflictPreservesInput=1 finalizeFlush=1 decisionPreflight=1 highRiskGuidance=1 recoveryDraft=1 riskFilter=1 wholeTopics=1 autoApply=0\n`);
   } finally {
     if (workbench) await workbench.close();
     const resolved = path.resolve(workspace);

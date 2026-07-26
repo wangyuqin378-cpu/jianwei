@@ -65,6 +65,8 @@ export async function createReviewSession({
   outputFileName,
   limit = 20,
   topicId = null,
+  riskLevel = null,
+  wholeTopics = false,
   sessionRoot,
   now = new Date(),
   sessionId = randomBytes(16).toString("hex")
@@ -77,7 +79,14 @@ export async function createReviewSession({
   if (!OUTPUT_NAME.test(outputFileName ?? "")) throw new Error("Review output filename is invalid");
   if (!SESSION_ID.test(sessionId)) throw new Error("Review session ID is invalid");
   if (!Number.isFinite(now.getTime())) throw new Error("Review session timestamp is invalid");
-  const batch = preflightReviewSession({ catalogText, queue, limit, topicId });
+  const batch = preflightReviewSession({
+    catalogText,
+    queue,
+    limit,
+    topicId,
+    riskLevel,
+    wholeTopics
+  });
   batch.nextCatalogVersion = nextCatalogVersion;
   const items = selectedReviewItems(queue, batch);
   const state = {
@@ -88,7 +97,7 @@ export async function createReviewSession({
     outputFileName,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
-    selection: { limit, topicId },
+    selection: { limit, topicId, riskLevel, wholeTopics },
     revision: 0,
     finalizedAt: null,
     outputSha256: null,
@@ -103,9 +112,16 @@ export async function createReviewSession({
   return { state, sessionDirectory };
 }
 
-export function preflightReviewSession({ catalogText, queue, limit = 20, topicId = null }) {
+export function preflightReviewSession({
+  catalogText,
+  queue,
+  limit = 20,
+  topicId = null,
+  riskLevel = null,
+  wholeTopics = false
+}) {
   assertCatalogQueueSnapshot(catalogText, queue);
-  const batch = createReviewTemplate(queue, { limit, topicId });
+  const batch = createReviewTemplate(queue, { limit, topicId, riskLevel, wholeTopics });
   assertFailClosedReviewTemplate(batch);
   return batch;
 }

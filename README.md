@@ -220,6 +220,10 @@ cd android
 导出不含 CSRF 的本地恢复草稿，但该文件不能直接应用目录或构成真人签注。完成批次前会等待最后一次保存，
 完成后仍须在终端执行页面给出的人工应用命令：
 
+若目标是先形成第一批可用的一般物件知识，可在下面命令中加入
+`--risk general --whole-topics`。前者排除健康/安全事实，后者只选择“全部待审核事实均为一般风险”的完整主题，
+不会为了凑满 20 条拆开一个主题。这个选择只调整审核顺序，不会预选决定、放宽来源要求或自动写入目录。
+
 ```powershell
 node scripts\knowledge-review-workbench.mjs `
   --confirm-human-review-session `
@@ -227,6 +231,8 @@ node scripts\knowledge-review-workbench.mjs `
   --next-version <new-catalog-version> `
   --output .tooling\knowledge-review-batches\<batch-name>.json `
   --limit 20 `
+  --risk general `
+  --whole-topics `
   --port 8791
 ```
 

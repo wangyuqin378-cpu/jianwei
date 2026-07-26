@@ -131,6 +131,27 @@ node scripts\knowledge-review-workbench.mjs `
   --confirm-human-review-session
 ```
 
+For the first usable Beta content set, use the lower-risk launch selection instead of letting the
+risk-prioritized queue put health and safety facts in front of ordinary object knowledge:
+
+```powershell
+node scripts\knowledge-review-workbench.mjs --preflight --limit 20 --risk general --whole-topics
+node scripts\knowledge-review-workbench.mjs `
+  --reviewer reviewer-name-or-internal-id `
+  --next-version 2026-07-19-beta.63 `
+  --output .tooling\knowledge-review-batches\beta63-general-launch-01.json `
+  --limit 20 `
+  --risk general `
+  --whole-topics `
+  --confirm-human-review-session
+```
+
+`--risk general` excludes health and safety facts from that session. `--whole-topics` additionally
+requires every still-pending fact in a selected topic to have that risk level and never splits a
+topic merely to fill the numeric limit. This makes each approved topic capable of becoming ready in
+one batch while leaving high-risk work in the normal queue. It does not mark anything approved,
+change the catalog, or relax source and human-checkpoint requirements.
+
 The command listens only on `127.0.0.1` and prints a one-time browser URL. It uses an HttpOnly
 same-site session cookie, a separate CSRF token, strict Host/Origin checks, a 128 KiB request limit,
 and a restrictive CSP. Every source link opens directly in the browser; the local server does not
@@ -151,6 +172,8 @@ node scripts\create-knowledge-review-batch.mjs `
   --output .tooling\knowledge-review-batches\batch-001.json `
   --write
 ```
+
+The manual lower-risk equivalent accepts the same `--risk general --whole-topics` selection flags.
 
 5. In the workbench, or as the accountable human editing the fallback JSON, set each
    `decision` to `approve` or `reject`, list the source IDs actually opened, and record notes.

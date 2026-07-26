@@ -1,5 +1,7 @@
 # 实现状态
 
+> 2026-07-26 一般知识启动审核批次（当前最新内容运营权威摘要）：知识审核模板和 loopback 工作台新增 `--risk general --whole-topics`，只选择全部待审核事实均为 general 的完整主题，并持久化筛选策略供恢复复核；不会拆主题、预填决定、自动勾选来源、写目录或绕过真人 checkpoint。当前 Beta.62 队列预检为 19 条 / 6 个完整主题，实际 pending 模板 19/19 全空，SHA-256 `994df5e0e4ecaa5e459a68054231a53238001bbe7d1e5196cb4d0c390de82bcb`。队列、模板、工作台、应用和 readiness 自测及源码守卫 `reviewLaunchBatch=1` 通过。责任人尚未签注，目录仍为 0 ready topic，Beta 仍为 `NO_GO`。
+
 > 2026-07-26 知识来源透明度（当前最新 Android 权威摘要）：卡片详情现在直接显示每条来源的发布方与具体文章/页面标题，多来源编号、发布方与标题相同时去重，TalkBack 保留完整来源身份；来源点击仍复用既有公共 HTTPS 安全边界。改动限定在 App presentation 层。API 34 标准/1.6× 字体专项和最终 App 27/27 instrumentation 通过；Android JVM 240/240（Domain 66、Data 106、App 68），Debug/Release Lint、Debug/R8 Release、API 契约、差异检查和源码守卫 `sourceTransparency=1` 全部为 `GO`。Debug/未签名 Release/App 测试 APK SHA-256 为 `497394b26017fbb0d1d80e181db428c05cecd490300a3dec7b965b580085c6a4` / `a9336764f90203e13995b31b67b6e33ac1aff078513c1b4af53c5b6d7739b0bd` / `12a0ae2e0a50e3d2a6ee20006fcba9a047a587363a1267450536e79c9a28456f`。这证明来源可被用户看见和打开，不证明来源已由真人逐条确认支持事实；外部 Beta 阻断不变，仍为 `NO_GO`。
 
 > 2026-07-26 真实 Qwen 安全护栏验证（当前最新权威摘要）：现有北京百炼工作空间 Key 于 `2026-07-26T13:10:57.561Z` 对固定 `qwen3.6-flash-2026-04-16` 发起生产 `X-DashScope-DataInspection` 文本最小探针并返回 HTTP 200，`guardrailAccess=GO`；Key 未输出或落盘，照片未读取或上传。这关闭了工作空间内容安全授权阻断。上一轮无护栏图片诊断已识别仓库自有无人物扫帚图为“扫帚”、置信度 0.98；但带护栏的完整图片复验因本轮没有获得对该本地图片外发的明确审批而未执行，Provider 图片门禁保持待验证，服务器运行时不降级。后端 124/124 基础测试（另 14 项 PostgreSQL 按环境跳过）、TypeScript check/build、API 契约、运行时预算与源码守卫均为 `GO`；Beta 仍为 `NO_GO`。
