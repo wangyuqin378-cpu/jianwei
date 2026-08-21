@@ -403,8 +403,9 @@ class TooPrivateSyncOrderingInstrumentedTest {
     fun wrongObjectHidesCardRevokesSaveAndCannotBeResurrectedByStaleSync() = runBlocking {
         withRepository { database, repository, _, api ->
             repository.setSaved(CARD_ID, true)
+            repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
             repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
-            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.5)
+            assertThat(database.cards().findTopicAffinity("broom")?.weight).isEqualTo(0.85)
 
             val result = repository.sendFeedback(CARD_ID, FeedbackAction.WRONG_OBJECT)
 
@@ -437,6 +438,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
             assertThat(repository.observeSavedCards().first()).isEmpty()
             assertThat(database.cards().pendingFeedback()).isEmpty()
             assertThat(api.events).doesNotContain("feedback:SAVE")
+            assertThat(api.events).doesNotContain("feedback:LIKE")
             assertThat(api.events).contains("cancelTracking:$CARD_ID")
             assertThat(database.cards().findTrackedItem(CARD_ID)).isNull()
         }
@@ -631,6 +633,7 @@ class TooPrivateSyncOrderingInstrumentedTest {
     fun successfulCloudDeletionClearsCardsOutboxesAndIdentity() = runBlocking {
         withRepository { database, repository, identity, api ->
             assertThat(identity.bearer()).isEqualTo("Bearer $DEVICE_TOKEN")
+            database.photos().upsert(candidate())
             repository.setSaved(CARD_ID, true)
             repository.sendFeedback(CARD_ID, FeedbackAction.LIKE)
             repository.track(CARD_ID, LocalDate.parse("2026-07-20"), 90)
@@ -642,6 +645,8 @@ class TooPrivateSyncOrderingInstrumentedTest {
             assertThat(database.cards().pendingFeedback()).isEmpty()
             assertThat(database.cards().pendingTrackedItems()).isEmpty()
             assertThat(repository.observeSavedCards().first()).isEmpty()
+            assertThat(database.photos().findById(42L)?.analysisState)
+                .isEqualTo(AnalysisState.READY.name)
             assertThat(identity.existingBearer()).isNull()
         }
     }

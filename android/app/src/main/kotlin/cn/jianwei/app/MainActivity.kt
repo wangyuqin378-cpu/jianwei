@@ -9,6 +9,7 @@ import android.appwidget.AppWidgetManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -35,6 +36,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -93,11 +95,13 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -105,6 +109,7 @@ import cn.jianwei.app.widget.DailyWidget
 import cn.jianwei.app.widget.DailyWidgetReceiver
 import cn.jianwei.data.photos.decodeBoundedThumbnail
 import androidx.glance.appwidget.updateAll
+import cn.jianwei.domain.card.cardBodyForDisplay
 import cn.jianwei.domain.card.cardRecognitionPresentation
 import cn.jianwei.domain.card.AutomaticCardMode
 import cn.jianwei.domain.card.cardDatePresentation
@@ -123,11 +128,15 @@ import cn.jianwei.domain.preferences.INTEREST_OPTIONS
 import cn.jianwei.domain.preferences.REQUIRED_INTEREST_COUNT
 import cn.jianwei.domain.preferences.isValidInterestSelection
 import cn.jianwei.domain.preferences.updatedInterestSelection
+import cn.jianwei.domain.time.ChinaCalendar
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import java.io.IOException
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -170,11 +179,12 @@ class MainActivity : ComponentActivity() {
                     pendingReminderCardId = null
                     pendingReminderStartedOn = Long.MIN_VALUE
                     pendingReminderDays = 0
+                    ensureItemReminderChannel(context)
                     if (
                         granted &&
                         cardId != null &&
                         startedOn != null &&
-                        NotificationManagerCompat.from(context).areNotificationsEnabled()
+                        canPostItemReminder(context)
                     ) {
                         viewModel.track(cardId, startedOn, reminderDays)
                     } else {
@@ -192,11 +202,39 @@ class MainActivity : ComponentActivity() {
                     photoAccess = currentPhotoAccess(context)
                     viewModel.startDiscovery(photoAccess)
                 }
+                val requestAutomaticDiscovery: (Boolean) -> Unit = { adjustExistingAccess ->
+                    val currentAccess = currentPhotoAccess(context)
+                    photoAccess = currentAccess
+                    if (currentAccess != PhotoAccess.PICKER_ONLY && !adjustExistingAccess) {
+                        viewModel.startDiscovery(currentAccess)
+                    } else {
+                        val requestCount = preferences.getInt(PHOTO_PERMISSION_REQUEST_COUNT, 0)
+                        val shouldShowRationale = requiredPhotoPermissions().any { permission ->
+                            ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity, permission)
+                        }
+                        if (shouldOpenPhotoPermissionSettings(currentAccess, requestCount, shouldShowRationale)) {
+                            Toast.makeText(
+                                context,
+                                "系统已不再弹出照片授权，请在应用设置中开启照片访问",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", packageName, null)
+                            })
+                        } else {
+                            preferences.edit {
+                                putInt(PHOTO_PERMISSION_REQUEST_COUNT, requestCount + 1)
+                            }
+                            photoPermission.launch(requiredPhotoPermissions())
+                        }
+                    }
+                }
                 val choosePhotos = {
                     picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }
                 val addWidget = { requestPinDailyWidget(context) }
                 val submitReminder: (ItemReminderSubmission) -> Unit = { submission ->
+                    ensureItemReminderChannel(context)
                     val permissionGranted = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
                         context,
                         Manifest.permission.POST_NOTIFICATIONS
@@ -206,8 +244,8 @@ class MainActivity : ComponentActivity() {
                         pendingReminderStartedOn = submission.startedOn.toEpochDay()
                         pendingReminderDays = submission.reminderDays
                         notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        Toast.makeText(context, "请先在系统设置中开启见微通知，再建立物品提醒", Toast.LENGTH_LONG).show()
+                    } else if (!canPostItemReminder(context)) {
+                        Toast.makeText(context, "请先在系统设置中开启见微的“物品提醒”通知，再建立提醒", Toast.LENGTH_LONG).show()
                     } else {
                         viewModel.track(
                             submission.cardId,
@@ -220,14 +258,15 @@ class MainActivity : ComponentActivity() {
                 if (!onboarded) {
                     Onboarding(
                         onAutomatic = { interests, automaticMode ->
-                            if (viewModel.saveOnboardingPreferences(interests, automaticMode)) {
-                                photoPermission.launch(requiredPhotoPermissions())
+                            if (viewModel.saveOnboardingPreferences(interests, automaticMode, true)) {
+                                requestAutomaticDiscovery(false)
                             } else {
                                 Toast.makeText(context, "首次设置保存失败，请重试", Toast.LENGTH_LONG).show()
                             }
                         },
                         onPick = { interests, automaticMode ->
-                            if (viewModel.saveOnboardingPreferences(interests, automaticMode)) {
+                            if (viewModel.saveOnboardingPreferences(interests, automaticMode, false)) {
+                                viewModel.disableAutomaticDiscovery()
                                 completeOnboarding()
                                 choosePhotos()
                             } else {
@@ -240,6 +279,10 @@ class MainActivity : ComponentActivity() {
                         betaMetrics.markOnboardingCompleted()
                         viewModel.ensureDailyRefresh(photoAccess)
                     }
+                    LaunchedEffect(state.currentDay) {
+                        delay(millisUntilNextChinaDay(Instant.now()))
+                        viewModel.refreshCurrentDay()
+                    }
                     LaunchedEffect(state.focusedCard?.cardId) {
                         if (state.focusedCard != null) betaMetrics.markEngaged()
                     }
@@ -249,8 +292,9 @@ class MainActivity : ComponentActivity() {
                         widgetInstalled = dailyWidgetInstalled,
                         onPick = choosePhotos,
                         onManageAutomaticDiscovery = {
-                            photoPermission.launch(requiredPhotoPermissions())
+                            requestAutomaticDiscovery(state.automaticDiscoveryEnabled)
                         },
+                        onDisableAutomaticDiscovery = viewModel::disableAutomaticDiscovery,
                         onAddWidget = addWidget,
                         onFeedback = viewModel::feedback,
                         onSetSaved = viewModel::setSaved,
@@ -307,6 +351,7 @@ class MainActivity : ComponentActivity() {
     private fun consumeNavigationIntent(intent: Intent) {
         if (intent.hasExtra(EXTRA_CARD_ID)) {
             viewModel.focusCard(intent.getStringExtra(EXTRA_CARD_ID))
+            intent.removeExtra(EXTRA_CARD_ID)
         }
         viewModel.trackSharedImportResults(
             intent.getStringArrayListExtra(EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS)
@@ -343,11 +388,19 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_CARD_ID = "cn.jianwei.app.extra.CARD_ID"
+        const val PHOTO_PERMISSION_REQUEST_COUNT = "photo_permission_request_count"
         const val EXTRA_SHARED_IMPORT_DISPOSITION = "cn.jianwei.app.extra.SHARED_IMPORT_DISPOSITION"
         const val EXTRA_SHARED_IMPORT_COUNT = "cn.jianwei.app.extra.SHARED_IMPORT_COUNT"
         const val EXTRA_SHARED_IMPORT_CANDIDATE_TOKENS =
             "cn.jianwei.app.extra.SHARED_IMPORT_CANDIDATE_TOKENS"
     }
+}
+
+internal fun millisUntilNextChinaDay(now: Instant): Long {
+    val nextDay = ChinaCalendar.dateOf(now).plusDays(1)
+        .atStartOfDay(ChinaCalendar.zone)
+        .toInstant()
+    return Duration.between(now, nextDay).toMillis().coerceAtLeast(1_000L) + 250L
 }
 
 @Composable
@@ -373,6 +426,11 @@ private fun JianweiTheme(content: @Composable () -> Unit) {
     )
 }
 
+private enum class OnboardingStartMode {
+    AUTOMATIC,
+    PICKER_ONLY
+}
+
 @Composable
 private fun Onboarding(
     onAutomatic: (Set<String>, AutomaticCardMode) -> Unit,
@@ -385,9 +443,14 @@ private fun Onboarding(
     var automaticModeName by rememberSaveable {
         mutableStateOf(AutomaticCardMode.PREPARED_POOL.name)
     }
+    var startModeName by rememberSaveable {
+        mutableStateOf(OnboardingStartMode.AUTOMATIC.name)
+    }
     val interests = decodeInterestSelection(encodedInterests)
     val automaticMode = runCatching { AutomaticCardMode.valueOf(automaticModeName) }
         .getOrDefault(AutomaticCardMode.PREPARED_POOL)
+    val startMode = runCatching { OnboardingStartMode.valueOf(startModeName) }
+        .getOrDefault(OnboardingStartMode.AUTOMATIC)
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     LaunchedEffect(step) {
@@ -398,105 +461,258 @@ private fun Onboarding(
     val pages = listOf(
         "让日常照片重新开口" to "从你授权的照片里，挑一件普通物品，讲一个今天值得知道的细节。",
         "先在手机里筛选，再寻找知识" to "大多数照片不会离开手机；只有通过隐私和质量筛选的少量候选，才会进入可靠知识匹配。",
-        "决定你想怎么看" to "选 3 个兴趣，再决定自动发现是提前准备，还是每天只处理一张。以后都可以在设置中调整。"
+        "选择你的开始方式" to "先决定照片怎样进入见微，再选 3 个兴趣。两种方式都能完整使用，以后也能在设置里改。"
     )
     BackHandler(enabled = step > 0) {
         focusManager.clearFocus(force = true)
         step--
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(
-            Modifier.fillMaxSize().verticalScroll(scrollState).padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        "见微",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text("照片里的日常知识", style = MaterialTheme.typography.labelMedium)
-                }
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(20.dp)
-                ) {
-                    Text(
-                        "${step + 1} / 3",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                pages.indices.forEach { index ->
-                    Box(
-                        Modifier.weight(1f).height(5.dp).background(
-                            color = if (index <= step) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(20.dp)
+        Column(Modifier.fillMaxSize()) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "见微",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
+                        Text("照片里的日常知识", style = MaterialTheme.typography.labelMedium)
+                    }
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            "${step + 1} / 3",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    pages.indices.forEach { index ->
+                        Box(
+                            Modifier.weight(1f).height(5.dp).background(
+                                color = if (index <= step) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                        )
+                    }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(pages[step].first, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        pages[step].second,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(pages[step].first, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-                Text(
-                    pages[step].second,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            when (step) {
-                0 -> OnboardingValuePreview()
-                1 -> OnboardingPrivacyPreview()
-                else -> OnboardingPreferences(
-                    interests = interests,
-                    onInterestChanged = { interest, checked ->
-                        encodedInterests = encodeInterestSelection(
-                            updatedInterestSelection(interests, interest, checked)
+                when (step) {
+                    0 -> OnboardingValuePreview()
+                    1 -> OnboardingPrivacyPreview()
+                    else -> {
+                        OnboardingStartModeSelector(
+                            selectedMode = startMode,
+                            onSelect = { startModeName = it.name }
                         )
-                    },
-                    automaticMode = automaticMode,
-                    onAutomaticModeChanged = { automaticModeName = it.name }
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (step == 0) {
-                    Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) { Text("继续") }
-                } else if (step == 1) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) {
-                            Text("返回")
+                        OnboardingPreferences(
+                            interests = interests,
+                            onInterestChanged = { interest, checked ->
+                                encodedInterests = encodeInterestSelection(
+                                    updatedInterestSelection(interests, interest, checked)
+                                )
+                            }
+                        )
+                        if (startMode == OnboardingStartMode.AUTOMATIC) {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(20.dp)
+                            ) {
+                                Column(
+                                    Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        "每天怎样准备卡片",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    AutomaticCardModeOption(
+                                        title = "提前备好一周（推荐）",
+                                        body = "联网时准备 7–14 张；之后即使断网，组件也能每天换新。",
+                                        selected = automaticMode == AutomaticCardMode.PREPARED_POOL,
+                                        enabled = true,
+                                        onClick = {
+                                            automaticModeName = AutomaticCardMode.PREPARED_POOL.name
+                                        }
+                                    )
+                                    AutomaticCardModeOption(
+                                        title = "当天只理解一张",
+                                        body = "每天最多上传分析 1 张；没有可靠知识时，今天继续显示上一张。",
+                                        selected = automaticMode == AutomaticCardMode.DAILY_ONE,
+                                        enabled = true,
+                                        onClick = {
+                                            automaticModeName = AutomaticCardMode.DAILY_ONE.name
+                                        }
+                                    )
+                                }
+                            }
                         }
-                        Button(onClick = { step++ }, modifier = Modifier.weight(1f)) {
+                    }
+                }
+            }
+            Surface(color = MaterialTheme.colorScheme.background, shadowElevation = 6.dp) {
+                Column(
+                    Modifier
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    if (step == 0) {
+                        Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) {
                             Text("继续")
                         }
-                    }
-                } else {
-                    OnboardingEntryChoice(
-                        title = "自动发现",
-                        body = "授权后扫描近 90 天、最多 500 张照片；先在本机筛选，再上传少量候选。",
-                        badge = "推荐",
-                        buttonLabel = "开启自动发现",
-                        enabled = interests.size == 3,
-                        onClick = { onAutomatic(interests, automaticMode) }
-                    )
-                    OnboardingEntryChoice(
-                        title = "仅选择照片",
-                        body = "不授予持续相册访问；每次使用系统选择器挑选，也可以从其他 App 分享。",
-                        buttonLabel = "仅选择照片",
-                        enabled = interests.size == 3,
-                        outlined = true,
-                        onClick = { onPick(interests, automaticMode) }
-                    )
-                    TextButton(onClick = { step-- }, modifier = Modifier.fillMaxWidth()) {
-                        Text("返回上一步")
+                    } else {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(0.72f)) {
+                                Text("返回")
+                            }
+                            Button(
+                                onClick = {
+                                    if (step == 1) {
+                                        step++
+                                    } else if (startMode == OnboardingStartMode.AUTOMATIC) {
+                                        onAutomatic(interests, automaticMode)
+                                    } else {
+                                        onPick(interests, automaticMode)
+                                    }
+                                },
+                                modifier = Modifier.weight(1.28f),
+                                enabled = step < 2 || interests.size == 3
+                            ) {
+                                Text(
+                                    when {
+                                        step == 1 -> "继续"
+                                        startMode == OnboardingStartMode.AUTOMATIC -> "开启自动发现"
+                                        else -> "选择一张照片"
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingStartModeSelector(
+    selectedMode: OnboardingStartMode,
+    onSelect: (OnboardingStartMode) -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "照片怎么进入见微",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            OnboardingStartModeOption(
+                title = "自动发现",
+                body = "授权后在本机筛选，只有少量候选会上传。",
+                badge = "推荐",
+                selected = selectedMode == OnboardingStartMode.AUTOMATIC,
+                onClick = { onSelect(OnboardingStartMode.AUTOMATIC) }
+            )
+            OnboardingStartModeOption(
+                title = "仅选择照片",
+                body = "不开放相册；每次由你挑选，也可从其他 App 分享。",
+                selected = selectedMode == OnboardingStartMode.PICKER_ONLY,
+                onClick = { onSelect(OnboardingStartMode.PICKER_ONLY) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnboardingStartModeOption(
+    title: String,
+    body: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    badge: String? = null
+) {
+    val shape = RoundedCornerShape(16.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(
+                width = 1.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                shape = shape
+            )
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick
+            )
+            .clearAndSetSemantics {
+                contentDescription = "开始方式：$title。$body"
+                role = Role.RadioButton
+                this.selected = selected
+                stateDescription = if (selected) "已选择" else "未选择"
+                onClick(label = "选择$title") {
+                    onClick()
+                    true
+                }
+            },
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        shape = shape
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(selected = selected, onClick = null)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        title,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    badge?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -658,53 +874,18 @@ private fun OnboardingPipelineStep(number: String, title: String, body: String) 
 @Composable
 private fun OnboardingPreferences(
     interests: Set<String>,
-    onInterestChanged: (String, Boolean) -> Unit,
-    automaticMode: AutomaticCardMode,
-    onAutomaticModeChanged: (AutomaticCardMode) -> Unit
+    onInterestChanged: (String, Boolean) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            InterestSelectionPanel(
-                interests = interests,
-                onInterestChanged = onInterestChanged,
-                supportingText = "正好选择 3 项；它们只用于本次安装的推荐排序。",
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    "自动发现的处理节奏",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    "只影响自动发现；系统选择器和分享仍按你每次选中的照片处理。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                AutomaticCardModeOption(
-                    title = "提前准备（推荐）",
-                    body = "联网时准备 7–14 张，断网也能每天看到新卡。",
-                    selected = automaticMode == AutomaticCardMode.PREPARED_POOL,
-                    enabled = true,
-                    onClick = { onAutomaticModeChanged(AutomaticCardMode.PREPARED_POOL) }
-                )
-                AutomaticCardModeOption(
-                    title = "每天一张",
-                    body = "每天最多上传分析 1 张；没命中时继续显示上一张。",
-                    selected = automaticMode == AutomaticCardMode.DAILY_ONE,
-                    enabled = true,
-                    onClick = { onAutomaticModeChanged(AutomaticCardMode.DAILY_ONE) }
-                )
-            }
-        }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        InterestSelectionPanel(
+            interests = interests,
+            onInterestChanged = onInterestChanged,
+            supportingText = "正好选择 3 项；它们只用于本次安装的推荐排序。",
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
@@ -783,45 +964,13 @@ private fun OnboardingInterestChoice(
 }
 
 @Composable
-private fun OnboardingEntryChoice(
-    title: String,
-    body: String,
-    buttonLabel: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    badge: String? = null,
-    outlined: Boolean = false
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                badge?.let {
-                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(16.dp)) {
-                        Text(it, modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium)
-                    }
-                }
-            }
-            Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (outlined) {
-                OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth(), enabled = enabled) { Text(buttonLabel) }
-            } else {
-                Button(onClick = onClick, modifier = Modifier.fillMaxWidth(), enabled = enabled) { Text(buttonLabel) }
-            }
-        }
-    }
-}
-
-@Composable
 private fun HomeScreen(
     state: MainUiState,
     access: PhotoAccess,
     widgetInstalled: Boolean,
     onPick: () -> Unit,
     onManageAutomaticDiscovery: () -> Unit,
+    onDisableAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
     onFeedback: (String, FeedbackAction) -> Unit,
     onSetSaved: (String, Boolean) -> Unit,
@@ -850,13 +999,19 @@ private fun HomeScreen(
         state.activeOperation,
         state.cloudDeletionUnresolved
     )
-    val activityIndicator = homeActivityIndicator(state.activeOperation, state.analysisProgress)
     val externalFocusedEntry = state.focusedCardStatus != FocusedCardStatus.NONE
     val openedSavedCard = state.savedCards.firstOrNull { it.cardId == openedSavedCardId }
     val openedHistoryCard = state.cards.firstOrNull { card ->
         card.cardId == openedHistoryCardId && card.scheduledDate.isBefore(state.currentDay)
     }
     val focusedEntry = externalFocusedEntry || openedSavedCard != null || openedHistoryCard != null
+    val activityIndicator = homeActivityIndicator(
+        activeOperation = state.activeOperation,
+        progress = state.analysisProgress,
+        analysisProgressShownInContent = !focusedEntry &&
+            homeSection == HomeSection.DAILY &&
+            state.pendingImportCount > 0
+    )
     val dailyListState = rememberLazyListState()
     val savedListState = rememberLazyListState()
     val settingsListState = rememberLazyListState()
@@ -922,18 +1077,24 @@ private fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("见微", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("从你的照片里，每天认识一件小事", style = MaterialTheme.typography.labelMedium)
-                    state.activeOperation?.let { operation ->
-                        Text(
-                            operation.progressLabel,
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("见微", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(1f))
+                state.activeOperation?.let { operation ->
+                    Text(
+                        operation.progressLabel,
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .semantics { liveRegion = LiveRegionMode.Polite },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
                 if (activityIndicator != null) {
                     CircularProgressIndicator(
@@ -959,7 +1120,12 @@ private fun HomeScreen(
             LazyColumn(
                 state = activeListState,
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    top = 8.dp,
+                    end = 16.dp,
+                    bottom = 96.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
             if (focusedEntry) {
@@ -1004,7 +1170,7 @@ private fun HomeScreen(
                 } else {
                     state.focusedCard?.let { card ->
                         item {
-                            FocusedCardEntryHeader(
+                            FocusedCardEntryBar(
                                 fromRecentImport = state.focusedCardFromRecentImport,
                                 onClose = onCloseFocusedCard
                             )
@@ -1021,7 +1187,13 @@ private fun HomeScreen(
                                 onSetSaved,
                                 onTrack,
                                 onCancelReminder,
-                                onEngagement
+                                onEngagement,
+                                widgetInstallAction = if (
+                                    shouldShowImportedResultWidgetCallToAction(
+                                        fromRecentImport = state.focusedCardFromRecentImport,
+                                        widgetInstalled = widgetInstalled
+                                    )
+                                ) onAddWidget else null
                             )
                         }
                     } ?: item {
@@ -1134,7 +1306,7 @@ private fun HomeScreen(
                                             historyCard.scheduledDate.isBefore(state.currentDay)
                                         }
                                     )
-                                } else {
+                                } else if (datePresentation.section == CardDateSection.UPCOMING) {
                                     DailyCardSectionHeader(datePresentation.section)
                                 }
                             }
@@ -1156,17 +1328,15 @@ private fun HomeScreen(
                                     onSetSaved,
                                     onTrack,
                                     onCancelReminder,
-                                    onEngagement
+                                    onEngagement,
+                                    widgetInstallAction = if (
+                                        shouldShowWidgetCallToAction(
+                                            showSavedCards = false,
+                                            cardIndex = index,
+                                            widgetInstalled = widgetInstalled
+                                        )
+                                    ) onAddWidget else null
                                 )
-                            }
-                            if (
-                                shouldShowWidgetCallToAction(
-                                    showSavedCards = homeSection == HomeSection.SAVED,
-                                    cardIndex = index,
-                                    widgetInstalled = widgetInstalled
-                                )
-                            ) {
-                                WidgetCallToAction(onAddWidget)
                             }
                         }
                     }
@@ -1183,12 +1353,18 @@ private fun HomeScreen(
                         )
                     }
                     item {
-                        InterestPreferenceCenter(state.selectedInterests, actionsEnabled, onUpdateInterests)
+                        InterestPreferenceCenter(
+                            selectedInterests = state.selectedInterests,
+                            learnedPreferences = state.learnedPreferences,
+                            actionsEnabled = actionsEnabled,
+                            onSave = onUpdateInterests
+                        )
                     }
                     item {
                         PrivacyCenter(
                             access,
                             state.automaticCardMode,
+                            state.automaticDiscoveryEnabled,
                             widgetInstalled,
                             state.paused,
                             state.cloudDeletionUnresolved,
@@ -1196,6 +1372,7 @@ private fun HomeScreen(
                             deletionActionEnabled,
                             onPick,
                             onManageAutomaticDiscovery,
+                            onDisableAutomaticDiscovery,
                             onAddWidget,
                             onPause,
                             onResume,
@@ -1224,7 +1401,7 @@ private fun HomeSectionTabs(
     onSelect: (HomeSection) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         HomeSectionTab(
@@ -1259,23 +1436,14 @@ private fun HomeSectionTab(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    val containerColor = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.background
-    }
     val contentColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
         MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
     Box(
         modifier = modifier
             .height(48.dp)
-            .clip(shape)
-            .background(containerColor)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
             .clickable(onClick = onSelect)
             .clearAndSetSemantics {
                 role = Role.Tab
@@ -1292,9 +1460,19 @@ private fun HomeSectionTab(
             label,
             color = contentColor,
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1
         )
+        if (selected) {
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 2.dp)
+                    .size(width = 28.dp, height = 3.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+        }
     }
 }
 
@@ -1549,14 +1727,21 @@ private fun ImportedPhotoResultCard(
 ) {
     val noMatch = result == ImportedPhotoResultNotice.NO_MATCH
     val cannotRetry = result == ImportedPhotoResultNotice.CANNOT_RETRY
+    val noMatchPresentation = if (noMatch) importedPhotoNoMatchPresentation() else null
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        colors = CardDefaults.cardColors(
+            containerColor = if (noMatch) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.secondaryContainer
+            }
+        )
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
                 when {
-                    noMatch -> "这张照片暂时没有合适的知识"
+                    noMatch -> requireNotNull(noMatchPresentation).title
                     cannotRetry -> "这张照片需要重新选择"
                     else -> "分析暂时没有完成"
                 },
@@ -1565,15 +1750,32 @@ private fun ImportedPhotoResultCard(
             )
             Text(
                 when {
-                    noMatch ->
-                        "它可能因隐私、画质或暂时没有可靠知识而被跳过。见微不会为了出卡而猜测。"
+                    noMatch -> requireNotNull(noMatchPresentation).body
                     cannotRetry ->
                         "照片读取权限可能已失效，或本机处理没有完成。为保护隐私，见微没有保留可继续分析的中间文件。"
-                    else ->
-                        "网络或服务暂时不可用。照片仍安全保留在本机，你可以立即重试。"
+                    else -> retryableImportedPhotoFailureBody()
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
+            noMatchPresentation?.let { presentation ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.78f),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            presentation.guidanceTitle,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(presentation.guidanceBody, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
             Button(
                 onClick = if (result == ImportedPhotoResultNotice.FAILED) onRetry else onPick,
                 modifier = Modifier.fillMaxWidth(),
@@ -1581,7 +1783,7 @@ private fun ImportedPhotoResultCard(
             ) {
                 Text(
                     when {
-                        noMatch -> "换一张照片"
+                        noMatch -> requireNotNull(noMatchPresentation).actionLabel
                         cannotRetry -> "重新选择照片"
                         else -> "立即重试"
                     }
@@ -1605,127 +1807,127 @@ private fun ImportedPhotoProgressCard(
     cloudDeletionUnresolved: Boolean,
     phase: AnalysisPhase
 ) {
-    val detail = when {
-        cloudDeletionUnresolved ->
-            "云端删除尚未完成；这些本地照片不会继续分析，完成删除后请重新选择。"
-        paused -> "照片已安全保存在见微的私有空间。恢复分析后，会继续寻找可靠知识。"
-        phase == AnalysisPhase.FILTERING -> "正在本机检查画质和隐私；不合适的照片不会上传。"
-        phase == AnalysisPhase.SYNCING -> "正在理解画面，并从审核过的事实和来源中寻找匹配。"
-        phase == AnalysisPhase.RETRYING -> "网络暂时不稳定，系统会保留进度并自动重试。"
-        else -> "先做本机隐私筛选，再理解画面；找到后会直接打开结果。"
-    }
+    val presentation = importedPhotoProgressPresentation(
+        paused = paused,
+        cloudDeletionUnresolved = cloudDeletionUnresolved,
+        phase = phase
+    )
     Card(
         modifier = Modifier.fillMaxWidth().semantics {
             liveRegion = LiveRegionMode.Polite
-            contentDescription = "正在分析刚选择的 $count 张照片。$detail"
+            contentDescription = buildString {
+                append("正在分析刚选择的 $count 张照片。")
+                presentation.stageLabel?.let { append(it).append('。') }
+                append(presentation.detail)
+            }
         },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
-        Row(
+        Column(
             Modifier.fillMaxWidth().padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (!paused) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            presentation.stageLabel?.let { label ->
                 Text(
-                    when {
-                        cloudDeletionUnresolved -> "云端删除正在等待完成"
-                        paused -> "你刚选的照片正在等待"
-                        else -> "正在读你刚选的照片"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(detail, style = MaterialTheme.typography.bodySmall)
+            }
+            presentation.activeStage?.let { activeStage ->
+                ImportedPhotoStageProgress(activeStage)
+            }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!paused && !cloudDeletionUnresolved) {
+                    CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        presentation.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(presentation.detail, style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun FocusedCardEntryHeader(
+private fun ImportedPhotoStageProgress(activeStage: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clearAndSetSemantics { },
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        repeat(3) { index ->
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(4.dp)
+                    .background(
+                        color = if (index < activeStage) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                        },
+                        shape = RoundedCornerShape(10.dp)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+private fun FocusedCardEntryBar(
     fromRecentImport: Boolean,
     onClose: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                if (fromRecentImport) "从你刚选的照片找到了知识" else "打开的知识卡",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                if (fromRecentImport) {
-                    "下面是完整卡片；你可以核对识别对象、推荐原因和来源。"
-                } else {
-                    "这是你刚刚打开的知识卡。返回后只会看到今天及过去的卡片。"
-                },
-                style = MaterialTheme.typography.bodySmall
-            )
-            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                Text("返回每日卡片")
-            }
-        }
-    }
+    DetailEntryBar(
+        label = if (fromRecentImport) "刚刚从照片生成" else "当前知识卡",
+        actionLabel = "返回每日卡片",
+        onClose = onClose
+    )
 }
 
 @Composable
 private fun SavedCardDetailHeader(onClose: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                "从收藏打开",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                "这里显示完整知识、来源与操作。返回后会继续停在刚才的收藏位置。",
-                style = MaterialTheme.typography.bodySmall
-            )
-            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                Text("返回收藏")
-            }
-        }
-    }
+    DetailEntryBar(label = "从收藏打开", actionLabel = "返回收藏", onClose = onClose)
 }
 
 @Composable
 private fun HistoryCardDetailHeader(onClose: () -> Unit) {
-    Card(
+    DetailEntryBar(label = "从往日一知打开", actionLabel = "返回每日卡片", onClose = onClose)
+}
+
+@Composable
+private fun DetailEntryBar(
+    label: String,
+    actionLabel: String,
+    onClose: () -> Unit
+) {
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        shape = RoundedCornerShape(20.dp)
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "从往日一知打开",
-                style = MaterialTheme.typography.titleMedium,
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            Text(
-                "这里显示这张旧卡的完整知识、来源与操作。返回后会继续停在往日列表。",
-                style = MaterialTheme.typography.bodySmall
-            )
-            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                Text("返回每日卡片")
+            TextButton(onClick = onClose) {
+                Text(actionLabel)
             }
         }
     }
@@ -1771,7 +1973,7 @@ private fun WidgetCallToAction(onAddWidget: () -> Unit) {
                 ) {
                     WidgetCallToActionCopy()
                     OutlinedButton(onClick = onAddWidget, modifier = Modifier.fillMaxWidth()) {
-                        Text("添加桌面组件")
+                        Text("添加到桌面")
                     }
                 }
             } else {
@@ -1782,7 +1984,7 @@ private fun WidgetCallToAction(onAddWidget: () -> Unit) {
                 ) {
                     WidgetCallToActionCopy(Modifier.weight(1f))
                     OutlinedButton(onClick = onAddWidget) {
-                        Text("添加桌面组件")
+                        Text("添加到桌面")
                     }
                 }
             }
@@ -1793,14 +1995,15 @@ private fun WidgetCallToAction(onAddWidget: () -> Unit) {
 @Composable
 private fun WidgetCallToActionCopy(modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text("每天在桌面遇见新知识", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-        Text(WIDGET_RESIZE_DISCOVERY_COPY, style = MaterialTheme.typography.bodySmall)
+        Text("每天在桌面看一张", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text("新卡会自动更新。$WIDGET_RESIZE_DISCOVERY_COPY", style = MaterialTheme.typography.bodySmall)
     }
 }
 
 @Composable
 private fun InterestPreferenceCenter(
     selectedInterests: Set<String>,
+    learnedPreferences: LearnedPreferenceSummary,
     actionsEnabled: Boolean,
     onSave: (Set<String>) -> Boolean
 ) {
@@ -1855,6 +2058,47 @@ private fun InterestPreferenceCenter(
                     Text("调整推荐兴趣")
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            LearnedPreferenceSummaryView(learnedPreferences)
+        }
+    }
+}
+
+@Composable
+private fun LearnedPreferenceSummaryView(summary: LearnedPreferenceSummary) {
+    Column(
+        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Text("见微正在学习", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        if (summary.isEmpty) {
+            Text(
+                "还没有学习记录。给知识卡点“有意思”或“没意思”后，会在这里看到变化。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            if (summary.moreOften.isNotEmpty()) {
+                Text(
+                    "更常留意：${summary.moreOften.joinToString(" · ")}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            if (summary.lessOften.isNotEmpty()) {
+                Text(
+                    "减少推荐：${summary.lessOften.joinToString(" · ")}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Text(
+                "只显示仍保留卡片的物件名称和本机反馈，不显示照片内容。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -1868,28 +2112,28 @@ private fun AutomaticCardModeCenter(
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("照片处理节奏", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("自动发现怎样准备卡片", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(
-                    "决定自动发现何时理解新照片。两种方式都先在本地排除模糊、重复和私人内容。",
+                    "两种方式都先在本地排除模糊、重复和私人内容，只改变何时上传候选、准备几张卡片。",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
             AutomaticCardModeOption(
-                title = "提前准备（推荐）",
-                body = "联网时补足 7–14 张卡片，桌面组件断网也能继续更新。",
+                title = "提前备好一周（推荐）",
+                body = "联网时准备 7–14 张；之后即使断网，组件也能每天换新。",
                 selected = selectedMode == AutomaticCardMode.PREPARED_POOL,
                 enabled = actionsEnabled,
                 onClick = { onSelect(AutomaticCardMode.PREPARED_POOL) }
             )
             AutomaticCardModeOption(
-                title = "每天一张",
-                body = "每天最多上传分析 1 张；任务中断仍继续这张，没命中时显示上一张。",
+                title = "当天只理解一张",
+                body = "每天最多上传分析 1 张；没有可靠知识时，今天继续显示上一张。",
                 selected = selectedMode == AutomaticCardMode.DAILY_ONE,
                 enabled = actionsEnabled,
                 onClick = { onSelect(AutomaticCardMode.DAILY_ONE) }
             )
             Text(
-                "切换不会删除已经生成的卡片；新设置从下一次自动发现开始生效。",
+                "切换不会删除已经生成的卡片；尚未上传的自动任务会按新方式重新安排。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -2083,7 +2327,8 @@ private fun KnowledgeCardView(
     onSetSaved: (String, Boolean) -> Unit,
     onTrack: (ItemReminderSubmission) -> Unit,
     onCancelReminder: (String) -> Unit,
-    onEngagement: () -> Unit
+    onEngagement: () -> Unit,
+    widgetInstallAction: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -2179,7 +2424,9 @@ private fun KnowledgeCardView(
             PhotoThumbnail(
                 card.photoUri,
                 contentDescription = "${card.title}的原照片缩略图",
-                modifier = Modifier.fillMaxWidth().height(190.dp)
+                modifier = Modifier.fillMaxWidth(),
+                availableHeight = 190.dp,
+                unavailableHeight = 68.dp
             )
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val recognition = cardRecognitionPresentation(card.title, card.detectedObjectName, card.confidence)
@@ -2199,7 +2446,11 @@ private fun KnowledgeCardView(
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.SemiBold
                         )
-                        Text(card.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            card.title,
+                            style = MaterialTheme.typography.headlineSmall.copy(lineBreak = LineBreak.Heading),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     if (isSaved) {
                         Surface(
@@ -2216,85 +2467,78 @@ private fun KnowledgeCardView(
                     }
                 }
                 Text(
-                    card.body,
+                    cardBodyForDisplay(card.title, card.body),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(20.dp)
+                Text(
+                    recognition.visibleLabel,
+                    modifier = Modifier.semantics {
+                        contentDescription = recognition.accessibilityLabel
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Column(
+                    Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        recognition.visibleLabel,
-                        modifier = Modifier
-                            .padding(horizontal = 12.dp, vertical = 7.dp)
-                            .semantics { contentDescription = recognition.accessibilityLabel },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        "为什么推给你",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
-                }
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            "为什么推给你",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
+                    Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
+                    safeSources.forEachIndexed { index, source ->
+                        val sourcePresentation = knowledgeSourcePresentation(
+                            source = source,
+                            index = index,
+                            total = safeSources.size
                         )
-                        Text(card.personalContext, style = MaterialTheme.typography.bodySmall)
-                        safeSources.forEachIndexed { index, source ->
-                            val sourcePresentation = knowledgeSourcePresentation(
-                                source = source,
-                                index = index,
-                                total = safeSources.size
-                            )
-                            TextButton(
-                                onClick = {
-                                    val opened = runCatching { uriHandler.openUri(source.url) }.isSuccess
-                                    if (opened) {
-                                        onEngagement()
-                                    } else {
-                                        Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .semantics {
-                                        contentDescription = sourcePresentation.accessibilityLabel
-                                    }
+                        TextButton(
+                            onClick = {
+                                val opened = runCatching { uriHandler.openUri(source.url) }.isSuccess
+                                if (opened) {
+                                    onEngagement()
+                                } else {
+                                    Toast.makeText(context, "来源链接暂不可用", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = sourcePresentation.accessibilityLabel
+                                }
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
+                                Text(
+                                    sourcePresentation.eyebrow,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                sourcePresentation.title?.let { title ->
                                     Text(
-                                        sourcePresentation.eyebrow,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        title,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    sourcePresentation.title?.let { title ->
-                                        Text(
-                                            title,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
                                 }
                             }
                         }
-                        if (safeSources.isEmpty()) {
-                            Text("来源链接暂不可用", style = MaterialTheme.typography.bodySmall)
-                        }
+                    }
+                    if (safeSources.isEmpty()) {
+                        Text("来源链接暂不可用", style = MaterialTheme.typography.bodySmall)
                     }
                 }
+                widgetInstallAction?.let { WidgetCallToAction(it) }
                 BoxWithConstraints {
                     val stacked = shouldStackKnowledgeCardActions(maxWidth.value, LocalDensity.current.fontScale)
                     if (stacked) {
@@ -2356,16 +2600,16 @@ private fun KnowledgeCardView(
                         Text("取消物品提醒")
                     }
                 }
-                HorizontalDivider()
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(16.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Column(
+                    Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Column(
-                        Modifier.fillMaxWidth().padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("这条知识怎么样？", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (feedbackState == null) "这条知识怎么样？" else "见微学到了什么",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
                         if (shouldOfferOrdinaryFeedback(feedbackState)) {
                             Text(
                                 "有意思/没意思会调准推荐；识错了会隐藏，太私人会删除并停止分析。",
@@ -2438,40 +2682,72 @@ private fun KnowledgeCardView(
                                 }
                             }
                         } else {
-                            Surface(
+                            val learning = feedbackLearningPresentation(
+                                action = requireNotNull(feedbackState).action,
+                                detectedObjectName = card.detectedObjectName
+                            )
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(vertical = 6.dp)
                                     .semantics {
                                         stateDescription = "已反馈${feedbackState?.action?.userLabel().orEmpty()}"
                                     },
-                                color = MaterialTheme.colorScheme.surface,
-                                shape = RoundedCornerShape(12.dp)
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Column(
-                                    Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    Text(
-                                        "已反馈 · ${feedbackState?.action?.userLabel().orEmpty()}",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        "这次判断已经计入推荐，不会重复记录。",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                Text(
+                                    learning.title,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    learning.body,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                "如果对象不对，或这张照片不该继续保留，你仍可以纠正。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            BoxWithConstraints {
+                                val stacked = shouldStackFeedbackChoices(
+                                    maxWidth.value,
+                                    LocalDensity.current.fontScale
+                                )
+                                if (stacked) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        TextButton(
+                                            onClick = { showWrongObjectFeedbackDialog = true },
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) { Text(FeedbackAction.WRONG_OBJECT.userLabel()) }
+                                        TextButton(
+                                            onClick = { showPrivateFeedbackDialog = true },
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) { Text(FeedbackAction.TOO_PRIVATE.userLabel()) }
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        TextButton(
+                                            onClick = { showWrongObjectFeedbackDialog = true },
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text(FeedbackAction.WRONG_OBJECT.userLabel()) }
+                                        TextButton(
+                                            onClick = { showPrivateFeedbackDialog = true },
+                                            enabled = actionsEnabled,
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text(FeedbackAction.TOO_PRIVATE.userLabel()) }
+                                    }
                                 }
                             }
-                            TextButton(
-                                onClick = { showPrivateFeedbackDialog = true },
-                                enabled = actionsEnabled,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(FeedbackAction.TOO_PRIVATE.userLabel())
-                            }
                         }
-                    }
                 }
             }
         }
@@ -2661,6 +2937,7 @@ private fun LocalDate.chineseDateLabel(): String = "$year 年 $monthValue 月 $d
 private fun PrivacyCenter(
     access: PhotoAccess,
     automaticMode: AutomaticCardMode,
+    automaticDiscoveryEnabled: Boolean,
     widgetInstalled: Boolean,
     paused: Boolean,
     cloudDeletionUnresolved: Boolean,
@@ -2668,6 +2945,7 @@ private fun PrivacyCenter(
     deletionActionEnabled: Boolean,
     onPick: () -> Unit,
     onManageAutomaticDiscovery: () -> Unit,
+    onDisableAutomaticDiscovery: () -> Unit,
     onAddWidget: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
@@ -2675,7 +2953,11 @@ private fun PrivacyCenter(
     onDeleteCloud: () -> Unit,
     onExportMetrics: () -> Unit
 ) {
-    val automaticControl = automaticDiscoveryControl(access, automaticMode)
+    val automaticControl = automaticDiscoveryControl(
+        access,
+        automaticMode,
+        automaticDiscoveryEnabled
+    )
     var showLocalIndexClearConfirmation by rememberSaveable { mutableStateOf(false) }
     var showCloudDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -2687,7 +2969,7 @@ private fun PrivacyCenter(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("你的数据与隐私", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(
-                    photoAccessSummary(access, automaticMode),
+                    photoAccessSummary(access, automaticMode, automaticDiscoveryEnabled),
                     style = MaterialTheme.typography.bodySmall
                 )
                 if (cloudDeletionUnresolved) {
@@ -2740,6 +3022,13 @@ private fun PrivacyCenter(
                             ) { Text(automaticControl.actionLabel) }
                         }
                     }
+                    if (!cloudDeletionUnresolved && automaticDiscoveryEnabled) {
+                        OutlinedButton(
+                            onClick = onDisableAutomaticDiscovery,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = actionsEnabled
+                        ) { Text("关闭自动发现") }
+                    }
                     if (!cloudDeletionUnresolved) {
                         OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth(), enabled = actionsEnabled) { Text("选择照片导入") }
                     }
@@ -2767,6 +3056,11 @@ private fun PrivacyCenter(
                     Text("内测报告由你主动导出，只含计数、时间、App 版本、机型、系统版本和系统构建指纹；不含照片、标签、位置、相册 ID、安装身份或设备令牌。", style = MaterialTheme.typography.bodySmall)
                 }
             }
+            Text(
+                "见微 ${BuildConfig.VERSION_NAME} · 内测版",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
     if (showLocalIndexClearConfirmation) {
@@ -2813,36 +3107,84 @@ private fun PrivacyCenter(
     }
 }
 
+private data class PhotoThumbnailLoadState(
+    val isLoading: Boolean,
+    val bitmap: android.graphics.Bitmap?
+)
+
 @Composable
 private fun PhotoThumbnail(
     uri: String,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    maxSidePx: Int = DETAIL_THUMBNAIL_MAX_SIDE_PX
+    maxSidePx: Int = DETAIL_THUMBNAIL_MAX_SIDE_PX,
+    availableHeight: Dp? = null,
+    unavailableHeight: Dp? = null
 ) {
     val context = LocalContext.current
-    val bitmap by produceState<android.graphics.Bitmap?>(null, uri, maxSidePx) {
-        value = if (uri.isBlank()) null else withContext(Dispatchers.IO) {
-            runCatching {
-                decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), maxSidePx)
-            }.getOrNull()
+    val loadState by produceState(
+        initialValue = PhotoThumbnailLoadState(isLoading = uri.isNotBlank(), bitmap = null),
+        uri,
+        maxSidePx
+    ) {
+        value = if (uri.isBlank()) {
+            PhotoThumbnailLoadState(isLoading = false, bitmap = null)
+        } else {
+            val decoded = withContext(Dispatchers.IO) {
+                runCatching {
+                    decodeBoundedThumbnail(context.contentResolver, Uri.parse(uri), maxSidePx)
+                }.getOrNull()
+            }
+            PhotoThumbnailLoadState(isLoading = false, bitmap = decoded)
         }
     }
-    val displayBitmap = bitmap
+    val displayBitmap = loadState.bitmap
     DisposableEffect(displayBitmap) {
         onDispose { displayBitmap?.takeUnless { it.isRecycled }?.recycle() }
     }
-    Box(modifier.background(androidx.compose.ui.graphics.Color(0xFFDDE5DD)), contentAlignment = Alignment.Center) {
-        if (displayBitmap != null) Image(displayBitmap.asImageBitmap(), contentDescription = contentDescription, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        else Text(
-            PHOTO_THUMBNAIL_UNAVAILABLE_LABEL,
-            modifier = Modifier.padding(10.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+    val resolvedModifier = availableHeight?.let { fullHeight ->
+        val height = if (!loadState.isLoading && displayBitmap == null) {
+            unavailableHeight ?: fullHeight
+        } else {
+            fullHeight
+        }
+        modifier.height(height)
+    } ?: modifier
+    val accessibleModifier = if (!loadState.isLoading && displayBitmap == null) {
+        resolvedModifier.clearAndSetSemantics {
+            this.contentDescription = PHOTO_THUMBNAIL_UNAVAILABLE_LABEL
+        }
+    } else {
+        resolvedModifier
+    }
+    Box(
+        accessibleModifier.background(androidx.compose.ui.graphics.Color(0xFFDDE5DD)),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            displayBitmap != null -> Image(
+                displayBitmap.asImageBitmap(),
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            loadState.isLoading -> CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            else -> Text(
+                PHOTO_THUMBNAIL_UNAVAILABLE_LABEL,
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .clearAndSetSemantics { },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 

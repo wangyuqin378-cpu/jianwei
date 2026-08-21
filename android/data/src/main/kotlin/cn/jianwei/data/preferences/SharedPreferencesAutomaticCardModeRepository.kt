@@ -37,8 +37,27 @@ class SharedPreferencesAutomaticCardModeRepository @Inject constructor(
         }
     }
 
+    override fun observeDiscoveryEnabled(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_DISCOVERY_ENABLED) trySend(discoveryEnabled())
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(discoveryEnabled())
+        awaitClose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    override fun discoveryEnabled(): Boolean =
+        preferences.getBoolean(KEY_DISCOVERY_ENABLED, false)
+
+    override fun updateDiscoveryEnabled(enabled: Boolean) {
+        check(preferences.edit().putBoolean(KEY_DISCOVERY_ENABLED, enabled).commit()) {
+            "自动发现偏好保存失败，请重试"
+        }
+    }
+
     internal companion object {
         const val PREFERENCES = "analysis_scheduler"
         const val KEY_MODE = "automatic_card_mode"
+        const val KEY_DISCOVERY_ENABLED = "automatic_discovery_enabled"
     }
 }

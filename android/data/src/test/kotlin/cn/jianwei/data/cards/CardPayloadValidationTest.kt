@@ -2,6 +2,7 @@ package cn.jianwei.data.cards
 
 import cn.jianwei.data.network.CardDto
 import cn.jianwei.data.network.CardsResponse
+import cn.jianwei.data.network.BoundingBoxDto
 import cn.jianwei.data.network.SourceDto
 import com.google.common.truth.Truth.assertThat
 import java.io.IOException
@@ -22,6 +23,7 @@ class CardPayloadValidationTest {
         assertThat(payload.scheduledDate).isEqualTo("2026-07-26")
         assertThat(payload.createdAtMillis).isEqualTo(Instant.parse("2026-07-26T00:00:00.000Z").toEpochMilli())
         assertThat(payload.sources).hasSize(1)
+        assertThat(payload.objectBounds?.x).isEqualTo(0.62)
     }
 
     @Test
@@ -45,6 +47,12 @@ class CardPayloadValidationTest {
             validCard().copy(confidence = null),
             validCard().copy(confidence = Double.NaN),
             validCard().copy(confidence = 1.01),
+            validCard().copy(boundingBox = BoundingBoxDto(Double.NaN, 0.1, 0.2, 0.3)),
+            validCard().copy(boundingBox = BoundingBoxDto(-0.1, 0.1, 0.2, 0.3)),
+            validCard().copy(boundingBox = BoundingBoxDto(0.1, 0.1, 0.0, 0.3)),
+            validCard().copy(boundingBox = BoundingBoxDto(0.9, 0.1, 0.2, 0.3)),
+            validCard().copy(boundingBox = BoundingBoxDto(0.1, 0.9, 0.2, 0.3)),
+            validCard().copy(boundingBox = BoundingBoxDto(null, 0.1, 0.2, 0.3)),
             validCard().copy(sources = null),
             validCard().copy(sources = listOf(null)),
             validCard().copy(sources = listOf(validSource().copy(url = null))),
@@ -93,7 +101,8 @@ class CardPayloadValidationTest {
         sources = listOf(validSource()),
         status = "scheduled",
         scheduledDate = "2026-07-26",
-        createdAt = "2026-07-26T00:00:00.000Z"
+        createdAt = "2026-07-26T00:00:00.000Z",
+        boundingBox = BoundingBoxDto(x = 0.62, y = 0.08, width = 0.28, height = 0.84)
     )
 
     private fun validSource() = SourceDto(

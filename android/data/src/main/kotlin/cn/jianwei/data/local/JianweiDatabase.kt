@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MediaScanCursorEntity::class,
         TopicAffinityEntity::class
     ],
-    version = 13,
+    version = 15,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -191,8 +191,39 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
     }
 }
 
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `knowledge_cards` ADD COLUMN `objectBoxX` REAL")
+        db.execSQL("ALTER TABLE `knowledge_cards` ADD COLUMN `objectBoxY` REAL")
+        db.execSQL("ALTER TABLE `knowledge_cards` ADD COLUMN `objectBoxWidth` REAL")
+        db.execSQL("ALTER TABLE `knowledge_cards` ADD COLUMN `objectBoxHeight` REAL")
+    }
+}
+
+val MIGRATION_14_15 = object : Migration(14, 15) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE `card_feedback_states` " +
+                "ADD COLUMN `affinityDeltaApplied` REAL NOT NULL DEFAULT 0"
+        )
+        db.execSQL(
+            "UPDATE `card_feedback_states` SET `affinityDeltaApplied` = CASE `action` " +
+                "WHEN 'LIKE' THEN 0.35 WHEN 'DISLIKE' THEN -0.40 ELSE 0 END"
+        )
+        db.execSQL(
+            "ALTER TABLE `saved_cards` " +
+                "ADD COLUMN `affinityDeltaApplied` REAL NOT NULL DEFAULT 0"
+        )
+        db.execSQL(
+            "UPDATE `saved_cards` SET `affinityDeltaApplied` = 0.50 " +
+                "WHERE `feedbackSignaled` = 1"
+        )
+    }
+}
+
 fun buildJianweiDatabase(context: Context): JianweiDatabase =
     Room.databaseBuilder(context.applicationContext, JianweiDatabase::class.java, "jianwei.db")
+        .enableMultiInstanceInvalidation()
         .addMigrations(
             MIGRATION_1_2,
             MIGRATION_2_3,
@@ -205,7 +236,9 @@ fun buildJianweiDatabase(context: Context): JianweiDatabase =
             MIGRATION_9_10,
             MIGRATION_10_11,
             MIGRATION_11_12,
-            MIGRATION_12_13
+            MIGRATION_12_13,
+            MIGRATION_13_14,
+            MIGRATION_14_15
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()

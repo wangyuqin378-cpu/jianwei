@@ -42,7 +42,10 @@ class ItemReminderPrivacyGuardInstrumentedTest {
         val notifications = context.getSystemService(NotificationManager::class.java)
         val workManager = WorkManager.getInstance(context)
         val database = buildJianweiDatabase(context)
+        val onboarding = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val wasOnboarded = onboarding.getBoolean("completed", false)
         try {
+            onboarding.edit().putBoolean("completed", true).commit()
             notifications.cancel(notificationId)
             database.cards().upsertAll(listOf(reminderCard(cardId, startedOn)))
             database.cards().upsertTrackedItem(
@@ -61,6 +64,8 @@ class ItemReminderPrivacyGuardInstrumentedTest {
             val activeNotification = notifications.activeNotifications
                 .single { notification -> notification.id == notificationId }
                 .notification
+            assertThat(activeNotification.smallIcon.resId).isEqualTo(R.drawable.ic_notification)
+            assertThat(activeNotification.publicVersion.smallIcon.resId).isEqualTo(R.drawable.ic_notification)
             val visibleText = listOf(
                 activeNotification.extras.getCharSequence("android.title"),
                 activeNotification.extras.getCharSequence("android.text"),
@@ -84,7 +89,7 @@ class ItemReminderPrivacyGuardInstrumentedTest {
                 null,
                 launchOptions.toBundle()
             )
-            assertThat(awaitOpenedCardId(instrumentation)).isEqualTo(cardId)
+            awaitOpenedCardTitle(instrumentation, "提醒回卡测试")
             instrumentation.runOnMainSync {
                 resumedMainActivity()?.finish()
             }
@@ -116,6 +121,7 @@ class ItemReminderPrivacyGuardInstrumentedTest {
             database.cards().removeTrackedItem(cardId)
             database.cards().deleteById(cardId)
             database.close()
+            onboarding.edit().putBoolean("completed", wasOnboarded).commit()
         }
     }
 
@@ -150,20 +156,21 @@ class ItemReminderPrivacyGuardInstrumentedTest {
         )
         .build()
 
-    private fun awaitOpenedCardId(
-        instrumentation: android.app.Instrumentation
-    ): String {
+    private fun awaitOpenedCardTitle(
+        instrumentation: android.app.Instrumentation,
+        expectedTitle: String
+    ) {
         repeat(100) {
-            var openedCardId: String? = null
-            instrumentation.runOnMainSync {
-                openedCardId = resumedMainActivity()
-                    ?.intent
-                    ?.getStringExtra(MainActivity.EXTRA_CARD_ID)
+            val queue = ArrayDeque<android.view.accessibility.AccessibilityNodeInfo>()
+            instrumentation.uiAutomation.rootInActiveWindow?.let(queue::add)
+            while (queue.isNotEmpty()) {
+                val node = queue.removeFirst()
+                if (node.text?.toString() == expectedTitle) return
+                repeat(node.childCount) { index -> node.getChild(index)?.let(queue::add) }
             }
-            if (openedCardId != null) return openedCardId!!
             Thread.sleep(50)
         }
-        error("Reminder notification did not open its tracked card")
+        error("Reminder notification did not open card titled $expectedTitle")
     }
 
     private fun resumedMainActivity(): MainActivity? = ActivityLifecycleMonitorRegistry.getInstance()

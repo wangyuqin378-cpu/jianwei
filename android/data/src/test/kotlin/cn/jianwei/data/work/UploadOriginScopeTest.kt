@@ -1,5 +1,7 @@
 package cn.jianwei.data.work
 
+import cn.jianwei.domain.card.AutomaticCardMode
+import cn.jianwei.domain.card.CardSupplyMode
 import cn.jianwei.domain.model.AnalysisPhase
 import cn.jianwei.domain.model.AnalysisProgressScope
 import com.google.common.truth.Truth.assertThat
@@ -36,5 +38,28 @@ class UploadOriginScopeTest {
         assertThat(automaticSerendipitySeed(UploadOriginScope.MEDIA_STORE, instant))
             .isEqualTo("2026-07-25")
         assertThat(automaticSerendipitySeed(UploadOriginScope.EXPLICIT_IMPORT, instant)).isNull()
+    }
+
+    @Test
+    fun staleAutomaticWorkerStopsWhenTheUserChangesCardMode() {
+        assertThat(supplyModeMatchesPreference(
+            CardSupplyMode.AUTOMATIC_PREPARED_POOL,
+            AutomaticCardMode.DAILY_ONE
+        )).isFalse()
+        assertThat(supplyModeMatchesPreference(
+            CardSupplyMode.AUTOMATIC_DAILY_ONE,
+            AutomaticCardMode.PREPARED_POOL
+        )).isFalse()
+        assertThat(supplyModeMatchesPreference(
+            CardSupplyMode.AUTOMATIC_DAILY_ONE,
+            AutomaticCardMode.DAILY_ONE
+        )).isTrue()
+    }
+
+    @Test
+    fun explicitImportsIgnoreAutomaticModeChanges() {
+        AutomaticCardMode.entries.forEach { mode ->
+            assertThat(supplyModeMatchesPreference(CardSupplyMode.EXPLICIT_IMPORT, mode)).isTrue()
+        }
     }
 }

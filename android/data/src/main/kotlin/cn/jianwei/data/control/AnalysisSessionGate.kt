@@ -7,8 +7,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class AnalysisStoppedException : IllegalStateException("分析会话已暂停或失效")
 
@@ -20,12 +24,18 @@ internal class SessionBarrier(
     private val epoch = AtomicLong(initialEpoch)
     private val paused = AtomicBoolean(initiallyPaused)
 
-    suspend fun <T> withActiveSession(block: suspend (AnalysisSessionToken) -> T): T =
-        operation.withLock {
+    suspend fun <T> withActiveSession(block: suspend (AnalysisSessionToken) -> T): T {
+        val inherited = currentCoroutineContext()[ActiveAnalysisSession]
+        if (inherited?.barrier === this) {
+            inherited.token.requireActive()
+            return block(inherited.token)
+        }
+        return operation.withLock {
             val token = AnalysisSessionToken(this, epoch.get())
             token.requireActive()
-            block(token)
+            withContext(ActiveAnalysisSession(this, token)) { block(token) }
         }
+    }
 
     suspend fun <T> withSerializedLocalMutation(block: suspend () -> T): T =
         operation.withLock { block() }
@@ -45,11 +55,28 @@ internal class SessionBarrier(
         return next
     }
 
+    fun synchronize(persistedEpoch: Long, persistedPaused: Boolean) {
+        if (persistedPaused) {
+            paused.set(true)
+            epoch.set(persistedEpoch)
+        } else {
+            epoch.set(persistedEpoch)
+            paused.set(false)
+        }
+    }
+
     fun isPaused(): Boolean = paused.get()
 
     internal fun requireActive(expectedEpoch: Long) {
         if (paused.get() || epoch.get() != expectedEpoch) throw AnalysisStoppedException()
     }
+}
+
+private class ActiveAnalysisSession(
+    val barrier: SessionBarrier,
+    val token: AnalysisSessionToken
+) : AbstractCoroutineContextElement(Key) {
+    companion object Key : CoroutineContext.Key<ActiveAnalysisSession>
 }
 
 class AnalysisSessionToken internal constructor(
@@ -61,13 +88,26 @@ class AnalysisSessionToken internal constructor(
 
 @Singleton
 class AnalysisSessionGate @Inject constructor(
-    @param:ApplicationContext context: Context
+    @ApplicationContext context: Context
 ) {
     private val preferences = context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)
     private val barrier = SessionBarrier(
         initialEpoch = preferences.getLong(KEY_SESSION_EPOCH, 0),
         initiallyPaused = preferences.getBoolean(DailyPipelineKickWorker.KEY_PAUSED, false)
     )
+    private val preferenceListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener {
+            _, changedKey ->
+        if (changedKey == KEY_SESSION_EPOCH || changedKey == DailyPipelineKickWorker.KEY_PAUSED) {
+            barrier.synchronize(
+                persistedEpoch = preferences.getLong(KEY_SESSION_EPOCH, 0),
+                persistedPaused = preferences.getBoolean(DailyPipelineKickWorker.KEY_PAUSED, false)
+            )
+        }
+    }
+
+    init {
+        preferences.registerOnSharedPreferenceChangeListener(preferenceListener)
+    }
 
     suspend fun <T> withActiveSession(block: suspend (AnalysisSessionToken) -> T): T =
         barrier.withActiveSession(block)

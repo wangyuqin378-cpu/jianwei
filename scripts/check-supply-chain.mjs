@@ -80,7 +80,11 @@ if (process.argv.includes("--self-test")) {
   const passing = assessSupplyChain(files);
   if (passing.status !== "GO") throw new Error(`Supply-chain fixture failed: ${passing.blockers.join("; ")}`);
   const cases = [
-    ["old Fastify", (value) => { value.packageJson = value.packageJson.replace('"fastify": "5.8.5"', '"fastify": "5.6.2"'); }],
+    ["old Fastify", (value) => {
+      const packageJson = JSON.parse(value.packageJson);
+      packageJson.dependencies.fastify = "5.6.2";
+      value.packageJson = JSON.stringify(packageJson);
+    }],
     ["missing Gradle distribution checksum", (value) => { value.wrapperProperties = value.wrapperProperties.replace(/^distributionSha256Sum=.*$/m, ""); }],
     ["mutated wrapper JAR", (value) => { value.wrapperJarSha256 = "0".repeat(64); }],
     ["dynamic Android dependency", (value) => { value.versionCatalog = value.versionCatalog.replace('core = "1.17.0"', 'core = "1.+"'); }],

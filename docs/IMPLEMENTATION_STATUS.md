@@ -1,5 +1,120 @@
 # 实现状态
 
+## 2026-07-30 Beta.73 审核事实标题与卡片去重
+
+- 新生成卡优先从已审核事实中提取 8–30 字的首个完整短句作为标题；上下文依赖、过短或过长时回退到确定性模板，低置信度措辞不变。没有第二次模型调用，也没有目录外知识扩写。App 与 Glance 组件统一去掉正文中完全重复的标题前缀，详情标题使用中文 Heading 均衡断行；自动卡审计策略已升级为 `derived-ai-reviewed-card-v2`。
+- 标准与 1.6× 字号 API 34 专项各 1/1、Data 90/90、App 29/29。最终 post-fix Gradle 284 个任务通过；后端 133/133、TypeScript check/build，以及源码、API、供应链、卡审计、Beta 证据和候选门禁全部通过。Debug / unsigned Release APK SHA-256 为 `46ca8cc4904e595dadf973600b1c40925479e2595ef9eabca708193ef7f53e00` / `25e46e644d95f4a3acfd49effa4d800568af5bc0a65c356be5ef8d2b47b89c13`。
+- 新 `linux/amd64` 镜像 `jianwei-api:beta73-reviewed-fact-headlines` 的 OCI image ID 为 `sha256:247ab4ae97d3d73b2e9d66c72c3e06764640566ee7951cad193b29dd510cea1c`，后端 Release 为 `223f618f7084a529a5fd9eee386049cf118297bd550b2c918f88598e51609109`；live/ready、非 root、Node 22.23.1 与 runtime 工具裁剪均通过。Trivy 可修复 HIGH/CRITICAL 为 0，22 项基础系统 HIGH/CRITICAL 当前无修复，SBOM 232 个组件。
+- 当前候选 `.tooling/release-candidate/beta73-reviewed-fact-headlines.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `5457c32262d3656cc4ab6bf7a5dfe835437b95caca40eddae481707af8dd62e3`。真实云、签名、授权图片/OEM/真人无障碍、生产卡和 cohort 证据仍缺，整体保持 `NO_GO`。
+
+## 2026-07-30 Beta.73 首次体验选择公平性（已由审核事实标题候选继承）
+
+- 第 3 屏先同屏展示“自动发现”和“仅选择照片”，用户在看到两种完整路径后再选择；只有自动发现会展开“提前备好一周 / 当天只理解一张”。两种开始方式、兴趣和自动准备模式都使用可保存状态，整张选择卡具备 RadioButton、选中态和可点击说明。
+- API 34 首次体验专项 2/2、Data 设备 90/90、App 设备 29/29；CI 对齐 Gradle 聚合 252 个任务通过，包含 JVM、Debug Lint、Release Vital Lint、Debug 与 R8 unsigned Release。Debug / unsigned Release APK SHA-256 为 `a76497702c975848b9f6ae6681fedad924e3a5443664409f230a7351352c5600` / `c2a98a79beff452f2a1e47ea534ab4173be11977e8cd2bf9313f17937707dd2a`。
+- 当前候选 `.tooling/release-candidate/beta73-onboarding-choice-fairness.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `3114f19e57b1cc8bb57b642efea5433986f7f56a48e3b466bf3737bdd3dfe377`；它继承并重新绑定同一份容器安全证据和镜像 ID。真实云、正式签名、OEM/真人无障碍与 cohort 仍未完成，整体保持 `NO_GO`。
+
+## 2026-07-30 Beta.73 PostgreSQL 与容器安全本地闭环（由当前首次体验候选继承）
+
+- Serverless Devs、psql 与 Docker/Colima 工具链已真实安装；独立 x86_64 VM 解决 ARM 用户态模拟 Node 的 libuv 崩溃，最终 `linux/amd64` 镜像完成构建和启动。
+- Dockerfile 使用独立生产依赖层 `pnpm install --prod --no-optional`，runtime 移除 npm/corepack、保留非 root `node`。固定基础镜像为 Node 22.23.1 trixie-slim index digest `sha256:e6d9a389d34ff9678438af985c9913fbd1eb6ed36e80fea56644f4b4f6dd70ba`。
+- 最终镜像 `jianwei-api:beta73-production-security-v2` 为 86,601,643 字节，OCI image ID `sha256:6fde2adc644814df506da660c25a72f584f48078fe968d8d39da0c41aa7a8cd4`，Node 22.23.1；`/health/live`、`/health/ready` 与日志验证通过，后端 Release 为 `aa912619b16e71c941dfd855a8e783cb84831115ef20d8a90618a8d357cc15f1`。后端 133/133、TypeScript、部署/源码门禁与候选复验通过。
+- PostgreSQL 17.10 已完成 15 个迁移三轮幂等执行、17 项真实集成测试和 TCP E2E。Trivy 0.72.0 扫描显示可修复 HIGH/CRITICAL 为 0；仍有 22 项无可用修复版本的基础系统 HIGH/CRITICAL。CycloneDX SBOM 含 232 个组件，镜像绑定证据 SHA-256 为 `95118eb073785d4478114dad3de0ccbbfe8f9f2d24c1836cff0fc35fb45b2bce`，`releaseEvidence=false`。
+- 历史候选 `.tooling/release-candidate/beta73-image-security-bound.json` 已因 Android 源码/APK 更新而由当前首次体验候选取代。2026-07-30 的固定良性文本复核确认北京工作空间 Qwen `cip` 护栏 HTTP 200 / `guardrailAccess=GO`，没有上传图片；当前真实外部缺口已收敛为 RAM access 与 FC/RDS/OSS/VPC/ACR/HTTPS 资源。本轮未发生云资源变更或照片外发，整体保持 `NO_GO`。
+
+## 2026-07-30 Beta.73 ARM 内测分发体积收敛（已由生产容器候选继承）
+
+- Release APK 从四套 ABI 收敛为 `arm64-v8a + armeabi-v7a`，Debug 仍保留模拟器架构；版本为 `73 / 0.1.0-beta73`。unsigned Release 从 128,833,539 字节降到 61,552,852 字节，减少 52.2%。
+- 候选装配器不只检查 Gradle 文本，而是解析 APK 中央目录并强制两套 ARM ABI与 70 MiB 上限。Android 14 设置页路径 1/1、最终 Gradle 311 个任务、源码门禁、8 类候选绕过自测和候选复验均通过。
+- 历史候选 `.tooling/release-candidate/beta73-arm-beta-distribution-final.json` 已因 Dockerfile/后端 Release 绑定变化而被当前生产容器候选取代；Release APK SHA-256 仍为 `796f75284fd4d19126d3b340d101a2676539a717de2379e1ce2fe083ea025284`。
+
+## 2026-07-30 可核验的 Beta.72 内测构建身份
+
+- Android Debug/Release 现在统一使用 `versionCode=72`、`versionName=0.1.0-beta72`，设置页直接显示“见微 0.1.0-beta72 · 内测版”，内测用户截图即可绑定具体构建；覆盖安装也不再长期停留在 code 1。
+- 发布候选装配器与源码门禁会共同拒绝非正整数 code、非 `0.1.0-betaN` 名称和 code/name 错配。Android 14 设置页设备测试 1/1、最终 Gradle 311 个任务、Debug/Release Lint、JVM 测试、Debug/App 测试/unsigned Release APK、API 契约、200 主题知识和候选复验均通过。
+- 当前候选 `.tooling/release-candidate/beta72-versioned-pilot-final.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `497cc94fd0f0872f17acccdf62d25aa3db0a46c67476d2f10ab050f569195c2c`；Debug / unsigned Release / App 测试 APK SHA-256 分别为 `aff8b83aecadb1219d64de924a2f49e5d6acef44a5fe28663723477c6c71f0c9` / `48b6d17c9b8568c23a5c7bdb8efa2ce075b52613c2c218c753cc8a276860a7d9` / `8f215d35d95c3c0b1e20bab67df8a541b3b7294f6fd6eb05cdde5a62938a60a5`。本轮未调用云服务或外发照片；正式云、签名、授权图片/OEM/真人无障碍/生产卡/cohort 证据仍缺，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 自动发现可撤销与后台停机屏障
+
+- 自动发现现在是默认关闭、明确开启、可持久撤销的独立授权；首次体验、仅选择照片、设置关闭和权限撤销使用同一状态。Scan/Privacy/Upload Worker 被会话级停机屏障包围，并在每个候选前重验权限和授权，旧任务无法继续读取或上传。
+- 重复拒绝后的系统设置恢复、Android 14 部分照片、组件换卡去重与当天状态、午夜刷新、云删除后的本机重试、私有副本删除失败保留索引、提醒通知失败重试均有回归覆盖。最终 Gradle 307 个任务通过；Android JVM 271/271（76/111/84）、Data 90/90、App 隔离组 29/29，后端 133/133，源码、API 与知识门禁为 GO。
+- 历史候选 `.tooling/release-candidate/beta71-automatic-discovery-control.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `6070629cb7fd602a2ac717a18e4cc19a18dc25a09e0a265edd098565775473b3`，现已被 Beta.72 取代。未产生云请求或照片外发；正式云、签名、授权图片/OEM/真人无障碍/生产卡/cohort 证据仍缺，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 反馈后的对象纠错与精确回滚
+
+- 用户点过“有意思 / 没意思”后仍可选择“识错了 / 太私人”；确认识错会原子归档卡片、取消收藏、清理旧反馈、安排提醒删除并撤销该卡学习效果。
+- Room 15 与 PostgreSQL 迁移 015 持久化反馈实际应用的 affinity contribution，修复权重触顶后按理论值过度回滚。标准/1.6× API 34 点击路径通过；Data 89/89，App 全部 29 项在三个隔离 instrumentation 组中通过，Android JVM 260/260（75/109/76），后端 133/133，TypeScript、四组 Lint、Debug/App 测试 APK/R8 unsigned Release、源码门禁与候选复验通过。
+- 当前候选 `.tooling/release-candidate/beta70-post-feedback-object-correction.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `95b6b98f32ae99e17baef6014942d6a4c62b76489a47ff24ba7f6b7b8575bc47`；审计 `.tooling/beta70-post-feedback-object-correction/audit.json` SHA-256 `a3d2edf5ad5e6765ba3e354596469c781cbaaacf76a83d973d22b5404d1d5d22`。外部发布证据仍未完成，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 可见且隐私安全的反馈学习（已由 Beta.70 继承）
+
+- “有意思 / 没意思”提交后，卡片会持续解释之后是更常留意还是减少推荐；设置页把本机学习结果与用户主动选择的三个兴趣分开呈现，并明确只影响本次安装。
+- 学习摘要只展示仍保留且已排期卡片的受控物件名，不显示照片内容；“识错了”归档卡和“太私人”删除卡不会重新出现。反馈策略 8/8，标准/1.6× 设备专项通过；API 34 Data 88/88、App 29/29，Android JVM 258/258（73/109/76），双模块双变体 Lint、Debug/App 测试 APK/R8 unsigned Release、源码门禁与候选复验通过。
+- 当前候选 `.tooling/release-candidate/beta69-visible-feedback-learning.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `2171691cde3101f945361d122e17a5df15c332f7a48afa81f7af2b6c45f2c4e6`；审计 `.tooling/beta69-visible-feedback-learning/audit.json` SHA-256 `422900db08d2745784086af88680a7caa0c051e45eda8fe3ac3b36834f85edde`。外部发布证据仍未完成，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 无可靠命中后的可恢复引导
+
+- 显式导入未命中可靠知识时，会先说明“见微不会为了出卡而猜测”，再用具体日常物件示例和主体、光线、文字、人脸标准指导下一张；主操作明确为“换一张日常物品照片”。`NO_MATCH` 使用安静主色容器，技术失败与权限失效继续走独立恢复路径。
+- 第一次 1.6× 渲染暴露标题末字孤行，收紧为“暂时没找到可靠知识”后重新执行标准与 1.6× 设备测试，两档标题、说明、建议和操作都完整可达。API 34 Data 88/88、App 29/29；Android JVM 256/256（73/109/74），双模块双变体 Lint、Debug/App 测试 APK/R8 unsigned Release、源码门禁与候选复验通过。
+- 当前候选 `.tooling/release-candidate/beta68-no-match-recovery.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `02daef43aa8430f1cc292ad8ac1e7cc27719adea0395ade136713e90c662c274`；审计 `.tooling/beta68-no-match-recovery/audit.json` SHA-256 `003368b49ac19ee3b6f2c2e04cbf3e4224c207c025755bfedbf5f149267f9bf0`。外部发布证据仍未完成，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 来源优先的组件转化
+
+- 每日卡与最近导入成功卡现在先连续展示正文、识别对象、推送原因和可点击来源，再显示“每天在桌面看一张”的组件邀请；入口仍在标准 API 34 首屏内，安装后不再重复。
+- 组件与导入专项 8/8、清空 AVD 后 Data 88/88、App 29/29；Android JVM 255/255（73/109/73）、Data/App Debug/Release Lint、Debug/R8 unsigned Release、源码门禁和候选复验全部通过。
+- 当前候选 `.tooling/release-candidate/beta67-source-first-widget-prompt.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `30f6d4fc2f5f7226a5b19129fe373c73c0bf395ae7ad4d50bbb75e36f28a0ef5`；审计 `.tooling/beta67-source-first-widget-prompt/audit.json` SHA-256 `fdd8d45e91f114868b77e3325845583c01899cf3032f4600624bf83404c462a8`。外部发布证据仍未完成，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 模式切换与后台行为一致
+
+- 模式切换已由独立 Domain UseCase 执行：新模式持久化后取消全部旧自动链，再按现有照片权限重排；Privacy/Upload Worker 每个候选前核对模式，旧模式不能继续处理后续候选。手动选择和分享导入不会被自动模式切换取消。
+- WorkManager 专项 1/1、设置与 TalkBack 专项 1/1、Data 设备全量 88/88、清空冷 AVD App 全量 29/29；Android JVM 255/255（73/109/73）、Data/App Debug/Release Lint、Debug/R8 unsigned Release 与源码门禁通过。
+- 当前候选 `.tooling/release-candidate/beta66-mode-switch-consistency.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `a38bcb0aee253730b2d32f8bcf3198650ee702223c9b76e988ed66c73a0ddf64`；审计 `.tooling/beta66-mode-switch-consistency/audit.json` SHA-256 `08d24b6a514655c2f3bdc1623d7c92c03534dc04adb029340ef4034d616f89b7`。外部发布证据仍未完成，整体 Beta 保持 `NO_GO`。
+
+## 2026-07-29 自动发现两种模式
+
+- 首次体验把“提前备好一周（推荐）”和“当天只理解一张”收进自动发现卡片；前者准备 7–14 张未来卡，后者每个中国自然日最多上传分析 1 张且未命中可靠知识时沿用上一张。“仅选择照片”保持独立，设置、状态摘要与 TalkBack 口径同步。
+- Android 14/API 34 首次体验 2/2、目标竞态 2/2、冷启动 App 全量 29/29；Android JVM 249/249（Domain 69、Data 107、App 73），后端 132/132、TypeScript check/build、Data/App Debug/Release Lint、Debug/R8 unsigned Release 与本地门禁全部通过。
+- 当前候选 `.tooling/release-candidate/beta65-onboarding-mode-clarity.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `e26abddbbc306390f77e0c78ae0b2705dd522f718f85f30ef0c967e1e84176e9`；审计 `.tooling/beta65-onboarding-mode-clarity/audit.json` SHA-256 `7a99782f8e155d4230e257f9eb5a380da90ab6f6c57ff467fdd28a24ec1fd542`。真实云、正式签名、授权图片评测、OEM、真人 TalkBack、生产卡复算与 cohort 仍使整体 Beta 保持 `NO_GO`。
+
+## 2026-07-28 显式导入单一进度焦点
+
+- 每日页已显示三阶段导入进度卡时，不再同时显示顶栏分析转圈；其他分区、没有内联进度卡的自动分析，以及具体用户操作的顶栏状态保持原行为。
+- Android 14 专项 1/1 和完整 App 29/29；FILTERING/SYNCING 均只有 1 个无障碍 `ProgressBar`。Android JVM 249/249、双模块双变体 Lint、Debug/R8 Release、源码守卫通过。
+- 当前候选为 `.tooling/release-candidate/beta64-single-import-progress-indicator.json`，SHA-256 `3787ae8536eaadd258cfaf89570e4ec51b393396cab9c8713d871f8339622833`，仍为本地 `releaseEvidence=false`。
+
+## 2026-07-28 阿里云部署预检增量
+
+- 新增 `scripts/check-cloud-deployment-preflight.mjs`：一条命令在不输出凭据值的前提下检查本机工具、Serverless Devs access、云资源输入、HTTPS、固定 Qwen、目录摘要、成本上限和镜像摘要绑定；支持不可覆盖的 mode-0600 JSON 报告。
+- 自测 8/8 绕过被拒绝，合成密钥与数据库密码输出为 0；CI 已接入。当前本机真实结果是预期的 `NO_GO`，因为仅有百炼 API Key，没有 RAM/Serverless Devs、Docker、云资源参数或已推送不可变镜像。
+- 这关闭的是“部署交接不可复现”的仓库缺口，不是云部署本身；ACR/FC/RDS/OSS/HTTPS 仍未被观察，`releaseEvidence=false`。
+
+> 2026-07-28 Beta.64 首张照片三阶段进度与真实云边界（当前最新产品摘要）：显式导入等待卡新增“准备照片 / 本机隐私筛选 / 识别并匹配知识”三阶段和三段进度条；暂停、云端删除未完成与重试不显示虚假进度。失败文案删除“照片仍安全保留在本机”的绝对暗示，明确本机重试副本和“如已进入云端，临时图片最长保留 24 小时”。干净 API 34 AVD 上阶段专项 1/1、App 设备全量 29/29；Android JVM 248/248、后端 132/132、TypeScript、双 Lint、Debug/R8 Release 及本地门禁通过。审计 `.tooling/beta64-truthful-import-progress/audit.json` SHA-256 `3e7f1b36e3428fc5ee1c77b39d1ca76faeea042e561fb17702398716cc258b27`；当前不可变候选 `.tooling/release-candidate/beta64-truthful-import-progress.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `eaace1b91ec69589c183d9f85215dc0d0dfc2b52a25363e8f84c4ac78f148c37`。真实云、正式签名、授权图片评测、OEM、真人 TalkBack、生产卡复算和 cohort 尚缺，整体 Beta 继续 `NO_GO`。
+
+> 2026-07-28 Beta.64 首张卡片到组件闭环（当前最新产品摘要）：最近导入成功卡已在核心知识后直接提供“把这张知识放到桌面 / 添加到桌面”，文案只承诺“有新卡时自动更新”；已安装组件不重复提示。重试同步发布新分析状态并创建新唯一 Work，SharedPreferences 迟到回调不再把界面退回旧失败；Room 多实例与暂停屏障持久状态同步也已修复。API 34 App 28/28、Data 87/87、Android JVM 245/245、后端 132/132、TypeScript/TCP E2E、Data/App 双 Lint、Debug/R8 Release 和本地门禁全部通过。审计 `.tooling/beta64-first-card-widget-loop/audit.json` SHA-256 `4fa09a130fa9ccdb86934f697a2bb9124f22132474d12b63cb71beba7285777c`；当前不可变候选 `.tooling/release-candidate/beta64-first-card-widget-loop.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `1fdb01abe3745fd0dc182270d7cbb1a0b1d76863eb810bef24f8f19d984a7fa6`。真实云、正式签名、授权图片评测、OEM、真人 TalkBack、生产卡复算和 cohort 尚缺，整体 Beta 继续 `NO_GO`。
+
+> 2026-07-28 Beta.64 全量自动卡片审核（当前最新审核权威摘要）：用户确认的全量 AI 审核已贯穿到生成卡发布门禁。554 条可发布一般事实继续要求固定 Qwen + 生产 `cip` 批准；生成卡只能确定性组合该事实、精确来源集合、置信度标题和授权照片上下文。真实 Beta 的 200–500 张脱敏 PostgreSQL 卡片快照由 `derived-ai-reviewed-card-v1` 自动复算，任一目录、正文、来源、审核签注、低置信度措辞或日期模板漂移都会使整批 `NO_GO`；health/safety 不能进入首版自动池。人工卡片模板降为可选质量调查，不再拥有发布授权。编译器拒绝 14 类绕过，Beta 门禁拒绝 32 类；后端 132/132、TypeScript、证据装配/签名自测及源码/API/供应链/知识/部署/预算门禁均通过。本轮 Android 字节未变，复用既有 28/28 设备与 244/244 JVM 证据。审计 `.tooling/beta64-automatic-card-audit/audit.json` SHA-256 `3df27637b6cfd0185ae8d5419076b67dfc6cc3cc39a905c4f850469a952fafb3`；候选 `.tooling/release-candidate/beta64-automatic-card-audit.json` 为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `88a7e96507a9444af7949b1a5a5023036ced95936b8adb2cdbe4b9f07aa3a01f`。真实云、正式签名、授权图片评测、OEM、真人 TalkBack、真实生产卡自动验证和 cohort 仍缺，整体 Beta 保持 `NO_GO`。
+
+> 2026-07-28 Beta.64 桌面组件来源入口（当前最新摘要）：4×2 单卡/卡池末尾状态从“暂无更多卡片”改为绿色“查看照片与来源 →”，来源字号由 10sp 提高到 11sp，缓存过期状态缩为“缓存用完 · 点按更新”；正常换卡与每日两次上限不变。API 34 Pixel Launcher 真实 Pin 后通过系统右侧手柄从 2×2 扩为 4×2，组件宽 966/1080px，来源行动位于正文之后且完整在组件内。专项 1/1、App 设备全量 28/28、Android JVM 244/244、后端 132/132、TypeScript、双 Lint、Debug/R8 Release 与全部本地门禁通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `7bea036ff6dbd48116f770b462d831f4fa654b520bdefb5ac24c09e347c86017` / `ec749b99e437bde4fdd55bbfe768bd21ca00386e2bec42878ea1fd683366e0b8` / `a0f08255d959c59865476c40cb9e321ef8713a3b945c48626a3bca16350b754a`。审计 `.tooling/beta64-widget-editorial/audit.json` 为 `GO`、`releaseEvidence=false`；当前候选 `.tooling/release-candidate/beta64-widget-editorial.json` 双绑定复验为 `LOCAL_CANDIDATE_GO`，SHA-256 `a4841bed1bd67d07646b117e4e45b2baf12e4496d2de0e30aed84d55b2540b07`。全量审核继续采用固定 Qwen + 生产 `cip`，health/safety 不自动发布，本轮没有新云端发送；真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 知识卡编辑区收敛（历史摘要，已被桌面组件来源入口候选取代）：识别对象从绿色胶囊改为正文左缘的轻量元数据，“为什么推给你”与来源、反馈区不再各套一张灰色圆角卡；两条安静分隔线建立知识 → 来源 → 管理 → 反馈的顺序，组件转化仍为唯一强调行动区。API 34 真实 Compose 布局中正文、识别、推送原因和反馈标题左缘均为 89px，三个对齐差均为 0px；专项 1/1、相关知识卡/组件 3/3、最终 App 设备全量 28/28、Android JVM 244/244、双 Lint、Debug/R8 Release 全部通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `b0e1826c0e06f04e099fc53d33b5bea5435037ae0fa8a33d2780adee4511923e` / `85f5cb0fdc1f693f8d03f19b1bcda8765cd3c45626a0cab658b698b24ea950e5` / `9b55298d0fca1e699100ce31367e7252040dd54edf2eaf120acf7d3543451910`。审计 `.tooling/beta64-editorial-sections/audit.json` 为 `GO`、`releaseEvidence=false`；候选 `.tooling/release-candidate/beta64-editorial-sections.json` 当时双绑定复验为 `LOCAL_CANDIDATE_GO`，SHA-256 `be5fadf15cf6c0badc11d570712c926b4fe8c1ed44f4c180b48a3f61317e37fa`。全量审核策略不变且本轮未新增云端发送；真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 编辑型首页页签（历史摘要，已被知识卡编辑区候选取代）：固定导航从三个描边胶囊改为等宽文字页签，当前页以 28×3dp 主色底线和主色文字标记，未选页使用次级文字色；48dp 点击高度、单一 TalkBack 节点、Tab 角色、选中态和动态“收藏 N”名称均保持。API 34 视觉复核确认导航退为页面结构、每日知识卡与组件入口成为主层级；布局 JSON 与上一候选逐字节一致。设置导航专项 1/1、系统组件 Pin 复验 1/1；一次干净全量 26/27 的动态收藏标题等待超时经同方法隔离 1/1 后，第二次干净 App 设备全量 27/27。Android JVM 244/244（69/106/69）、双 Lint、Debug/R8 Release 全部通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `05f4e9b43d297ce3713a6aeb92f60dbee2e4a69c2e4d6354366c2a34059cc898` / `397cbacf8a57bdcb1b0fac06ed7a62467a13ec940b2c7a7fc4bdefa7b012484c` / `885f2294bbab892f7d6137375f0f081d3c2fc8498f8721c6e9898e31fa23c890`。审计 `.tooling/beta64-editorial-tabs/audit.json` 为 `GO`、`releaseEvidence=false`；候选 `.tooling/release-candidate/beta64-editorial-tabs.json` 当时复验为 `LOCAL_CANDIDATE_GO`，SHA-256 `8a29425685a985ca0d166fbb43222edbab8798e0362014bed5d65c35c26a7be1`。全量审核策略不变且本轮未新增云端发送；真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 重访首页紧凑化与全量审核确认（当前最新摘要）：重访首页使用单行品牌栏，移除已在首次体验说明的价值承诺和主卡上方重复“今天”标题，48dp 三段导航与卡片日期语义不变。API 34 的 2400px 窗口中，正文顶部由 1114px 前移至 869px，组件入口由 1308px 前移至 1063px；专项 3/3、冷启动提醒复验 1/1、最终 App 设备 27/27、Android JVM 244/244、后端 132/132、TypeScript、双 Lint、Debug/R8 Release 全部通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `037e2c4eb93629f906b213e2678c64b26a10a5e6ebcb374fb2daae3baba6b978` / `17dae9b308d64621851f278fb5fa8c18af360ef6515f34889eb1cf61b2676f14` / `456ac2035e6abb2107dd013d8a9f9de9264221230eb18e3825452c18f1b7d43a`。审计 `.tooling/beta64-compact-home/audit.json` 为 `GO`、`releaseEvidence=false`；当前候选 `.tooling/release-candidate/beta64-compact-home.json` 已复验为 `LOCAL_CANDIDATE_GO`。全量审核保持固定 Qwen + 生产 `cip`、不确定即拒绝，health/safety 不自动发布；本轮未新增云端发送。真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 缺图状态不再挤走知识内容（当前最新摘要）：卡片缩略图新增加载中/可用/不可用三态，可用照片保持 190dp，大图不可读时收为 68dp 并提供单一 TalkBack 标签。API 34 实测缺图容器 179/2400px，正文 1114–1240px，组件入口 1308–1361px，来源和管理动作也进入同一屏；生成 JPEG 仍保持完整大图。专项 2/2、当前字节组件复验 1/1、最终 App 设备 27/27、Android JVM 244/244、双 Lint、Debug/R8 Release 全部通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `978ab174a8cfa8fe0463b83c92a108a46350bcb6bf248d12a6db86c2f50309ed` / `62a6c7b5347300251dad1b273f466d200400c0da273f66f303e081759a3d2c6c` / `5ec588e50160030c3de9a01ebc9abb62882db8b6be7f80dacd4973c576866e90`。审计 `.tooling/beta64-compact-missing-photo/audit.json` 为 `GO`、`releaseEvidence=false`；当前候选 `.tooling/release-candidate/beta64-compact-missing-photo.json` 已复验为 `LOCAL_CANDIDATE_GO`。真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 价值优先组件入口与全量 AI 审核确认（当前最新摘要）：首次每日卡在照片、对象标题和知识正文之后立即展示“添加桌面组件”，不再要求用户先越过来源、收藏、提醒和反馈；入口只在组件未安装且位于第一张每日卡时出现。API 34 布局证据为正文底部 1560 px、入口 1628–1681 px、窗口 2400 px，无需滚动；真实系统 Pin 完成后来源上下文仍可到达。组件专项 1/1、第二次干净 App 设备全量 27/27、Android JVM 244/244（69/106/69）、双 Lint、Debug/R8 Release 均通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `8e4f9b97b7444dd9496d46212806666897fb06030d2c36fd5fd7436b52bfbef6` / `cd8a478a5c97715b3b266c7a6429e732ae35f5b77a96ec120e992c79c322b73f` / `58e633c50b724892a5dd5b38b7be270dbda21e3abcd8fc23d305476966568e30`。审计 `.tooling/beta64-value-first-widget/audit.json` 为 `GO`、`releaseEvidence=false`；当前候选 `.tooling/release-candidate/beta64-value-first-widget.json` 已复验为 `LOCAL_CANDIDATE_GO`。用户确认的全量审核继续由固定 Qwen + 生产 `cip` 自动执行，一般知识覆盖主要内容风险、不确定即拒绝，health/safety 首版不自动发布，人工只处理异常与抽检。真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 知识卡打开即见内容（当前最新 Android 产品体验摘要）：组件、分享导入、收藏和历史精准入口统一为单行上下文栏，移除先于内容出现的大说明卡。API 34 布局审计为入口/返回中心线差 0 px、知识卡标题顶部 1196/2400 px（49.83%）、旧说明不存在；专项 1/1、App 设备 27/27、Android JVM 244/244、双 Lint、Debug/R8 Release 均通过。Debug / 未签名 Release / 测试 APK SHA-256 为 `2f984cddd85c60dd88e1ab254b527632dfa296adcd4af9e67e1a6f3adc76dbb7` / `26f25160adf0a82af8613961da20de458f76409deab5d4a3117f8f388819651f` / `75924bfe1ab9f5eb8db3606d7c34f81fd030439a5b036020d7721adfc53a311d`。审计 `.tooling/beta64-compact-card-entry/audit.json` 为 `GO`、`releaseEvidence=false`；新候选 `.tooling/release-candidate/beta64-compact-entry.json` 已字节复验为 `LOCAL_CANDIDATE_GO`。真实云、正式签名和真人/实体机 Beta 证据未产生，整体仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 对象裁图阶段发布候选（历史发布工程摘要，已被紧凑入口候选取代）：新增 `scripts/assemble-release-candidate.mjs`，把后端 Release identity、14 个 SQL 迁移、Beta.64 目录、OpenAPI、Room 14、部署模板、生成器和 Gradle unsigned Release APK 做成不可覆盖且可重算的字节绑定。`.tooling/release-candidate/beta64-final.json` 当时为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`；后端/知识/APK SHA-256 分别为 `50323c815aa3abbd4a01e5479ff7555d10edc10a795caf810d6b3245422831b8` / `ef26febc1520d9b46e74dd34a985ed2d2e270cd857dea21456f5e93a8e88a923` / `6039743e95a4e23c4a65c960202636e2296980a573b209258d1d8f3f7da9cd6a`。陈旧候选、覆盖写入、错误迁移终点、错误 Room 版本、假签名状态、逆序发布和回滚删列均失败关闭；CI 已加入自测。发布顺序固定为迁移 → 后端 → 云验证 → APK 签名分发，迁移 014 只前进不回滚。真实云与正式发布证据未产生，整体 Beta 仍为 `NO_GO`。
+
+> 2026-07-28 Beta.64 一般知识审核全量收口（当前最新内容运营权威摘要）：餐叉与 USB 数据线两条超长正文已缩为 78/77 字，并只将这两条修订正文、主题名和公开来源元数据发送至固定 Qwen 模型及生产 `cip` 护栏重审；本轮 1 次请求返回 2/2 `approved / safe_general`、0 rejected，499 input / 93 output tokens。目录已原子升级为 `2026-07-28-beta.64`，554/554 条一般知识全部 approved、verified、AI-reviewed；70 条 health/safety 未发送且继续保持 draft。知识 readiness 为 183/200 ready topic、554 verified fact、0 blocker，目录 SHA-256 `ef26febc1520d9b46e74dd34a985ed2d2e270cd857dea21456f5e93a8e88a923`。后端 132/132、Android JVM 241/241（66/106/69）、双 Lint、Debug/R8 Release、API 契约和源码守卫全部通过。当前 Debug / 未签名 Release APK SHA-256 为 `abc306225577b7c836f80917da15226b5253c93aef6ec4321a6f63b1b78c44ba` / `ecbf67c21c433535d9c5917f1bcff8824860e7762e5cdb3a6ac2afc7159370c1`。一般知识审核无剩余待处理项；真实托管云、正式签名、OEM、真人 TalkBack、200 卡抽检和 cohort 仍使整体 Beta 保持 `NO_GO`。
+
+> 2026-07-28 Beta.63 Android → Qwen 真实产品闭环（当前最新跨端权威摘要）：使用用户已明确授权的项目无人物扫帚图，从 Android 14 系统 Photo Picker 开始，未授予持续相册权限；bundled ML Kit 实际只给出 `Room / Chair / Pattern`、敏感标记为空。真实后端以固定 `qwen3.6-flash-2026-04-16` 和生产 `cip` 输入/输出护栏直接理解图片，返回 `broom / 扫帚 / 0.95`，随后从 Beta.63 审核目录选择已批准的一般事实 `broom-draft-004`，绑定 Google Patents 来源并写入 Room。App 详情、2×2/4×2 Glance、跨日“昨日一知”和组件精准回卡均通过，服务端临时对象归零，crash buffer 为空。实跑发现本地标签 substring 会让 `Room` 误命中 `broom`，已收紧为规范化精确匹配；另修复 4×2 缓存耗尽提示替换来源的问题，来源现固定保留。后端 132/132、Android JVM 241/241、API 34 组件设备测试 2/2，知识/API/源码门禁均 `GO`，R8 Release 重建成功。Debug / 未签名 Release APK SHA-256 为 `a87ce1d09106e80aa140bb0fffa99adee60bac13f47f619143125cea065b1184` / `ecbf67c21c433535d9c5917f1bcff8824860e7762e5cdb3a6ac2afc7159370c1`；私有审计 `.tooling/beta63-photo-to-card/audit.json` 为 `releaseEvidence=false`。真实托管 PostgreSQL/OSS/HTTPS、正式签名、OEM 实体机、真人 TalkBack、200 卡抽检和 cohort 仍使整体 Beta 保持 `NO_GO`。
+
+> 2026-07-27 一般知识 AI-only 全量审核（当前最新内容运营权威摘要）：用户明确授权后，554 条一般知识文本、主题名和公开来源元数据已发送至固定 `qwen3.6-flash-2026-04-16`；552 条一般知识通过，叉子与 USB 线各 1 条因正文分别为 84/87 字被本地确定性规则拒绝，10 条 health 与 60 条 safety 未发送且全部保持 draft，旧牙刷高风险批准状态也已降回 draft。目录已原子升级为 `2026-07-27-beta.63`，SHA-256 为 `01c6e1d1eade84dac63363d24ba1624dc06b2b0f495321fa127d83cc0548d18d`；readiness 为 `GO`，200 个受控主题中 183 个 ready，552 条事实带有效 Qwen 签注，0 条高风险发布。审核器新增本地 28–80 字硬拦截、可恢复批次检查点、严格数组提示和模型格式偏差有界重试。最终被接受审核轮为 28 批、76977 input tokens、22746 output tokens、0 次无护栏调用；此前一次完整结果因最终长度门禁失败，另有一次畸形 JSON 响应，故阿里云实际计费调用至少 57 次，精确费用以账单为准。后端 131 项通过、14 项 PostgreSQL 按环境跳过，知识/部署/API/证据/源码门禁均为 `GO`。内容审核阻断已关闭；真实托管云、正式签名、国产 OEM、TalkBack 和 Beta cohort 等外部阻断仍使整体 Beta 保持 `NO_GO`。
+
 > 2026-07-26 一般知识启动审核批次（当前最新内容运营权威摘要）：责任人已明确确认 reviewer ID `wyq` 并由本人操作本机知识审核工作台。当前 loopback 会话只监听 `127.0.0.1:8791`，固定 Beta.62 目录快照、`--risk general --whole-topics`、19 条 / 6 个完整主题以及下一版本 `2026-07-26-beta.63`；初始 revision 0 的 19 条决定全部未设置，尚未生成完成批次、尚未应用目录，也没有自动批准。工作台仍要求逐条打开来源、填写决定与确认项，并在真人 checkpoint 后才会一次性写出 `.tooling/knowledge-review-batches/beta63-general-launch-01.json`。当前目录仍为 0 ready topic，Beta 仍为 `NO_GO`。
 
 > 2026-07-26 知识来源透明度（当前最新 Android 权威摘要）：卡片详情现在直接显示每条来源的发布方与具体文章/页面标题，多来源编号、发布方与标题相同时去重，TalkBack 保留完整来源身份；来源点击仍复用既有公共 HTTPS 安全边界。改动限定在 App presentation 层。API 34 标准/1.6× 字体专项和最终 App 27/27 instrumentation 通过；Android JVM 240/240（Domain 66、Data 106、App 68），Debug/Release Lint、Debug/R8 Release、API 契约、差异检查和源码守卫 `sourceTransparency=1` 全部为 `GO`。Debug/未签名 Release/App 测试 APK SHA-256 为 `497394b26017fbb0d1d80e181db428c05cecd490300a3dec7b965b580085c6a4` / `a9336764f90203e13995b31b67b6e33ac1aff078513c1b4af53c5b6d7739b0bd` / `12a0ae2e0a50e3d2a6ee20006fcba9a047a587363a1267450536e79c9a28456f`。这证明来源可被用户看见和打开，不证明来源已由真人逐条确认支持事实；外部 Beta 阻断不变，仍为 `NO_GO`。
@@ -333,3 +448,4 @@ Beta 仍不放行：生产知识目录 `2026-07-19-beta.62` 已结构化覆盖�
 > self-consistent cloud artifact without the deployment-attestor private key. This closes the final
 > P1 from the second independent adversarial audit; it does not turn the current external-evidence
 > state into GO.
+> 2026-07-28 Beta.64 对象感知组件裁图（当前最新跨端权威摘要）：真实 Qwen 扫帚卡对象框 `{0.48,0.02,0.35,0.75}` 已贯通 Fastify、PostgreSQL 014、OpenAPI、Android DTO/Room 14 和 Glance。4×2 不再盲目居中裁掉主体，旧卡或无效框继续安全居中；真实 Photo Picker → Qwen → 卡片 → 2×2/4×2 → 精准回卡已在 Android 14 重跑。后端 132/132；PostgreSQL 14 个迁移、15/15 集成及 TCP E2E；Android JVM 244/244（69/106/69）、Room 迁移 12/12、组件专项 2/2；双 Lint、Debug/R8 Release、知识/API/源码门禁均通过。Debug / 未签名 Release APK SHA-256 为 `79249138638bc4eaac90f343d7cf0fd511325f0e1258c2a5b1a15dfdd0fc14ed` / `6039743e95a4e23c4a65c960202636e2296980a573b209258d1d8f3f7da9cd6a`；本地证据不替代托管云、正式签名、OEM、真人 TalkBack、200 卡抽检和 cohort，整体仍为 `NO_GO`。

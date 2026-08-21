@@ -1,11 +1,11 @@
 {
   "version": "2026-07-18-beta-taxonomy.1",
-  "generatedFromCatalogVersion": "2026-07-19-beta.62",
+  "generatedFromCatalogVersion": "2026-07-28-beta.64",
   "policy": {
     "publishesFacts": false,
     "requiredFactsPerTopic": "3-5",
-    "requiredReview": "accountable human source review",
-    "note": "Proposed topics are taxonomy backlog only and are never served until facts and sources pass the production catalog gate."
+    "requiredReview": "fixed-version AI content review for general facts; health and safety facts are excluded from the launch catalog",
+    "note": "Proposed topics are taxonomy backlog only and are never served until a sourced general fact passes the production AI content gate."
   },
   "categoryTargets": {
     "home": 45,
@@ -19,7 +19,7 @@
     "topics": 200,
     "seededTopics": 200,
     "proposedTopics": 0,
-    "productionReadyTopics": 0
+    "productionReadyTopics": 183
   },
   "topics": [
     {
@@ -33,9 +33,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bottle_brush",
@@ -50,9 +52,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "broom",
@@ -67,9 +71,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "clothes_drying_rack",
@@ -84,9 +90,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dehumidifier",
@@ -99,9 +107,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dental_floss",
@@ -115,9 +125,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "detergent_bottle",
@@ -132,9 +144,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dish_brush",
@@ -149,9 +163,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dishwasher",
@@ -164,9 +180,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dustpan",
@@ -181,9 +199,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "feather_duster",
@@ -198,9 +218,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "iron",
@@ -215,9 +237,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "ironing_board",
@@ -232,9 +256,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "laundry_basket",
@@ -249,9 +275,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "lint_roller",
@@ -266,9 +294,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "microfiber_cloth",
@@ -283,9 +313,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "mop",
@@ -300,9 +332,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "nail_brush",
@@ -317,9 +351,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "plunger",
@@ -334,9 +370,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rubber_gloves",
@@ -351,9 +389,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "soap_dispenser",
@@ -368,9 +408,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "sponge",
@@ -386,9 +428,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "spray_bottle",
@@ -403,9 +447,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "squeegee",
@@ -420,9 +466,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "toilet_brush",
@@ -437,9 +485,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "toothbrush",
@@ -454,8 +504,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -471,9 +523,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "trash_can",
@@ -488,9 +542,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "vacuum_cleaner",
@@ -504,9 +560,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "washing_machine",
@@ -521,9 +579,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "camera",
@@ -536,9 +596,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "camera_lens",
@@ -553,9 +615,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "charger",
@@ -570,9 +634,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "computer_fan",
@@ -587,9 +653,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "computer_mouse",
@@ -603,9 +671,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "e_reader",
@@ -620,9 +690,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "ethernet_cable",
@@ -635,9 +707,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "game_controller",
@@ -652,9 +726,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "hard_drive",
@@ -667,9 +743,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "hdmi_cable",
@@ -682,9 +760,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "headphones",
@@ -698,9 +778,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "keyboard",
@@ -714,9 +796,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "laptop",
@@ -731,9 +815,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "microphone",
@@ -748,9 +834,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "monitor",
@@ -765,9 +853,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "power_bank",
@@ -780,8 +870,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -797,9 +889,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "printer",
@@ -814,9 +908,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "remote_control",
@@ -830,9 +926,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "sd_card",
@@ -845,9 +943,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "smartphone",
@@ -862,9 +962,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "smartwatch",
@@ -879,9 +981,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "solid_state_drive",
@@ -896,9 +1000,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "speaker",
@@ -913,9 +1019,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "tablet",
@@ -930,9 +1038,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "tripod",
@@ -947,9 +1057,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "usb_cable",
@@ -964,9 +1076,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "usb_flash_drive",
@@ -982,9 +1096,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "webcam",
@@ -999,9 +1115,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wifi_router",
@@ -1016,9 +1134,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "alarm_clock",
@@ -1033,9 +1153,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "backpack",
@@ -1050,9 +1172,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "button",
@@ -1067,9 +1191,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "cabinet_handle",
@@ -1084,9 +1210,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "candle",
@@ -1099,8 +1227,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -1116,9 +1246,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "clothespin",
@@ -1133,9 +1265,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "comb",
@@ -1150,9 +1284,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "curtain",
@@ -1167,9 +1303,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "curtain_rod",
@@ -1184,9 +1322,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "door_handle",
@@ -1201,9 +1341,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "door_hinge",
@@ -1218,9 +1360,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "door_lock",
@@ -1235,9 +1379,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "doormat",
@@ -1252,9 +1398,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "drawer_slide",
@@ -1269,9 +1417,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "duvet",
@@ -1286,9 +1436,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "electrical_outlet",
@@ -1301,8 +1453,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -1316,8 +1470,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -1333,9 +1489,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "key",
@@ -1349,9 +1507,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "led_bulb",
@@ -1364,9 +1524,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "light_switch",
@@ -1381,9 +1543,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "lighter",
@@ -1397,9 +1561,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "mattress",
@@ -1414,9 +1580,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "mirror",
@@ -1431,9 +1599,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "mosquito_coil",
@@ -1447,9 +1617,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "notebook",
@@ -1464,9 +1636,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "padlock",
@@ -1479,9 +1653,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "pillow",
@@ -1496,9 +1672,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rubber_band",
@@ -1513,9 +1691,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rug",
@@ -1530,9 +1710,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "safety_pin",
@@ -1545,9 +1727,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "sewing_needle",
@@ -1562,9 +1746,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "shoehorn",
@@ -1579,9 +1765,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "shoelace",
@@ -1595,9 +1783,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "storage_box",
@@ -1611,9 +1801,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "suitcase",
@@ -1627,9 +1819,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "thread_spool",
@@ -1643,9 +1837,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "tissue_box",
@@ -1659,9 +1855,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "toilet_paper",
@@ -1675,9 +1873,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "umbrella",
@@ -1693,9 +1893,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wall_clock",
@@ -1709,9 +1911,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wallet",
@@ -1725,9 +1929,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "window_screen",
@@ -1741,9 +1947,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "zipper",
@@ -1757,9 +1965,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "aluminum_foil",
@@ -1773,9 +1983,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bottle_opener",
@@ -1789,9 +2001,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "can_opener",
@@ -1805,9 +2019,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "cast_iron_pan",
@@ -1822,9 +2038,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "chopsticks",
@@ -1838,9 +2056,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "colander",
@@ -1855,9 +2075,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "corkscrew",
@@ -1872,9 +2094,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "cutting_board",
@@ -1889,9 +2113,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "dish_rack",
@@ -1906,9 +2132,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "electric_kettle",
@@ -1922,9 +2150,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "food_storage_container",
@@ -1938,9 +2168,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "fork",
@@ -1954,9 +2186,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "grater",
@@ -1970,9 +2204,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "kettle",
@@ -1986,9 +2222,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "kitchen_knife",
@@ -2002,9 +2240,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "kitchen_scissors",
@@ -2018,9 +2258,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "kitchen_tongs",
@@ -2034,9 +2276,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "ladle",
@@ -2050,9 +2294,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "measuring_cup",
@@ -2066,9 +2312,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "measuring_spoon",
@@ -2081,9 +2329,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "mug",
@@ -2098,9 +2348,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "nonstick_pan",
@@ -2114,9 +2366,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "peeler",
@@ -2130,9 +2384,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "plastic_wrap",
@@ -2146,9 +2402,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "pressure_cooker",
@@ -2161,8 +2419,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -2177,9 +2437,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rice_paddle",
@@ -2193,9 +2455,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rolling_pin",
@@ -2208,9 +2472,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "spoon",
@@ -2224,9 +2490,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "stainless_steel_pan",
@@ -2239,9 +2507,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "steamer_basket",
@@ -2254,9 +2524,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "tea_strainer",
@@ -2270,9 +2542,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "thermos",
@@ -2287,9 +2561,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "whisk",
@@ -2303,9 +2579,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wok",
@@ -2318,9 +2596,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "ballpoint_pen",
@@ -2334,9 +2614,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bench_vise",
@@ -2350,9 +2632,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "caulking_gun",
@@ -2365,9 +2649,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "clamp",
@@ -2380,9 +2666,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "drill_bit",
@@ -2395,9 +2683,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "eraser",
@@ -2412,9 +2702,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "flashlight",
@@ -2428,9 +2720,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "garden_trowel",
@@ -2443,9 +2737,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "hammer",
@@ -2460,9 +2756,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "handsaw",
@@ -2476,9 +2774,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "hex_key",
@@ -2492,9 +2792,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "hot_glue_gun",
@@ -2507,9 +2809,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "multimeter",
@@ -2522,9 +2826,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "paint_brush",
@@ -2537,9 +2843,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "paint_roller",
@@ -2552,9 +2860,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "paper_clip",
@@ -2568,9 +2878,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "pencil",
@@ -2583,9 +2895,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "pliers",
@@ -2599,9 +2913,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "power_drill",
@@ -2614,9 +2930,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "pruning_shears",
@@ -2629,9 +2947,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rake",
@@ -2644,9 +2964,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "ratchet_wrench",
@@ -2659,9 +2981,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "sandpaper",
@@ -2674,9 +2998,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "scissors",
@@ -2690,9 +3016,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "screwdriver",
@@ -2706,9 +3034,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "shovel",
@@ -2721,9 +3051,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "socket_wrench",
@@ -2736,9 +3068,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "soldering_iron",
@@ -2751,9 +3085,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "spirit_level",
@@ -2767,9 +3103,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "stapler",
@@ -2782,9 +3120,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "tape_measure",
@@ -2798,9 +3138,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "utility_knife",
@@ -2813,9 +3155,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "watering_can",
@@ -2829,9 +3173,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wire_stripper",
@@ -2844,9 +3190,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "wrench",
@@ -2860,9 +3208,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "airbag",
@@ -2876,8 +3226,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -2893,9 +3245,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bicycle_bell",
@@ -2910,9 +3264,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bicycle_brake",
@@ -2927,8 +3283,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -2942,9 +3300,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bicycle_pedal",
@@ -2957,9 +3317,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bus_stop_sign",
@@ -2972,9 +3334,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "car_headrest",
@@ -2989,8 +3353,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3004,9 +3370,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "car_tire",
@@ -3019,8 +3387,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3036,8 +3406,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3053,8 +3425,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3068,9 +3442,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "license_plate",
@@ -3083,9 +3459,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "motorcycle",
@@ -3098,9 +3476,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "motorcycle_mirror",
@@ -3115,8 +3495,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3130,9 +3512,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "rearview_mirror",
@@ -3149,8 +3533,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3167,8 +3553,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3183,9 +3571,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "speed_bump",
@@ -3202,8 +3592,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     },
     {
@@ -3217,9 +3609,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "traffic_light",
@@ -3234,9 +3628,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "train_ticket",
@@ -3249,9 +3645,11 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 3,
+      "verifiedGeneralFactCount": 3,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "windshield_wiper",
@@ -3267,8 +3665,10 @@
       "catalogState": "seeded",
       "factsInCatalog": 3,
       "humanAttestedFactCount": 0,
+      "aiReviewedFactCount": 0,
+      "verifiedGeneralFactCount": 0,
       "targetFactCount": 3,
-      "researchState": "human_research_required",
+      "researchState": "ai_review_required",
       "readyForProduction": false
     }
   ]

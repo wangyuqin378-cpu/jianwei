@@ -9,40 +9,52 @@ import cn.jianwei.domain.repository.AnalysisStatusRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @Singleton
 class SharedPreferencesAnalysisStatusRepository @Inject constructor(
     @ApplicationContext context: Context
 ) : AnalysisStatusRepository {
     private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+    private val progressByScope: Map<AnalysisProgressScope, MutableStateFlow<AnalysisProgress>>
+    private val preferenceListener: SharedPreferences.OnSharedPreferenceChangeListener
 
     init {
         migrateLegacyProgress()
+        progressByScope = AnalysisProgressScope.entries.associateWith { scope ->
+            MutableStateFlow(readProgress(scope))
+        }
+        preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, changedKey ->
+            AnalysisProgressScope.entries
+                .firstOrNull { scope -> changedKey in statusKeys(scope) }
+                ?.let { scope -> progressByScope.getValue(scope).value = readProgress(scope) }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(preferenceListener)
     }
 
-    override fun observeProgress(scope: AnalysisProgressScope): Flow<AnalysisProgress> = callbackFlow {
-        val statusKeys = statusKeys(scope)
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key in statusKeys) trySend(readProgress(scope))
-        }
-        trySend(readProgress(scope))
-        preferences.registerOnSharedPreferenceChangeListener(listener)
-        awaitClose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
-    }.distinctUntilChanged()
+    override fun observeProgress(scope: AnalysisProgressScope): Flow<AnalysisProgress> =
+        progressByScope.getValue(scope).asStateFlow()
 
     override fun publishProgress(scope: AnalysisProgressScope, progress: AnalysisProgress) {
+        val normalized = progress.copy(
+            discoveredCount = progress.discoveredCount.coerceAtLeast(0),
+            eligibleCount = progress.eligibleCount.coerceAtLeast(0),
+            cachedCardCount = progress.cachedCardCount.coerceAtLeast(0)
+        )
+        // UI and WorkManager coordination must observe the new phase before another local state
+        // transition can be interpreted. SharedPreferences listeners are asynchronous and allowed
+        // a stale FAILED phase to win immediately after an explicit retry.
+        progressByScope.getValue(scope).value = normalized
         preferences.edit()
-            .putString(key(scope, KEY_PHASE), progress.phase.name)
-            .putInt(key(scope, KEY_DISCOVERED), progress.discoveredCount.coerceAtLeast(0))
-            .putInt(key(scope, KEY_ELIGIBLE), progress.eligibleCount.coerceAtLeast(0))
-            .putInt(key(scope, KEY_CACHED_CARDS), progress.cachedCardCount.coerceAtLeast(0))
+            .putString(key(scope, KEY_PHASE), normalized.phase.name)
+            .putInt(key(scope, KEY_DISCOVERED), normalized.discoveredCount)
+            .putInt(key(scope, KEY_ELIGIBLE), normalized.eligibleCount)
+            .putInt(key(scope, KEY_CACHED_CARDS), normalized.cachedCardCount)
             .apply {
-                if (progress.detail == null) remove(key(scope, KEY_DETAIL))
-                else putString(key(scope, KEY_DETAIL), progress.detail)
+                if (normalized.detail == null) remove(key(scope, KEY_DETAIL))
+                else putString(key(scope, KEY_DETAIL), normalized.detail)
             }
             .apply()
     }

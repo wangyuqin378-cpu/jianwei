@@ -113,8 +113,20 @@ if (process.argv.includes("--self-test")) {
   if (assessLiveResponse({ status: 404, contentType: "text/html", finalUrl: "https://example.com" }).ok) {
     throw new Error("Knowledge source self-test accepted HTTP 404");
   }
-  const releaseCandidateSources = selectLiveSources(catalog);
-  if (releaseCandidateSources.length === 0 || releaseCandidateSources.some((source) => source.sourceId === "src-tableware")) {
+  const mixedReviewFixture = {
+    sources: [
+      { sourceId: "approved-source" },
+      { sourceId: "draft-only-source" }
+    ],
+    topics: [{
+      facts: [
+        { reviewStatus: "approved", sourceIds: ["approved-source"] },
+        { reviewStatus: "draft", sourceIds: ["draft-only-source"] }
+      ]
+    }]
+  };
+  const releaseCandidateSources = selectLiveSources(mixedReviewFixture);
+  if (releaseCandidateSources.length !== 1 || releaseCandidateSources[0].sourceId !== "approved-source") {
     throw new Error("Knowledge source self-test did not isolate approved release candidates");
   }
   if (selectLiveSources(catalog, true).length !== catalog.sources.length) {

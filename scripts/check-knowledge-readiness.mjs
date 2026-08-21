@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import { isMainModule } from "./lib/main-module.mjs";
 
 const REQUIRED_TOPIC_COUNT = 200;
+const MIN_LAUNCH_READY_TOPICS = 150;
 const MIN_FACTS_PER_TOPIC = 3;
 const MAX_FACTS_PER_TOPIC = 5;
 const AUTHORITIES = new Set(["reference", "official", "professional"]);
 const RISK_LEVELS = new Set(["general", "health", "safety"]);
-const REVIEW_STATUSES = new Set(["draft", "approved"]);
+const REVIEW_STATUSES = new Set(["draft", "approved", "rejected"]);
 const AUTOMATION_REVIEWER = /(?:codex|chatgpt|gpt|kimi|moonshot|qwen|claude|gemini|llama|automation|autobot|robot|language[-_. ]?model)/i;
 
 export function assessKnowledge(catalog, backlog, now = new Date(), approvedReviewerIds = null) {
@@ -42,11 +43,9 @@ export function assessKnowledge(catalog, backlog, now = new Date(), approvedRevi
   const referencedSourceIds = new Set();
   let approvedFacts = 0;
   let humanAttestedFacts = 0;
+  let aiReviewedFacts = 0;
+  let verifiedFacts = 0;
   let readyTopics = 0;
-
-  if (approvedReviewerIds instanceof Set && approvedReviewerIds.size === 0) {
-    fail("protected knowledge reviewer allowlist is required for release readiness");
-  }
 
   validateBacklog(backlog, backlogTopics, topicsById, fail);
 
@@ -83,8 +82,7 @@ export function assessKnowledge(catalog, backlog, now = new Date(), approvedRevi
     if (facts.length < MIN_FACTS_PER_TOPIC || facts.length > MAX_FACTS_PER_TOPIC) {
       fail(`catalog topic must contain 3-5 total facts: ${topicId}`);
     }
-    let approvedForTopic = 0;
-    let attestedForTopic = 0;
+    let verifiedGeneralForTopic = 0;
 
     for (const fact of facts) {
       const factId = fact?.factId ?? "<missing>";
@@ -125,22 +123,35 @@ export function assessKnowledge(catalog, backlog, now = new Date(), approvedRevi
           fail(`approved fact must be directly publishable as a 28-80 character card body: ${factId}`);
         }
         approvedFacts += 1;
-        approvedForTopic += 1;
-        if (validHumanReview(fact.review, now, factId, fail, approvedReviewerIds)) {
-          humanAttestedFacts += 1;
-          attestedForTopic += 1;
+        if (fact?.riskLevel !== "general") {
+          fail(`high-risk fact is not publishable in the AI-only launch catalog: ${factId}`);
         }
-      } else if (fact?.review !== undefined) {
+        const humanValid = fact?.review !== undefined && validHumanReview(fact.review, now, factId, fail, approvedReviewerIds);
+        const aiValid = fact?.aiReview !== undefined && validAiReview(fact.aiReview, now, fact, factId, fail);
+        if (fact?.review && fact?.aiReview) fail(`fact cannot carry both human and AI review: ${factId}`);
+        if (humanValid) {
+          humanAttestedFacts += 1;
+        }
+        if (aiValid) {
+          aiReviewedFacts += 1;
+        }
+        if ((humanValid || aiValid) && fact?.riskLevel === "general") {
+          verifiedFacts += 1;
+          verifiedGeneralForTopic += 1;
+        } else if (!humanValid && !aiValid) {
+          fail(`approved fact lacks a valid human or AI review: ${factId}`);
+        }
+      } else if (fact?.reviewStatus === "rejected") {
+        const humanValid = fact?.review !== undefined && validHumanReview(fact.review, now, factId, fail, approvedReviewerIds);
+        const aiValid = fact?.aiReview !== undefined && validAiReview(fact.aiReview, now, fact, factId, fail);
+        if (fact?.review && fact?.aiReview) fail(`fact cannot carry both human and AI review: ${factId}`);
+        if (!humanValid && !aiValid) fail(`rejected fact lacks a valid human or AI review: ${factId}`);
+      } else if (fact?.review !== undefined || fact?.aiReview !== undefined) {
         fail(`draft fact must not carry a review attestation: ${factId}`);
       }
     }
 
-    if (facts.length >= MIN_FACTS_PER_TOPIC && facts.length <= MAX_FACTS_PER_TOPIC &&
-        approvedForTopic === facts.length && attestedForTopic === facts.length) {
-      readyTopics += 1;
-    } else {
-      fail(`topic is not fully human-attested with 3-5 approved facts: ${topicId}`);
-    }
+    if (verifiedGeneralForTopic >= 1) readyTopics += 1;
   }
 
   for (const controlledTopic of backlogTopics) {
@@ -153,6 +164,9 @@ export function assessKnowledge(catalog, backlog, now = new Date(), approvedRevi
       fail(`catalog contains an unreferenced source: ${source.sourceId}`);
     }
   }
+  if (readyTopics < MIN_LAUNCH_READY_TOPICS) {
+    fail(`AI-only launch requires at least ${MIN_LAUNCH_READY_TOPICS} topics with one verified general fact; found ${readyTopics}`);
+  }
 
   const uniqueBlockers = compactBlockers([...new Set(blockers)]);
   return {
@@ -162,6 +176,8 @@ export function assessKnowledge(catalog, backlog, now = new Date(), approvedRevi
       controlledTopics: backlogTopics.length,
       readyTopics,
       approvedFacts,
+      verifiedFacts,
+      aiReviewedFacts,
       humanAttestedFacts,
       sources: sources.length
     },
@@ -210,15 +226,20 @@ function validateBacklog(backlog, backlogTopics, catalogById, fail) {
     actualByCategory.set(topic?.category, (actualByCategory.get(topic?.category) ?? 0) + 1);
     const catalogTopic = catalogById.get(topic?.topicId);
     const facts = array(catalogTopic?.facts);
-    const attested = facts.filter((fact) => fact?.reviewStatus === "approved" && hasReviewShape(fact.review)).length;
-    const ready = facts.length >= MIN_FACTS_PER_TOPIC && facts.length <= MAX_FACTS_PER_TOPIC && attested === facts.length;
+    const humanAttested = facts.filter((fact) => fact?.reviewStatus === "approved" && hasReviewShape(fact.review)).length;
+    const aiReviewed = facts.filter((fact) => fact?.reviewStatus === "approved" && hasAiReviewShape(fact.aiReview)).length;
+    const verified = facts.filter((fact) => fact?.riskLevel === "general" && fact?.reviewStatus === "approved" &&
+      (hasReviewShape(fact.review) || hasAiReviewShape(fact.aiReview))).length;
+    const ready = facts.length >= MIN_FACTS_PER_TOPIC && facts.length <= MAX_FACTS_PER_TOPIC && verified >= 1;
     if (catalogTopic) seededCount += 1;
     if (ready) readyCount += 1;
     if (topic?.catalogState !== (catalogTopic ? "seeded" : "proposed")) fail(`backlog catalog state is stale: ${id}`);
     if (topic?.factsInCatalog !== facts.length) fail(`backlog fact count is stale: ${id}`);
-    if (topic?.humanAttestedFactCount !== attested) fail(`backlog attestation count is stale: ${id}`);
+    if (topic?.humanAttestedFactCount !== humanAttested) fail(`backlog human attestation count is stale: ${id}`);
+    if (topic?.aiReviewedFactCount !== aiReviewed) fail(`backlog AI review count is stale: ${id}`);
+    if (topic?.verifiedGeneralFactCount !== verified) fail(`backlog verified general fact count is stale: ${id}`);
     if (topic?.readyForProduction !== ready) fail(`backlog readiness flag is stale: ${id}`);
-    if (topic?.researchState !== (ready ? "ready" : "human_research_required")) fail(`backlog research state is stale: ${id}`);
+    if (topic?.researchState !== (ready ? "ready" : "ai_review_required")) fail(`backlog research state is stale: ${id}`);
   }
   for (const [category, target] of Object.entries(targets)) {
     if (!Number.isInteger(target) || target < 0) fail(`invalid backlog category target: ${category}`);
@@ -269,8 +290,40 @@ function validHumanReview(review, now, factId, fail, approvedReviewerIds) {
   return valid;
 }
 
+function validAiReview(review, now, fact, factId, fail) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    fail(`fact lacks an AI review record: ${factId}`);
+    return false;
+  }
+  let valid = true;
+  if (fact?.riskLevel !== "general" || review.provider !== "qwen" ||
+      !/^qwen[0-9a-z._-]{2,95}$/i.test(review.model ?? "") ||
+      review.policyVersion !== "general-content-v1" ||
+      !/^[a-f0-9]{64}$/.test(review.evidenceSha256 ?? "")) {
+    fail(`fact has an invalid AI review identity or policy binding: ${factId}`);
+    valid = false;
+  }
+  if (review.decision !== fact?.reviewStatus ||
+      (review.decision === "approved") !== (review.reasonCode === "safe_general")) {
+    fail(`fact AI decision does not match its status or reason: ${factId}`);
+    valid = false;
+  }
+  const reviewedAt = strictIso(review.reviewedAt);
+  if (!reviewedAt || reviewedAt.getTime() > now.getTime() + 5 * 60 * 1000) {
+    fail(`fact has an invalid AI review timestamp: ${factId}`);
+    valid = false;
+  }
+  return valid;
+}
+
 function hasReviewShape(review) {
   return nonEmpty(review?.reviewerId) && strictIso(review?.reviewedAt) && strictIso(review?.sourceCheckedAt);
+}
+
+function hasAiReviewShape(review) {
+  return review?.provider === "qwen" && review?.policyVersion === "general-content-v1" &&
+    strictIso(review?.reviewedAt) && /^[a-f0-9]{64}$/.test(review?.evidenceSha256 ?? "") &&
+    review?.decision === "approved" && review?.reasonCode === "safe_general";
 }
 
 function strictIso(value) {
@@ -341,7 +394,15 @@ function passingFixture(now) {
         sourceIds: ["source-1"],
         riskLevel: "general",
         reviewStatus: "approved",
-        review: { reviewerId: "human-reviewer-1", reviewedAt, sourceCheckedAt: reviewedAt }
+        aiReview: {
+          provider: "qwen",
+          model: "qwen3.6-flash-2026-04-16",
+          policyVersion: "general-content-v1",
+          reviewedAt,
+          decision: "approved",
+          reasonCode: "safe_general",
+          evidenceSha256: "a".repeat(64)
+        }
       }))
     };
   });
@@ -352,7 +413,9 @@ function passingFixture(now) {
     aliases: [...topic.synonyms],
     catalogState: "seeded",
     factsInCatalog: topic.facts.length,
-    humanAttestedFactCount: topic.facts.length,
+    humanAttestedFactCount: 0,
+    aiReviewedFactCount: topic.facts.length,
+    verifiedGeneralFactCount: topic.facts.length,
     targetFactCount: 3,
     researchState: "ready",
     readyForProduction: true
@@ -373,7 +436,7 @@ function passingFixture(now) {
 function runSelfTest() {
   const now = new Date();
   const fixture = passingFixture(now);
-  const reviewerIds = new Set(["human-reviewer-1"]);
+  const reviewerIds = new Set();
   if (!/^[a-f0-9]{64}$/.test(knowledgeReviewerPolicySha256(reviewerIds))) {
     throw new Error("Knowledge reviewer policy digest is invalid");
   }
@@ -385,10 +448,10 @@ function runSelfTest() {
     ["duplicate source", (value) => value.catalog.sources.push(structuredClone(value.catalog.sources[0]))],
     ["duplicate fact", (value) => { value.catalog.topics[1].facts[0].factId = value.catalog.topics[0].facts[0].factId; }],
     ["missing source", (value) => { value.catalog.topics[0].facts[0].sourceIds = ["missing-source"]; }],
-    ["automated reviewer", (value) => { value.catalog.topics[0].facts[0].review.reviewerId = "kimi-agent"; }],
-    ["invalid timestamp", (value) => { value.catalog.topics[0].facts[0].review.reviewedAt = "not-a-date"; }],
-    ["future timestamp", (value) => { value.catalog.topics[0].facts[0].review.reviewedAt = new Date(now.getTime() + 3_600_000).toISOString(); }],
-    ["reviewer outside protected allowlist", (value) => { value.catalog.topics[0].facts[0].review.reviewerId = "different-human"; }],
+    ["invalid AI evidence", (value) => { value.catalog.topics[0].facts[0].aiReview.evidenceSha256 = "not-a-digest"; }],
+    ["invalid timestamp", (value) => { value.catalog.topics[0].facts[0].aiReview.reviewedAt = "not-a-date"; }],
+    ["future timestamp", (value) => { value.catalog.topics[0].facts[0].aiReview.reviewedAt = new Date(now.getTime() + 3_600_000).toISOString(); }],
+    ["decision mismatch", (value) => { value.catalog.topics[0].facts[0].aiReview.reasonCode = "unclear_or_unreliable"; }],
     ["risky single source", (value) => { value.catalog.topics[0].facts[0].riskLevel = "health"; }],
     ["approved card body too long", (value) => { value.catalog.topics[0].facts[0].factText = "长".repeat(81); }]
   ];
@@ -399,7 +462,7 @@ function runSelfTest() {
       throw new Error(`Knowledge gate self-test expected rejection: ${name}`);
     }
   }
-  process.stdout.write(`KNOWLEDGE_READINESS_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length} reviewerPolicyBinding=1\n`);
+  process.stdout.write(`KNOWLEDGE_READINESS_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length} aiGeneralReview=1 highRiskExcluded=1\n`);
 }
 
 export function knowledgeReviewerIdsFromEnvironment(env = process.env) {
@@ -416,9 +479,7 @@ export function knowledgeReviewerIdsFromEnvironment(env = process.env) {
 }
 
 export function knowledgeReviewerPolicySha256(reviewerIds) {
-  if (!(reviewerIds instanceof Set) || reviewerIds.size === 0) {
-    throw new Error("A non-empty protected knowledge reviewer allowlist is required");
-  }
+  if (!(reviewerIds instanceof Set)) throw new Error("Knowledge reviewer policy must be a set");
   const payload = JSON.stringify([
     "jianwei-knowledge-reviewer-policy-v1",
     [...reviewerIds].sort()

@@ -3,7 +3,10 @@ package cn.jianwei.app
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import android.net.Uri
+import android.os.SystemClock
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
@@ -82,6 +85,12 @@ class PhotoThumbnailLifecycleInstrumentedTest {
                 assertThat(activity.isFinishing).isFalse()
                 assertThat(activity.isDestroyed).isFalse()
             }
+            val photoNode = awaitNodeByDescription("自行车的原照片缩略图")
+            val photoBounds = Rect().also(photoNode::getBoundsInScreen)
+            val windowBounds = Rect().also(
+                InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow::getBoundsInScreen
+            )
+            assertThat(photoBounds.height()).isGreaterThan(windowBounds.height() / 6)
         } finally {
             scenario.close()
             val cleanup = buildJianweiDatabase(context)
@@ -90,6 +99,31 @@ class PhotoThumbnailLifecycleInstrumentedTest {
             cleanup.close()
             photo.delete()
         }
+    }
+
+    private fun awaitNodeByDescription(
+        description: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            findNodeByDescription(automation.rootInActiveWindow, description)?.let { return it }
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for accessibility node: $description")
+    }
+
+    private fun findNodeByDescription(
+        root: AccessibilityNodeInfo?,
+        description: String
+    ): AccessibilityNodeInfo? {
+        if (root == null) return null
+        if (root.contentDescription?.toString() == description) return root
+        for (index in 0 until root.childCount) {
+            findNodeByDescription(root.getChild(index), description)?.let { return it }
+        }
+        return null
     }
 
     private fun writeTestJpeg(file: File) {

@@ -86,8 +86,8 @@ export function validateTopicDraft(draft, backlogById) {
     if (typeof fact.factText !== "string" || fact.factText.trim().length < 20 || fact.factText.length > 240) {
       throw new Error(`Fact text must be 20-240 characters: ${fact.factId}`);
     }
-    if (fact.reviewStatus !== "draft" || fact.review !== undefined) {
-      throw new Error(`Draft intake cannot grant approval or human review attestation: ${fact.factId}`);
+    if (fact.reviewStatus !== "draft" || fact.review !== undefined || fact.aiReview !== undefined) {
+      throw new Error(`Draft intake cannot grant approval or human or AI review attestation: ${fact.factId}`);
     }
     if (!["general", "health", "safety"].includes(fact.riskLevel)) {
       throw new Error(`Invalid risk level: ${fact.factId}`);

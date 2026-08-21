@@ -9,7 +9,7 @@ class BetaMetricsReportTest {
         val output = BetaMetricsReport(
             evidenceId = "00000000-0000-4000-8000-000000000001",
             exportedAt = "2026-07-18T10:00:00Z",
-            appVersion = "0.1.0-beta01",
+            appVersion = "0.1.0-beta73",
             apkSha256 = "a".repeat(64),
             manufacturer = "Example",
             model = "Model \"A\"",

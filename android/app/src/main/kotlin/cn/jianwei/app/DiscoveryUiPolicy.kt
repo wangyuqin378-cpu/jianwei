@@ -29,8 +29,20 @@ internal data class AutomaticDiscoveryControl(
 
 internal fun automaticDiscoveryControl(
     access: PhotoAccess,
-    mode: AutomaticCardMode
-): AutomaticDiscoveryControl? = when (access) {
+    mode: AutomaticCardMode,
+    automaticDiscoveryEnabled: Boolean
+): AutomaticDiscoveryControl? = if (!automaticDiscoveryEnabled) {
+    AutomaticDiscoveryControl(
+        actionLabel = "开启自动发现",
+        explanation = when (mode) {
+            AutomaticCardMode.PREPARED_POOL ->
+                "目前只处理你主动选择或分享的照片。开启后会在本机筛选最近照片，联网时逐步准备 7–14 张卡片。"
+            AutomaticCardMode.DAILY_ONE ->
+                "目前只处理你主动选择或分享的照片。开启后每个自然日最多上传分析 1 张；没有可靠命中时不会凑数。"
+        },
+        emphasized = true
+    )
+} else when (access) {
     PhotoAccess.FULL -> null
     PhotoAccess.PARTIAL -> AutomaticDiscoveryControl(
         actionLabel = "调整可访问照片",
@@ -54,28 +66,41 @@ internal fun automaticDiscoveryControl(
     )
 }
 
-internal fun photoAccessSummary(access: PhotoAccess, mode: AutomaticCardMode): String = when (access) {
+internal fun photoAccessSummary(
+    access: PhotoAccess,
+    mode: AutomaticCardMode,
+    automaticDiscoveryEnabled: Boolean
+): String = if (!automaticDiscoveryEnabled) {
+    "仅分析你选择或分享的照片"
+} else when (access) {
     PhotoAccess.FULL -> "自动发现已开启 · ${automaticModeLabel(mode)} · 全部授权照片"
     PhotoAccess.PARTIAL -> "自动发现已开启 · ${automaticModeLabel(mode)} · 仅限你选中的照片"
-    PhotoAccess.PICKER_ONLY -> "仅分析你选择或分享的照片"
+    PhotoAccess.PICKER_ONLY -> "自动发现等待照片访问权限 · ${automaticModeLabel(mode)}"
 }
 
 internal fun automaticModeLabel(mode: AutomaticCardMode): String = when (mode) {
-    AutomaticCardMode.PREPARED_POOL -> "提前准备"
-    AutomaticCardMode.DAILY_ONE -> "每天一张"
+    AutomaticCardMode.PREPARED_POOL -> "提前备好一周"
+    AutomaticCardMode.DAILY_ONE -> "当天只理解一张"
 }
 
 internal fun shouldShowPausedAnalysisBanner(paused: Boolean, hasCards: Boolean): Boolean =
     paused && hasCards
 
-internal fun shouldScheduleAutomaticDiscovery(access: PhotoAccess): Boolean =
-    access != PhotoAccess.PICKER_ONLY
+internal fun shouldScheduleAutomaticDiscovery(
+    access: PhotoAccess,
+    automaticDiscoveryEnabled: Boolean
+): Boolean = automaticDiscoveryEnabled && access != PhotoAccess.PICKER_ONLY
 
 internal fun shouldShowWidgetCallToAction(
     showSavedCards: Boolean,
     cardIndex: Int,
     widgetInstalled: Boolean
 ): Boolean = !widgetInstalled && !showSavedCards && cardIndex == 0
+
+internal fun shouldShowImportedResultWidgetCallToAction(
+    fromRecentImport: Boolean,
+    widgetInstalled: Boolean
+): Boolean = fromRecentImport && !widgetInstalled
 
 internal fun widgetManagementActionLabel(widgetInstalled: Boolean): String =
     if (widgetInstalled) "再添加一个桌面组件" else "添加桌面组件"
@@ -96,12 +121,12 @@ internal fun shouldStackStarterSuggestions(availableWidthDp: Float, fontScale: F
     availableWidthDp < 300f || fontScale >= 1.5f
 
 internal fun discoveryStartMessage(access: PhotoAccess, mode: AutomaticCardMode): String =
-    if (shouldScheduleAutomaticDiscovery(access)) {
+    if (shouldScheduleAutomaticDiscovery(access, automaticDiscoveryEnabled = true)) {
         when (mode) {
             AutomaticCardMode.PREPARED_POOL ->
                 "已开始本机扫描；联网时会逐步准备 7–14 张卡片"
             AutomaticCardMode.DAILY_ONE ->
-                "已开启每天一张；每个自然日最多上传分析 1 张"
+                "已开启当天只理解一张；每个自然日最多上传分析 1 张"
         }
     } else {
         "没有相册访问权限，因此不会自动扫描；你仍可选择或分享照片"
@@ -124,10 +149,12 @@ internal fun areAnalysisMutationsEnabled(
 
 internal fun homeActivityIndicator(
     activeOperation: UserOperation?,
-    progress: AnalysisProgress
+    progress: AnalysisProgress,
+    analysisProgressShownInContent: Boolean = false
 ): HomeActivityIndicator? = when {
     activeOperation != null -> HomeActivityIndicator("操作进度", activeOperation.progressLabel)
-    isAnalysisActive(progress) -> HomeActivityIndicator("照片分析", "正在处理")
+    isAnalysisActive(progress) && !analysisProgressShownInContent ->
+        HomeActivityIndicator("照片分析", "正在处理")
     else -> null
 }
 
@@ -225,7 +252,7 @@ internal fun emptyDiscoveryCopy(
             "这批照片暂时没有合适卡片"
         },
         body = if (mode == AutomaticCardMode.DAILY_ONE) {
-            "这次候选可能被隐私规则排除、物件不够明确，或知识库没有可靠事实；每天一张不会为了凑数生成。"
+            "这次候选可能被隐私规则排除、物件不够明确，或知识库没有可靠事实；当天只理解一张不会为了凑数生成。"
         } else {
             "可能是照片被隐私规则排除、物件不够明确，或知识库还没有可靠事实。你可以再选择一些日常物件照片。"
         },

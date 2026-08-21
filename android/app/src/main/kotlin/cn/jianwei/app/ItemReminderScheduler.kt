@@ -84,7 +84,7 @@ class ItemReminderWorker @AssistedInject constructor(
             return Result.success()
         }
         ensureItemReminderChannel(applicationContext)
-        if (!canPostItemReminder(applicationContext)) return Result.success()
+        if (!canPostItemReminder(applicationContext)) return Result.retry()
         postNotification(cardId)
         return Result.success()
     }
@@ -102,7 +102,7 @@ class ItemReminderWorker @AssistedInject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(applicationContext, ITEM_REMINDER_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("见微物品提醒")
             .setContentText("你追踪的物品到复查时间了")
             .setStyle(NotificationCompat.BigTextStyle().bigText("你追踪的物品到复查时间了。打开见微查看原知识卡和来源。"))
@@ -111,7 +111,7 @@ class ItemReminderWorker @AssistedInject constructor(
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(
                 NotificationCompat.Builder(applicationContext, ITEM_REMINDER_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle("见微提醒")
                     .setContentText("你有一条物品复查提醒")
                     .setCategory(NotificationCompat.CATEGORY_REMINDER)
@@ -130,8 +130,20 @@ internal fun canPostItemReminder(context: Context): Boolean {
         context,
         Manifest.permission.POST_NOTIFICATIONS
     ) == PackageManager.PERMISSION_GRANTED
-    return runtimePermissionGranted && NotificationManagerCompat.from(context).areNotificationsEnabled()
+    val channelImportance = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        context.getSystemService(NotificationManager::class.java)
+            .getNotificationChannel(ITEM_REMINDER_CHANNEL_ID)
+            ?.importance
+    } else {
+        null
+    }
+    return runtimePermissionGranted &&
+        NotificationManagerCompat.from(context).areNotificationsEnabled() &&
+        notificationChannelAllowsReminder(channelImportance)
 }
+
+internal fun notificationChannelAllowsReminder(importance: Int?): Boolean =
+    importance == null || importance != NotificationManager.IMPORTANCE_NONE
 
 internal fun ensureItemReminderChannel(context: Context) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return

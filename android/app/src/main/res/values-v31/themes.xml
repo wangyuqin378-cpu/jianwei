@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Jianwei" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/jianwei_icon_background</item>
+        <item name="android:navigationBarColor">@color/jianwei_icon_background</item>
+        <item name="android:windowSplashScreenBackground">@color/jianwei_icon_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/jianwei_icon_background</item>
+    </style>
+</resources>

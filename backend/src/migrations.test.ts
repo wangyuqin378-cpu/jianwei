@@ -22,7 +22,9 @@ describe("database migrations", () => {
       "010_backend_release_identity",
       "011_private_card_deletion_receipts",
       "012_fair_object_deletion_retries",
-      "013_card_detected_object_name"
+      "013_card_detected_object_name",
+      "014_card_object_bounds",
+      "015_feedback_affinity_contributions"
     ]);
     expect(migrations.every((migration) => /^[a-f0-9]{64}$/.test(migration.checksum))).toBe(true);
     expect(migrations.every((migration) => migration.source.trim().endsWith(";"))).toBe(true);

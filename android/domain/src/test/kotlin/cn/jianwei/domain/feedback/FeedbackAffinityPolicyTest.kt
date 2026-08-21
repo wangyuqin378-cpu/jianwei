@@ -40,6 +40,38 @@ class FeedbackAffinityPolicyTest {
     }
 
     @Test
+    fun `wrong object correction removes prior ordinary and save signals`() {
+        val current = feedbackAffinityDelta(FeedbackAction.DISLIKE) +
+            feedbackAffinityDelta(FeedbackAction.SAVE)
+
+        val replaced = replaceTopicAffinity(
+            current = current,
+            previousActions = listOf(FeedbackAction.DISLIKE, FeedbackAction.SAVE),
+            nextAction = FeedbackAction.WRONG_OBJECT
+        )
+
+        assertThat(replaced).isEqualTo(0.0)
+    }
+
+    @Test
+    fun `applied contribution restores the exact affinity before saturation`() {
+        val startingAffinity = 1.35
+        val afterSave = updatedTopicAffinity(startingAffinity, FeedbackAction.SAVE)
+        val saveApplied = appliedFeedbackAffinityDelta(startingAffinity, FeedbackAction.SAVE)
+        val afterLike = updatedTopicAffinity(afterSave, FeedbackAction.LIKE)
+        val likeApplied = appliedFeedbackAffinityDelta(afterSave, FeedbackAction.LIKE)
+
+        assertThat(afterLike).isEqualTo(MAX_TOPIC_AFFINITY)
+        assertThat(
+            replaceAppliedTopicAffinity(
+                current = afterLike,
+                previousAppliedDelta = saveApplied + likeApplied,
+                nextAction = FeedbackAction.WRONG_OBJECT
+            )
+        ).isWithin(0.000_001).of(startingAffinity)
+    }
+
+    @Test
     fun `affinity remains bounded after replacement`() {
         assertThat(updatedTopicAffinity(1.9, FeedbackAction.SAVE)).isEqualTo(MAX_TOPIC_AFFINITY)
         assertThat(replaceTopicAffinity(-1.9, emptyList(), FeedbackAction.TOO_PRIVATE))

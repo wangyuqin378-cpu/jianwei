@@ -146,7 +146,9 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     {
       expectedSha256: config.knowledgeCatalogSha256,
       requireAttestedApprovedFacts: config.environment === "production",
-      approvedReviewerIds: config.environment === "production" ? config.knowledgeReviewerIds : null
+      approvedReviewerIds: config.environment === "production" && config.knowledgeReviewerIds.length > 0
+        ? config.knowledgeReviewerIds
+        : null
     }
   );
   const backendReleaseSha256 = overrides.backendReleaseSha256
@@ -468,6 +470,7 @@ function publicCardResponse(card: KnowledgeCard) {
     body: card.body,
     personalContext: card.personalContext,
     confidence: card.confidence,
+    boundingBox: card.boundingBox,
     sources: card.sources,
     status: card.status,
     scheduledDate: card.scheduledDate,

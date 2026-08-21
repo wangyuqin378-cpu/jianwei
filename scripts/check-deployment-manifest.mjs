@@ -8,12 +8,16 @@ export function assessDeploymentFiles({ dockerfile, manifest, dockerignore, giti
 
   const dockerRequirements = [
     "ARG NODE_IMAGE",
+    "FROM ${NODE_IMAGE} AS prod-deps",
     "FROM ${NODE_IMAGE} AS build",
     "FROM ${NODE_IMAGE} AS runtime",
+    "pnpm install --prod --no-optional --frozen-lockfile",
     "pnpm install --frozen-lockfile",
     "COPY deploy/Dockerfile /workspace/deploy/Dockerfile",
     "pnpm release:identity -- --write release-identity.json",
-    "pnpm build && pnpm prune --prod",
+    "pnpm build",
+    "COPY --from=prod-deps --chown=node:node /workspace/backend/node_modules ./node_modules",
+    "rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack",
     "COPY --from=build --chown=node:node /workspace/backend/release-identity.json ./release-identity.json",
     "COPY --from=build --chown=node:node /workspace/knowledge /app/knowledge",
     "USER node",
@@ -40,14 +44,13 @@ export function assessDeploymentFiles({ dockerfile, manifest, dockerignore, giti
     "DASHSCOPE_BASE_URL: ${env('JIANWEI_DASHSCOPE_BASE_URL')}",
     "OSS_BUCKET: ${env('JIANWEI_OSS_BUCKET')}",
     "KNOWLEDGE_CATALOG_SHA256: ${env('JIANWEI_KNOWLEDGE_CATALOG_SHA256')}",
-    "KNOWLEDGE_REVIEWER_IDS: ${env('JIANWEI_KNOWLEDGE_REVIEWER_IDS')}",
     "CONTAINER_IMAGE_DIGEST: ${env('JIANWEI_CONTAINER_IMAGE_DIGEST')}"
   ];
   for (const marker of dockerRequirements) requireMarker(dockerfile, marker, "Dockerfile");
   for (const marker of manifestRequirements) requireMarker(manifest, marker, "deployment manifest");
 
   const fromLines = dockerfile.match(/^FROM\s+.+$/gm) ?? [];
-  if (fromLines.length !== 2 || fromLines.some((line) => !line.startsWith("FROM ${NODE_IMAGE} AS "))) {
+  if (fromLines.length !== 3 || fromLines.some((line) => !line.startsWith("FROM ${NODE_IMAGE} AS "))) {
     failures.push("all Docker stages must use the operator-supplied digest-pinned NODE_IMAGE");
   }
   if (/^\s*USER\s+root\s*$/mi.test(dockerfile)) failures.push("runtime image must not switch back to root");
@@ -63,7 +66,6 @@ export function assessDeploymentFiles({ dockerfile, manifest, dockerignore, giti
     DASHSCOPE_BASE_URL: "JIANWEI_DASHSCOPE_BASE_URL",
     OSS_BUCKET: "JIANWEI_OSS_BUCKET",
     KNOWLEDGE_CATALOG_SHA256: "JIANWEI_KNOWLEDGE_CATALOG_SHA256",
-    KNOWLEDGE_REVIEWER_IDS: "JIANWEI_KNOWLEDGE_REVIEWER_IDS",
     CONTAINER_IMAGE_DIGEST: "JIANWEI_CONTAINER_IMAGE_DIGEST"
   };
   for (const [name, environmentName] of Object.entries(sensitiveBindings)) {

@@ -48,6 +48,7 @@ class ShareReceiverFlowInstrumentedTest {
 
         try {
             identity.reset()
+            workManager.cancelUniqueWork(IMPORT_WORK_NAME).result.get(5, TimeUnit.SECONDS)
             photos.clearIndex()
             context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
                 .edit()
@@ -105,6 +106,7 @@ class ShareReceiverFlowInstrumentedTest {
             gate?.finish(UserOperation.DELETE_CLOUD_DATA)
             gate?.finish(UserOperation.IMPORT_PHOTOS)
             scheduler?.setPaused(false)
+            workManager.cancelUniqueWork(IMPORT_WORK_NAME).result.get(5, TimeUnit.SECONDS)
             if (shareActivity?.isDestroyed == false) {
                 instrumentation.runOnMainSync {
                     shareActivity?.finish()
@@ -333,6 +335,7 @@ class ShareReceiverFlowInstrumentedTest {
     ) { _, method, _ -> handler(method.name) } as JianweiApi
 
     private companion object {
+        const val IMPORT_WORK_NAME = "jianwei-imported-analysis"
         const val ANALYSIS_PAUSED_KEY = "analysis_paused"
         const val PENDING_DELETE_DEVICE_ID = "00000000-0000-4000-8000-000000000099"
     }

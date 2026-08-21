@@ -12,6 +12,8 @@ import cn.jianwei.data.local.JianweiDatabase
 import cn.jianwei.data.local.TrackedItemEntity
 import cn.jianwei.data.local.buildJianweiDatabase
 import cn.jianwei.data.local.sourcesToJson
+import cn.jianwei.domain.feedback.updatedTopicAffinity
+import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.KnowledgeSource
 import com.google.common.truth.Truth.assertThat
 import java.io.File
@@ -35,6 +37,7 @@ class WrongObjectConfirmationInstrumentedTest {
             database.cards().clear()
             importResults.clearAll()
             preferences.edit().putBoolean("completed", true).commit()
+            val startingAffinity = database.cards().findTopicAffinity("bicycle")?.weight ?: 0.0
             val now = System.currentTimeMillis()
             database.cards().upsertAll(listOf(card(now)))
             database.cards().setCardSaved(CARD_ID, true, now + 1)
@@ -53,26 +56,42 @@ class WrongObjectConfirmationInstrumentedTest {
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 )
             )
+            click(awaitNodeWithScroll(instrumentation, "有意思"))
+            awaitNodeWithScroll(instrumentation, "见微学到了什么")
+            awaitNodeWithScroll(instrumentation, "识错了")
+            awaitNodeWithScroll(instrumentation, "太私人")
+            awaitOrdinaryFeedbackCommitted(database)
+            SystemClock.sleep(2_500)
+            screenshot(context, instrumentation, POST_FEEDBACK_SCREENSHOT_NAME)
+
             click(awaitNodeWithScroll(instrumentation, "识错了"))
             awaitNode(instrumentation, DIALOG_TITLE)
             awaitNode(instrumentation, DIALOG_BODY)
             awaitNode(instrumentation, "确认识错并隐藏")
             screenshot(context, instrumentation, DIALOG_SCREENSHOT_NAME)
 
-            assertCardStateIsUntouched(database)
+            assertCardStateIsUntouched(database, startingAffinity)
             click(awaitNode(instrumentation, "保留卡片"))
-            awaitNodeWithScroll(instrumentation, "这条知识怎么样？")
-            assertCardStateIsUntouched(database)
+            awaitNodeWithScroll(instrumentation, "见微学到了什么")
+            awaitNodeWithScroll(instrumentation, "识错了")
+            assertCardStateIsUntouched(database, startingAffinity)
 
             click(awaitNodeWithScroll(instrumentation, "识错了"))
             awaitNode(instrumentation, DIALOG_TITLE)
             click(awaitNode(instrumentation, "确认识错并隐藏"))
-            awaitWrongObjectCommitted(database)
+            awaitWrongObjectCommitted(database, startingAffinity)
             awaitNodeWithBackwardScroll(instrumentation, "适合开始的照片")
             screenshot(context, instrumentation, RESULT_SCREENSHOT_NAME)
         } finally {
             scenario?.close()
             importResults.clearAll()
+            if (database.cards().findById(CARD_ID) != null) {
+                database.cards().commitOrdinaryFeedback(
+                    cardId = CARD_ID,
+                    action = "WRONG_OBJECT",
+                    nowMillis = System.currentTimeMillis()
+                )
+            }
             database.cards().clearPendingFeedback()
             database.cards().clearTrackedItems()
             database.cards().clear()
@@ -82,16 +101,48 @@ class WrongObjectConfirmationInstrumentedTest {
     }
 
     private suspend fun assertCardStateIsUntouched(
-        database: JianweiDatabase
+        database: JianweiDatabase,
+        startingAffinity: Double
     ) {
         assertThat(database.cards().findById(CARD_ID)?.status).isEqualTo("scheduled")
         assertThat(database.cards().findSavedCard(CARD_ID)?.isSaved).isTrue()
         assertThat(database.cards().findTrackedItem(CARD_ID)?.syncAction).isEqualTo("UPSERT")
         assertThat(database.cards().pendingFeedbackByAction("WRONG_OBJECT")).isEmpty()
+        assertThat(database.cards().pendingFeedbackByAction("LIKE")).hasSize(1)
+        val feedbackState = database.cards().findFeedbackState(CARD_ID)
+        val savedState = database.cards().findSavedCard(CARD_ID)
+        assertThat(feedbackState?.action).isEqualTo("LIKE")
+        val afterSave = updatedTopicAffinity(startingAffinity, FeedbackAction.SAVE)
+        val afterLike = updatedTopicAffinity(afterSave, FeedbackAction.LIKE)
+        assertThat(savedState?.affinityDeltaApplied)
+            .isWithin(0.000_001)
+            .of(afterSave - startingAffinity)
+        assertThat(feedbackState?.affinityDeltaApplied)
+            .isWithin(0.000_001)
+            .of(afterLike - afterSave)
+        assertThat(database.cards().findTopicAffinity("bicycle")?.weight)
+            .isWithin(0.000_001)
+            .of(afterLike)
+    }
+
+    private suspend fun awaitOrdinaryFeedbackCommitted(
+        database: JianweiDatabase,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (
+                database.cards().findFeedbackState(CARD_ID)?.action == "LIKE" &&
+                database.cards().pendingFeedbackByAction("LIKE").size == 1
+            ) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for ordinary feedback before wrong-object correction")
     }
 
     private suspend fun awaitWrongObjectCommitted(
         database: JianweiDatabase,
+        startingAffinity: Double,
         timeoutMillis: Long = 5_000
     ) {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
@@ -106,7 +157,13 @@ class WrongObjectConfirmationInstrumentedTest {
                 saved == null &&
                 tracked?.syncAction == "DELETE" &&
                 wrongFeedback.size == 1 &&
-                staleSave.isEmpty()
+                staleSave.isEmpty() &&
+                database.cards().pendingFeedbackByAction("LIKE").isEmpty() &&
+                database.cards().findFeedbackState(CARD_ID)?.action == "WRONG_OBJECT" &&
+                kotlin.math.abs(
+                    (database.cards().findTopicAffinity("bicycle")?.weight ?: 0.0) -
+                        startingAffinity
+                ) < 0.000_001
             ) return
             SystemClock.sleep(100)
         }
@@ -236,6 +293,7 @@ class WrongObjectConfirmationInstrumentedTest {
         const val DIALOG_TITLE = "确认这张卡识错了？"
         const val DIALOG_BODY =
             "确认后会隐藏这张卡、取消它的收藏和物品提醒，并把“识错了”同步给见微。这个判断不会作为兴趣信号。"
+        const val POST_FEEDBACK_SCREENSHOT_NAME = "post-feedback-object-correction.png"
         const val DIALOG_SCREENSHOT_NAME = "wrong-object-confirmation.png"
         const val RESULT_SCREENSHOT_NAME = "wrong-object-confirmed-result.png"
     }

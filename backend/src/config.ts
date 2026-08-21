@@ -128,7 +128,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (allowUnattestedFacts) throw new Error("ALLOW_UNATTESTED_FACTS cannot be enabled in production");
     if (ttl > 24) throw new Error("OBJECT_TTL_HOURS must not exceed 24 in production");
     if (!knowledgeCatalogSha256) throw new Error("KNOWLEDGE_CATALOG_SHA256 is required in production");
-    if (knowledgeReviewerIds.length === 0) throw new Error("KNOWLEDGE_REVIEWER_IDS is required in production");
     if (!containerImageDigest) throw new Error("CONTAINER_IMAGE_DIGEST is required in production");
     if (visionProvider === "qwen" && !env.DASHSCOPE_BASE_URL?.trim()) {
       throw new Error("DASHSCOPE_BASE_URL is required for Qwen in production");

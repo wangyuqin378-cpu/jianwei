@@ -4,6 +4,33 @@ The production target is an Alibaba Cloud Function Compute 3 custom container co
 PostgreSQL, a private OSS bucket and fixed-version Qwen models. Local/in-memory mode is a developer
 fallback and is never release evidence.
 
+## iOS installable Beta gate
+
+The local WidgetKit candidate is not an installable Beta until one check binds the current source,
+tests, unsigned Release build, Apple signing identity, physical device, production API origin and
+signed archive. Run the policy self-test in CI or after changing the checker:
+
+```bash
+node scripts/check-ios-beta-readiness.mjs --self-test
+```
+
+After the Apple Developer team and public API are available, build a signed archive with the same
+team and origin, then run the real gate. Keep the values in the operator environment rather than
+committing them to `project.yml`:
+
+```bash
+export JIANWEI_IOS_DEVELOPMENT_TEAM="<10-character-team-id>"
+export JIANWEI_API_BASE_URL="https://<production-api-origin>"
+node scripts/check-ios-beta-readiness.mjs \
+  --archive .tooling/ios-beta/Jianwei.xcarchive
+```
+
+`GO` requires at least nine current iOS tests with no failures or skips, the current generic Release
+build, matching App/Widget bundle IDs and App Group, a valid signing identity, a connected physical
+iPhone or iPad, valid signatures on both archived bundles, and the public HTTPS origin embedded in
+the archived App. The report emits only booleans, counts and blocker names; it never emits the Team
+ID, API origin, signing certificate name or provisioning profile contents.
+
 ## Cloud prerequisites
 
 1. Put RDS PostgreSQL, Function Compute and OSS in the same region and VPC where possible.
@@ -36,19 +63,24 @@ fallback and is never release evidence.
    unavailable. A plain model call succeeding does not satisfy this prerequisite. Guardrails is
    separately metered; review the current
    [pricing page](https://help.aliyun.com/zh/document_detail/2872706.html) before enabling it.
-7. Complete the accountable-human content review, set `JIANWEI_KNOWLEDGE_REVIEWER_IDS` to the
-   exact internal reviewer IDs, then pin the reviewed bytes before building the image:
+7. Run the bounded Qwen review for general knowledge, rebuild the backlog, then pin the reviewed
+   bytes before building the image. Health and safety facts remain unpublished in v1:
 
    ```powershell
+   cd backend
+   pnpm review:knowledge-ai -- --credentials-file <absolute-path-to-downloaded-csv> --all --write --next-version <new-catalog-version>
+   cd ..
    node scripts\build-topic-backlog.mjs
    node scripts\check-knowledge-readiness.mjs
    $env:JIANWEI_KNOWLEDGE_CATALOG_SHA256 = node scripts\hash-knowledge-catalog.mjs
    ```
 
-   Production refuses a catalog whose bytes do not match this digest or whose approved facts do not
-   carry an attestation from a configured human reviewer ID. The protected release process separately
-   binds the exact catalog/backlog bytes and reviewer-allowlist digest into the independently signed
-   assembly manifest. Updating content therefore requires a new reviewed digest and image rollout.
+   Production refuses a catalog whose bytes do not match this digest or whose approved general facts
+   carry neither a valid Qwen review nor an optional human correction attestation. The protected
+   release process separately binds the exact catalog/backlog bytes and the optional human-correction
+   policy digest into the independently signed assembly manifest. Updating content therefore requires
+   a new reviewed digest and image rollout. Sending a full catalog to Qwen requires explicit operator
+   authorization because the fact text and public-source metadata leave the local machine.
 
 Before deployment, an operator can verify the workspace, fixed models and guardrail activation with
 one explicitly authorized, non-personal JPEG:
@@ -99,14 +131,117 @@ authorization before rerunning.
 
 ## Build and deploy
 
+### Prepare immutable local candidate inputs first
+
+Before any cloud mutation, build the backend and Android artifacts from the exact source. The final
+local candidate is created after the container build and security scan so it can bind the image ID,
+full vulnerability report and CycloneDX SBOM alongside the source, migrations, catalog, API, Room
+schema and APK. It deliberately carries `releaseEvidence: false` and cannot substitute for registry,
+Function Compute, signed APK or physical-device evidence.
+
+```powershell
+cd backend
+pnpm build
+cd ..
+cd android
+.\gradlew.bat test lintDebug lintRelease assembleDebug assembleDebugAndroidTest assembleRelease
+cd ..
+```
+
+Do not mutate these inputs after the image scan. The candidate assembler accepts only the exact
+unsigned artifact declared by Gradle's Release metadata and records that the APK signature has
+**not** been cryptographically verified. Signing and `apksigner verify` remain a later controlled
+release step.
+
+Immediately before the first migration and again before signing the APK, verify that no bound byte
+has changed since assembly:
+
+```powershell
+node scripts\assemble-release-candidate.mjs --verify .tooling\release-candidate\<release-id>.json --release-apk android\app\build\outputs\apk\release\app-release-unsigned.apk --debug-apk android\app\build\outputs\apk\debug\app-debug.apk --container-security-evidence .tooling\container-security\<release-id>\evidence.json --vulnerability-report .tooling\container-security\<release-id>\vulnerabilities.json --sbom .tooling\container-security\<release-id>\sbom.cdx.json
+```
+
+Verification recomputes every binding and fails if the backend, migration SQL, catalog, API, Room
+schema, deployment template, assembler, APK, image ID, vulnerability report, SBOM or derived security
+metrics have drifted. The generation timestamp is the only field excluded from that comparison.
+
+The rollout order is mandatory:
+
+1. Apply all database migrations through `015_feedback_affinity_contributions` and rerun the migration command to
+   prove idempotence.
+2. Deploy the digest-pinned backend image.
+3. Verify `/health/live`, `/health/ready`, the independently observed deployment receipt and the full
+   guarded Qwen cloud path.
+4. Only then sign and distribute the Android Release APK.
+
+Before building or deploying, run the secret-safe aggregate preflight from the repository root:
+
+```powershell
+node scripts\check-cloud-deployment-preflight.mjs --self-test
+node scripts\check-cloud-deployment-preflight.mjs
+```
+
+The second command validates the local deployment tools, the selected Serverless Devs access
+profile, all required FC/RDS/OSS/VPC inputs, the production HTTPS origin, Beijing DashScope
+endpoint, fixed Qwen versions, catalog digest, cost circuit breakers and immutable container/base
+image digests. It reports only missing or invalid variable names and never serializes their values.
+`GO` means the deployment inputs are ready; it still has `releaseEvidence: false` and does not claim
+that any cloud resource has been observed. Use `--output <new-private-path.json>` for an overwrite-
+protected mode-0600 handoff report. The Bailian API-key CSV is only a model credential and cannot
+replace the RAM identity behind the Serverless Devs access profile.
+
+For an operator working locally, prefer Alibaba Cloud CLI OAuth over a long-lived RAM AccessKey.
+After browser authorization completes, the repository bridge reads the OAuth profile only inside
+its process, passes the resulting short-lived STS credential set to Serverless Devs through the
+documented in-memory serverless-devs-key environment mechanism, and never writes it to the
+Serverless Devs credential store:
+
+    node scripts\\run-serverless-with-aliyun-oauth.mjs --self-test
+    node scripts\\run-serverless-with-aliyun-oauth.mjs --profile jianwei --action preflight
+    node scripts\\run-serverless-with-aliyun-oauth.mjs --profile jianwei --action verify
+
+The bridge refuses non-OAuth profiles, incomplete or nearly expired STS sets, and all deployment
+attempts without a separate mutation confirmation. The verify action is non-mutating. The deploy
+action is reserved for the controlled rollout after the operator has approved the exact resource
+charges; it requires both --confirm-cloud-mutation and JIANWEI_CLOUD_MUTATION_CONFIRMED=YES. The
+OAuth profile itself remains in the official Alibaba Cloud CLI credential store, where the CLI
+refreshes it; do not print or copy aliyun configure get output because that output contains temporary
+secrets.
+
+Migrations 014 and 015 are additive and defaulted. Migration 014 adds nullable object-bound columns;
+migration 015 adds non-null feedback-contribution columns with deterministic backfill. This permits
+the previous backend to run after both migrations, while the new backend must not run before
+migration 015. New Android clients accept legacy cards whose `boundingBox` is null, and old Android
+clients ignore the new JSON field. If the backend rollout fails, redeploy the previous immutable
+image and keep migrations 014 and 015 in place; do not drop or reverse these columns during incident
+rollback.
+
 From the repository root:
 
 ```powershell
-# Resolve this tag from the official Node registry and record the reviewed immutable digest.
-$env:JIANWEI_NODE_IMAGE = "node:22.17.0-bookworm-slim@sha256:<64-hex-digest>"
+# Reviewed 2026-07-30: Docker Hub and the public ECR mirror returned the same
+# official multi-platform index digest. Re-review the tag and scanner findings
+# before a later release; never float the tag or disable TLS verification.
+$env:JIANWEI_NODE_IMAGE = "public.ecr.aws/docker/library/node:22.23.1-trixie-slim@sha256:e6d9a389d34ff9678438af985c9913fbd1eb6ed36e80fea56644f4b4f6dd70ba"
 if ($env:JIANWEI_NODE_IMAGE -notmatch '@sha256:[0-9a-f]{64}$') { throw "JIANWEI_NODE_IMAGE must be digest-pinned" }
 $env:JIANWEI_IMAGE_TAG = "registry.cn-beijing.aliyuncs.com/<namespace>/jianwei-api:<release-id>"
 docker build --platform linux/amd64 --build-arg "NODE_IMAGE=$env:JIANWEI_NODE_IMAGE" -f deploy/Dockerfile -t $env:JIANWEI_IMAGE_TAG .
+
+# Produce a complete report plus an SBOM, then fail if any HIGH/CRITICAL item
+# already has an available fixed version. Unfixed base-image findings remain
+# visible in the complete report and must be reviewed; they are not called zero.
+$scanDir = ".tooling\container-security\<release-id>"
+New-Item -ItemType Directory -Force $scanDir | Out-Null
+trivy image --scanners vuln --format json --output "$scanDir\vulnerabilities.json" $env:JIANWEI_IMAGE_TAG
+trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 $env:JIANWEI_IMAGE_TAG
+trivy image --format cyclonedx --output "$scanDir\sbom.cdx.json" $env:JIANWEI_IMAGE_TAG
+$localImageId = docker image inspect $env:JIANWEI_IMAGE_TAG --format '{{.Id}}'
+node scripts\check-container-security-evidence.mjs --report "$scanDir\vulnerabilities.json" --sbom "$scanDir\sbom.cdx.json" --image-id $localImageId --output "$scanDir\evidence.json"
+
+# Freeze the cross-artifact candidate only after the exact local image has passed
+# security verification. Every output path is new and overwrite-protected.
+node scripts\assemble-release-candidate.mjs --release-apk android\app\build\outputs\apk\release\app-release-unsigned.apk --debug-apk android\app\build\outputs\apk\debug\app-debug.apk --container-security-evidence "$scanDir\evidence.json" --vulnerability-report "$scanDir\vulnerabilities.json" --sbom "$scanDir\sbom.cdx.json" --output .tooling\release-candidate\<release-id>.json
+node scripts\assemble-release-candidate.mjs --verify .tooling\release-candidate\<release-id>.json --release-apk android\app\build\outputs\apk\release\app-release-unsigned.apk --debug-apk android\app\build\outputs\apk\debug\app-debug.apk --container-security-evidence "$scanDir\evidence.json" --vulnerability-report "$scanDir\vulnerabilities.json" --sbom "$scanDir\sbom.cdx.json"
+
 docker push $env:JIANWEI_IMAGE_TAG
 # Read the pushed manifest digest from ACR or the registry response; do not derive it from the tag.
 $env:JIANWEI_CONTAINER_IMAGE_DIGEST = "sha256:<pushed-registry-manifest-digest>"
@@ -120,6 +255,9 @@ s deploy
 The ACR image must be in the same Alibaba Cloud account and region as the custom-container
 function. The container listens on port 9000 and runs as the unprivileged `node` user. Do not commit
 `s.yaml`, `.env`, credentials, signing material or rendered deployment previews.
+The local security evidence has `releaseEvidence: false`: it binds the locally scanned image ID but
+does not prove which manifest ACR stored or which digest Function Compute actually ran. The signed
+deployment receipt and post-push ACR observation remain mandatory.
 
 The deployment job must independently query ACR and Function Compute after rollout and create the
 signed `config/deployment-receipt.example.json` contract in controlled evidence storage. Its
@@ -156,27 +294,32 @@ interactive shell, inspect it without recording terminal output, and destroy the
 
 ## Required release checks
 
-1. `node scripts/check-deployment-manifest.mjs --self-test`,
+1. Build the backend and Android outputs, build the exact `linux/amd64` image, run the complete Trivy
+   report, fixable-HIGH/CRITICAL gate and CycloneDX SBOM, then run both candidate/security self-tests
+   and assemble a new cross-artifact candidate from the unsigned Gradle Release output plus all three
+   security artifacts. Reverify the same inputs before migration and again before APK signing.
+2. `node scripts/check-deployment-manifest.mjs --self-test`,
    `node scripts/check-deployment-manifest.mjs`, and after setting the real deployment environment,
-   `node scripts/check-container-deployment-inputs.mjs`; then run both runtime-budget checks.
-2. `node scripts/build-topic-backlog.mjs` and `node scripts/check-knowledge-readiness.mjs`.
-3. In `backend/`, run `pnpm check && pnpm test && pnpm migrate && pnpm migrate` against the release
+   `node scripts/check-container-deployment-inputs.mjs` and
+   `node scripts/check-cloud-deployment-preflight.mjs`; then run both runtime-budget checks.
+3. `node scripts/build-topic-backlog.mjs` and `node scripts/check-knowledge-readiness.mjs`.
+4. In `backend/`, run `pnpm check && pnpm test && pnpm migrate && pnpm migrate` against the release
    database using a controlled deployment job.
-4. Confirm Function Compute probes `GET /health/live`, then call dependency-aware
+5. Confirm Function Compute probes `GET /health/live`, then call dependency-aware
    `GET /health/ready` through the production HTTPS domain and verify PostgreSQL plus OSS policy.
-5. Run `pnpm verify:cloud-beta -- ... --confirm-authorized-fixtures --write` with separately
+6. Run `pnpm verify:cloud-beta -- ... --confirm-authorized-fixtures --write` with separately
    authorized safe and sensitive metadata-free JPEG fixtures. It proves the safe Qwen path,
    server-side sensitive rejection, object observation and immediate deletion, OSS policy and
    bearer invalidation without writing credentials, tokens, object keys or photos to evidence. Pass
    `--deployment-receipt` using the independently platform-observed and deployment-attestor-signed
    receipt; the verifier checks it against the repository-pinned policy, readiness and local backend
    identity before binding it into the canonical cloud run.
-6. Kill a processing instance and observe the one-day lifecycle fallback removing the orphan;
+7. Kill a processing instance and observe the one-day lifecycle fallback removing the orphan;
    record elapsed time without treating asynchronous lifecycle execution as a strict 24-hour proof.
-7. Call `DELETE /v1/device-data`, require the 200 JSON acknowledgement to contain exactly the
+8. Call `DELETE /v1/device-data`, require the 200 JSON acknowledgement to contain exactly the
    registered `deviceId` and `status: "deleted"`, then verify the bearer is invalid and all owned
    jobs/cards/objects are gone.
-8. Save redacted raw evidence in the format required by `evaluation/beta-evidence.example.json`;
+9. Save redacted raw evidence in the format required by `evaluation/beta-evidence.example.json`;
    never place photos, tokens, database URLs or cloud credentials in the repository.
 
 This manifest follows Function Compute 3 custom-container conventions: port 9000, an HTTP health

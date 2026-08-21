@@ -1,9 +1,11 @@
 package cn.jianwei.domain.usecase
 
+import cn.jianwei.domain.card.AutomaticCardMode
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.ScanRequest
 import cn.jianwei.domain.repository.AnalysisScheduler
+import cn.jianwei.domain.repository.AutomaticCardModeRepository
 import cn.jianwei.domain.repository.CardRepository
 import cn.jianwei.domain.repository.PhotoRepository
 import java.time.Clock
@@ -30,6 +32,20 @@ class ConfigurePhotoAccessUseCase(
         }
         scheduler.scheduleInitialScan(access)
         scheduler.scheduleDailyRefresh()
+    }
+}
+
+class UpdateAutomaticCardModeUseCase(
+    private val preferences: AutomaticCardModeRepository,
+    private val scheduler: AnalysisScheduler
+) {
+    suspend operator fun invoke(mode: AutomaticCardMode, access: PhotoAccess): Boolean {
+        if (preferences.mode() == mode) return false
+        preferences.updateMode(mode)
+        if (preferences.discoveryEnabled() && !scheduler.isPaused() && access != PhotoAccess.PICKER_ONLY) {
+            scheduler.restartAutomaticDiscovery(access)
+        }
+        return true
     }
 }
 

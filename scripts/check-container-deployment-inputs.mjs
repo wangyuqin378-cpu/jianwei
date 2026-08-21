@@ -1,3 +1,6 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
 export function assessContainerDeploymentInputs(env) {
   const image = env.JIANWEI_IMAGE?.trim() ?? "";
   const declaredDigest = env.JIANWEI_CONTAINER_IMAGE_DIGEST?.trim().toLowerCase() ?? "";
@@ -24,26 +27,33 @@ export function assessContainerDeploymentInputs(env) {
   };
 }
 
-if (process.argv.includes("--self-test")) {
-  const digest = `sha256:${"a".repeat(64)}`;
-  const valid = {
-    JIANWEI_IMAGE: `registry.cn-beijing.aliyuncs.com/jianwei/api@${digest}`,
-    JIANWEI_CONTAINER_IMAGE_DIGEST: digest,
-    JIANWEI_NODE_IMAGE: `node:22.17.0-bookworm-slim@sha256:${"b".repeat(64)}`
-  };
-  if (assessContainerDeploymentInputs(valid).status !== "GO") throw new Error("Valid pinned deployment inputs were rejected");
-  const mutations = [
-    { ...valid, JIANWEI_IMAGE: "registry.cn-beijing.aliyuncs.com/jianwei/api:latest" },
-    { ...valid, JIANWEI_CONTAINER_IMAGE_DIGEST: `sha256:${"c".repeat(64)}` },
-    { ...valid, JIANWEI_NODE_IMAGE: "node:22.17.0-bookworm-slim" },
-    { ...valid, JIANWEI_IMAGE: `${valid.JIANWEI_IMAGE} whitespace` }
-  ];
-  if (mutations.some((env) => assessContainerDeploymentInputs(env).status !== "NO_GO")) {
-    throw new Error("A mutable or mismatched deployment input bypassed the gate");
+const isMainModule = process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+
+if (isMainModule) {
+  if (process.argv.includes("--self-test")) {
+    const digest = `sha256:${"a".repeat(64)}`;
+    const valid = {
+      JIANWEI_IMAGE: `registry.cn-beijing.aliyuncs.com/jianwei/api@${digest}`,
+      JIANWEI_CONTAINER_IMAGE_DIGEST: digest,
+      JIANWEI_NODE_IMAGE: `node:22.17.0-bookworm-slim@sha256:${"b".repeat(64)}`
+    };
+    if (assessContainerDeploymentInputs(valid).status !== "GO") {
+      throw new Error("Valid pinned deployment inputs were rejected");
+    }
+    const mutations = [
+      { ...valid, JIANWEI_IMAGE: "registry.cn-beijing.aliyuncs.com/jianwei/api:latest" },
+      { ...valid, JIANWEI_CONTAINER_IMAGE_DIGEST: `sha256:${"c".repeat(64)}` },
+      { ...valid, JIANWEI_NODE_IMAGE: "node:22.17.0-bookworm-slim" },
+      { ...valid, JIANWEI_IMAGE: `${valid.JIANWEI_IMAGE} whitespace` }
+    ];
+    if (mutations.some((env) => assessContainerDeploymentInputs(env).status !== "NO_GO")) {
+      throw new Error("A mutable or mismatched deployment input bypassed the gate");
+    }
+    process.stdout.write(`CONTAINER_DEPLOYMENT_INPUT_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${mutations.length} imageDigestBinding=1 baseImagePin=1\n`);
+  } else {
+    const result = assessContainerDeploymentInputs(process.env);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    if (result.status !== "GO") process.exitCode = 1;
   }
-  process.stdout.write(`CONTAINER_DEPLOYMENT_INPUT_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${mutations.length} imageDigestBinding=1 baseImagePin=1\n`);
-} else {
-  const result = assessContainerDeploymentInputs(process.env);
-  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  if (result.status !== "GO") process.exitCode = 1;
 }

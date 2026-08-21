@@ -93,6 +93,9 @@ class BetaMetricsStoreInstrumentedTest {
             }
         )
         try {
+            scenario.onActivity { activity ->
+                assertThat(activity.intent.hasExtra(MainActivity.EXTRA_CARD_ID)).isFalse()
+            }
             val engagedAt = awaitMetric(metricPreferences, "first_engaged_at")
             assertThat(engagedAt).isGreaterThan(0L)
             val report = JSONObject(BetaMetricsStore(context).exportJson())

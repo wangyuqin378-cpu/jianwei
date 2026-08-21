@@ -100,18 +100,18 @@ try {
     }
 
     $schemaCount = (& $psql -h 127.0.0.1 -p $Port -U jianwei -d jianwei -Atc "SELECT count(*) FROM schema_migrations").Trim()
-    if ($LASTEXITCODE -ne 0 -or $schemaCount -ne "13") { throw "Expected thirteen applied PostgreSQL migrations, found: $schemaCount" }
+    if ($LASTEXITCODE -ne 0 -or $schemaCount -ne "15") { throw "Expected fifteen applied PostgreSQL migrations, found: $schemaCount" }
     if (-not (Test-Path -LiteralPath $testReportPath)) { throw "PostgreSQL Vitest evidence report is missing." }
     $testEvidence = Get-Content -Raw -LiteralPath $testReportPath | ConvertFrom-Json
     $tests = [int]$testEvidence.numTotalTests
     $failedTests = [int]$testEvidence.numFailedTests
     $pendingTests = [int]$testEvidence.numPendingTests
-    if ($tests -lt 13 -or $failedTests -ne 0 -or $pendingTests -ne 0) {
+    if ($tests -lt 17 -or $failedTests -ne 0 -or $pendingTests -ne 0) {
         throw "PostgreSQL test evidence failed: tests=$tests failed=$failedTests pending=$pendingTests"
     }
     $version = (& $psql -h 127.0.0.1 -p $Port -U jianwei -d jianwei -Atc "SHOW server_version").Trim()
     $result = @(
-        "POSTGRES_INTEGRATION_GATE=GO server=$version migrations=13 migrateRuns=3 appStartupMigration=1 tests=$tests tcpE2E=1 independentPools=4 concurrentAttempts=32 globalLimit=5 costReservationMicroCny=14 oneTimeUpload=1 leaseRecovery=1 preferencePersistence=1 privateDeletionTransaction=1 registrationCreatedProof=1 boundedEvaluationLease=1 backendReleaseStamp=1 cardScheduleConcurrency=1 detectedObjectMigration=1"
+        "POSTGRES_INTEGRATION_GATE=GO server=$version migrations=15 migrateRuns=3 appStartupMigration=1 tests=$tests tcpE2E=1 independentPools=4 concurrentAttempts=32 globalLimit=5 costReservationMicroCny=14 oneTimeUpload=1 leaseRecovery=1 preferencePersistence=1 feedbackContributionRollback=1 privateDeletionTransaction=1 registrationCreatedProof=1 boundedEvaluationLease=1 backendReleaseStamp=1 cardScheduleConcurrency=1 detectedObjectMigration=1 objectBoundsMigration=1 feedbackContributionMigration=1"
         "PORT=$Port"
         "DATA=$dataDirectory"
         "LOG=$logPath"

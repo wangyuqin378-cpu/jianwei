@@ -2,6 +2,7 @@ package cn.jianwei.app
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
@@ -17,6 +18,7 @@ import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.lang.reflect.Proxy
 import java.time.LocalDate
+import kotlin.math.roundToInt
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -44,7 +46,16 @@ class SettingsNavigationInstrumentedTest {
             database.cards().upsertAll(listOf(todayCard()))
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
-            assertThat(awaitSelectedNode(instrumentation, "每日卡片").isSelected).isTrue()
+            val dailyTab = awaitSelectedNode(instrumentation, "每日卡片")
+            assertThat(dailyTab.isSelected).isTrue()
+            assertPersistentTabGeometry(
+                context,
+                listOf(
+                    dailyTab,
+                    awaitNode(instrumentation, "收藏 0"),
+                    awaitNode(instrumentation, "设置与隐私")
+                )
+            )
             assertThat(awaitTextNode(instrumentation, TODAY_TITLE)).isNotNull()
             assertThat(findTextNode(
                 instrumentation.uiAutomation.rootInActiveWindow,
@@ -54,13 +65,13 @@ class SettingsNavigationInstrumentedTest {
             click(awaitNode(instrumentation, "设置与隐私"))
             assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
             assertThat(awaitTextNode(instrumentation, "设置与隐私")).isNotNull()
-            assertThat(awaitTextNode(instrumentation, "照片处理节奏")).isNotNull()
-            assertThat(awaitDescriptionPrefix(instrumentation, "提前准备（推荐）。").stateDescription)
+            assertThat(awaitTextNode(instrumentation, "自动发现怎样准备卡片")).isNotNull()
+            assertThat(awaitDescriptionPrefix(instrumentation, "提前备好一周（推荐）。").stateDescription)
                 .isEqualTo("已选择")
-            click(awaitDescriptionPrefix(instrumentation, "每天一张。"))
+            click(awaitDescriptionPrefix(instrumentation, "当天只理解一张。"))
             assertThat(awaitDescriptionPrefixWithState(
                 instrumentation,
-                "每天一张。",
+                "当天只理解一张。",
                 "已选择"
             ).stateDescription).isEqualTo("已选择")
             assertThat(schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null))
@@ -70,7 +81,7 @@ class SettingsNavigationInstrumentedTest {
             assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
             assertThat(awaitDescriptionPrefixWithState(
                 instrumentation,
-                "每天一张。",
+                "当天只理解一张。",
                 "已选择"
             ).stateDescription).isEqualTo("已选择")
             assertThat(awaitTextNodeWithScroll(instrumentation, "你的推荐偏好")).isNotNull()
@@ -80,9 +91,13 @@ class SettingsNavigationInstrumentedTest {
             )).isNull()
 
             assertThat(awaitTextNodeWithScroll(instrumentation, "你的数据与隐私")).isNotNull()
-            click(awaitTextNodeWithScroll(instrumentation, "管理隐私与数据"))
+            assertThat(awaitTextNodeWithScroll(
+                instrumentation,
+                "见微 ${BuildConfig.VERSION_NAME} · 内测版"
+            )).isNotNull()
+            clickCurrentTextNodeWithScroll(instrumentation, "管理隐私与数据")
             assertThat(awaitTextNodeWithScroll(instrumentation, "导出内测报告")).isNotNull()
-            click(awaitTextNodeWithScroll(instrumentation, "清除本地照片索引"))
+            clickCurrentTextNodeWithScroll(instrumentation, "清除本地照片索引")
             assertThat(awaitTextNode(instrumentation, "确认清除本地照片索引？")).isNotNull()
             assertThat(awaitTextNode(instrumentation, "暂停并清除")).isNotNull()
             click(awaitTextNode(instrumentation, "保留本地索引"))
@@ -94,7 +109,7 @@ class SettingsNavigationInstrumentedTest {
 
             click(awaitNode(instrumentation, "设置与隐私"))
             assertThat(awaitSelectedNode(instrumentation, "设置与隐私").isSelected).isTrue()
-            assertThat(awaitTextNode(instrumentation, "导出内测报告")).isNotNull()
+            assertThat(awaitTextNodeWithScroll(instrumentation, "导出内测报告")).isNotNull()
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
             assertThat(awaitSelectedNode(instrumentation, "每日卡片").isSelected).isTrue()
             assertThat(awaitTextNode(instrumentation, TODAY_TITLE)).isNotNull()
@@ -104,7 +119,7 @@ class SettingsNavigationInstrumentedTest {
             click(awaitTextNodeWithScroll(instrumentation, "清除本地照片索引"))
             click(awaitTextNode(instrumentation, "暂停并清除"))
             awaitBooleanPreference(schedulerPreferences, ANALYSIS_PAUSED_KEY, true)
-            repeat(8) { swipeBackward(instrumentation) }
+            clickCurrentTextNodeWithScroll(instrumentation, "收起隐私与数据")
             assertThat(awaitTextNodeWithScroll(
                 instrumentation,
                 "分析已暂停，不会继续扫描、上传或同步"
@@ -171,12 +186,64 @@ class SettingsNavigationInstrumentedTest {
         assertThat(output.length()).isGreaterThan(0L)
     }
 
+    private fun assertPersistentTabGeometry(
+        context: Context,
+        nodes: List<AccessibilityNodeInfo>
+    ) {
+        val bounds = nodes.map { node ->
+            Rect().also(node::getBoundsInScreen)
+        }
+        val minimumTouchHeightPx = (48f * context.resources.displayMetrics.density).roundToInt()
+        bounds.forEach { rect ->
+            assertThat(rect.height()).isAtLeast(minimumTouchHeightPx)
+            assertThat(rect.width()).isGreaterThan(0)
+        }
+        assertThat(bounds.map(Rect::top).distinct()).hasSize(1)
+        assertThat(bounds.map(Rect::bottom).distinct()).hasSize(1)
+        assertThat(bounds.zipWithNext().all { (left, right) -> left.right < right.left }).isTrue()
+        assertThat((bounds.maxOf(Rect::width) - bounds.minOf(Rect::width))).isAtMost(2)
+    }
+
     private fun click(node: AccessibilityNodeInfo) {
         val clickable = generateSequence(node) { current -> current.parent }
             .firstOrNull { current -> current.isClickable }
         assertThat(clickable).isNotNull()
         assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
         SystemClock.sleep(200)
+    }
+
+    private fun clickCurrentTextNodeWithScroll(
+        instrumentation: android.app.Instrumentation,
+        text: String,
+        timeoutMillis: Long = 10_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        repeat(12) {
+            if (clickCurrentTextNode(instrumentation, text)) return
+            swipeBackward(instrumentation)
+        }
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (clickCurrentTextNode(instrumentation, text)) return
+            swipeForward(instrumentation)
+        }
+        error(
+            "Timed out clicking current text node: $text; visible=" +
+                visibleNodeSummary(instrumentation.uiAutomation.rootInActiveWindow)
+        )
+    }
+
+    private fun clickCurrentTextNode(
+        instrumentation: android.app.Instrumentation,
+        text: String
+    ): Boolean {
+        val node = findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)
+        val clickable = node?.let { current ->
+            generateSequence(current) { ancestor -> ancestor.parent }
+                .firstOrNull { ancestor -> ancestor.isClickable }
+        }
+        if (clickable?.performAction(AccessibilityNodeInfo.ACTION_CLICK) != true) return false
+        SystemClock.sleep(200)
+        return true
     }
 
     private fun awaitNode(

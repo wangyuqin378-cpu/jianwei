@@ -25,6 +25,7 @@ export class InMemoryRepositories {
   private readonly jobs = new Map<string, AnalysisJob>();
   private readonly cards = new Map<string, KnowledgeCard>();
   private readonly feedback = new Map<string, CardFeedback>();
+  private readonly feedbackAffinityContributions = new Map<string, number>();
   private readonly preferences = new Map<string, TopicPreference>();
   private readonly tracked = new Map<string, TrackedItem>();
   private readonly suppressedCandidates = new Set<string>();
@@ -74,7 +75,12 @@ export class InMemoryRepositories {
       }
     }
     for (const [id, card] of this.cards) if (card.deviceId === deviceId) this.cards.delete(id);
-    for (const [id, item] of this.feedback) if (item.deviceId === deviceId) this.feedback.delete(id);
+    for (const [id, item] of this.feedback) {
+      if (item.deviceId === deviceId) {
+        this.feedback.delete(id);
+        this.feedbackAffinityContributions.delete(id);
+      }
+    }
     for (const [key, item] of this.preferences) if (item.deviceId === deviceId) this.preferences.delete(key);
     for (const [id, item] of this.tracked) if (item.deviceId === deviceId) this.tracked.delete(id);
     for (const key of this.suppressedCandidates) {
@@ -437,14 +443,25 @@ export class InMemoryRepositories {
       id: randomUUID(),
       createdAt: now
     };
-    if (!existing) this.feedback.set(item.id, item);
     const priorInterestDelta = input.action === "WRONG_OBJECT" && !existing
       ? cardFeedback
           .filter((feedback) => feedback.action === "LIKE" || feedback.action === "DISLIKE" || feedback.action === "SAVE")
-          .reduce((total, feedback) => total + feedbackWeightDelta(feedback.action), 0)
+          .reduce(
+            (total, feedback) => total + (this.feedbackAffinityContributions.get(feedback.id) ?? 0),
+            0
+          )
       : 0;
-    const delta = existing ? 0 : feedbackWeightDelta(input.action) - priorInterestDelta;
-    const weight = clampPreference((current?.weight ?? 0) + delta);
+    const currentWeight = current?.weight ?? 0;
+    const requestedDelta = feedbackWeightDelta(input.action);
+    const appliedDelta = input.action === "WRONG_OBJECT"
+      ? 0
+      : clampPreference(currentWeight + requestedDelta) - currentWeight;
+    if (!existing) {
+      this.feedback.set(item.id, item);
+      this.feedbackAffinityContributions.set(item.id, appliedDelta);
+    }
+    const delta = existing ? 0 : appliedDelta - priorInterestDelta;
+    const weight = clampPreference(currentWeight + delta);
     const preference: TopicPreference = {
       deviceId: input.deviceId,
       topicId: input.topicId,
@@ -534,7 +551,12 @@ export class InMemoryRepositories {
     const card = this.cards.get(cardId);
     if (card?.deviceId !== deviceId) return;
     this.cards.delete(cardId);
-    for (const [id, item] of this.feedback) if (item.cardId === cardId) this.feedback.delete(id);
+    for (const [id, item] of this.feedback) {
+      if (item.cardId === cardId) {
+        this.feedback.delete(id);
+        this.feedbackAffinityContributions.delete(id);
+      }
+    }
     for (const [id, item] of this.tracked) if (item.cardId === cardId) this.tracked.delete(id);
   }
 

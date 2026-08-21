@@ -1,9 +1,8 @@
 package cn.jianwei.data.local
 
 import cn.jianwei.data.cards.topicAliasTokens
-import cn.jianwei.domain.feedback.feedbackAffinityDelta
-import cn.jianwei.domain.feedback.replaceTopicAffinity
-import cn.jianwei.domain.feedback.updatedTopicAffinity
+import cn.jianwei.domain.feedback.appliedFeedbackAffinityDelta
+import cn.jianwei.domain.feedback.replaceAppliedTopicAffinity
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import androidx.room.Dao
@@ -137,11 +136,17 @@ interface CardDao {
     @Query("SELECT * FROM knowledge_cards WHERE status = 'scheduled' AND scheduledDate <= :today ORDER BY scheduledDate DESC, createdAtMillis DESC LIMIT 1")
     suspend fun currentForWidget(today: String): CardEntity?
 
+    @Query("SELECT * FROM knowledge_cards WHERE status = 'scheduled' AND scheduledDate = :day ORDER BY createdAtMillis DESC, cardId ASC")
+    suspend fun scheduledForWidgetDay(day: String): List<CardEntity>
+
     @Query("SELECT * FROM knowledge_cards WHERE cardId = :cardId LIMIT 1")
     suspend fun findById(cardId: String): CardEntity?
 
     @Query("SELECT * FROM knowledge_cards WHERE status = 'scheduled' AND scheduledDate > :today ORDER BY scheduledDate ASC, createdAtMillis ASC, cardId ASC LIMIT :limit")
     suspend fun futureForWidget(today: String, limit: Int): List<CardEntity>
+
+    @Query("UPDATE knowledge_cards SET scheduledDate = :today WHERE cardId = :cardId AND status = 'scheduled' AND scheduledDate > :today")
+    suspend fun consumeFutureCardForWidget(cardId: String, today: String): Int
 
     @Query("SELECT COUNT(*) FROM knowledge_cards WHERE scheduledDate >= :today AND status = 'scheduled'")
     suspend fun countFutureCards(today: String): Int
@@ -179,32 +184,40 @@ interface CardDao {
         val card = findById(cardId)
             ?: return OrdinaryFeedbackCommit(recorded = false, existingAction = null, cardFound = false)
         val existing = findFeedbackState(cardId)
-        if (existing != null) {
+        val existingAction = existing?.action
+            ?.let { stored -> runCatching { FeedbackAction.valueOf(stored) }.getOrNull() }
+        val correctingToWrongObject = ordinaryAction == FeedbackAction.WRONG_OBJECT &&
+            existingAction != null &&
+            existingAction != FeedbackAction.WRONG_OBJECT
+        if (existing != null && !correctingToWrongObject) {
             return OrdinaryFeedbackCommit(
                 recorded = false,
                 existingAction = existing.action,
                 cardFound = true
             )
         }
-        upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis))
-        enqueueFeedback(
-            PendingFeedbackEntity(
-                cardId = cardId,
-                action = action,
-                createdAtMillis = nowMillis,
-                topicId = card.topicId
-            )
-        )
         if (ordinaryAction == FeedbackAction.WRONG_OBJECT) {
             val saved = findSavedCard(cardId)
-            if (saved?.feedbackSignaled == true) {
+            val previousAppliedDelta = (existing?.affinityDeltaApplied ?: 0.0) +
+                (saved?.takeIf { it.feedbackSignaled }?.affinityDeltaApplied ?: 0.0)
+            upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis, 0.0))
+            removeNonPrivateFeedbackForCard(cardId)
+            enqueueFeedback(
+                PendingFeedbackEntity(
+                    cardId = cardId,
+                    action = action,
+                    createdAtMillis = nowMillis,
+                    topicId = card.topicId
+                )
+            )
+            if (previousAppliedDelta != 0.0) {
                 val current = findTopicAffinity(card.topicId)
                 upsertTopicAffinity(
                     TopicAffinityEntity(
                         topicId = card.topicId,
-                        weight = replaceTopicAffinity(
+                        weight = replaceAppliedTopicAffinity(
                             current = current?.weight ?: 0.0,
-                            previousActions = listOf(FeedbackAction.SAVE),
+                            previousAppliedDelta = previousAppliedDelta,
                             nextAction = FeedbackAction.WRONG_OBJECT
                         ),
                         aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
@@ -214,7 +227,6 @@ interface CardDao {
                     )
                 )
             }
-            removePendingSaveFeedback(cardId)
             removeSavedCardState(cardId)
             findTrackedItem(cardId)?.let { tracked ->
                 upsertTrackedItem(
@@ -228,12 +240,22 @@ interface CardDao {
             archiveCard(cardId)
             return OrdinaryFeedbackCommit(recorded = true, existingAction = action, cardFound = true)
         }
-        if (feedbackAffinityDelta(ordinaryAction) != 0.0) {
-            val current = findTopicAffinity(card.topicId)
+        enqueueFeedback(
+            PendingFeedbackEntity(
+                cardId = cardId,
+                action = action,
+                createdAtMillis = nowMillis,
+                topicId = card.topicId
+            )
+        )
+        val current = findTopicAffinity(card.topicId)
+        val appliedDelta = appliedFeedbackAffinityDelta(current?.weight ?: 0.0, ordinaryAction)
+        upsertFeedbackState(CardFeedbackStateEntity(cardId, action, nowMillis, appliedDelta))
+        if (appliedDelta != 0.0) {
             upsertTopicAffinity(
                 TopicAffinityEntity(
                     topicId = card.topicId,
-                    weight = updatedTopicAffinity(current?.weight ?: 0.0, ordinaryAction),
+                    weight = (current?.weight ?: 0.0) + appliedDelta,
                     aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
                         .distinct()
                         .take(12),
@@ -271,13 +293,20 @@ interface CardDao {
             return SavedCardCommit(true, false, saved)
         }
         val shouldSignal = saved && current?.feedbackSignaled != true
+        val affinity = if (shouldSignal) findTopicAffinity(card.topicId) else null
+        val appliedDelta = if (shouldSignal) {
+            appliedFeedbackAffinityDelta(affinity?.weight ?: 0.0, FeedbackAction.SAVE)
+        } else {
+            current?.affinityDeltaApplied ?: 0.0
+        }
         upsertSavedCard(
             SavedCardEntity(
                 cardId = cardId,
                 isSaved = saved,
                 feedbackSignaled = current?.feedbackSignaled == true || shouldSignal,
                 savedAtMillis = if (saved && current?.isSaved != true) nowMillis else current?.savedAtMillis ?: nowMillis,
-                updatedAtMillis = nowMillis
+                updatedAtMillis = nowMillis,
+                affinityDeltaApplied = appliedDelta
             )
         )
         if (shouldSignal) {
@@ -289,14 +318,10 @@ interface CardDao {
                     topicId = card.topicId
                 )
             )
-            val affinity = findTopicAffinity(card.topicId)
             upsertTopicAffinity(
                 TopicAffinityEntity(
                     topicId = card.topicId,
-                    weight = updatedTopicAffinity(
-                        affinity?.weight ?: 0.0,
-                        FeedbackAction.SAVE
-                    ),
+                    weight = (affinity?.weight ?: 0.0) + appliedDelta,
                     aliases = (affinity?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
                         .distinct()
                         .take(12),
@@ -408,11 +433,15 @@ interface CardDao {
     @Query("DELETE FROM knowledge_cards")
     suspend fun clear()
 
+    @Query("UPDATE photo_candidates SET analysisState = 'READY' WHERE analysisState IN ('QUEUED', 'COMPLETED', 'FAILED') AND contentUri != ''")
+    suspend fun resetCloudAnalysisCandidates(): Int
+
     @Transaction
     suspend fun clearCloudState() {
         clearPendingFeedback()
         clearTrackedItems()
         clear()
+        resetCloudAnalysisCandidates()
     }
 
     @Query("UPDATE knowledge_cards SET photoUri = '' WHERE photoUri != ''")
@@ -432,21 +461,15 @@ interface CardDao {
         // can leave only a private-storage file awaiting cleanup; the photo cannot be scanned or
         // uploaded, the card cannot be displayed, and the server barrier cannot be lost.
         if (card != null) {
-            val previousActions = buildList {
-                val ordinaryAction = priorFeedback?.action
-                    ?.let { stored -> runCatching { FeedbackAction.valueOf(stored) }.getOrNull() }
-                if (ordinaryAction?.isOrdinaryCardFeedback() == true) {
-                    add(ordinaryAction)
-                }
-                if (priorSave?.feedbackSignaled == true) add(FeedbackAction.SAVE)
-            }
+            val previousAppliedDelta = (priorFeedback?.affinityDeltaApplied ?: 0.0) +
+                (priorSave?.takeIf { it.feedbackSignaled }?.affinityDeltaApplied ?: 0.0)
             val current = findTopicAffinity(card.topicId)
             upsertTopicAffinity(
                 TopicAffinityEntity(
                     topicId = card.topicId,
-                    weight = replaceTopicAffinity(
+                    weight = replaceAppliedTopicAffinity(
                         current = current?.weight ?: 0.0,
-                        previousActions = previousActions,
+                        previousAppliedDelta = previousAppliedDelta,
                         nextAction = FeedbackAction.TOO_PRIVATE
                     ),
                     aliases = (current?.aliases.orEmpty() + topicAliasTokens(card.topicId, card.title))
@@ -486,6 +509,9 @@ interface CardDao {
 
     @Query("SELECT * FROM topic_affinities ORDER BY topicId ASC")
     suspend fun topicAffinities(): List<TopicAffinityEntity>
+
+    @Query("SELECT * FROM topic_affinities ORDER BY topicId ASC")
+    fun observeTopicAffinityEntities(): Flow<List<TopicAffinityEntity>>
 
     @Upsert
     suspend fun upsertTopicAffinity(affinity: TopicAffinityEntity)

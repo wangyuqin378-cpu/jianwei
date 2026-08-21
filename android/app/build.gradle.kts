@@ -23,8 +23,8 @@ android {
         applicationId = "cn.jianwei.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0-beta01"
+        versionCode = 73
+        versionName = "0.1.0-beta73"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["usesCleartextTraffic"] = "false"
     }
@@ -48,12 +48,16 @@ android {
         }
         release {
             isMinifyEnabled = true
+            ndk {
+                abiFilters += setOf("arm64-v8a", "armeabi-v7a")
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.getByName("release")
         }
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 

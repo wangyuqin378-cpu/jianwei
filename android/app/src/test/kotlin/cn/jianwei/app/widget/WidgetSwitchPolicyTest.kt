@@ -5,6 +5,18 @@ import org.junit.Test
 
 class WidgetSwitchPolicyTest {
     @Test
+    fun `wide stale card keeps cache guidance in the footer`() {
+        val switch = WidgetSwitchAffordance("暂无更多卡片", canSwitch = false)
+
+        assertThat(wideWidgetFooter(cacheDepleted = true, switch)).isEqualTo(
+            WidgetSwitchAffordance("缓存用完 · 点按更新", canSwitch = false)
+        )
+        assertThat(wideWidgetFooter(cacheDepleted = false, switch)).isEqualTo(
+            WidgetSwitchAffordance("查看照片与来源 →", canSwitch = false)
+        )
+    }
+
+    @Test
     fun `single card never offers a dead switch action`() {
         val state = widgetSwitchAffordance(
             switchCount = 0,

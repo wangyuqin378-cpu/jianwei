@@ -413,7 +413,7 @@ function assertUuid(value, label) {
 
 function assertPublicCard(value, label) {
   const expectedFields = [
-    "body", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
+    "body", "boundingBox", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
     "personalContext", "scheduledDate", "sources", "status", "title", "topicId"
   ];
   assert(value && typeof value === "object", `${label} is missing`);
@@ -422,6 +422,16 @@ function assertPublicCard(value, label) {
     `${label} contains missing or internal fields`
   );
   assert(!Object.hasOwn(value, "deviceId"), `${label} exposed internal device identity`);
+  if (value.boundingBox !== null) {
+    const box = value.boundingBox;
+    assert(
+      box && typeof box === "object" &&
+        ["x", "y", "width", "height"].every((field) => Number.isFinite(box[field])) &&
+        box.x >= 0 && box.y >= 0 && box.width > 0 && box.height > 0 &&
+        box.x + box.width <= 1 && box.y + box.height <= 1,
+      `${label} contains invalid normalized object bounds`
+    );
+  }
 }
 
 function sha256(bytes) {

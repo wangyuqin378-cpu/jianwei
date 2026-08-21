@@ -49,9 +49,12 @@ export const detectedEntitySchema = z.object({
   boundingBox: z.object({
     x: z.number().min(0).max(1),
     y: z.number().min(0).max(1),
-    width: z.number().min(0).max(1),
-    height: z.number().min(0).max(1)
-  }).strict().nullable(),
+    width: z.number().positive().max(1),
+    height: z.number().positive().max(1)
+  }).strict().refine(
+    (box) => box.x + box.width <= 1 && box.y + box.height <= 1,
+    "bounding box must stay inside normalized image bounds"
+  ).nullable(),
   alternatives: z.array(z.string().min(1).max(60)).max(5),
   sensitiveFlags: z.array(z.enum([
     "face",
@@ -87,6 +90,23 @@ const factSchema = z.object({
     reviewedAt: z.string().datetime(),
     sourceCheckedAt: z.string().datetime(),
     notes: z.string().trim().max(500).optional()
+  }).strict().optional(),
+  aiReview: z.object({
+    provider: z.literal("qwen"),
+    model: z.string().trim().min(3).max(100),
+    policyVersion: z.literal("general-content-v1"),
+    reviewedAt: z.string().datetime(),
+    decision: z.enum(["approved", "rejected"]),
+    reasonCode: z.enum([
+      "safe_general",
+      "political_or_illegal",
+      "adult_or_violent",
+      "personal_or_sensitive",
+      "health_or_safety",
+      "unclear_or_unreliable",
+      "format_invalid"
+    ]),
+    evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/)
   }).strict().optional()
 }).strict();
 

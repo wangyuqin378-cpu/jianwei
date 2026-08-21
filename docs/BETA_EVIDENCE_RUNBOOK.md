@@ -156,7 +156,7 @@ exclusive result pull whose evidence kind/run ID match; it then removes the stag
 private progress. Omit the switch only when the controlled evidence process requires a temporary
 device-side retention, and purge or uninstall the Debug APK immediately after that checkpoint.
 
-### Generated-card audit
+### Generated-card automatic verification
 
 Do not hand-type `cardAudits`. Export 200-500 redacted generated-card snapshots from the real
 PostgreSQL deployment. The exporter selects no device ID, candidate token, installation ID, bearer,
@@ -183,31 +183,25 @@ stamps every newly generated PostgreSQL card with the running backend Release SH
 rejects old unstamped rows or cards created by any other backend build. Keep the snapshot outside
 the repository because it contains card text and a coarse personal context, even though it contains
 no photo or device identity.
-Generate a pending-only audit template, let an accountable person open every displayed source and
-fill every outcome, then compile the independent artifacts:
+Compile the retained snapshots directly against the pinned catalog:
 
 ```powershell
-node scripts\create-card-audit-template.mjs `
-  --snapshots C:\controlled-evidence\card-snapshots.json `
-  --output C:\controlled-evidence\card-audits.json `
-  --write
+node scripts\compile-card-audit.mjs `
+  --snapshots C:\controlled-evidence\card-snapshots.json
 node scripts\compile-card-audit.mjs `
   --snapshots C:\controlled-evidence\card-snapshots.json `
-  --audits C:\controlled-evidence\card-audits.json
-node scripts\compile-card-audit.mjs `
-  --snapshots C:\controlled-evidence\card-snapshots.json `
-  --audits C:\controlled-evidence\card-audits.json `
   --output evaluation\compiled-card-audit.json `
   --write
 ```
 
-The template preconfirms nothing. The compiler requires exactly one human audit per snapshot, binds
-each row by canonical card SHA-256, requires every displayed source to be checked, rejects model/bot
-reviewer identities, and derives risk/whitelist/authority values from the pinned catalog. Product
-failures such as an unreachable source, fabricated source, unsupported personal conclusion, or a
-card body/source set that differs from the reviewed fact remain explicit negative results; they are
-not discarded. The final assembler consumes `cardAuditProvenance` and `cardAudits` directly from the
-SHA-bound compiled artifact. Retain both raw artifacts in the controlled evidence store.
+The compiler binds every row by canonical card SHA-256 and recomputes the complete published-card
+contract: the fact must be a general fact approved by the fixed Qwen review policy, the body and
+source set must exactly equal that pinned catalog fact, and the title plus personal context must
+equal the deterministic server presentation policy for the recorded confidence. Any mismatch stays
+as a negative result and the final gate rejects the whole artifact. This is a full automatic audit of
+the sampled production cards, not a second model rewrite and not a hand-filled approval queue. The
+optional `create-card-audit-template.mjs` remains available for product-quality investigations but
+does not grant release authority. Retain the snapshot artifact in the controlled evidence store.
 
 ## Physical OEM device runs
 
@@ -317,11 +311,11 @@ Do not assemble the final Beta file until all eight compiler/verifier/attestor o
 Create a pending-only manifest that SHA-256 binds the exact bytes of all eight files, including the
 unaltered signed deployment receipt. The same manifest also binds the exact bytes of
 `knowledge/catalog.json`, `knowledge/topic-backlog.json`, and the domain-separated digest of the
-protected human-reviewer allowlist. The reviewer allowlist must come from the protected release
-environment; do not derive it from catalog contents:
+optional protected human-correction reviewer allowlist. For the default AI-only flow the allowlist
+is empty and its empty-set digest is still bound; do not derive reviewer identities from catalog
+contents:
 
 ```powershell
-$env:JIANWEI_KNOWLEDGE_REVIEWER_IDS = "<protected-comma-separated-human-reviewer-ids>"
 node scripts\create-beta-evidence-assembly-manifest.mjs
 node scripts\create-beta-evidence-assembly-manifest.mjs `
   --output evaluation\beta-evidence-assembly-manifest.json `
@@ -360,7 +354,6 @@ files.
 
 ```powershell
 $env:JIANWEI_EVIDENCE_TRUST_POLICY_SHA256 = "<protected-policy-sha256>"
-$env:JIANWEI_KNOWLEDGE_REVIEWER_IDS = "<protected-comma-separated-human-reviewer-ids>"
 node scripts\sign-beta-evidence-assembly.mjs `
   --issuer-id <independent-qa-assembly-id> `
   --key-id <assembly-policy-key-id> `
@@ -461,13 +454,13 @@ totals.
   all eight supported privacy classes with five examples each. At least 100 recognition samples
   must span 25 catalog topics with three examples per topic. A missing prediction counts as wrong;
   an incomplete run cannot count as a safe local rejection.
-- `cardAuditProvenance`: run identity, app/model/catalog versions, retained PostgreSQL snapshot and
-  independent human-audit references, SHA-256 for both raw artifacts, the formal Release APK and
-  the exact backend Release that created every sampled card.
-- `cardAudits`: at least 200 compiled manual audits. Each row is bound to a generated-card digest and
-  records source reachability, fabricated-source and unsupported-personal-conclusion outcomes. The
-  compiler derives risk, whitelist, authority, exact fact-body match and source-set match from the
-  pinned catalog; it also retains reviewer identity, audit time and per-card evidence reference.
+- `cardAuditProvenance`: run identity, automatic policy version, app/model/catalog versions, retained
+  PostgreSQL snapshot reference and SHA-256, the formal Release APK and the exact backend Release
+  that created every sampled card.
+- `cardAudits`: at least 200 automatically compiled card checks. Each row is bound to a generated-card
+  digest and the approved Qwen catalog-review evidence, then records exact fact-body/source binding,
+  deterministic title policy, deterministic personal context and the complete automatic result.
+  Health/safety facts cannot enter this first-release pool.
 - `deviceRuns`: generated only by the physical-device compiler from SHA-bound app reports and
   retained evidence bundles. Huawei, Xiaomi, and OPPO or vivo Android 14+ runs collectively cover `FULL`,
   `PARTIAL`, and `DENIED`, plus background execution, seven offline widget days, and deletion. Every

@@ -25,7 +25,8 @@ if (process.argv.includes("--self-test")) {
   if (imported.topics.length !== 2 || imported.topics.some((topic) => topic.facts.length !== 3)) {
     throw new Error("Batch self-test did not import both complete topics");
   }
-  if (imported.topics.flatMap((topic) => topic.facts).some((fact) => fact.reviewStatus !== "draft" || fact.review !== undefined)) {
+  if (imported.topics.flatMap((topic) => topic.facts).some((fact) =>
+    fact.reviewStatus !== "draft" || fact.review !== undefined || fact.aiReview !== undefined)) {
     throw new Error("Batch self-test unexpectedly granted release authority");
   }
   const extension = fixtureDraft(topics[0], 3);

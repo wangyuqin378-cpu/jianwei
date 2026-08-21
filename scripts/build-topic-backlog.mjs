@@ -193,6 +193,18 @@ for (const topic of catalogTopics) {
   const humanAttestedFactCount = (topic.facts ?? []).filter((fact) =>
     fact.reviewStatus === "approved" && fact.review?.reviewerId && fact.review?.reviewedAt && fact.review?.sourceCheckedAt
   ).length;
+  const aiReviewedFactCount = (topic.facts ?? []).filter((fact) =>
+    fact.reviewStatus === "approved" && fact.riskLevel === "general" && fact.aiReview?.provider === "qwen" &&
+    fact.aiReview?.policyVersion === "general-content-v1" && fact.aiReview?.decision === "approved" &&
+    fact.aiReview?.reasonCode === "safe_general" && /^[a-f0-9]{64}$/.test(fact.aiReview?.evidenceSha256 ?? "")
+  ).length;
+  const verifiedGeneralFactCount = (topic.facts ?? []).filter((fact) =>
+    fact.reviewStatus === "approved" && fact.riskLevel === "general" &&
+    ((fact.review?.reviewerId && fact.review?.reviewedAt && fact.review?.sourceCheckedAt) ||
+      (fact.aiReview?.provider === "qwen" && fact.aiReview?.policyVersion === "general-content-v1" &&
+        fact.aiReview?.decision === "approved" && fact.aiReview?.reasonCode === "safe_general" &&
+        /^[a-f0-9]{64}$/.test(fact.aiReview?.evidenceSha256 ?? "")))
+  ).length;
   byCategory.get(topic.category).push({
     topicId: topic.topicId,
     displayName: topic.displayName,
@@ -201,9 +213,11 @@ for (const topic of catalogTopics) {
     catalogState: "seeded",
     factsInCatalog: (topic.facts ?? []).length,
     humanAttestedFactCount,
+    aiReviewedFactCount,
+    verifiedGeneralFactCount,
     targetFactCount: 3,
-    researchState: humanAttestedFactCount >= 3 ? "ready" : "human_research_required",
-    readyForProduction: humanAttestedFactCount >= 3
+    researchState: verifiedGeneralFactCount >= 1 ? "ready" : "ai_review_required",
+    readyForProduction: verifiedGeneralFactCount >= 1
   });
 }
 
@@ -224,8 +238,10 @@ for (const [category, rows] of Object.entries(proposals)) {
       catalogState: "proposed",
       factsInCatalog: 0,
       humanAttestedFactCount: 0,
+      aiReviewedFactCount: 0,
+      verifiedGeneralFactCount: 0,
       targetFactCount: 3,
-      researchState: "human_research_required",
+      researchState: "ai_review_required",
       readyForProduction: false
     });
   }
@@ -251,8 +267,8 @@ const backlog = {
   policy: {
     publishesFacts: false,
     requiredFactsPerTopic: "3-5",
-    requiredReview: "accountable human source review",
-    note: "Proposed topics are taxonomy backlog only and are never served until facts and sources pass the production catalog gate."
+    requiredReview: "fixed-version AI content review for general facts; health and safety facts are excluded from the launch catalog",
+    note: "Proposed topics are taxonomy backlog only and are never served until a sourced general fact passes the production AI content gate."
   },
   categoryTargets,
   metrics: {

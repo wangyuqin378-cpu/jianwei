@@ -345,7 +345,7 @@ export class AnalysisService {
         topicId: topic.topicId,
         factId: selection.fact.factId,
         title: cardTitleForConfidence(
-          composeCardTitle(canonicalObjectName, selection.fact.factId),
+          composeCardTitle(canonicalObjectName, selection.fact.factId, selection.fact.factText),
           canonicalObjectName,
           entity.confidence
         ),
@@ -353,6 +353,7 @@ export class AnalysisService {
         body: selection.fact.factText,
         personalContext,
         confidence: entity.confidence,
+        boundingBox: entity.boundingBox,
         sources: selection.sources,
         status: "scheduled"
       }, scheduledDateInChina(new Date(), 0));

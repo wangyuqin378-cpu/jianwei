@@ -71,6 +71,22 @@ export interface KnowledgeFact {
     sourceCheckedAt: string;
     notes?: string;
   };
+  aiReview?: {
+    provider: "qwen";
+    model: string;
+    policyVersion: "general-content-v1";
+    reviewedAt: string;
+    decision: "approved" | "rejected";
+    reasonCode:
+      | "safe_general"
+      | "political_or_illegal"
+      | "adult_or_violent"
+      | "personal_or_sensitive"
+      | "health_or_safety"
+      | "unclear_or_unreliable"
+      | "format_invalid";
+    evidenceSha256: string;
+  };
 }
 
 export interface KnowledgeTopic {
@@ -98,6 +114,7 @@ export interface KnowledgeCard {
   body: string;
   personalContext: string;
   confidence: number;
+  boundingBox: BoundingBox | null;
   sources: KnowledgeSource[];
   status: "scheduled" | "shown" | "archived";
   scheduledDate: string;

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +49,13 @@ class WidgetStateStore internal constructor(
             } else {
                 normalize(persisted, today, eligible, preferredCardId)
             }
-            preferences.write(normalized)
+            val seen = when {
+                persisted.isNewerThan(today) -> preferences[KEY_SEEN_CARD_IDS].orEmpty()
+                persisted.day != today -> setOfNotNull(normalized.currentCardId)
+                else -> preferences[KEY_SEEN_CARD_IDS].orEmpty()
+                    .intersect(eligible.toSet()) + setOfNotNull(normalized.currentCardId)
+            }
+            preferences.write(normalized, seen)
             selected = normalized
         }
         checkNotNull(selected)
@@ -68,8 +75,14 @@ class WidgetStateStore internal constructor(
                 return@edit
             }
             val current = normalize(persisted, today, eligible, preferredCardId)
+            val seen = if (persisted.day != today) {
+                setOfNotNull(current.currentCardId)
+            } else {
+                preferences[KEY_SEEN_CARD_IDS].orEmpty()
+                    .intersect(eligible.toSet()) + setOfNotNull(current.currentCardId)
+            }
             val next = if (current.switchCount < MAX_DAILY_WIDGET_SWITCHES) {
-                nextCardId(eligible, current.currentCardId)
+                eligible.firstOrNull { cardId -> cardId !in seen }
             } else {
                 null
             }
@@ -77,7 +90,7 @@ class WidgetStateStore internal constructor(
                 currentCardId = next,
                 switchCount = current.switchCount + 1
             )
-            preferences.write(updated)
+            preferences.write(updated, if (next == null) seen else seen + next)
             result = WidgetAdvanceResult(updated, switched = next != null)
         }
         checkNotNull(result)
@@ -106,13 +119,6 @@ class WidgetStateStore internal constructor(
 
 fun widgetStateStore(context: Context): WidgetStateStore = WidgetStateStore(context.dailyWidgetDataStore)
 
-private fun nextCardId(orderedCardIds: List<String>, currentCardId: String?): String? {
-    if (orderedCardIds.isEmpty()) return null
-    val currentIndex = orderedCardIds.indexOf(currentCardId)
-    if (currentIndex < 0) return orderedCardIds.first()
-    return orderedCardIds.getOrNull(currentIndex + 1)
-}
-
 private fun Preferences.toState() = WidgetPersistentState(
     day = this[KEY_CARD_DAY],
     currentCardId = this[KEY_CARD_ID],
@@ -124,10 +130,14 @@ private fun Preferences.toState() = WidgetPersistentState(
 private fun WidgetPersistentState.isNewerThan(requestedDay: String): Boolean =
     day != null && day > requestedDay
 
-private fun androidx.datastore.preferences.core.MutablePreferences.write(state: WidgetPersistentState) {
+private fun androidx.datastore.preferences.core.MutablePreferences.write(
+    state: WidgetPersistentState,
+    seenCardIds: Set<String>
+) {
     if (state.day == null) remove(KEY_CARD_DAY) else this[KEY_CARD_DAY] = state.day
     if (state.currentCardId == null) remove(KEY_CARD_ID) else this[KEY_CARD_ID] = state.currentCardId
     this[KEY_SWITCH_COUNT] = state.switchCount
+    this[KEY_SEEN_CARD_IDS] = seenCardIds
 }
 
 private val Context.dailyWidgetDataStore by preferencesDataStore(
@@ -138,6 +148,7 @@ private val Context.dailyWidgetDataStore by preferencesDataStore(
 internal val KEY_CARD_ID = stringPreferencesKey("card_id")
 internal val KEY_CARD_DAY = stringPreferencesKey("card_day")
 internal val KEY_SWITCH_COUNT = intPreferencesKey("switch_count")
+internal val KEY_SEEN_CARD_IDS = stringSetPreferencesKey("seen_card_ids")
 
 const val MAX_DAILY_WIDGET_SWITCHES = 2
 private const val LEGACY_WIDGET_PREFS = "daily_widget"

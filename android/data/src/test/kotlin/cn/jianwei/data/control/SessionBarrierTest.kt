@@ -47,6 +47,21 @@ class SessionBarrierTest {
     }
 
     @Test
+    fun nestedActiveSessionReusesTheOuterTokenWithoutDeadlocking() = runBlocking {
+        val barrier = SessionBarrier()
+
+        val result = barrier.withActiveSession { outer ->
+            barrier.withActiveSession { inner ->
+                outer.requireActive()
+                inner.requireActive()
+                "nested"
+            }
+        }
+
+        assertThat(result).isEqualTo("nested")
+    }
+
+    @Test
     fun pausedBarrierAllowsSerializedLocalMutationsWithoutResuming() = runBlocking {
         val barrier = SessionBarrier()
         barrier.invalidate()
@@ -55,6 +70,18 @@ class SessionBarrierTest {
 
         assertThat(result).isEqualTo("committed-locally")
         assertThat(barrier.isPaused()).isTrue()
+    }
+
+    @Test
+    fun persistedStateSynchronizationInvalidatesAndResumesTheLiveBarrier() = runBlocking {
+        val barrier = SessionBarrier(initialEpoch = 3, initiallyPaused = false)
+
+        barrier.synchronize(persistedEpoch = 4, persistedPaused = true)
+        assertThat(runCatching { barrier.withActiveSession { "unexpected" } }.exceptionOrNull())
+            .isInstanceOf(AnalysisStoppedException::class.java)
+
+        barrier.synchronize(persistedEpoch = 5, persistedPaused = false)
+        assertThat(barrier.withActiveSession { "resumed" }).isEqualTo("resumed")
     }
 
     @Test

@@ -1,241 +1,50 @@
-# Knowledge review workflow
+# AI knowledge review workflow
 
-`reviewStatus: "approved"` alone is not release authority. A fact is publishable in production only
-when it also contains a human `review` attestation with reviewer identity, review time, and source
-check time. Existing seed facts intentionally have no attestation and are excluded from production.
+见微首版不再要求运营人员逐条操作知识审核后台。知识目录是静态、带公开来源的内容，发布前由固定版本 Qwen 做一次批量内容审核；用户每天看到卡片时不会再次触发知识审核模型。
 
-## Controlled 200-topic backlog
+产品责任人已确认首版采用全量审核。执行口径是“所有一般知识统一机器审核，异常才人工介入”，而不是恢复逐条人工审批；已有 554 条一般知识已按这一口径完成审核，后续新增或修改事实必须进入同一流程。
 
-`knowledge/topic-backlog.json` fixes the Beta taxonomy at exactly 200 daily-object topics. Beta.62
-contains all 200 in the catalog and has no empty proposals. Rebuild
-and verify the generated backlog after changing the catalog or taxonomy source:
+## 首版边界
+
+- 只允许 `riskLevel: general` 的普通物件知识进入 AI 审核和发布池。
+- `health` 与 `safety` 事实保留在目录中，但首版一律不发布。牙刷更换、电池安全、交通安全等内容因此不会被 AI 自动放行。
+- AI 检查涉政和违法内容，同时检查色情、暴力、仇恨、侵权、隐私、个人结论以及被错误标成一般知识的健康或安全建议。不能只做涉政过滤。
+- 每条事实仍必须绑定公开 HTTPS 来源。AI 会看到来源标题、发布方和 URL 身份，但不会假装已经打开网页正文；来源正文语义支持范围不作为 AI 自动审核已经证明的事项。
+- 运行时卡片只能使用目录中的原文、`factId` 和 `sourceId`。视觉模型不能临场编造事实或替换来源。
+- 任一模型错误、缺失决定、重复 `factId`、内容安全护栏失败或成本上限触发都会整批失败，不会写目录。
+
+## 一条命令审核
+
+在 `backend` 目录先用 20 条做不写入烟测：
+
+```powershell
+pnpm review:knowledge-ai -- `
+  --credentials-file <absolute-path-to-bailian-csv> `
+  --limit 20
+```
+
+确认结果后，一次审核全部待处理的一般知识并生成新目录版本：
+
+```powershell
+pnpm review:knowledge-ai -- `
+  --credentials-file <absolute-path-to-bailian-csv> `
+  --all `
+  --write `
+  --next-version <new-catalog-version>
+```
+
+全量命令会把一般知识文本和公开来源元数据发送给阿里云百炼，因此必须由有权限的人明确批准这次外发。凭据只在进程内读取；私有报告写入 `.tooling/ai-knowledge-review/`，权限为 `0600`，不记录 API Key、完整工作空间端点或本地路径。
+
+脚本使用固定 `qwen3.6-flash-2026-04-16`、生产 `X-DashScope-DataInspection` 护栏、20 条一批、最多 3 次仅瞬态错误重试，并记录请求数和 token 用量。`--write` 会原子替换目录；高风险的旧版无签注批准状态会被降回 `draft`。
+
+## 写入后的门禁
 
 ```powershell
 node scripts\build-topic-backlog.mjs --write
 node scripts\build-topic-backlog.mjs
+node scripts\check-knowledge-readiness.mjs
 ```
 
-Research can be human-led or AI-assisted, but intake must remain a non-publishable draft. The draft
-validator requires 3-5 sourced facts, rejects approval/review fields, and requires two authoritative
-sources for health or safety claims:
+首版要求至少 150 个主题各有一条经过 AI 或真人审核的 `general` 事实。目录仍保留 200 个受控主题，但纯健康或安全主题可以暂不进入发布池。
 
-```powershell
-node scripts\validate-topic-draft.mjs knowledge\drafts\door_handle.json
-```
-
-Structural validation does not establish that a source supports a fact. See
-`knowledge/drafts/README.md`; an accountable person must still open every source and use the review
-workflow below.
-
-Generate a read-only reviewer queue after each content and source-reachability run. The queue puts
-3-5-fact topics first, prioritizes health/safety facts, attaches source URLs and reachability evidence,
-binds the exact catalog and fact wording to SHA-256 digests, and separates topics that still need
-more facts. It never writes approval or review fields:
-
-```powershell
-node scripts\build-knowledge-review-queue.mjs
-node scripts\build-knowledge-review-queue.mjs --write
-```
-
-The generated JSON and Markdown live under `.tooling/knowledge-review-queue/`. They are operational
-work aids, not release evidence; the accountable reviewer must still open every source and complete
-a snapshot-pinned decision batch. Direct single-fact catalog mutation is disabled because it could
-approve against a stale queue.
-
-Check URL safety and reachability before asking a reviewer to spend time on a batch:
-
-```powershell
-node scripts\check-knowledge-sources.mjs --self-test
-node scripts\check-knowledge-sources.mjs
-node scripts\check-knowledge-sources.mjs --live
-node scripts\check-knowledge-sources.mjs --all-live
-node scripts\check-knowledge-sources.mjs --live --google-doh
-node scripts\check-knowledge-sources.mjs --all-live --google-doh
-```
-
-The static gate checks unique public HTTPS URLs, complete metadata, references and orphan sources.
-`--live` writes evidence for sources used by `approved` review candidates; `--all-live` also checks
-draft-only editorial sources. A 2xx response and suitable content type prove reachability only. They
-do not prove that a source supports the fact, and neither command creates a review attestation.
-
-Use `--google-doh` only when a VPN or proxy maps ordinary DNS to the reserved `198.18.0.0/15`
-benchmark range and the default resolver therefore fails closed. This mode queries the fixed
-`https://dns.google/resolve` endpoint without redirects, verifies that each JSON response binds the
-requested hostname and record type, and accepts only A/AAAA answers. The normal public-address
-check still rejects private, local, reserved, malformed, or mixed answers; the subsequent HTTPS
-request remains pinned to the vetted address while TLS certificate validation and SNI use the
-original source hostname. Evidence records `resolver: "google_doh"` so this path cannot be confused
-with the system resolver.
-
-Every live run writes a `*-latest-attempt.json` diagnostic. When all sources across multiple hosts
-fail for the same DNS or network reason, the command classifies the run as an infrastructure
-failure, exits `NO_GO`, and does not replace the last canonical evidence file. The reviewer queue
-also refuses evidence marked `infrastructureFailure: true`. Preserve the diagnostic for operators,
-then rerun `--all-live` from a network environment that can perform the public-IP safety check.
-Never convert a correlated infrastructure failure into hundreds of editorial source failures, and
-never use reachability as semantic approval.
-
-Import a structurally valid draft through the guarded intake command instead of editing the catalog
-by hand:
-
-```powershell
-node scripts\ingest-topic-draft.mjs `
-  --draft knowledge\drafts\door_handle.json `
-  --write
-```
-
-Intake merges aliases and sources, but forces every imported fact to stay `draft`. A new topic draft
-contains 3-5 facts. A minimal extension of an existing topic may set `"intakeMode": "extend"` and
-contain 2-4 new facts; the merge still rejects any final topic outside the controlled 3-5 range. It
-rejects collisions rather than overwriting an existing fact or silently changing source metadata.
-For multiple topics, use `scripts/ingest-topic-batch.mjs` and a version-pinned manifest under
-`knowledge/batches/`. Run it once without `--write` for a no-mutation preview, verify the sources,
-then repeat with `--write`. The batch rejects stale catalog versions and validates all drafts and
-cross-draft conflicts before performing one atomic catalog replacement.
-
-If a live source check later finds an unreachable source or a draft claim needs correction, update
-the original draft and use `scripts/apply-catalog-draft-correction.mjs` with a manifest under
-`knowledge/corrections/`. The manifest pins both the current catalog version and SHA-256. The tool
-only replaces topics whose existing facts are still unreviewed drafts, preserves every fact ID,
-rejects sources shared by topics outside the correction, removes orphaned sources, validates all
-replacement drafts, and performs one atomic catalog replacement. Preview without `--write` first:
-
-```powershell
-node scripts\apply-catalog-draft-correction.mjs `
-  --manifest knowledge\corrections\2026-07-19-safety-sources-01.json
-node scripts\apply-catalog-draft-correction.mjs `
-  --manifest knowledge\corrections\2026-07-19-safety-sources-01.json `
-  --write
-```
-
-The correction path cannot approve, reject, or rewrite an already reviewed fact. Run the full live
-source gate and regenerate the review queue after every correction.
-
-## Human review steps
-
-1. Open every referenced source and confirm it directly supports the Chinese fact text.
-2. Check that wording does not add unsupported causality, numbers, personal conclusions, diagnosis,
-   or absolute safety claims.
-3. For `health` and `safety`, require two independent `official` or `professional` sources.
-4. Start the local human-review workbench for up to 20 facts. Use an internal identifier that names
-   the accountable person, choose a new catalog version, and keep the output directly under the
-   controlled batch directory:
-
-```powershell
-node scripts\knowledge-review-workbench.mjs --preflight --limit 20
-node scripts\knowledge-review-workbench.mjs `
-  --reviewer reviewer-name-or-internal-id `
-  --next-version 2026-07-19-beta.63 `
-  --output .tooling\knowledge-review-batches\beta63-review-01.json `
-  --limit 20 `
-  --confirm-human-review-session
-```
-
-For the first usable Beta content set, use the lower-risk launch selection instead of letting the
-risk-prioritized queue put health and safety facts in front of ordinary object knowledge:
-
-```powershell
-node scripts\knowledge-review-workbench.mjs --preflight --limit 20 --risk general --whole-topics
-node scripts\knowledge-review-workbench.mjs `
-  --reviewer reviewer-name-or-internal-id `
-  --next-version 2026-07-19-beta.63 `
-  --output .tooling\knowledge-review-batches\beta63-general-launch-01.json `
-  --limit 20 `
-  --risk general `
-  --whole-topics `
-  --confirm-human-review-session
-```
-
-`--risk general` excludes health and safety facts from that session. `--whole-topics` additionally
-requires every still-pending fact in a selected topic to have that risk level and never splits a
-topic merely to fill the numeric limit. This makes each approved topic capable of becoming ready in
-one batch while leaving high-risk work in the normal queue. It does not mark anything approved,
-change the catalog, or relax source and human-checkpoint requirements.
-
-The command listens only on `127.0.0.1` and prints a one-time browser URL. It uses an HttpOnly
-same-site session cookie, a separate CSRF token, strict Host/Origin checks, a 128 KiB request limit,
-and a restrictive CSP. Every source link opens directly in the browser; the local server does not
-fetch or proxy editorial sources and clicking a link never checks its review box. All decisions and
-confirmations start empty.
-
-Each save creates a new immutable, SHA-bound local revision. A stale browser tab cannot overwrite a
-newer revision. The printed session ID can resume after a browser or process restart. The output
-batch is created once only after every decision passes the same validation as the atomic catalog
-applicator and the reviewer checks the explicit human checkpoint. The workbench never mutates the
-catalog or runs the apply command.
-
-For a manual JSON fallback, create a pending-only template. The generator likewise never preselects
-a decision or confirmation:
-
-```powershell
-node scripts\create-knowledge-review-batch.mjs `
-  --output .tooling\knowledge-review-batches\batch-001.json `
-  --write
-```
-
-The manual lower-risk equivalent accepts the same `--risk general --whole-topics` selection flags.
-
-5. In the workbench, or as the accountable human editing the fallback JSON, set each
-   `decision` to `approve` or `reject`, list the source IDs actually opened, and record notes.
-   Approval requires both `semanticSupportConfirmed` and `unsupportedClaimsChecked`; rejection
-   requires at least one checked source and a concrete reason of at least 10 characters.
-6. Apply all completed decisions in one atomic catalog replacement:
-
-```powershell
-node scripts\apply-knowledge-review-batch.mjs `
-  --manifest .tooling\knowledge-review-batches\batch-001.json `
-  --reviewer reviewer-name-or-internal-id `
-  --confirm-human-review `
-  --write
-```
-
-The apply command rejects AI/automation reviewer identities, a stale catalog or fact digest, the
-placeholder version, unknown/duplicate facts, unchecked sources, pre-existing attestations and
-incomplete approval/rejection confirmations. It will not write without explicit human confirmation
-and `--write`; replacing an existing attestation additionally requires `--confirm-rereview`.
-The whole decision batch is validated before one atomic catalog replacement. It cannot prove that a
-person actually read the source; reviewer access controls, version control, review logs and periodic
-sampling remain organizational controls.
-
-After every applied batch, rebuild the source evidence and review queue before starting the next
-session. A batch pins the exact catalog version, catalog SHA-256, fact wording and source set, so a
-batch prepared for an earlier catalog is intentionally rejected rather than rebased automatically.
-
-A rejection is not a dead end and must never be repaired by editing the catalog directly. Generate
-a fail-closed template for one or more comma-separated rejected fact IDs, then fill its origin, new
-28-80 character fact text, source set and next version. The generator copies the rejected fact's
-source context but leaves publishable content blank:
-
-```powershell
-node scripts\create-rejected-fact-replacement-batch.mjs `
-  --facts rejected-fact-id `
-  --batch-id replacement-001 `
-  --output knowledge\replacements\replacement-001.json `
-  --write
-```
-
-Preview and apply the completed, version-controlled manifest:
-
-```powershell
-node scripts\apply-rejected-fact-replacements.mjs `
-  --manifest knowledge\replacements\batch-001.json
-node scripts\apply-rejected-fact-replacements.mjs `
-  --manifest knowledge\replacements\batch-001.json `
-  --write
-```
-
-The command accepts only a human-attested `rejected` target, preserves every other fact, removes
-newly orphaned sources, and inserts the replacement as an unreviewed `draft`. It rejects stale
-catalog/fact snapshots, source conflicts, fact-ID collisions, forged approval fields and risky facts
-without two authoritative sources. Keep the manifest as the audit record, rerun full source checks,
-rebuild the queue, and send the new draft through the same accountable-human review flow.
-
-Run `node scripts/check-knowledge-readiness.mjs` after each batch. Production remains `NO_GO` until
-the catalog contains exactly the 200 controlled topics, each with 3-5 total facts and every fact is
-approved with a valid accountable-human attestation. The gate also rejects taxonomy drift, duplicate
-IDs, dangling or unused sources, invalid/future review times, and health/safety facts without two
-authoritative sources. Run its adversarial fixture with
-`node scripts/check-knowledge-readiness.mjs --self-test`; the synthetic self-test is not release
-evidence. Development may set
-`ALLOW_UNATTESTED_FACTS=true` only with local object storage; OSS mode refuses to start with this
-escape hatch enabled.
+原本的真人工作台保留为可选纠错工具，不再是一般知识 Beta 发布的前置步骤。后续如果要上线健康或安全建议，应单独设计更严格的权威来源与责任审核流程，不能复用当前 AI 自动放行策略。

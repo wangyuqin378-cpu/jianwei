@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,9 +39,23 @@ describe("knowledge catalog safety gates", () => {
     expect(() => validateCatalog(catalog)).toThrowError(/至少需要两个权威来源/);
   });
 
-  it("does not publish unattested seed facts unless development mode explicitly allows them", async () => {
+  it("keeps high-risk facts out of cards and only allows synthetic unattested general facts in development", async () => {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-    const service = await KnowledgeCatalogService.fromFile(path.join(root, "knowledge/catalog.json"));
+    const catalog = JSON.parse(await readFile(path.join(root, "knowledge/catalog.json"), "utf8")) as KnowledgeCatalog;
+    const legacySeeds = new Set([
+      "broom-001", "bicycle-001", "chopsticks-001", "traffic-light-001", "umbrella-001",
+      "zipper-001", "thermos-001", "paper-clip-001", "ballpoint-pen-001", "vacuum-cleaner-001"
+    ]);
+    for (const fact of catalog.topics.flatMap((topic) => topic.facts)) {
+      fact.reviewStatus = legacySeeds.has(fact.factId) ? "approved" : "draft";
+      delete fact.aiReview;
+      delete fact.review;
+    }
+    const directory = await mkdtemp(path.join(tmpdir(), "jianwei-unattested-catalog-"));
+    const file = path.join(directory, "catalog.json");
+    await writeFile(file, JSON.stringify(catalog), "utf8");
+    try {
+    const service = await KnowledgeCatalogService.fromFile(file);
     const topic = service.findTopic("broom");
     expect(topic).not.toBeNull();
     expect(service.selectApprovedFact(topic!, "candidate")).toBeNull();
@@ -51,10 +65,10 @@ describe("knowledge catalog safety gates", () => {
     const toothbrush = service.findTopic("toothbrush");
     expect(toothbrush).not.toBeNull();
     const toothbrushDrafts = toothbrush!.facts.filter((fact) => fact.reviewStatus === "draft");
-    expect(toothbrushDrafts).toHaveLength(3);
+    expect(toothbrushDrafts).toHaveLength(toothbrush!.facts.length);
     expect(toothbrushDrafts.every((fact) => fact.riskLevel === "health" && new Set(fact.sourceIds).size === 2)).toBe(true);
     expect(service.selectApprovedFact(toothbrush!, "candidate")).toBeNull();
-    expect(service.selectApprovedFact(toothbrush!, "candidate", true)?.fact.factId).toBe("toothbrush-001");
+    expect(service.selectApprovedFact(toothbrush!, "candidate", true)).toBeNull();
 
     for (const topicId of ["washing_machine", "usb_flash_drive"]) {
       const extendedTopic = service.findTopic(topicId);
@@ -199,6 +213,9 @@ describe("knowledge catalog safety gates", () => {
       expect(service.selectApprovedFact(extendedDraftTopic!, "candidate"), topicId).toBeNull();
       expect(service.selectApprovedFact(extendedDraftTopic!, "candidate", true), topicId).toBeNull();
     }
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("pins the production catalog bytes and refuses an edited file", async () => {
@@ -206,6 +223,20 @@ describe("knowledge catalog safety gates", () => {
     await expect(KnowledgeCatalogService.fromFile(path.join(root, "knowledge/catalog.json"), {
       expectedSha256: "0".repeat(64)
     })).rejects.toMatchObject({ code: "catalog_integrity_mismatch" });
+  });
+
+  it("requires an exact normalized label instead of guessing from a substring", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "jianwei-label-match-"));
+    const file = path.join(directory, "catalog.json");
+    await writeFile(file, JSON.stringify(reviewedCatalog("human-editor-01")), "utf8");
+    try {
+      const service = await KnowledgeCatalogService.fromFile(file);
+
+      expect(service.matchLabels(["Room", "Chair", "Pattern"])).toBeNull();
+      expect(service.matchLabels([" BROOM "])?.topicId).toBe("broom");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("uses every approved fact before repeating a recent one", async () => {
@@ -233,7 +264,7 @@ describe("knowledge catalog safety gates", () => {
     }
   });
 
-  it("requires attested approvals from a controlled human reviewer", () => {
+  it("accepts either a controlled human review or a bound Qwen general-content review", () => {
     const catalog = reviewedCatalog("human-editor-01");
     expect(() => validateCatalog(catalog, {
       requireAttestedApprovedFacts: true,
@@ -254,7 +285,23 @@ describe("knowledge catalog safety gates", () => {
     expect(() => validateCatalog(catalog, {
       requireAttestedApprovedFacts: true,
       approvedReviewerIds: ["human-editor-01"]
-    })).toThrow(/缺少人工审核记录/);
+    })).toThrow(/缺少人工或 AI 审核记录/);
+
+    const aiReviewed = reviewedCatalog("human-editor-01");
+    const aiFact = aiReviewed.topics[0]!.facts[0]!;
+    delete aiFact.review;
+    aiFact.aiReview = {
+      provider: "qwen",
+      model: "qwen3.6-flash-2026-04-16",
+      policyVersion: "general-content-v1",
+      reviewedAt: "2026-01-01T01:00:00.000Z",
+      decision: "approved",
+      reasonCode: "safe_general",
+      evidenceSha256: "a".repeat(64)
+    };
+    expect(() => validateCatalog(aiReviewed, { requireAttestedApprovedFacts: true })).not.toThrow();
+    aiFact.riskLevel = "health";
+    expect(() => validateCatalog(aiReviewed, { requireAttestedApprovedFacts: true })).toThrow(/不能批准健康或安全/);
   });
 
   it("requires an approved fact to be publishable verbatim as the card body", () => {

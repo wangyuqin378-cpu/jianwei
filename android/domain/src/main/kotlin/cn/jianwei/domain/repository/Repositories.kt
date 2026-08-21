@@ -13,6 +13,7 @@ import cn.jianwei.domain.model.ScanRequest
 import cn.jianwei.domain.model.ScanResult
 import cn.jianwei.domain.model.SavedCardUpdateResult
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.model.TopicAffinitySignal
 import cn.jianwei.domain.card.AutomaticCardMode
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,7 @@ interface CardRepository {
     fun observeTrackedItems(): Flow<List<TrackedItem>>
     fun observePendingReminderSchedules(): Flow<List<PendingReminderSchedule>>
     fun observeFeedbackStates(): Flow<List<CardFeedbackState>>
+    fun observeTopicAffinitySignals(): Flow<List<TopicAffinitySignal>>
     suspend fun syncCards()
     suspend fun sendFeedback(cardId: String, action: FeedbackAction): FeedbackSubmissionResult
     suspend fun setSaved(cardId: String, saved: Boolean): SavedCardUpdateResult
@@ -65,6 +67,7 @@ interface AnalysisScheduler {
     fun scheduleAccessReconciliation(access: cn.jianwei.domain.model.PhotoAccess)
     fun scheduleImportedPhotos()
     fun scheduleDailyRefresh()
+    suspend fun restartAutomaticDiscovery(access: cn.jianwei.domain.model.PhotoAccess)
     suspend fun stopAutomaticDiscovery()
     fun isPaused(): Boolean
     fun setPaused(paused: Boolean)
@@ -100,4 +103,7 @@ interface AutomaticCardModeRepository {
     fun observeMode(): Flow<AutomaticCardMode>
     fun mode(): AutomaticCardMode
     fun updateMode(mode: AutomaticCardMode)
+    fun observeDiscoveryEnabled(): Flow<Boolean>
+    fun discoveryEnabled(): Boolean
+    fun updateDiscoveryEnabled(enabled: Boolean)
 }

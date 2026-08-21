@@ -6,9 +6,9 @@ import android.graphics.Rect
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
+import androidx.test.platform.io.PlatformTestStorageRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import org.junit.Test
 
 class OnboardingValuePreviewInstrumentedTest {
@@ -51,14 +51,12 @@ class OnboardingValuePreviewInstrumentedTest {
                     .any { current -> current.isClickable }
             ).isTrue()
 
-            val output = File(context.getExternalFilesDir(null), SCREENSHOT_NAME)
-            output.outputStream().use { stream ->
+            PlatformTestStorageRegistry.getInstance().openOutputFile(SCREENSHOT_NAME).use { stream ->
                 assertThat(
                     instrumentation.uiAutomation.takeScreenshot()
                         .compress(Bitmap.CompressFormat.PNG, 100, stream)
                 ).isTrue()
             }
-            assertThat(output.length()).isGreaterThan(0L)
 
             clickTextWithScroll(instrumentation, "查看示例来源 · Google Patents")
             awaitExternalWindow(instrumentation, context.packageName)
@@ -70,21 +68,32 @@ class OnboardingValuePreviewInstrumentedTest {
 
             clickTextAndAwaitText(instrumentation, "继续", "3 / 3")
             assertThat(topOf(awaitNode(instrumentation, "见微"))).isLessThan(TOP_VISIBLE_BOUNDARY_PX)
-            assertThat(awaitDescriptionPrefixWithScroll(
-                instrumentation,
-                "提前准备（推荐）。"
-            ).stateDescription?.toString()).isEqualTo("已选择")
-            assertThat(reachableNode(instrumentation, "开启自动发现", true)).isNotNull()
-            assertThat(reachableNode(instrumentation, "仅选择照片", true)).isNotNull()
+            val automaticStart = if (requiresScroll) {
+                awaitDescriptionPrefixWithScroll(instrumentation, "开始方式：自动发现。")
+            } else {
+                awaitVisibleDescriptionPrefix(instrumentation, "开始方式：自动发现。")
+            }
+            val pickerStart = if (requiresScroll) {
+                awaitDescriptionPrefixWithScroll(instrumentation, "开始方式：仅选择照片。")
+            } else {
+                awaitVisibleDescriptionPrefix(instrumentation, "开始方式：仅选择照片。")
+            }
+            assertThat(automaticStart.stateDescription?.toString()).isEqualTo("已选择")
+            assertThat(pickerStart.stateDescription?.toString()).isEqualTo("未选择")
+            assertThat(awaitVisibleText(instrumentation, "开启自动发现")).isNotNull()
 
-            val entryOutput = File(context.getExternalFilesDir(null), ENTRY_SCREENSHOT_NAME)
-            entryOutput.outputStream().use { stream ->
+            PlatformTestStorageRegistry.getInstance().openOutputFile(ENTRY_SCREENSHOT_NAME).use { stream ->
                 assertThat(
                     instrumentation.uiAutomation.takeScreenshot()
                         .compress(Bitmap.CompressFormat.PNG, 100, stream)
                 ).isTrue()
             }
-            assertThat(entryOutput.length()).isGreaterThan(0L)
+
+            assertThat(awaitDescriptionPrefixWithScroll(
+                instrumentation,
+                "提前备好一周（推荐）。"
+            ).stateDescription?.toString()).isEqualTo("已选择")
+            assertThat(reachableNode(instrumentation, "开启自动发现", true)).isNotNull()
         } finally {
             scenario?.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
@@ -99,10 +108,18 @@ class OnboardingValuePreviewInstrumentedTest {
         val scheduler = context.getSharedPreferences("analysis_scheduler", Context.MODE_PRIVATE)
         val wasOnboarded = onboarding.getBoolean("completed", false)
         val previousMode = scheduler.getString(AUTOMATIC_CARD_MODE_KEY, null)
+        val previousAutomaticDiscoveryEnabled = scheduler.getBoolean(
+            AUTOMATIC_DISCOVERY_ENABLED_KEY,
+            false
+        )
+        val hadAutomaticDiscoveryPreference = scheduler.contains(AUTOMATIC_DISCOVERY_ENABLED_KEY)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             onboarding.edit().putBoolean("completed", false).commit()
-            scheduler.edit().remove(AUTOMATIC_CARD_MODE_KEY).commit()
+            scheduler.edit()
+                .remove(AUTOMATIC_CARD_MODE_KEY)
+                .putBoolean(AUTOMATIC_DISCOVERY_ENABLED_KEY, true)
+                .commit()
             scenario = ActivityScenario.launch(MainActivity::class.java)
 
             clickTextAndAwaitText(instrumentation, "继续", "2 / 3")
@@ -111,7 +128,9 @@ class OnboardingValuePreviewInstrumentedTest {
             awaitChoiceState(instrumentation, "生活设计", false)
             clickTextWithScroll(instrumentation, "实用技巧")
             awaitChoiceState(instrumentation, "实用技巧", true)
-            clickDescriptionPrefixWithScroll(instrumentation, "每天一张。")
+            clickDescriptionPrefixWithScroll(instrumentation, "当天只理解一张。")
+            scrollToTop(instrumentation)
+            clickDescriptionPrefixWithScroll(instrumentation, "开始方式：仅选择照片。")
 
             requireNotNull(scenario).recreate()
             assertThat(awaitNode(instrumentation, "3 / 3")).isNotNull()
@@ -119,12 +138,32 @@ class OnboardingValuePreviewInstrumentedTest {
             awaitChoiceState(instrumentation, "实用技巧", true)
             assertThat(awaitDescriptionPrefixWithScroll(
                 instrumentation,
-                "每天一张。"
+                "开始方式：仅选择照片。"
             ).stateDescription?.toString()).isEqualTo("已选择")
 
-            clickTextWithScroll(instrumentation, "仅选择照片")
+            clickDescriptionPrefixWithScroll(instrumentation, "开始方式：自动发现。")
+            assertThat(awaitDescriptionPrefixWithScroll(
+                instrumentation,
+                "当天只理解一张。"
+            ).stateDescription?.toString()).isEqualTo("已选择")
+
+            scrollToTop(instrumentation)
+            clickDescriptionPrefixWithScroll(instrumentation, "开始方式：仅选择照片。")
+            assertThat(awaitDescriptionState(
+                instrumentation,
+                prefix = "开始方式：仅选择照片。",
+                expectedState = "已选择"
+            )).isNotNull()
+            PlatformTestStorageRegistry.getInstance().openOutputFile(PICKER_SCREENSHOT_NAME).use { stream ->
+                assertThat(
+                    instrumentation.uiAutomation.takeScreenshot()
+                        .compress(Bitmap.CompressFormat.PNG, 100, stream)
+                ).isTrue()
+            }
+            clickTextWithScroll(instrumentation, "选择一张照片")
             awaitPreference(onboarding, "completed", true)
             assertThat(scheduler.getString(AUTOMATIC_CARD_MODE_KEY, null)).isEqualTo("DAILY_ONE")
+            assertThat(scheduler.getBoolean(AUTOMATIC_DISCOVERY_ENABLED_KEY, true)).isFalse()
             awaitExternalWindow(instrumentation, context.packageName)
             instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
             awaitPackage(instrumentation, context.packageName)
@@ -134,6 +173,11 @@ class OnboardingValuePreviewInstrumentedTest {
             scheduler.edit().apply {
                 if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
                 else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+                if (hadAutomaticDiscoveryPreference) {
+                    putBoolean(AUTOMATIC_DISCOVERY_ENABLED_KEY, previousAutomaticDiscoveryEnabled)
+                } else {
+                    remove(AUTOMATIC_DISCOVERY_ENABLED_KEY)
+                }
             }.commit()
         }
     }
@@ -183,6 +227,7 @@ class OnboardingValuePreviewInstrumentedTest {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
         var lastOffscreenBounds: Rect? = null
         while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.uiAutomation.clearCache()
             val node = findNode(instrumentation.uiAutomation.rootInActiveWindow) { candidate ->
                 predicate(candidate) &&
                     generateSequence(candidate) { current -> current.parent }
@@ -302,6 +347,7 @@ class OnboardingValuePreviewInstrumentedTest {
     ): AccessibilityNodeInfo {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
         while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.uiAutomation.clearCache()
             findNode(instrumentation.uiAutomation.rootInActiveWindow) { node ->
                 node.text?.toString() == text
             }?.let { return it }
@@ -329,6 +375,80 @@ class OnboardingValuePreviewInstrumentedTest {
             swipeForward(instrumentation)
         }
         error("Timed out scrolling to content description: $prefix")
+    }
+
+    private fun awaitVisibleDescriptionPrefix(
+        instrumentation: android.app.Instrumentation,
+        prefix: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo = awaitMatchingNode(instrumentation, timeoutMillis) { node ->
+        node.contentDescription?.toString()?.startsWith(prefix) == true &&
+            node.isActuallyOnScreen(instrumentation)
+    } ?: error("Timed out waiting for visible content description: $prefix")
+
+    private fun awaitVisibleText(
+        instrumentation: android.app.Instrumentation,
+        text: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo {
+        val node = awaitMatchingNode(instrumentation, timeoutMillis) { candidate ->
+            candidate.text?.toString() == text
+        } ?: error("Timed out waiting for text: $text")
+        val clickable = generateSequence(node) { current -> current.parent }
+            .firstOrNull { current -> current.isClickable }
+            ?: error("Visible text has no clickable ancestor: $text")
+        if (!clickable.hasDisplayBounds(instrumentation)) {
+            val bounds = Rect().also(clickable::getBoundsInScreen)
+            error("Clickable text is outside the display: $text at $bounds")
+        }
+        return node
+    }
+
+    private fun awaitDescriptionState(
+        instrumentation: android.app.Instrumentation,
+        prefix: String,
+        expectedState: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            findNode(instrumentation.uiAutomation.rootInActiveWindow) { node ->
+                node.contentDescription?.toString()?.startsWith(prefix) == true &&
+                    node.stateDescription?.toString() == expectedState
+            }?.let { return it }
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for $prefix to become $expectedState")
+    }
+
+    private fun AccessibilityNodeInfo.hasDisplayBounds(
+        instrumentation: android.app.Instrumentation
+    ): Boolean {
+        val bounds = Rect().also(::getBoundsInScreen)
+        val windowBounds = Rect().also { visibleBounds ->
+            instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(visibleBounds)
+        }
+        return bounds.width() > 0 &&
+            bounds.height() > 0 &&
+            windowBounds.contains(bounds.centerX(), bounds.centerY())
+    }
+
+    private fun scrollToTop(instrumentation: android.app.Instrumentation) {
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        repeat(12) {
+            instrumentation.uiAutomation.clearCache()
+            val startMode = findNode(instrumentation.uiAutomation.rootInActiveWindow) { node ->
+                node.contentDescription?.toString()?.startsWith("开始方式：自动发现。") == true
+            }
+            if (startMode?.isActuallyOnScreen(instrumentation) == true) return
+            instrumentation.uiAutomation.executeShellCommand(
+                "input swipe $centerX ${(metrics.heightPixels * 0.32f).toInt()} " +
+                    "$centerX ${(metrics.heightPixels * 0.78f).toInt()} 220"
+            ).close()
+            SystemClock.sleep(180)
+        }
+        error("Timed out scrolling onboarding back to the start-mode selector")
     }
 
     private fun swipeForward(instrumentation: android.app.Instrumentation) {
@@ -417,6 +537,7 @@ class OnboardingValuePreviewInstrumentedTest {
     ): AccessibilityNodeInfo? {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
         while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.uiAutomation.clearCache()
             findNode(instrumentation.uiAutomation.rootInActiveWindow, predicate)?.let { return it }
             SystemClock.sleep(100)
         }
@@ -474,6 +595,8 @@ class OnboardingValuePreviewInstrumentedTest {
         const val TOP_VISIBLE_BOUNDARY_PX = 350
         const val SCREENSHOT_NAME = "onboarding-value-preview.png"
         const val ENTRY_SCREENSHOT_NAME = "onboarding-entry-choice.png"
+        const val PICKER_SCREENSHOT_NAME = "onboarding-picker-selected.png"
+        const val AUTOMATIC_DISCOVERY_ENABLED_KEY = "automatic_discovery_enabled"
         const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
         const val ONBOARDING_EXAMPLE_BODY =
             "现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。"

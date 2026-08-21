@@ -156,40 +156,44 @@ export function assessEvidence(evidence, {
   check(top1Accuracy >= 0.9, "object Top-1 accuracy must be at least 90%", blockers);
 
   const cardProvenance = evidence.cardAuditProvenance ?? {};
+  check(exactObjectKeys(cardProvenance, [
+    "runId", "auditMode", "policyVersion", "snapshotEvidenceRef", "snapshotEvidenceSha256",
+    "appVersion", "releaseApkSha256", "backendReleaseSha256", "modelVersion", "catalogVersion"
+  ]), "card audit provenance schema is invalid", blockers);
   check(validToken(cardProvenance.runId), "card audit provenance must identify the generation run", blockers);
-  check(nonEmpty(cardProvenance.snapshotEvidenceRef) && nonEmpty(cardProvenance.auditEvidenceRef), "card audit provenance must reference retained snapshot and audit evidence", blockers);
-  check(/^[a-f0-9]{64}$/.test(cardProvenance.snapshotEvidenceSha256 ?? "") && /^[a-f0-9]{64}$/.test(cardProvenance.auditEvidenceSha256 ?? ""), "card audit provenance must bind snapshot and audit SHA-256", blockers);
+  check(
+    cardProvenance.auditMode === "automatic_derived" &&
+      cardProvenance.policyVersion === "derived-ai-reviewed-card-v2",
+    "card audit must use the automatic derived-card policy",
+    blockers
+  );
+  check(nonEmpty(cardProvenance.snapshotEvidenceRef), "card audit provenance must reference retained snapshots", blockers);
+  check(/^[a-f0-9]{64}$/.test(cardProvenance.snapshotEvidenceSha256 ?? ""), "card audit provenance must bind the snapshot SHA-256", blockers);
   check(nonEmpty(cardProvenance.appVersion) && nonEmpty(cardProvenance.modelVersion) && nonEmpty(cardProvenance.catalogVersion), "card audit provenance must pin app, model and catalog versions", blockers);
   check(/^[a-f0-9]{64}$/.test(cardProvenance.releaseApkSha256 ?? ""), "card audit provenance must bind the Release APK SHA-256", blockers);
   check(/^[a-f0-9]{64}$/.test(cardProvenance.backendReleaseSha256 ?? ""), "card audit provenance must bind the backend Release SHA-256", blockers);
   if (catalogVersion) check(cardProvenance.catalogVersion === catalogVersion, "card audit provenance catalogVersion is stale", blockers);
 
   const cards = array(evidence.cardAudits);
-  check(cards.length >= 200, "at least 200 generated cards must be manually audited", blockers);
-  check(uniqueNonEmptyIds(cards, "cardId"), "audited card IDs must be present and unique", blockers);
-  check(uniqueHexDigests(cards, "cardSha256"), "audited card SHA-256 values must be present and unique", blockers);
-  check(cards.every((card) => card.humanReviewed === true), "every audited card must record human review", blockers);
-  check(cards.every((card) => validHumanId(card.reviewerId)), "every audited card must identify an accountable human reviewer", blockers);
-  check(cards.every((card) => validPastTimestamp(card.auditedAt, generatedAt, now)), "every audited card must record a valid audit time", blockers);
-  check(cards.every((card) => nonEmpty(card.evidenceRef)), "every audited card must reference retained redacted evidence", blockers);
-  check(cards.every((card) => array(card.sourceUrls).length > 0), "every audited card must contain a source", blockers);
-  check(cards.every((card) => array(card.sourceUrls).every((url) => /^https:\/\//.test(url))), "all audited source URLs must use HTTPS", blockers);
-  check(cards.every((card) => card.sourcesReachable === true), "all audited sources must be recorded as reachable", blockers);
-  check(cards.every((card) => card.fabricatedSource === false), "no audited card may contain a fabricated source", blockers);
-  check(cards.every((card) => card.catalogFactMatched === true), "every audited card must match a fact in the pinned catalog", blockers);
-  check(cards.every((card) => card.bodyMatchesFact === true), "every audited card body must equal the reviewed fact text", blockers);
-  check(cards.every((card) => card.sourceSetMatchesCatalog === true), "every audited card source set must match the pinned catalog", blockers);
-  check(
-    cards.every((card) => card.unsupportedPersonalConclusion === false),
-    "no audited card may contain an unsupported personal conclusion",
-    blockers
-  );
-  const riskyCards = cards.filter((card) => card.riskLevel === "health" || card.riskLevel === "safety");
-  check(
-    riskyCards.every((card) => card.whitelisted === true && card.authoritativeSourceCount >= 2),
-    "health and safety cards must be whitelisted and have two authoritative sources",
-    blockers
-  );
+  const automaticCardKeys = [
+    "cardId", "cardSha256", "sourceUrls", "riskLevel", "automaticallyReviewed", "policyVersion",
+    "catalogReviewModel", "catalogReviewEvidenceSha256", "catalogFactMatched", "catalogAiReviewBound",
+    "bodyMatchesFact", "sourceSetMatchesCatalog", "titleMatchesPolicy", "personalContextMatchesPolicy",
+    "automaticPolicyPassed"
+  ];
+  check(cards.length >= 200, "at least 200 generated cards must pass automatic derived-card verification", blockers);
+  check(cards.every((card) => exactObjectKeys(card, automaticCardKeys)), "automatic card audit rows have an invalid schema", blockers);
+  check(uniqueNonEmptyIds(cards, "cardId"), "verified card IDs must be present and unique", blockers);
+  check(uniqueHexDigests(cards, "cardSha256"), "verified card SHA-256 values must be present and unique", blockers);
+  check(cards.every((card) => card.automaticallyReviewed === true && card.policyVersion === cardProvenance.policyVersion), "every card must use the pinned automatic review policy", blockers);
+  check(cards.every((card) => /^qwen[0-9a-z._-]{2,95}$/i.test(card.catalogReviewModel ?? "") && /^[a-f0-9]{64}$/.test(card.catalogReviewEvidenceSha256 ?? "")), "every card must bind an approved Qwen catalog review", blockers);
+  check(cards.every((card) => array(card.sourceUrls).length > 0), "every verified card must contain a source", blockers);
+  check(cards.every((card) => array(card.sourceUrls).every((url) => /^https:\/\//.test(url))), "all verified source URLs must use HTTPS", blockers);
+  check(cards.every((card) => card.riskLevel === "general"), "health and safety cards must not enter the automatic first-release pool", blockers);
+  check(cards.every((card) => card.catalogFactMatched === true && card.catalogAiReviewBound === true), "every card must bind an approved AI-reviewed fact in the pinned catalog", blockers);
+  check(cards.every((card) => card.bodyMatchesFact === true && card.sourceSetMatchesCatalog === true), "every card body and source set must equal the pinned reviewed fact", blockers);
+  check(cards.every((card) => card.titleMatchesPolicy === true && card.personalContextMatchesPolicy === true), "every card title and personal context must match deterministic product policy", blockers);
+  check(cards.every((card) => card.automaticPolicyPassed === true), "every generated card must pass the complete automatic policy", blockers);
 
   const devices = array(evidence.deviceRuns);
   check(uniqueNonEmptyIds(devices, "runId"), "device run IDs must be present and unique", blockers);
@@ -512,10 +516,10 @@ function passingFixture() {
     })),
     cardAuditProvenance: {
       runId: "synthetic-card-run",
+      auditMode: "automatic_derived",
+      policyVersion: "derived-ai-reviewed-card-v2",
       snapshotEvidenceRef: "synthetic-card-snapshots",
-      auditEvidenceRef: "synthetic-card-audits",
       snapshotEvidenceSha256: "c".repeat(64),
-      auditEvidenceSha256: "d".repeat(64),
       appVersion: "synthetic-app",
       releaseApkSha256: "e".repeat(64),
       backendReleaseSha256: "d".repeat(64),
@@ -526,19 +530,18 @@ function passingFixture() {
       cardId: `card-${index}`,
       cardSha256: (index + 1000).toString(16).padStart(64, "0"),
       sourceUrls: ["https://example.org/fact"],
-      sourcesReachable: true,
-      fabricatedSource: false,
-      unsupportedPersonalConclusion: false,
-      riskLevel: index === 0 ? "health" : "general",
-      humanReviewed: true,
-      reviewerId: "human-card-reviewer",
-      auditedAt: fixtureTime,
-      evidenceRef: `synthetic-card-evidence-${index}`,
-      whitelisted: index === 0,
-      authoritativeSourceCount: index === 0 ? 2 : 1,
+      riskLevel: "general",
+      automaticallyReviewed: true,
+      policyVersion: "derived-ai-reviewed-card-v2",
+      catalogReviewModel: "qwen3.6-flash-2026-04-16",
+      catalogReviewEvidenceSha256: (index + 2000).toString(16).padStart(64, "0"),
       catalogFactMatched: true,
+      catalogAiReviewBound: true,
       bodyMatchesFact: true,
-      sourceSetMatchesCatalog: true
+      sourceSetMatchesCatalog: true,
+      titleMatchesPolicy: true,
+      personalContextMatchesPolicy: true,
+      automaticPolicyPassed: true
     })),
     deviceRuns: [
       device("Huawei", "FULL", fixtureTime),
@@ -698,7 +701,7 @@ if (isMainModule(import.meta.url)) {
       },
       catalogVersion: "synthetic-catalog",
       catalogTopicIds: fixtureTopics,
-      knowledgeReadiness: { status: "GO", metrics: { topics: 200, readyTopics: 200, humanAttestedFacts: 600 }, blockers: [] }
+      knowledgeReadiness: { status: "GO", metrics: { topics: 200, readyTopics: 200, verifiedFacts: 600, aiReviewedFacts: 600, humanAttestedFacts: 0 }, blockers: [] }
     };
     const result = assessEvidence(fixture, fixtureOptions);
     if (result.status !== "GO") throw new Error(`Beta gate self-test failed: ${result.blockers.join("; ")}`);
@@ -776,6 +779,21 @@ if (isMainModule(import.meta.url)) {
     const mismatchedCard = structuredClone(fixture);
     mismatchedCard.cardAudits[0].bodyMatchesFact = false;
     if (assessEvidence(mismatchedCard, fixtureOptions).status !== "NO_GO") throw new Error("A card body that differed from its reviewed fact was accepted");
+    const incompleteAutomaticReview = structuredClone(fixture);
+    incompleteAutomaticReview.cardAudits[0].automaticPolicyPassed = false;
+    if (assessEvidence(incompleteAutomaticReview, fixtureOptions).status !== "NO_GO") throw new Error("An incomplete automatic card review was accepted");
+    const highRiskAutomaticCard = structuredClone(fixture);
+    highRiskAutomaticCard.cardAudits[0].riskLevel = "health";
+    if (assessEvidence(highRiskAutomaticCard, fixtureOptions).status !== "NO_GO") throw new Error("A health card entered the automatic first-release pool");
+    const unboundCatalogReview = structuredClone(fixture);
+    unboundCatalogReview.cardAudits[0].catalogReviewModel = "unreviewed-model";
+    if (assessEvidence(unboundCatalogReview, fixtureOptions).status !== "NO_GO") throw new Error("A card without a Qwen catalog review was accepted");
+    const unsupportedPersonalContext = structuredClone(fixture);
+    unsupportedPersonalContext.cardAudits[0].personalContextMatchesPolicy = false;
+    if (assessEvidence(unsupportedPersonalContext, fixtureOptions).status !== "NO_GO") throw new Error("An unsupported personal conclusion was accepted");
+    const manualAuthorityField = structuredClone(fixture);
+    manualAuthorityField.cardAudits[0].humanReviewed = true;
+    if (assessEvidence(manualAuthorityField, fixtureOptions).status !== "NO_GO") throw new Error("A hand-added review field bypassed the exact automatic schema");
     const unreadyKnowledge = { ...fixtureOptions, knowledgeReadiness: { status: "NO_GO", metrics: { readyTopics: 0 }, blockers: ["no human attestations"] } };
     if (assessEvidence(fixture, unreadyKnowledge).status !== "NO_GO") throw new Error("Beta evidence bypassed an unready knowledge catalog");
     const debugSigned = structuredClone(fixture);
@@ -826,7 +844,7 @@ if (isMainModule(import.meta.url)) {
     if (!staleDeploymentReceiptRejected) {
       throw new Error("A deployment receipt older than seven days at the actual release-check time was accepted");
     }
-    process.stdout.write("BETA_EVIDENCE_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=27 trustedAttestation=1 forgedBundleRejected=1 releaseApproverOnlyRejected=1 assemblySignatureRequired=1 externalPolicyPin=1 threePartyKeySeparation=1 assemblyReverification=1 currentDeploymentReceiptFreshness=1 pipelineCompletion=1 sensitiveTypes=8 recognitionTopics=25 cloudAuthorization=1 androidRunner=1 runnerCloudBinding=1 cardAuditProvenance=1 betaCohortProvenance=1 cloudProvenance=1 evidencePrivacy=1 crossVersionBinding=1 releaseApkShaBinding=1 backendReleaseBinding=1 containerImageBinding=1 deploymentReceiptBinding=1 knowledgeGate=1 formalSigning=1 humanTalkBack=1 canonicalMainEntry=1\n");
+    process.stdout.write("BETA_EVIDENCE_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=32 trustedAttestation=1 forgedBundleRejected=1 releaseApproverOnlyRejected=1 assemblySignatureRequired=1 externalPolicyPin=1 threePartyKeySeparation=1 assemblyReverification=1 currentDeploymentReceiptFreshness=1 pipelineCompletion=1 sensitiveTypes=8 recognitionTopics=25 cloudAuthorization=1 androidRunner=1 runnerCloudBinding=1 automaticCardAudit=1 cardAuditProvenance=1 betaCohortProvenance=1 cloudProvenance=1 evidencePrivacy=1 crossVersionBinding=1 releaseApkShaBinding=1 backendReleaseBinding=1 containerImageBinding=1 deploymentReceiptBinding=1 knowledgeGate=1 formalSigning=1 humanTalkBack=1 canonicalMainEntry=1\n");
   } else {
     const evidencePath = file ?? "evaluation/beta-evidence.json";
     let result;

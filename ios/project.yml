@@ -1,0 +1,157 @@
+name: Jianwei
+options:
+  bundleIdPrefix: cn.jianwei
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+  configs:
+    Debug:
+      JIANWEI_API_BASE_URL: ""
+    Release:
+      JIANWEI_API_BASE_URL: ""
+targets:
+  Jianwei:
+    type: application
+    platform: iOS
+    sources:
+      - path: Jianwei
+      - path: Shared
+    info:
+      path: Jianwei/Info.plist
+      properties:
+        CFBundleDisplayName: 见微
+        CFBundleName: 见微
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSPhotoLibraryUsageDescription: 见微会在设备上筛除人物、证件和高文字图片，只上传少量脱敏候选来生成与你照片有关的知识卡。
+        BGTaskSchedulerPermittedIdentifiers:
+          - cn.jianwei.ios.discovery
+        UIBackgroundModes:
+          - processing
+        JianweiAPIBaseURL: $(JIANWEI_API_BASE_URL)
+        CFBundleURLTypes:
+          - CFBundleURLName: cn.jianwei.ios.card
+            CFBundleURLSchemes:
+              - jianwei
+    entitlements:
+      path: Jianwei/Jianwei.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.cn.jianwei.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios
+        PRODUCT_NAME: Jianwei
+        PRODUCT_MODULE_NAME: Jianwei
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - target: JianweiWidget
+        embed: true
+  JianweiWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: JianweiWidget
+      - path: Shared
+    info:
+      path: JianweiWidget/Info.plist
+      properties:
+        CFBundleDisplayName: 见微
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: JianweiWidget/JianweiWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.cn.jianwei.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.widget
+        PRODUCT_NAME: JianweiWidget
+        PRODUCT_MODULE_NAME: JianweiWidget
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
+        TARGETED_DEVICE_FAMILY: "1"
+  JianweiTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: JianweiTests
+      - path: ../android/app/src/main/res/drawable/onboarding_broom_example.webp
+        buildPhase: resources
+    dependencies:
+      - target: Jianwei
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+  JianweiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: JianweiUITests
+    dependencies:
+      - target: Jianwei
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Jianwei
+  JianweiCloudE2ETests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: JianweiCloudE2ETests
+    dependencies:
+      - target: Jianwei
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.cloud-e2e-tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Jianwei
+schemes:
+  Jianwei:
+    build:
+      targets:
+        Jianwei: all
+        JianweiWidget: all
+        JianweiTests: [test]
+        JianweiUITests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - JianweiTests
+        - JianweiUITests
+  JianweiCloudE2E:
+    build:
+      targets:
+        Jianwei: all
+        JianweiWidget: all
+        JianweiCloudE2ETests: [test]
+    test:
+      targets:
+        - JianweiCloudE2ETests

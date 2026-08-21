@@ -104,6 +104,15 @@ class WorkManagerScheduler @Inject constructor(
         workManager.enqueueUniquePeriodicWork(DAILY, ExistingPeriodicWorkPolicy.KEEP, request)
     }
 
+    override suspend fun restartAutomaticDiscovery(access: PhotoAccess) {
+        if (isPaused() || access == PhotoAccess.PICKER_ONLY) return
+        withContext(Dispatchers.IO) {
+            automaticCancellationOperations().forEach { operation -> operation.result.get() }
+        }
+        scheduleAccessReconciliation(access)
+        scheduleDailyRefresh()
+    }
+
     override suspend fun stopAutomaticDiscovery() {
         status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
         preferences.edit()

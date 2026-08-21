@@ -7,6 +7,17 @@ internal data class WidgetSwitchAffordance(
     val canSwitch: Boolean
 )
 
+internal fun wideWidgetFooter(
+    cacheDepleted: Boolean,
+    switchAffordance: WidgetSwitchAffordance
+): WidgetSwitchAffordance = if (cacheDepleted) {
+    WidgetSwitchAffordance("缓存用完 · 点按更新", canSwitch = false)
+} else if (!switchAffordance.canSwitch && switchAffordance.label == "暂无更多卡片") {
+    WidgetSwitchAffordance("查看照片与来源 →", canSwitch = false)
+} else {
+    switchAffordance
+}
+
 internal fun widgetSwitchAffordance(
     switchCount: Int,
     orderedCardIds: List<String>,

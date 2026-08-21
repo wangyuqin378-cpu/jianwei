@@ -13,6 +13,7 @@ import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PhotoAccess
 import cn.jianwei.domain.model.PhotoCandidate
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.model.TopicAffinitySignal
 import cn.jianwei.domain.preferences.DEFAULT_INTEREST_SELECTION
 import cn.jianwei.domain.repository.AnalysisScheduler
 import cn.jianwei.domain.repository.AnalysisStatusRepository
@@ -26,6 +27,7 @@ import cn.jianwei.domain.time.ChinaCalendar
 import cn.jianwei.domain.usecase.ImportPhotosUseCase
 import cn.jianwei.domain.usecase.ConfigurePhotoAccessUseCase
 import cn.jianwei.domain.usecase.ImportedPhotoResultResolution
+import cn.jianwei.domain.usecase.UpdateAutomaticCardModeUseCase
 import cn.jianwei.domain.usecase.resolveImportedPhotoResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -52,8 +54,10 @@ data class MainUiState(
     val focusedCardStatus: FocusedCardStatus = FocusedCardStatus.NONE,
     val trackedItems: Map<String, TrackedItem> = emptyMap(),
     val feedbackStates: Map<String, CardFeedbackState> = emptyMap(),
+    val learnedPreferences: LearnedPreferenceSummary = LearnedPreferenceSummary(),
     val selectedInterests: Set<String> = DEFAULT_INTEREST_SELECTION,
     val automaticCardMode: AutomaticCardMode = AutomaticCardMode.PREPARED_POOL,
+    val automaticDiscoveryEnabled: Boolean = false,
     val activeOperation: UserOperation? = null,
     val message: String? = null,
     val analysisProgress: AnalysisProgress = AnalysisProgress(),
@@ -92,6 +96,7 @@ class MainViewModel @Inject constructor(
     private val itemReminders: ItemReminderScheduler,
     private val importPhotos: ImportPhotosUseCase,
     private val configurePhotoAccess: ConfigurePhotoAccessUseCase,
+    private val updateAutomaticCardModeUseCase: UpdateAutomaticCardModeUseCase,
     private val operationGate: UserOperationGate,
     private val pendingImportResults: PendingImportResultStore
 ) : ViewModel() {
@@ -118,18 +123,28 @@ class MainViewModel @Inject constructor(
             importedPhotoResultNotice = restoredImportResult.notice
         )
     )
+    private val feedbackLearningState = combine(
+        cards.observeFeedbackStates(),
+        cards.observeTopicAffinitySignals()
+    ) { feedback, affinities -> FeedbackLearningState(feedback, affinities) }
+    private val discoveryPreferencesState = combine(
+        automaticCardModePreferences.observeMode(),
+        automaticCardModePreferences.observeDiscoveryEnabled()
+    ) { mode, enabled -> DiscoveryPreferencesState(mode, enabled) }
     private val cardLocalState = combine(
         cards.observeTrackedItems(),
-        cards.observeFeedbackStates(),
+        feedbackLearningState,
         interestPreferences.observeSelected(),
-        automaticCardModePreferences.observeMode(),
+        discoveryPreferencesState,
         cloudDeletionStatus.observeUnresolved()
-    ) { tracked, feedback, interests, automaticCardMode, cloudDeletionUnresolved ->
+    ) { tracked, feedbackLearning, interests, discoveryPreferences, cloudDeletionUnresolved ->
         CardLocalState(
             tracked,
-            feedback,
+            feedbackLearning.feedback,
+            feedbackLearning.affinities,
             interests,
-            automaticCardMode,
+            discoveryPreferences.mode,
+            discoveryPreferences.enabled,
             cloudDeletionUnresolved
         )
     }
@@ -152,8 +167,10 @@ class MainViewModel @Inject constructor(
             focusedCardStatus = presentation.focusedCardStatus,
             trackedItems = cardState.tracked.associateBy(TrackedItem::cardId),
             feedbackStates = cardState.feedback.associateBy(CardFeedbackState::cardId),
+            learnedPreferences = learnedPreferenceSummary(cardState.affinities, cardList),
             selectedInterests = cardState.interests,
             automaticCardMode = cardState.automaticCardMode,
+            automaticDiscoveryEnabled = cardState.automaticDiscoveryEnabled,
             cloudDeletionUnresolved = cardState.cloudDeletionUnresolved,
             analysisProgress = analysisProgressForPresentation(
                 automatic = progress.automatic,
@@ -263,10 +280,12 @@ class MainViewModel @Inject constructor(
 
     fun saveOnboardingPreferences(
         interests: Set<String>,
-        automaticCardMode: AutomaticCardMode
+        automaticCardMode: AutomaticCardMode,
+        automaticDiscoveryEnabled: Boolean
     ): Boolean = try {
         interestPreferences.updateSelected(interests)
         automaticCardModePreferences.updateMode(automaticCardMode)
+        automaticCardModePreferences.updateDiscoveryEnabled(automaticDiscoveryEnabled)
         true
     } catch (error: Exception) {
         localState.value = localState.value.copy(
@@ -279,25 +298,22 @@ class MainViewModel @Inject constructor(
         if (automaticCardModePreferences.mode() == mode) return
         runBusy(UserOperation.UPDATE_CARD_MODE) {
             requireCloudDeletionResolved()
-            automaticCardModePreferences.updateMode(mode)
-            if (!scheduler.isPaused() && shouldScheduleAutomaticDiscovery(access)) {
-                scheduler.scheduleAccessReconciliation(access)
-                scheduler.scheduleDailyRefresh()
-            }
+            updateAutomaticCardModeUseCase(mode, access)
             when (mode) {
                 AutomaticCardMode.PREPARED_POOL ->
-                    "已改为提前准备；联网时会逐步补足 7–14 张卡片"
+                    "已改为提前备好一周；联网时会逐步补足 7–14 张卡片"
                 AutomaticCardMode.DAILY_ONE ->
-                    "已改为每天一张；已准备卡片保留，每个自然日最多分析 1 张"
+                    "已改为当天只理解一张；已有卡片保留，需要新卡时每个自然日最多分析 1 张"
             }
         }
     }
 
     fun startDiscovery(access: PhotoAccess) = runBusy(UserOperation.START_DISCOVERY) {
         requireCloudDeletionResolved()
+        automaticCardModePreferences.updateDiscoveryEnabled(true)
         configurePhotoAccess(access)
         if (scheduler.isPaused()) {
-            if (shouldScheduleAutomaticDiscovery(access)) {
+            if (shouldScheduleAutomaticDiscovery(access, automaticCardModePreferences.discoveryEnabled())) {
                 "照片访问范围已更新；恢复分析后才会继续自动发现"
             } else {
                 "自动发现已关闭；分析仍处于暂停状态"
@@ -307,12 +323,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun disableAutomaticDiscovery() = runBusy(UserOperation.DISABLE_AUTOMATIC_DISCOVERY) {
+        automaticCardModePreferences.updateDiscoveryEnabled(false)
+        scheduler.stopAutomaticDiscovery()
+        analysisStatus.publishProgress(
+            AnalysisProgressScope.AUTOMATIC_DISCOVERY,
+            AnalysisProgress()
+        )
+        "自动发现已关闭；只会处理你主动选择或分享的照片"
+    }
+
     fun ensureDailyRefresh(access: PhotoAccess) {
         viewModelScope.launch {
             if (
                 !cloudDeletionStatus.isUnresolved() &&
                 !scheduler.isPaused() &&
-                shouldScheduleAutomaticDiscovery(access)
+                shouldScheduleAutomaticDiscovery(access, automaticCardModePreferences.discoveryEnabled())
             ) {
                 scheduler.scheduleDailyRefresh()
             }
@@ -322,7 +348,7 @@ class MainViewModel @Inject constructor(
     fun reconcilePhotoAccess(access: PhotoAccess) {
         viewModelScope.launch {
             if (cloudDeletionStatus.isUnresolved() || scheduler.isPaused()) return@launch
-            if (shouldScheduleAutomaticDiscovery(access)) {
+            if (shouldScheduleAutomaticDiscovery(access, automaticCardModePreferences.discoveryEnabled())) {
                 scheduler.scheduleAccessReconciliation(access)
                 scheduler.scheduleDailyRefresh()
             } else {
@@ -381,7 +407,7 @@ class MainViewModel @Inject constructor(
 
     private fun scheduleAvailableAnalysis(access: PhotoAccess) {
         when {
-            shouldScheduleAutomaticDiscovery(access) -> {
+            shouldScheduleAutomaticDiscovery(access, automaticCardModePreferences.discoveryEnabled()) -> {
                 scheduler.scheduleAccessReconciliation(access)
                 scheduler.scheduleDailyRefresh()
             }
@@ -453,9 +479,19 @@ class MainViewModel @Inject constructor(
         requireCloudDeletionResolved()
         scheduler.setPaused(false)
         localState.update { it.copy(paused = false) }
-        if (shouldScheduleAutomaticDiscovery(access)) scheduler.scheduleInitialScan(access)
+        val automaticDiscoveryScheduled = shouldScheduleAutomaticDiscovery(
+            access,
+            automaticCardModePreferences.discoveryEnabled()
+        )
+        if (automaticDiscoveryScheduled) {
+            scheduler.scheduleInitialScan(access)
+        }
         scheduleAvailableAnalysis(access)
-        discoveryStartMessage(access, automaticCardModePreferences.mode())
+        if (automaticDiscoveryScheduled) {
+            discoveryStartMessage(access, automaticCardModePreferences.mode())
+        } else {
+            "分析已恢复；自动发现保持关闭，只处理你主动选择或分享的照片"
+        }
     }
 
     fun clearLocalIndex() = runBusy(UserOperation.CLEAR_LOCAL_INDEX) {
@@ -598,9 +634,21 @@ private data class ScopedAnalysisProgress(
 private data class CardLocalState(
     val tracked: List<TrackedItem>,
     val feedback: List<CardFeedbackState>,
+    val affinities: List<TopicAffinitySignal>,
     val interests: Set<String>,
     val automaticCardMode: AutomaticCardMode,
+    val automaticDiscoveryEnabled: Boolean,
     val cloudDeletionUnresolved: Boolean
+)
+
+private data class DiscoveryPreferencesState(
+    val mode: AutomaticCardMode,
+    val enabled: Boolean
+)
+
+private data class FeedbackLearningState(
+    val feedback: List<CardFeedbackState>,
+    val affinities: List<TopicAffinitySignal>
 )
 
 internal fun analysisProgressForPresentation(

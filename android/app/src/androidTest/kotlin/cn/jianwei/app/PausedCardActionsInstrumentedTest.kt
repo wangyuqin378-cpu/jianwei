@@ -28,6 +28,7 @@ class PausedCardActionsInstrumentedTest {
         val onboarding = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
         val scheduler = context.getSharedPreferences(SCHEDULER_PREFS, Context.MODE_PRIVATE)
         val identity = DeviceIdentity(context, unusedApi(), DeviceTokenCipher())
+        val resultStore = PendingImportResultStore(context)
         val wasOnboarded = onboarding.getBoolean("completed", false)
         val wasPaused = scheduler.getBoolean(PAUSED_KEY, false)
         var scenario: ActivityScenario<MainActivity>? = null
@@ -36,6 +37,7 @@ class PausedCardActionsInstrumentedTest {
             database.cards().clearPendingFeedback()
             database.cards().clearTrackedItems()
             database.cards().clear()
+            resultStore.clearAll()
             onboarding.edit().putBoolean("completed", true).commit()
             scheduler.edit().putBoolean(PAUSED_KEY, false).commit()
             database.cards().upsertAll(listOf(card()))
@@ -46,8 +48,13 @@ class PausedCardActionsInstrumentedTest {
             click(awaitNodeWithScroll(instrumentation, "管理隐私与数据"))
             click(awaitNodeWithScroll(instrumentation, "暂停分析"))
             awaitBooleanPreference(scheduler, PAUSED_KEY, true)
-            click(awaitNode(instrumentation, "每日卡片"))
-            awaitNode(instrumentation, "照片分析已暂停")
+            clickCurrentNode(instrumentation, "每日卡片")
+            awaitNodeByScrolling(
+                instrumentation,
+                text = "照片分析已暂停",
+                forward = false,
+                timeoutMillis = 10_000
+            )
 
             click(awaitNodeWithScroll(instrumentation, "收藏"))
             awaitSaved(database)
@@ -64,6 +71,7 @@ class PausedCardActionsInstrumentedTest {
             awaitBooleanPreference(scheduler, PAUSED_KEY, false)
         } finally {
             scenario?.close()
+            resultStore.clearAll()
             identity.reset()
             database.cards().clearPendingFeedback()
             database.cards().clearTrackedItems()
@@ -136,11 +144,39 @@ class PausedCardActionsInstrumentedTest {
     )
 
     private fun click(node: AccessibilityNodeInfo) {
-        val clickable = generateSequence(node) { current -> current.parent }
-            .firstOrNull { current -> current.isClickable }
-        assertThat(clickable).isNotNull()
-        assertThat(clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)).isTrue()
-        SystemClock.sleep(200)
+        repeat(3) {
+            val clickable = generateSequence(node) { current -> current.parent }
+                .firstOrNull { current -> current.isClickable }
+            assertThat(clickable).isNotNull()
+            if (clickable!!.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                SystemClock.sleep(200)
+                return
+            }
+            node.refresh()
+            SystemClock.sleep(100)
+        }
+        error("Accessibility click was rejected after refreshing the node")
+    }
+
+    private fun clickCurrentNode(
+        instrumentation: android.app.Instrumentation,
+        text: String,
+        timeoutMillis: Long = 10_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            val node = findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)
+            val clickable = node?.let { current ->
+                generateSequence(current) { ancestor -> ancestor.parent }
+                    .firstOrNull { ancestor -> ancestor.isClickable }
+            }
+            if (clickable?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true) {
+                SystemClock.sleep(200)
+                return
+            }
+            SystemClock.sleep(100)
+        }
+        error("Timed out clicking current accessibility node: $text")
     }
 
     private fun awaitNode(

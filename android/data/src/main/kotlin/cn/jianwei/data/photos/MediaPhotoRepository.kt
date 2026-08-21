@@ -295,9 +295,16 @@ class MediaPhotoRepository @Inject constructor(
     }
 
     override suspend fun clearIndex() = withContext(Dispatchers.IO) {
-        dao.importedContentUris().forEach(::deletePrivateCopy)
+        dao.importedContentUris().forEach(::deletePrivateCopyOrThrow)
         dao.clear()
         dao.clearMediaScanCursors()
+    }
+
+    private fun deletePrivateCopyOrThrow(value: String) {
+        val file = privateCopyFile(value) ?: return
+        check(file.delete() || !file.exists()) {
+            "应用内照片副本删除失败；本地索引仍保留，请重试"
+        }
     }
 
     private fun deletePrivateCopy(value: String) {

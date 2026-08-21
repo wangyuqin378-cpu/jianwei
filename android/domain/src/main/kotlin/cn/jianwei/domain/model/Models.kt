@@ -74,6 +74,13 @@ data class KnowledgeSource(
     val authority: String
 )
 
+data class NormalizedBoundingBox(
+    val x: Double,
+    val y: Double,
+    val width: Double,
+    val height: Double
+)
+
 data class KnowledgeCard(
     val cardId: String,
     val candidateToken: String,
@@ -88,7 +95,8 @@ data class KnowledgeCard(
     val sources: List<KnowledgeSource>,
     val status: String,
     val scheduledDate: LocalDate,
-    val createdAt: Instant
+    val createdAt: Instant,
+    val objectBounds: NormalizedBoundingBox? = null
 )
 
 data class TrackedItem(

@@ -179,12 +179,23 @@
       "DeleteDeviceDataResponse": { "type": "object", "additionalProperties": false, "required": ["deviceId", "status"], "properties": { "deviceId": { "type": "string", "format": "uuid" }, "status": { "type": "string", "const": "deleted" } } },
       "TopicAffinity": { "type": "object", "additionalProperties": false, "required": ["topicId", "weight", "aliases"], "properties": { "topicId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "weight": { "type": "number", "minimum": -2, "maximum": 2 }, "aliases": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 2, "maxLength": 48 } } } },
       "Source": { "type": "object", "additionalProperties": false, "required": ["sourceId", "title", "url", "publisher", "authority"], "properties": { "sourceId": { "type": "string", "minLength": 1, "maxLength": 100 }, "title": { "type": "string", "minLength": 1, "maxLength": 200 }, "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" }, "publisher": { "type": "string", "minLength": 1, "maxLength": 120 }, "authority": { "type": "string", "enum": ["reference", "official", "professional"] } } },
+      "BoundingBox": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["x", "y", "width", "height"],
+        "properties": {
+          "x": { "type": "number", "minimum": 0, "maximum": 1 },
+          "y": { "type": "number", "minimum": 0, "maximum": 1 },
+          "width": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "height": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+        }
+      },
       "Card": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["cardId", "candidateToken", "topicId", "factId", "title", "detectedObjectName", "body", "personalContext", "confidence", "sources", "status", "scheduledDate", "createdAt"],
+        "required": ["cardId", "candidateToken", "topicId", "factId", "title", "detectedObjectName", "body", "personalContext", "confidence", "boundingBox", "sources", "status", "scheduledDate", "createdAt"],
         "properties": {
-          "cardId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "topicId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "factId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "title": { "type": "string", "minLength": 1, "maxLength": 60 }, "detectedObjectName": { "type": "string", "minLength": 1, "maxLength": 60 }, "body": { "type": "string", "minLength": 1, "maxLength": 240 }, "personalContext": { "type": "string", "minLength": 1, "maxLength": 500 }, "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "sources": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/components/schemas/Source" } }, "status": { "type": "string", "enum": ["scheduled", "shown", "archived"] }, "scheduledDate": { "type": "string", "format": "date" }, "createdAt": { "type": "string", "format": "date-time" }
+          "cardId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "topicId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "factId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$" }, "title": { "type": "string", "minLength": 1, "maxLength": 60 }, "detectedObjectName": { "type": "string", "minLength": 1, "maxLength": 60 }, "body": { "type": "string", "minLength": 1, "maxLength": 240 }, "personalContext": { "type": "string", "minLength": 1, "maxLength": 500 }, "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "boundingBox": { "oneOf": [{ "$ref": "#/components/schemas/BoundingBox" }, { "type": "null" }] }, "sources": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/components/schemas/Source" } }, "status": { "type": "string", "enum": ["scheduled", "shown", "archived"] }, "scheduledDate": { "type": "string", "format": "date" }, "createdAt": { "type": "string", "format": "date-time" }
         }
       },
       "ErrorResponse": { "type": "object", "required": ["error"], "properties": { "error": { "type": "object", "required": ["code", "message"], "properties": { "code": { "type": "string" }, "message": { "type": "string" } } } } }

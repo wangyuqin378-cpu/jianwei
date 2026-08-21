@@ -91,6 +91,9 @@ describe("configuration safety", () => {
     const production = productionEnv();
     const config = loadConfig(production);
     expect(config.environment).toBe("production");
+    const aiOnly = { ...production };
+    delete aiOnly.KNOWLEDGE_REVIEWER_IDS;
+    expect(loadConfig(aiOnly).knowledgeReviewerIds).toEqual([]);
     expect(config.databaseUrl).toMatch(/^postgres/);
     expect(config.objectStore).toBe("oss");
     expect(config.visionProvider).toBe("qwen");

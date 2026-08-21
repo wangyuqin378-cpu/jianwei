@@ -45,6 +45,7 @@ jobs:
       - run: pnpm test
       - run: pnpm release:identity -- --self-test
       - run: pnpm build
+      - run: node ../scripts/assemble-release-candidate.mjs --self-test
       - run: pnpm e2e:self-test
       - run: pnpm e2e
       - run: pnpm e2e
@@ -91,6 +92,9 @@ jobs:
       - run: node ../scripts/check-deployment-manifest.mjs --self-test
       - run: node ../scripts/check-deployment-manifest.mjs
       - run: node ../scripts/check-container-deployment-inputs.mjs --self-test
+      - run: node ../scripts/check-container-security-evidence.mjs --self-test
+      - run: node ../scripts/check-cloud-deployment-preflight.mjs --self-test
+      - run: node ../scripts/run-serverless-with-aliyun-oauth.mjs --self-test
       - run: node ../scripts/check-runtime-budgets.mjs --self-test
       - run: node ../scripts/check-runtime-budgets.mjs
       - run: node ../scripts/check-api-contract.mjs --self-test
@@ -131,3 +135,41 @@ jobs:
           name: jianwei-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify iOS installable Beta gate policy
+        run: node ../scripts/check-ios-beta-readiness.mjs --self-test
+      - name: Build app and WidgetKit extension
+        run: >-
+          xcodebuild -quiet
+          -project Jianwei.xcodeproj
+          -scheme Jianwei
+          -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath .build/DerivedData
+          CODE_SIGNING_ALLOWED=NO
+          build
+      - name: Select an available iPhone simulator
+        run: |
+          device_id="$(xcrun simctl list devices available -j | ruby -rjson -e '
+            devices = JSON.parse(STDIN.read).fetch("devices").values.flatten
+            phone = devices.find { |device| device.fetch("name", "").start_with?("iPhone") }
+            abort "No available iPhone simulator" unless phone
+            puts phone.fetch("udid")
+          ')"
+          echo "JIANWEI_SIMULATOR_ID=$device_id" >> "$GITHUB_ENV"
+      - name: Run core tests
+        run: >-
+          xcodebuild -quiet
+          -project Jianwei.xcodeproj
+          -scheme Jianwei
+          -destination "platform=iOS Simulator,id=$JIANWEI_SIMULATOR_ID"
+          -derivedDataPath .build/DerivedData
+          -only-testing:JianweiTests
+          test

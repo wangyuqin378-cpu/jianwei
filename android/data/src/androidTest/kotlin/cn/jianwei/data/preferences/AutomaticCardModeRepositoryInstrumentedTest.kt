@@ -19,12 +19,18 @@ class AutomaticCardModeRepositoryInstrumentedTest {
 
     @Before
     fun clearBefore() {
-        preferences().edit().remove(SharedPreferencesAutomaticCardModeRepository.KEY_MODE).commit()
+        preferences().edit()
+            .remove(SharedPreferencesAutomaticCardModeRepository.KEY_MODE)
+            .remove(SharedPreferencesAutomaticCardModeRepository.KEY_DISCOVERY_ENABLED)
+            .commit()
     }
 
     @After
     fun clearAfter() {
-        preferences().edit().remove(SharedPreferencesAutomaticCardModeRepository.KEY_MODE).commit()
+        preferences().edit()
+            .remove(SharedPreferencesAutomaticCardModeRepository.KEY_MODE)
+            .remove(SharedPreferencesAutomaticCardModeRepository.KEY_DISCOVERY_ENABLED)
+            .commit()
     }
 
     @Test
@@ -51,6 +57,21 @@ class AutomaticCardModeRepositoryInstrumentedTest {
 
         assertThat(SharedPreferencesAutomaticCardModeRepository(context).mode())
             .isEqualTo(AutomaticCardMode.PREPARED_POOL)
+    }
+
+    @Test
+    fun automaticDiscoveryIsOptInAndPersistsAndEmits() = runBlocking {
+        val repository = SharedPreferencesAutomaticCardModeRepository(context)
+        assertThat(repository.discoveryEnabled()).isFalse()
+        val changed = async(start = CoroutineStart.UNDISPATCHED) {
+            withTimeout(2_000) { repository.observeDiscoveryEnabled().drop(1).first() }
+        }
+        yield()
+
+        repository.updateDiscoveryEnabled(true)
+
+        assertThat(changed.await()).isTrue()
+        assertThat(SharedPreferencesAutomaticCardModeRepository(context).discoveryEnabled()).isTrue()
     }
 
     private fun preferences() = context.getSharedPreferences(

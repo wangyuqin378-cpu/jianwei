@@ -69,7 +69,7 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
   it("has the complete checksummed schema after repeatable migrations", async () => {
     const migrations = await repositories[0].sql<{ count: string }[]>`
       SELECT count(*)::text AS count FROM schema_migrations`;
-    expect(Number(migrations[0]?.count)).toBe(13);
+    expect(Number(migrations[0]?.count)).toBe(15);
   });
 
   it("backfills and constrains detected object names when migration 013 upgrades existing cards", async () => {
@@ -100,6 +100,71 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
       await expect(repositories[0].sql.unsafe(
         `UPDATE "${schema}".cards SET detected_object_name = '   ' WHERE id = 'legacy-card'`
       )).rejects.toThrow();
+    } finally {
+      await repositories[0].sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    }
+  });
+
+  it("keeps legacy card bounds nullable and constrains normalized bounds in migration 014", async () => {
+    const schema = "migration_014_upgrade_test";
+    const migration = await readFile(new URL("../migrations/014_card_object_bounds.sql", import.meta.url), "utf8");
+    await repositories[0].sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    await repositories[0].sql.unsafe(`CREATE SCHEMA "${schema}"`);
+    try {
+      await repositories[0].sql.begin(async (transaction) => {
+        await transaction.unsafe(`SET LOCAL search_path TO "${schema}"`);
+        await transaction.unsafe("CREATE TABLE cards (id text PRIMARY KEY)");
+        await transaction.unsafe("INSERT INTO cards (id) VALUES ('legacy-card')");
+        await transaction.unsafe(migration);
+      });
+
+      const rows = await repositories[0].sql.unsafe<{
+        object_box_x: number | null;
+        object_box_width: number | null;
+      }[]>(`SELECT object_box_x, object_box_width FROM "${schema}".cards WHERE id = 'legacy-card'`);
+      expect(rows[0]).toEqual({ object_box_x: null, object_box_width: null });
+      await repositories[0].sql.unsafe(
+        `UPDATE "${schema}".cards
+         SET object_box_x = 0.6, object_box_y = 0.1, object_box_width = 0.3, object_box_height = 0.8
+         WHERE id = 'legacy-card'`
+      );
+      await expect(repositories[0].sql.unsafe(
+        `UPDATE "${schema}".cards SET object_box_x = 0.9, object_box_width = 0.2 WHERE id = 'legacy-card'`
+      )).rejects.toThrow();
+      await expect(repositories[0].sql.unsafe(
+        `UPDATE "${schema}".cards SET object_box_y = NULL WHERE id = 'legacy-card'`
+      )).rejects.toThrow();
+    } finally {
+      await repositories[0].sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    }
+  });
+
+  it("backfills reversible feedback contributions when migration 015 upgrades existing feedback", async () => {
+    const schema = "migration_015_upgrade_test";
+    const migration = await readFile(
+      new URL("../migrations/015_feedback_affinity_contributions.sql", import.meta.url),
+      "utf8"
+    );
+    await repositories[0].sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    await repositories[0].sql.unsafe(`CREATE SCHEMA "${schema}"`);
+    try {
+      await repositories[0].sql.begin(async (transaction) => {
+        await transaction.unsafe(`SET LOCAL search_path TO "${schema}"`);
+        await transaction.unsafe("CREATE TABLE feedback (id text PRIMARY KEY, action text NOT NULL)");
+        await transaction.unsafe(
+          "INSERT INTO feedback (id, action) VALUES ('liked', 'LIKE'), ('saved', 'SAVE'), ('wrong', 'WRONG_OBJECT')"
+        );
+        await transaction.unsafe(migration);
+      });
+
+      const rows = await repositories[0].sql.unsafe<{ id: string; affinity_delta_applied: number }[]>(
+        `SELECT id, affinity_delta_applied FROM "${schema}".feedback ORDER BY id`
+      );
+      expect(rows).toEqual([
+        { id: "liked", affinity_delta_applied: 4 },
+        { id: "saved", affinity_delta_applied: 5 },
+        { id: "wrong", affinity_delta_applied: 0 }
+      ]);
     } finally {
       await repositories[0].sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
     }
@@ -548,6 +613,53 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
     ]);
   });
 
+  it("restores saturated preferences using the contribution actually applied by each feedback", async () => {
+    const device = await repositories[0].devicesRepository.register(
+      "saturated-preference-installation",
+      "saturated-preference-token"
+    );
+    const card = await repositories[0].cardsRepository.create({
+      deviceId: device.id,
+      candidateToken: randomUUID(),
+      topicId: "bicycle",
+      factId: "bicycle-001",
+      title: "自行车链条",
+      detectedObjectName: "自行车",
+      body: "这是一条长度足够并经过审核的测试事实正文，只用于验证饱和偏好能够被精确回滚。",
+      personalContext: "因为它出现在你授权分析的照片中",
+      confidence: 0.91,
+      sources: [{
+        sourceId: "bicycle-source",
+        title: "Test source",
+        url: "https://example.com/bicycle",
+        publisher: "Example",
+        authority: "reference"
+      }],
+      status: "scheduled",
+      scheduledDate: "2026-07-18"
+    });
+    await repositories[0].sql`
+      INSERT INTO topic_preferences (device_id, topic_id, weight)
+      VALUES (${device.id}, ${card.topicId}, 16)`;
+    const input = { deviceId: device.id, cardId: card.cardId, topicId: card.topicId };
+
+    expect((await repositories[0].cardsRepository.addFeedback({ ...input, action: "SAVE" })).preference.weight)
+      .toBe(20);
+    expect((await repositories[1].cardsRepository.addFeedback({ ...input, action: "LIKE" })).preference.weight)
+      .toBe(20);
+    expect((await repositories[2].cardsRepository.addFeedback({ ...input, action: "WRONG_OBJECT" })).preference.weight)
+      .toBe(16);
+    const contributions = await repositories[0].sql<{ action: string; affinity_delta_applied: number }[]>`
+      SELECT action, affinity_delta_applied FROM feedback
+      WHERE device_id = ${device.id} AND card_id = ${card.cardId}
+      ORDER BY action`;
+    expect(contributions).toEqual([
+      expect.objectContaining({ action: "LIKE", affinity_delta_applied: 0 }),
+      expect.objectContaining({ action: "SAVE", affinity_delta_applied: 4 }),
+      expect.objectContaining({ action: "WRONG_OBJECT", affinity_delta_applied: 0 })
+    ]);
+  });
+
   it("atomically suppresses, tombstones, and queues TOO_PRIVATE deletion exactly once", async () => {
     const device = await repositories[0].devicesRepository.register("private-installation", "private-token");
     const candidateToken = randomUUID();
@@ -672,6 +784,7 @@ function scheduleCard(deviceId: string, candidateToken: string, index: number) {
     body: "This reviewed scheduling fixture body is long enough for production constraints.",
     personalContext: "Authorized scheduling integration fixture",
     confidence: 0.91,
+    boundingBox: null,
     sources: [{
       sourceId: "schedule-source",
       title: "Schedule source",

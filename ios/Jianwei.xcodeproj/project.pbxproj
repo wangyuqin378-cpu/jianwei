@@ -1,0 +1,972 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00CBD6E57867CD6C0C7CD9D1 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC01ED3D417182E53D19142 /* SavedView.swift */; };
+		0ACDB97D167465076FCC2637 /* PhotoDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92917062655B69E524100B13 /* PhotoDiscoveryService.swift */; };
+		0FD036F042CD7BA009052ABE /* onboarding_broom_example.webp in Resources */ = {isa = PBXBuildFile; fileRef = C2D336916D754B733D27D986 /* onboarding_broom_example.webp */; };
+		11B1630E102961B8BD6C62E2 /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E2BA1B88EE3EECDB7452E4 /* CardDetailView.swift */; };
+		17F09EC208D6EF769F47F877 /* JianweiWidgetJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */; };
+		267A819AB59CDC2CCAA80E33 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE5EF5568F00065BF85CBCA /* SettingsView.swift */; };
+		2970B0A9F8CEA6F7553B01BB /* SharedWidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */; };
+		34AB5FB911AFCF1C4A8E8E45 /* JianweiWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB29278C1AC8F359973E858F /* JianweiWidgetBundle.swift */; };
+		35B0311CECD7D34C17DA63F9 /* SwitchKnowledgeCardIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C374E2FCC43212F43A079 /* SwitchKnowledgeCardIntent.swift */; };
+		36781A3E3DA904265C8D8AC9 /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */; };
+		43B661A5B9AC5461AF7AACB1 /* DeviceIdentityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */; };
+		49BC42435CBDE068BC8E8ED1 /* DailyKnowledgeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED3C42FE61C92A40DAA435A /* DailyKnowledgeWidget.swift */; };
+		4E351955405E1D6A9AF45CE3 /* JianweiCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD378C56B815E60397F76731 /* JianweiCoreTests.swift */; };
+		534FC9907F72EDB57EB3E21F /* JianweiWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 224C951166409D6F49E66665 /* JianweiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		547C17764E1A30FF6AE48AFE /* ImageSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B3130802370987BAAD0DF8 /* ImageSanitizer.swift */; };
+		5A969123C5E75EC14EE87438 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE259379975EEB2DC07C4F59 /* TodayView.swift */; };
+		76CF51B39EC9B028AC7220D1 /* JianweiAuthorizedPhotoJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAED5F737AB1A406D18F8CE9 /* JianweiAuthorizedPhotoJourneyTests.swift */; };
+		79D3F14DEF5705E33CF057D2 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5297F575821253F1F33917A5 /* Brand.swift */; };
+		880CAFF80DEA5B415CD37DD7 /* DomainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A620B9263DB612430C3BF5 /* DomainModels.swift */; };
+		8EED6FA4140AE5018D60E86D /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */; };
+		92B4E6F70D8B6D67BFA7C70E /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12792E82F31D05F313E08BA4 /* SharedConstants.swift */; };
+		B74415FB769C8B5083A9927E /* JianweiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F5AF89C1A7FEF6428F3D32 /* JianweiApp.swift */; };
+		BA3C611A43BD01ED30108C00 /* LocalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4602308F9F4C713AE468EDE /* LocalRepository.swift */; };
+		BB219DCF8DF8FFAC919A84AA /* PhotoPrivacyAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */; };
+		BE98D83DE07548FF6313113B /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12792E82F31D05F313E08BA4 /* SharedConstants.swift */; };
+		C8FAF0B7EC2B95D743AD714C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC075F9060190C7280B1C049 /* RootView.swift */; };
+		CFF85ACA90387B6D8C1B659F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D2F7B6A6B15EB0A0AE121FD1 /* Assets.xcassets */; };
+		D1367CC8947C0F415FC9CD4F /* WidgetCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */; };
+		D39957DAA161805A378F7EC7 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */; };
+		DE068A7A2D06D6519CD829A8 /* AnalysisPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */; };
+		EBA97F0E7564DD842E7E1840 /* SharedWidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */; };
+		F1C28F803F464E78B0FA4323 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0912A556B4FEE4B4FC73F8D2 /* AppModel.swift */; };
+		F24DED91FB301D045C49E266 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8111BE57781A745D89F6030 /* OnboardingView.swift */; };
+		F366E74C41518F7AB070FEC1 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64196922077C51E13E85363E /* AppEnvironment.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3033910FEB4046BD0091050F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2F941FEE8576A1FF123207B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 134A55B9727FEEE02F85B299;
+			remoteInfo = JianweiWidget;
+		};
+		9683403E78FDD3B33F4C3A51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2F941FEE8576A1FF123207B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D82914B52CC024ADDB344A8;
+			remoteInfo = Jianwei;
+		};
+		DD388DCB4834C2A3A928D540 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2F941FEE8576A1FF123207B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D82914B52CC024ADDB344A8;
+			remoteInfo = Jianwei;
+		};
+		F7077B40F6DB26FA17511544 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2F941FEE8576A1FF123207B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D82914B52CC024ADDB344A8;
+			remoteInfo = Jianwei;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2DA261608BAB36E96C695CF7 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				534FC9907F72EDB57EB3E21F /* JianweiWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		037801902827CD8341B1707D /* JianweiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0912A556B4FEE4B4FC73F8D2 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		12792E82F31D05F313E08BA4 /* SharedConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
+		224C951166409D6F49E66665 /* JianweiWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = JianweiWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		229C374E2FCC43212F43A079 /* SwitchKnowledgeCardIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchKnowledgeCardIntent.swift; sourceTree = "<group>"; };
+		2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		3BF480B53E652898115C27CB /* Jianwei.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jianwei.entitlements; sourceTree = "<group>"; };
+		5297F575821253F1F33917A5 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
+		5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisPipeline.swift; sourceTree = "<group>"; };
+		64196922077C51E13E85363E /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPrivacyAnalyzer.swift; sourceTree = "<group>"; };
+		74EB38DC7EEFC1EBD59D1B92 /* JianweiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		87E2BA1B88EE3EECDB7452E4 /* CardDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
+		92917062655B69E524100B13 /* PhotoDiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDiscoveryService.swift; sourceTree = "<group>"; };
+		99E12E29296E7533DC4C155C /* JianweiWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JianweiWidget.entitlements; sourceTree = "<group>"; };
+		A4602308F9F4C713AE468EDE /* LocalRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalRepository.swift; sourceTree = "<group>"; };
+		A5AE2B302C14A34B27261EF1 /* JianweiCloudE2ETests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiCloudE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAED5F737AB1A406D18F8CE9 /* JianweiAuthorizedPhotoJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiAuthorizedPhotoJourneyTests.swift; sourceTree = "<group>"; };
+		AD378C56B815E60397F76731 /* JianweiCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiCoreTests.swift; sourceTree = "<group>"; };
+		AE259379975EEB2DC07C4F59 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		B1AB6AA325989205004BC725 /* Jianwei.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Jianwei.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetModels.swift; sourceTree = "<group>"; };
+		C0B3130802370987BAAD0DF8 /* ImageSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSanitizer.swift; sourceTree = "<group>"; };
+		C2A620B9263DB612430C3BF5 /* DomainModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainModels.swift; sourceTree = "<group>"; };
+		C2D336916D754B733D27D986 /* onboarding_broom_example.webp */ = {isa = PBXFileReference; path = onboarding_broom_example.webp; sourceTree = "<group>"; };
+		CC075F9060190C7280B1C049 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWidgetStore.swift; sourceTree = "<group>"; };
+		D2A0DD61A1292F712863D706 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D2F7B6A6B15EB0A0AE121FD1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetCoordinator.swift; sourceTree = "<group>"; };
+		E8111BE57781A745D89F6030 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		E97D673BFA41A19613BD7937 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiWidgetJourneyTests.swift; sourceTree = "<group>"; };
+		F3F5AF89C1A7FEF6428F3D32 /* JianweiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiApp.swift; sourceTree = "<group>"; };
+		FB29278C1AC8F359973E858F /* JianweiWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiWidgetBundle.swift; sourceTree = "<group>"; };
+		FBE5EF5568F00065BF85CBCA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentityStore.swift; sourceTree = "<group>"; };
+		FCC01ED3D417182E53D19142 /* SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedView.swift; sourceTree = "<group>"; };
+		FED3C42FE61C92A40DAA435A /* DailyKnowledgeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyKnowledgeWidget.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		05CA3F018783DF9830AD9CAD /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */,
+				2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */,
+				FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */,
+				C0B3130802370987BAAD0DF8 /* ImageSanitizer.swift */,
+				A4602308F9F4C713AE468EDE /* LocalRepository.swift */,
+				92917062655B69E524100B13 /* PhotoDiscoveryService.swift */,
+				6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */,
+				D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		0BFECD09FA0C60F22502EB50 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B1AB6AA325989205004BC725 /* Jianwei.app */,
+				A5AE2B302C14A34B27261EF1 /* JianweiCloudE2ETests.xctest */,
+				74EB38DC7EEFC1EBD59D1B92 /* JianweiTests.xctest */,
+				037801902827CD8341B1707D /* JianweiUITests.xctest */,
+				224C951166409D6F49E66665 /* JianweiWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1E38A35B3CE92B715F45EE13 /* Jianwei */ = {
+			isa = PBXGroup;
+			children = (
+				D2A0DD61A1292F712863D706 /* Info.plist */,
+				3BF480B53E652898115C27CB /* Jianwei.entitlements */,
+				244CE861F2A29ADCEBC2CEEF /* App */,
+				7B48465805308E9944F73D6C /* Models */,
+				333085535046F499E19AE5B9 /* Resources */,
+				05CA3F018783DF9830AD9CAD /* Services */,
+				DDD58E4C67F03B4AC2F02AF9 /* Views */,
+			);
+			path = Jianwei;
+			sourceTree = "<group>";
+		};
+		244CE861F2A29ADCEBC2CEEF /* App */ = {
+			isa = PBXGroup;
+			children = (
+				64196922077C51E13E85363E /* AppEnvironment.swift */,
+				0912A556B4FEE4B4FC73F8D2 /* AppModel.swift */,
+				F3F5AF89C1A7FEF6428F3D32 /* JianweiApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		333085535046F499E19AE5B9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D2F7B6A6B15EB0A0AE121FD1 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		4DCE36BA9D2752E2D619DAF2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				D3AA7BAE912C614F371D79C2 /* main */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		6C642BB2ADAA0A081F55F158 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				12792E82F31D05F313E08BA4 /* SharedConstants.swift */,
+				CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */,
+				BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		7B48465805308E9944F73D6C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C2A620B9263DB612430C3BF5 /* DomainModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		82C581C020EE4B72C5BCB1CD /* res */ = {
+			isa = PBXGroup;
+			children = (
+				B2209405E7F23FD245A2129C /* drawable */,
+			);
+			path = res;
+			sourceTree = "<group>";
+		};
+		A65F363BA6F741F20591CDF0 /* android */ = {
+			isa = PBXGroup;
+			children = (
+				D803F92EF16E9586B33F169C /* app */,
+			);
+			path = android;
+			sourceTree = "<group>";
+		};
+		B2209405E7F23FD245A2129C /* drawable */ = {
+			isa = PBXGroup;
+			children = (
+				C2D336916D754B733D27D986 /* onboarding_broom_example.webp */,
+			);
+			path = drawable;
+			sourceTree = "<group>";
+		};
+		B95B9515CC7D564B1252E346 /* JianweiWidget */ = {
+			isa = PBXGroup;
+			children = (
+				FED3C42FE61C92A40DAA435A /* DailyKnowledgeWidget.swift */,
+				E97D673BFA41A19613BD7937 /* Info.plist */,
+				99E12E29296E7533DC4C155C /* JianweiWidget.entitlements */,
+				FB29278C1AC8F359973E858F /* JianweiWidgetBundle.swift */,
+				229C374E2FCC43212F43A079 /* SwitchKnowledgeCardIntent.swift */,
+			);
+			path = JianweiWidget;
+			sourceTree = "<group>";
+		};
+		CF584CED33A820404448E8C6 /* JianweiUITests */ = {
+			isa = PBXGroup;
+			children = (
+				F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */,
+			);
+			path = JianweiUITests;
+			sourceTree = "<group>";
+		};
+		D3AA7BAE912C614F371D79C2 /* main */ = {
+			isa = PBXGroup;
+			children = (
+				82C581C020EE4B72C5BCB1CD /* res */,
+			);
+			path = main;
+			sourceTree = "<group>";
+		};
+		D3F67A83F4F06B65867808CB /* jianwei */ = {
+			isa = PBXGroup;
+			children = (
+				A65F363BA6F741F20591CDF0 /* android */,
+			);
+			name = jianwei;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		D6B53B0554DE9502FD87400E = {
+			isa = PBXGroup;
+			children = (
+				1E38A35B3CE92B715F45EE13 /* Jianwei */,
+				D3F67A83F4F06B65867808CB /* jianwei */,
+				F116823A33E7D7A018D09E97 /* JianweiCloudE2ETests */,
+				D6BF00E122477511A718C1E0 /* JianweiTests */,
+				CF584CED33A820404448E8C6 /* JianweiUITests */,
+				B95B9515CC7D564B1252E346 /* JianweiWidget */,
+				6C642BB2ADAA0A081F55F158 /* Shared */,
+				0BFECD09FA0C60F22502EB50 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D6BF00E122477511A718C1E0 /* JianweiTests */ = {
+			isa = PBXGroup;
+			children = (
+				AD378C56B815E60397F76731 /* JianweiCoreTests.swift */,
+			);
+			path = JianweiTests;
+			sourceTree = "<group>";
+		};
+		D803F92EF16E9586B33F169C /* app */ = {
+			isa = PBXGroup;
+			children = (
+				4DCE36BA9D2752E2D619DAF2 /* src */,
+			);
+			path = app;
+			sourceTree = "<group>";
+		};
+		DDD58E4C67F03B4AC2F02AF9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5297F575821253F1F33917A5 /* Brand.swift */,
+				87E2BA1B88EE3EECDB7452E4 /* CardDetailView.swift */,
+				E8111BE57781A745D89F6030 /* OnboardingView.swift */,
+				CC075F9060190C7280B1C049 /* RootView.swift */,
+				FCC01ED3D417182E53D19142 /* SavedView.swift */,
+				FBE5EF5568F00065BF85CBCA /* SettingsView.swift */,
+				AE259379975EEB2DC07C4F59 /* TodayView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		F116823A33E7D7A018D09E97 /* JianweiCloudE2ETests */ = {
+			isa = PBXGroup;
+			children = (
+				AAED5F737AB1A406D18F8CE9 /* JianweiAuthorizedPhotoJourneyTests.swift */,
+			);
+			path = JianweiCloudE2ETests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D82914B52CC024ADDB344A8 /* Jianwei */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEC1A0AB7AAD36C90EBBC108 /* Build configuration list for PBXNativeTarget "Jianwei" */;
+			buildPhases = (
+				9B0E7EAF81686C44ABFDD51B /* Sources */,
+				656FD64CB21195929C5B0C3A /* Resources */,
+				2DA261608BAB36E96C695CF7 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B8E773A5C743E2D621EE655C /* PBXTargetDependency */,
+			);
+			name = Jianwei;
+			packageProductDependencies = (
+			);
+			productName = Jianwei;
+			productReference = B1AB6AA325989205004BC725 /* Jianwei.app */;
+			productType = "com.apple.product-type.application";
+		};
+		134A55B9727FEEE02F85B299 /* JianweiWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0AD512CEF60585C3BFB2B48D /* Build configuration list for PBXNativeTarget "JianweiWidget" */;
+			buildPhases = (
+				1B865565D52A5A42B3D25B17 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JianweiWidget;
+			packageProductDependencies = (
+			);
+			productName = JianweiWidget;
+			productReference = 224C951166409D6F49E66665 /* JianweiWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		358CB4BDB6F9EEC3701AA868 /* JianweiCloudE2ETests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC55F885102E2EE57B91A4E4 /* Build configuration list for PBXNativeTarget "JianweiCloudE2ETests" */;
+			buildPhases = (
+				6D8B5AB52BF27BF14C541881 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BC80FA6D84BA3407EC15BB5F /* PBXTargetDependency */,
+			);
+			name = JianweiCloudE2ETests;
+			packageProductDependencies = (
+			);
+			productName = JianweiCloudE2ETests;
+			productReference = A5AE2B302C14A34B27261EF1 /* JianweiCloudE2ETests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		49B4532528B9D50ED2EEC891 /* JianweiTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3DF4E24C387E6AAE90AEF16 /* Build configuration list for PBXNativeTarget "JianweiTests" */;
+			buildPhases = (
+				74030A2CE3A01D2A8DC2052F /* Sources */,
+				4ADD5FC3B422C1455AEDC2E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				39F93BC56FD414EE03CB0718 /* PBXTargetDependency */,
+			);
+			name = JianweiTests;
+			packageProductDependencies = (
+			);
+			productName = JianweiTests;
+			productReference = 74EB38DC7EEFC1EBD59D1B92 /* JianweiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		99049D4527B2482CEF916401 /* JianweiUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CB2D1DFF5DD4396567BCAA95 /* Build configuration list for PBXNativeTarget "JianweiUITests" */;
+			buildPhases = (
+				3C640D64C5D61DFC0EBA11F6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				083FC85E4BC83DC1ED077BBE /* PBXTargetDependency */,
+			);
+			name = JianweiUITests;
+			packageProductDependencies = (
+			);
+			productName = JianweiUITests;
+			productReference = 037801902827CD8341B1707D /* JianweiUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D2F941FEE8576A1FF123207B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					0D82914B52CC024ADDB344A8 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					134A55B9727FEEE02F85B299 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					358CB4BDB6F9EEC3701AA868 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 0D82914B52CC024ADDB344A8;
+					};
+					49B4532528B9D50ED2EEC891 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					99049D4527B2482CEF916401 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 0D82914B52CC024ADDB344A8;
+					};
+				};
+			};
+			buildConfigurationList = 78AC61088404DB177FFAA66D /* Build configuration list for PBXProject "Jianwei" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D6B53B0554DE9502FD87400E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0BFECD09FA0C60F22502EB50 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0D82914B52CC024ADDB344A8 /* Jianwei */,
+				134A55B9727FEEE02F85B299 /* JianweiWidget */,
+				49B4532528B9D50ED2EEC891 /* JianweiTests */,
+				99049D4527B2482CEF916401 /* JianweiUITests */,
+				358CB4BDB6F9EEC3701AA868 /* JianweiCloudE2ETests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4ADD5FC3B422C1455AEDC2E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0FD036F042CD7BA009052ABE /* onboarding_broom_example.webp in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		656FD64CB21195929C5B0C3A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CFF85ACA90387B6D8C1B659F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1B865565D52A5A42B3D25B17 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49BC42435CBDE068BC8E8ED1 /* DailyKnowledgeWidget.swift in Sources */,
+				34AB5FB911AFCF1C4A8E8E45 /* JianweiWidgetBundle.swift in Sources */,
+				BE98D83DE07548FF6313113B /* SharedConstants.swift in Sources */,
+				EBA97F0E7564DD842E7E1840 /* SharedWidgetStore.swift in Sources */,
+				35B0311CECD7D34C17DA63F9 /* SwitchKnowledgeCardIntent.swift in Sources */,
+				8EED6FA4140AE5018D60E86D /* WidgetModels.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C640D64C5D61DFC0EBA11F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17F09EC208D6EF769F47F877 /* JianweiWidgetJourneyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6D8B5AB52BF27BF14C541881 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				76CF51B39EC9B028AC7220D1 /* JianweiAuthorizedPhotoJourneyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74030A2CE3A01D2A8DC2052F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E351955405E1D6A9AF45CE3 /* JianweiCoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B0E7EAF81686C44ABFDD51B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D39957DAA161805A378F7EC7 /* APIClient.swift in Sources */,
+				DE068A7A2D06D6519CD829A8 /* AnalysisPipeline.swift in Sources */,
+				F366E74C41518F7AB070FEC1 /* AppEnvironment.swift in Sources */,
+				F1C28F803F464E78B0FA4323 /* AppModel.swift in Sources */,
+				79D3F14DEF5705E33CF057D2 /* Brand.swift in Sources */,
+				11B1630E102961B8BD6C62E2 /* CardDetailView.swift in Sources */,
+				43B661A5B9AC5461AF7AACB1 /* DeviceIdentityStore.swift in Sources */,
+				880CAFF80DEA5B415CD37DD7 /* DomainModels.swift in Sources */,
+				547C17764E1A30FF6AE48AFE /* ImageSanitizer.swift in Sources */,
+				B74415FB769C8B5083A9927E /* JianweiApp.swift in Sources */,
+				BA3C611A43BD01ED30108C00 /* LocalRepository.swift in Sources */,
+				F24DED91FB301D045C49E266 /* OnboardingView.swift in Sources */,
+				0ACDB97D167465076FCC2637 /* PhotoDiscoveryService.swift in Sources */,
+				BB219DCF8DF8FFAC919A84AA /* PhotoPrivacyAnalyzer.swift in Sources */,
+				C8FAF0B7EC2B95D743AD714C /* RootView.swift in Sources */,
+				00CBD6E57867CD6C0C7CD9D1 /* SavedView.swift in Sources */,
+				267A819AB59CDC2CCAA80E33 /* SettingsView.swift in Sources */,
+				92B4E6F70D8B6D67BFA7C70E /* SharedConstants.swift in Sources */,
+				2970B0A9F8CEA6F7553B01BB /* SharedWidgetStore.swift in Sources */,
+				5A969123C5E75EC14EE87438 /* TodayView.swift in Sources */,
+				D1367CC8947C0F415FC9CD4F /* WidgetCoordinator.swift in Sources */,
+				36781A3E3DA904265C8D8AC9 /* WidgetModels.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		083FC85E4BC83DC1ED077BBE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D82914B52CC024ADDB344A8 /* Jianwei */;
+			targetProxy = F7077B40F6DB26FA17511544 /* PBXContainerItemProxy */;
+		};
+		39F93BC56FD414EE03CB0718 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D82914B52CC024ADDB344A8 /* Jianwei */;
+			targetProxy = DD388DCB4834C2A3A928D540 /* PBXContainerItemProxy */;
+		};
+		B8E773A5C743E2D621EE655C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 134A55B9727FEEE02F85B299 /* JianweiWidget */;
+			targetProxy = 3033910FEB4046BD0091050F /* PBXContainerItemProxy */;
+		};
+		BC80FA6D84BA3407EC15BB5F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D82914B52CC024ADDB344A8 /* Jianwei */;
+			targetProxy = 9683403E78FDD3B33F4C3A51 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		12EF2FAE2C9334318460B4BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jianwei.app/Jianwei";
+			};
+			name = Release;
+		};
+		14FE43F2A457F0ABD9B3C575 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Jianwei/Jianwei.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Jianwei/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios;
+				PRODUCT_MODULE_NAME = Jianwei;
+				PRODUCT_NAME = Jianwei;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		1D45D6A4CE999C455403D71C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.jianwei.ios.cloud-e2e-tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jianwei;
+			};
+			name = Release;
+		};
+		281E03EC118A787670F78F37 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jianwei;
+			};
+			name = Debug;
+		};
+		3ACBBC09428120B9E507B64F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = JianweiWidget/JianweiWidget.entitlements;
+				INFOPLIST_FILE = JianweiWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.widget;
+				PRODUCT_MODULE_NAME = JianweiWidget;
+				PRODUCT_NAME = JianweiWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		438BD498197076A2F040DBCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = JianweiWidget/JianweiWidget.entitlements;
+				INFOPLIST_FILE = JianweiWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.widget;
+				PRODUCT_MODULE_NAME = JianweiWidget;
+				PRODUCT_NAME = JianweiWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6FCD9D06380E0C52B785BF59 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				JIANWEI_API_BASE_URL = "";
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		81514224E4EE4FB72406D259 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.jianwei.ios.cloud-e2e-tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jianwei;
+			};
+			name = Debug;
+		};
+		B61994B84C81C5E9CC3FBFFF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Jianwei/Jianwei.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Jianwei/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios;
+				PRODUCT_MODULE_NAME = Jianwei;
+				PRODUCT_NAME = Jianwei;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		BDB1632B4D26ED0FDD0D4A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Jianwei;
+			};
+			name = Release;
+		};
+		D55742102E9631EAB39711BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.jianwei.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Jianwei.app/Jianwei";
+			};
+			name = Debug;
+		};
+		E3C5322EFC1A108BAFDBE851 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				JIANWEI_API_BASE_URL = "";
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0AD512CEF60585C3BFB2B48D /* Build configuration list for PBXNativeTarget "JianweiWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				438BD498197076A2F040DBCE /* Debug */,
+				3ACBBC09428120B9E507B64F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		78AC61088404DB177FFAA66D /* Build configuration list for PBXProject "Jianwei" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6FCD9D06380E0C52B785BF59 /* Debug */,
+				E3C5322EFC1A108BAFDBE851 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CB2D1DFF5DD4396567BCAA95 /* Build configuration list for PBXNativeTarget "JianweiUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				281E03EC118A787670F78F37 /* Debug */,
+				BDB1632B4D26ED0FDD0D4A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D3DF4E24C387E6AAE90AEF16 /* Build configuration list for PBXNativeTarget "JianweiTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D55742102E9631EAB39711BD /* Debug */,
+				12EF2FAE2C9334318460B4BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DC55F885102E2EE57B91A4E4 /* Build configuration list for PBXNativeTarget "JianweiCloudE2ETests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				81514224E4EE4FB72406D259 /* Debug */,
+				1D45D6A4CE999C455403D71C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FEC1A0AB7AAD36C90EBBC108 /* Build configuration list for PBXNativeTarget "Jianwei" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				14FE43F2A457F0ABD9B3C575 /* Debug */,
+				B61994B84C81C5E9CC3FBFFF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D2F941FEE8576A1FF123207B /* Project object */;
+}

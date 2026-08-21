@@ -16,6 +16,17 @@ fun feedbackAffinityDelta(action: FeedbackAction): Double = when (action) {
 fun updatedTopicAffinity(current: Double, action: FeedbackAction): Double =
     (current + feedbackAffinityDelta(action)).coerceIn(MIN_TOPIC_AFFINITY, MAX_TOPIC_AFFINITY)
 
+fun appliedFeedbackAffinityDelta(current: Double, action: FeedbackAction): Double =
+    updatedTopicAffinity(current, action) - current
+
+fun replaceAppliedTopicAffinity(
+    current: Double,
+    previousAppliedDelta: Double,
+    nextAction: FeedbackAction
+): Double =
+    (current - previousAppliedDelta + feedbackAffinityDelta(nextAction))
+        .coerceIn(MIN_TOPIC_AFFINITY, MAX_TOPIC_AFFINITY)
+
 fun replaceTopicAffinity(
     current: Double,
     previousActions: Collection<FeedbackAction>,

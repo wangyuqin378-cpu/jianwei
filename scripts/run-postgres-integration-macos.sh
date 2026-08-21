@@ -83,8 +83,8 @@ DATABASE_URL="postgres://jianwei@127.0.0.1:$PORT/jianwei"
 BACKEND_E2E_DATABASE_URL="$DATABASE_URL" "$NODE" "$ROOT/scripts/run-backend-e2e.mjs"
 
 SCHEMA_COUNT="$("$PG_BIN/psql" -h 127.0.0.1 -p "$PORT" -U jianwei -d jianwei -Atc "SELECT count(*) FROM schema_migrations")"
-if [[ "$SCHEMA_COUNT" != "13" ]]; then
-  print -u2 "Expected thirteen applied PostgreSQL migrations, found: $SCHEMA_COUNT"
+if [[ "$SCHEMA_COUNT" != "15" ]]; then
+  print -u2 "Expected fifteen applied PostgreSQL migrations, found: $SCHEMA_COUNT"
   exit 1
 fi
 
@@ -94,7 +94,7 @@ const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const total = Number(value.numTotalTests);
 const failed = Number(value.numFailedTests);
 const pending = Number(value.numPendingTests);
-if (total < 13 || failed !== 0 || pending !== 0) process.exit(1);
+if (total < 17 || failed !== 0 || pending !== 0) process.exit(1);
 process.stdout.write(`${total} ${failed} ${pending}`);
 ' "$TEST_REPORT_PATH")"
 TESTS="${TEST_SUMMARY%% *}"
@@ -113,7 +113,7 @@ const fs = require("node:fs");
 const [auditPath, testPath, tcpPath, serverVersion, testCount] = process.argv.slice(1);
 const test = JSON.parse(fs.readFileSync(testPath, "utf8"));
 const tcp = JSON.parse(fs.readFileSync(tcpPath, "utf8"));
-if (test.success !== true || test.numTotalTests < 13 || test.numFailedTests !== 0 || test.numPendingTests !== 0) {
+if (test.success !== true || test.numTotalTests < 17 || test.numFailedTests !== 0 || test.numPendingTests !== 0) {
   throw new Error("PostgreSQL test report is not successful");
 }
 if (tcp.gate !== "GO" || tcp.repositoryMode !== "postgres" || tcp.checks?.objectFilesRemaining !== 0) {
@@ -128,10 +128,12 @@ const audit = {
   gate: "GO",
   postgres: {
     serverVersion,
-    migrations: 13,
+    migrations: 15,
     migrationRuns: 3,
     tests: Number(testCount),
     detectedObjectMigration: true,
+    objectBoundsMigration: true,
+    feedbackContributionMigration: true,
     processStopped: true
   },
   tcpE2E: tcp.checks,
@@ -143,7 +145,7 @@ const audit = {
 fs.writeFileSync(auditPath, `${JSON.stringify(audit, null, 2)}\n`);
 ' "$AUDIT_PATH" "$TEST_REPORT_PATH" "$ROOT/.tooling/backend-e2e-postgres/result.json" "$VERSION" "$TESTS"
 
-SUMMARY="POSTGRES_INTEGRATION_GATE=GO server=$VERSION migrations=13 migrateRuns=3 appStartupMigration=1 tests=$TESTS tcpE2E=1 independentPools=4 concurrentAttempts=32 globalLimit=5 costReservationMicroCny=14 oneTimeUpload=1 leaseRecovery=1 preferencePersistence=1 privateDeletionTransaction=1 registrationCreatedProof=1 boundedEvaluationLease=1 backendReleaseStamp=1 cardScheduleConcurrency=1 detectedObjectMigration=1 processStopped=1"
+SUMMARY="POSTGRES_INTEGRATION_GATE=GO server=$VERSION migrations=15 migrateRuns=3 appStartupMigration=1 tests=$TESTS tcpE2E=1 independentPools=4 concurrentAttempts=32 globalLimit=5 costReservationMicroCny=14 oneTimeUpload=1 leaseRecovery=1 preferencePersistence=1 feedbackContributionRollback=1 privateDeletionTransaction=1 registrationCreatedProof=1 boundedEvaluationLease=1 backendReleaseStamp=1 cardScheduleConcurrency=1 detectedObjectMigration=1 objectBoundsMigration=1 feedbackContributionMigration=1 processStopped=1"
 {
   print "$SUMMARY"
   print "PORT=$PORT"

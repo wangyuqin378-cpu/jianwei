@@ -35,15 +35,11 @@ export class KnowledgeCatalogService {
   }
 
   matchLabels(labels: string[]): KnowledgeTopic | null {
-    const normalized = labels.map(normalize);
+    const normalized = new Set(labels.map(normalize).filter(Boolean));
     let best: { topic: KnowledgeTopic; score: number } | null = null;
     for (const topic of this.catalog.topics) {
       const terms = [topic.topicId, topic.displayName, ...topic.synonyms].map(normalize);
-      const score = normalized.reduce((total, label) => {
-        const exact = terms.some((term) => term === label);
-        const partial = terms.some((term) => term.includes(label) || label.includes(term));
-        return total + (exact ? 3 : partial ? 1 : 0);
-      }, 0);
+      const score = terms.reduce((total, term) => total + (normalized.has(term) ? 1 : 0), 0);
       if (score > 0 && (!best || score > best.score)) best = { topic, score };
     }
     return best?.topic ?? null;
@@ -56,7 +52,8 @@ export class KnowledgeCatalogService {
     recentFactIds: readonly string[] = []
   ): { fact: KnowledgeFact; sources: KnowledgeSource[] } | null {
     const facts = topic.facts.filter((fact) =>
-      fact.reviewStatus === "approved" && (allowUnattested || fact.review !== undefined)
+      fact.riskLevel === "general" && fact.reviewStatus === "approved" &&
+      (allowUnattested || fact.review !== undefined || fact.aiReview?.decision === "approved")
     );
     if (!facts.length) return null;
     const recent = [...new Set(recentFactIds)];
@@ -110,7 +107,11 @@ export function validateCatalog(catalog: KnowledgeCatalog, policy: CatalogValida
         invariant(sourceIds.has(sourceId), "unknown_source", `事实 ${fact.factId} 引用了未知来源 ${sourceId}`);
       }
       if (fact.reviewStatus === "approved" && policy.requireAttestedApprovedFacts) {
-        invariant(fact.review, "missing_fact_review", `已批准事实 ${fact.factId} 缺少人工审核记录`);
+        invariant(
+          fact.review || fact.aiReview?.decision === "approved",
+          "missing_fact_review",
+          `已批准事实 ${fact.factId} 缺少人工或 AI 审核记录`
+        );
       }
       if (fact.reviewStatus === "approved") {
         const bodyLength = [...fact.factText].length;
@@ -120,6 +121,7 @@ export function validateCatalog(catalog: KnowledgeCatalog, policy: CatalogValida
           `已批准事实 ${fact.factId} 必须可原样用作 28-80 字卡片正文`
         );
       }
+      invariant(!(fact.review && fact.aiReview), "multiple_fact_reviews", `事实 ${fact.factId} 不能同时携带人工与 AI 审核记录`);
       if (fact.review) {
         invariant(
           !/(?:^|[\s:_-])(ai|kimi|qwen|gpt|claude|gemini|llm|model|bot)(?:$|[\s:_-])/i.test(fact.review.reviewerId),
@@ -138,6 +140,28 @@ export function validateCatalog(catalog: KnowledgeCatalog, policy: CatalogValida
         invariant(Number.isFinite(reviewedAt) && Number.isFinite(sourceCheckedAt), "invalid_review_time", `事实 ${fact.factId} 的审核时间无效`);
         invariant(sourceCheckedAt <= reviewedAt, "invalid_review_order", `事实 ${fact.factId} 的来源核验晚于审核完成时间`);
         invariant(reviewedAt <= Date.now() + 5 * 60 * 1000, "future_review", `事实 ${fact.factId} 的审核时间在未来`);
+      }
+      if (fact.aiReview) {
+        invariant(fact.riskLevel === "general", "ai_review_high_risk", `AI 审核不能批准健康或安全事实 ${fact.factId}`);
+        invariant(
+          fact.reviewStatus === fact.aiReview.decision,
+          "ai_review_status_mismatch",
+          `事实 ${fact.factId} 的 AI 决定与发布状态不一致`
+        );
+        invariant(
+          fact.aiReview.provider === "qwen" && /^qwen[0-9a-z._-]{2,95}$/i.test(fact.aiReview.model) &&
+          fact.aiReview.policyVersion === "general-content-v1" && /^[a-f0-9]{64}$/.test(fact.aiReview.evidenceSha256),
+          "invalid_ai_review",
+          `事实 ${fact.factId} 的 AI 审核记录无效`
+        );
+        const reviewedAt = Date.parse(fact.aiReview.reviewedAt);
+        invariant(Number.isFinite(reviewedAt), "invalid_ai_review_time", `事实 ${fact.factId} 的 AI 审核时间无效`);
+        invariant(reviewedAt <= Date.now() + 5 * 60 * 1000, "future_ai_review", `事实 ${fact.factId} 的 AI 审核时间在未来`);
+        if (fact.aiReview.decision === "approved") {
+          invariant(fact.aiReview.reasonCode === "safe_general", "invalid_ai_approval_reason", `事实 ${fact.factId} 的 AI 批准原因无效`);
+        } else {
+          invariant(fact.aiReview.reasonCode !== "safe_general", "invalid_ai_rejection_reason", `事实 ${fact.factId} 的 AI 拒绝原因无效`);
+        }
       }
       if (fact.riskLevel !== "general" && fact.reviewStatus === "approved") {
         const authoritative = new Set(fact.sourceIds.filter((id) => {

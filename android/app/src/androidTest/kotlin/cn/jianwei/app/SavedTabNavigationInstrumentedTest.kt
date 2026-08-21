@@ -21,12 +21,17 @@ class SavedTabNavigationInstrumentedTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences(SCHEDULER_PREFS, Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
+        val wasPaused = schedulerPreferences.getBoolean(ANALYSIS_PAUSED_KEY, false)
         val database = buildJianweiDatabase(context)
+        val resultStore = PendingImportResultStore(context)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             database.cards().clear()
+            resultStore.clearAll()
             preferences.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, false).commit()
             scenario = ActivityScenario.launch(MainActivity::class.java)
 
             click(awaitNode(instrumentation, "收藏 0"))
@@ -64,9 +69,11 @@ class SavedTabNavigationInstrumentedTest {
             )).isNull()
         } finally {
             scenario?.close()
+            resultStore.clearAll()
             database.cards().clear()
             database.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, wasPaused).commit()
         }
     }
 
@@ -75,12 +82,17 @@ class SavedTabNavigationInstrumentedTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("onboarding", Context.MODE_PRIVATE)
+        val schedulerPreferences = context.getSharedPreferences(SCHEDULER_PREFS, Context.MODE_PRIVATE)
         val wasOnboarded = preferences.getBoolean("completed", false)
+        val wasPaused = schedulerPreferences.getBoolean(ANALYSIS_PAUSED_KEY, false)
         val database = buildJianweiDatabase(context)
+        val resultStore = PendingImportResultStore(context)
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             database.cards().clear()
+            resultStore.clearAll()
             preferences.edit().putBoolean("completed", true).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, false).commit()
             val now = System.currentTimeMillis()
             database.cards().upsertAll(listOf(savedCard(PRIMARY_CARD_ID, PRIMARY_TITLE), savedCard(SECONDARY_CARD_ID, SECONDARY_TITLE)))
             database.cards().setCardSaved(SECONDARY_CARD_ID, true, now)
@@ -88,6 +100,7 @@ class SavedTabNavigationInstrumentedTest {
             scenario = ActivityScenario.launch(MainActivity::class.java)
 
             click(awaitNode(instrumentation, "收藏 2"))
+            assertThat(awaitSelectedNode(instrumentation, "收藏 2").isSelected).isTrue()
             assertThat(awaitNode(instrumentation, "收藏的知识")).isNotNull()
             assertThat(awaitNode(instrumentation, "共 2 张，按最近收藏排序。点开卡片查看来源、提醒和反馈。")).isNotNull()
             assertThat(awaitNode(instrumentation, PRIMARY_TITLE)).isNotNull()
@@ -122,14 +135,17 @@ class SavedTabNavigationInstrumentedTest {
             assertThat(awaitNode(instrumentation, "从收藏打开")).isNotNull()
             SystemClock.sleep(300)
             click(awaitNodeWithScroll(instrumentation, "取消收藏"))
+            awaitSavedState(database, PRIMARY_CARD_ID, expectedSaved = false)
             assertThat(awaitNodeWithBackwardScroll(instrumentation, "收藏 1")).isNotNull()
             assertThat(awaitNodeWithScroll(instrumentation, SECONDARY_TITLE)).isNotNull()
             assertThat(database.cards().findSavedCard(PRIMARY_CARD_ID)?.isSaved).isFalse()
         } finally {
             scenario?.close()
+            resultStore.clearAll()
             database.cards().clear()
             database.close()
             preferences.edit().putBoolean("completed", wasOnboarded).commit()
+            schedulerPreferences.edit().putBoolean(ANALYSIS_PAUSED_KEY, wasPaused).commit()
         }
     }
 
@@ -158,6 +174,20 @@ class SavedTabNavigationInstrumentedTest {
         createdAtMillis = System.currentTimeMillis()
     )
 
+    private suspend fun awaitSavedState(
+        database: cn.jianwei.data.local.JianweiDatabase,
+        cardId: String,
+        expectedSaved: Boolean,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (database.cards().findSavedCard(cardId)?.isSaved == expectedSaved) return
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for saved state card=$cardId saved=$expectedSaved")
+    }
+
     private fun click(node: AccessibilityNodeInfo) {
         val clickable = generateSequence(node) { current -> current.parent }
             .firstOrNull { current -> current.isClickable }
@@ -175,7 +205,25 @@ class SavedTabNavigationInstrumentedTest {
             findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)?.let { return it }
             SystemClock.sleep(100)
         }
-        error("Timed out waiting for accessibility node: $text")
+        error(
+            "Timed out waiting for accessibility node: $text; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow)
+        )
+    }
+
+    private fun awaitSelectedNode(
+        instrumentation: android.app.Instrumentation,
+        description: String,
+        timeoutMillis: Long = 10_000
+    ): AccessibilityNodeInfo {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            findDescriptionNode(instrumentation.uiAutomation.rootInActiveWindow, description)
+                ?.takeIf { it.isSelected }
+                ?.let { return it }
+            SystemClock.sleep(100)
+        }
+        error("Timed out waiting for selected tab: $description")
     }
 
     private fun awaitNodeWithScroll(
@@ -201,7 +249,10 @@ class SavedTabNavigationInstrumentedTest {
             findTextNode(instrumentation.uiAutomation.rootInActiveWindow, text)?.let { return it }
             swipeBackward(instrumentation)
         }
-        error("Timed out scrolling backward to accessibility node: $text")
+        error(
+            "Timed out scrolling backward to accessibility node: $text; visible=" +
+                visibleText(instrumentation.uiAutomation.rootInActiveWindow)
+        )
     }
 
     private fun swipeForward(instrumentation: android.app.Instrumentation) {
@@ -233,6 +284,28 @@ class SavedTabNavigationInstrumentedTest {
         return null
     }
 
+    private fun findDescriptionNode(
+        root: AccessibilityNodeInfo?,
+        description: String
+    ): AccessibilityNodeInfo? {
+        if (root == null) return null
+        if (root.contentDescription?.toString() == description) return root
+        for (index in 0 until root.childCount) {
+            findDescriptionNode(root.getChild(index), description)?.let { return it }
+        }
+        return null
+    }
+
+    private fun visibleText(root: AccessibilityNodeInfo?): List<String> = buildList {
+        fun collect(node: AccessibilityNodeInfo?) {
+            if (node == null || size >= 50) return
+            node.text?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            node.contentDescription?.toString()?.takeIf(String::isNotBlank)?.let(::add)
+            for (index in 0 until node.childCount) collect(node.getChild(index))
+        }
+        collect(root)
+    }
+
     private companion object {
         const val EMPTY_TITLE = "把想记住的知识留在这里"
         const val SCREENSHOT_NAME = "saved-empty-state.png"
@@ -241,5 +314,7 @@ class SavedTabNavigationInstrumentedTest {
         const val PRIMARY_TITLE = "自行车的齿轮为什么大小不同"
         const val SECONDARY_CARD_ID = "saved-secondary"
         const val SECONDARY_TITLE = "车轮为什么需要辐条"
+        const val SCHEDULER_PREFS = "analysis_scheduler"
+        const val ANALYSIS_PAUSED_KEY = "analysis_paused"
     }
 }

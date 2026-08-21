@@ -63,6 +63,12 @@ function jobFrom(row: DbRow): AnalysisJob {
 }
 
 function cardFrom(row: DbRow): KnowledgeCard {
+  const hasBoundingBox = [
+    row.object_box_x,
+    row.object_box_y,
+    row.object_box_width,
+    row.object_box_height
+  ].every((value) => value !== null && value !== undefined);
   return {
     cardId: String(row.id),
     deviceId: String(row.device_id),
@@ -74,6 +80,12 @@ function cardFrom(row: DbRow): KnowledgeCard {
     body: String(row.body),
     personalContext: String(row.personal_context),
     confidence: Number(row.confidence),
+    boundingBox: hasBoundingBox ? {
+      x: Number(row.object_box_x),
+      y: Number(row.object_box_y),
+      width: Number(row.object_box_width),
+      height: Number(row.object_box_height)
+    } : null,
     sources: row.sources as KnowledgeSource[],
     status: row.status as KnowledgeCard["status"],
     scheduledDate: databaseDate(row.scheduled_date),
@@ -417,10 +429,13 @@ export class PostgresRepositories {
           cardRows = await transaction<DbRow[]>`
             INSERT INTO cards (
               id, device_id, candidate_token, topic_id, fact_id, title, detected_object_name, body, personal_context,
-              confidence, sources, status, scheduled_date, backend_release_sha256
+              confidence, object_box_x, object_box_y, object_box_width, object_box_height,
+              sources, status, scheduled_date, backend_release_sha256
             ) VALUES (
               ${cardId}, ${claimedJob.deviceId}, ${claimedJob.candidateToken}, ${card.topicId}, ${card.factId},
               ${card.title}, ${card.detectedObjectName}, ${card.body}, ${card.personalContext}, ${card.confidence},
+              ${card.boundingBox?.x ?? null}, ${card.boundingBox?.y ?? null},
+              ${card.boundingBox?.width ?? null}, ${card.boundingBox?.height ?? null},
               ${transaction.json(card.sources as unknown as postgres.JSONValue)}, ${card.status}, ${scheduledDate},
               ${this.backendReleaseSha256}
             ) RETURNING *`;
@@ -481,10 +496,13 @@ export class PostgresRepositories {
       const rows = await this.sql<DbRow[]>`
         INSERT INTO cards (
           id, device_id, candidate_token, topic_id, fact_id, title, detected_object_name, body, personal_context,
-          confidence, sources, status, scheduled_date, backend_release_sha256
+          confidence, object_box_x, object_box_y, object_box_width, object_box_height,
+          sources, status, scheduled_date, backend_release_sha256
         ) VALUES (
           ${id}, ${card.deviceId}, ${card.candidateToken}, ${card.topicId}, ${card.factId},
           ${card.title}, ${card.detectedObjectName}, ${card.body}, ${card.personalContext}, ${card.confidence},
+          ${card.boundingBox?.x ?? null}, ${card.boundingBox?.y ?? null},
+          ${card.boundingBox?.width ?? null}, ${card.boundingBox?.height ?? null},
           ${this.sql.json(card.sources as unknown as postgres.JSONValue)}, ${card.status}, ${card.scheduledDate},
           ${this.backendReleaseSha256}
         ) RETURNING *`;
@@ -528,6 +546,8 @@ export class PostgresRepositories {
       return this.sql.begin(async (transaction) => {
         await transaction`
           SELECT pg_advisory_xact_lock(hashtextextended(${`${input.deviceId}:${input.cardId}`}, 0))`;
+        await transaction`
+          SELECT pg_advisory_xact_lock(hashtextextended(${`${input.deviceId}:${input.topicId}`}, 0))`;
         const terminalRows = await transaction<DbRow[]>`
           SELECT * FROM feedback
           WHERE device_id = ${input.deviceId} AND card_id = ${input.cardId} AND action = 'WRONG_OBJECT'
@@ -552,15 +572,24 @@ export class PostgresRepositories {
           };
         }
         const priorInterestRows = input.action === "WRONG_OBJECT"
-          ? await transaction<{ action: CardFeedback["action"] }[]>`
-              SELECT action FROM feedback
+          ? await transaction<{ affinity_delta_applied: number }[]>`
+              SELECT affinity_delta_applied FROM feedback
               WHERE device_id = ${input.deviceId} AND card_id = ${input.cardId}
                 AND action IN ('LIKE', 'DISLIKE', 'SAVE')`
           : [];
+        const currentPreferenceRows = await transaction<{ weight: number }[]>`
+          SELECT weight FROM topic_preferences
+          WHERE device_id = ${input.deviceId} AND topic_id = ${input.topicId}
+          LIMIT 1`;
+        const currentWeight = Number(currentPreferenceRows[0]?.weight ?? 0);
+        const requestedDelta = feedbackWeightDelta(input.action);
+        const appliedDelta = input.action === "WRONG_OBJECT"
+          ? 0
+          : clampPreference(currentWeight + requestedDelta) - currentWeight;
         const id = randomUUID();
         let rows = await transaction<DbRow[]>`
-          INSERT INTO feedback (id, device_id, card_id, action)
-          VALUES (${id}, ${input.deviceId}, ${input.cardId}, ${input.action})
+          INSERT INTO feedback (id, device_id, card_id, action, affinity_delta_applied)
+          VALUES (${id}, ${input.deviceId}, ${input.cardId}, ${input.action}, ${appliedDelta})
           ON CONFLICT (device_id, card_id, action) DO NOTHING
           RETURNING *`;
         const inserted = Boolean(rows[0]);
@@ -571,11 +600,11 @@ export class PostgresRepositories {
             LIMIT 1`;
         }
         const priorInterestDelta = priorInterestRows.reduce(
-          (total, row) => total + feedbackWeightDelta(row.action),
+          (total, row) => total + Number(row.affinity_delta_applied),
           0
         );
         const delta = inserted
-          ? feedbackWeightDelta(input.action) - priorInterestDelta
+          ? appliedDelta - priorInterestDelta
           : 0;
         if (input.action === "WRONG_OBJECT") {
           await transaction`
@@ -685,7 +714,7 @@ export class PostgresRepositories {
       const row = rows[0] as DbRow;
       return {
         id: String(row.id), deviceId: String(row.device_id), cardId: String(row.card_id),
-        startedOn: String(row.started_on).slice(0, 10), reminderDays: Number(row.reminder_days),
+        startedOn: databaseDate(row.started_on), reminderDays: Number(row.reminder_days),
         createdAt: new Date(String(row.created_at)).toISOString()
       };
     },
@@ -731,6 +760,10 @@ function feedbackWeightDelta(action: CardFeedback["action"]): number {
     case "WRONG_OBJECT": return 0;
     case "TOO_PRIVATE": return -8;
   }
+}
+
+function clampPreference(value: number): number {
+  return Math.max(-20, Math.min(20, value));
 }
 
 function privateDeletionFrom(

@@ -128,6 +128,8 @@ class ImportPhotosUseCaseTest {
         override fun scheduleAccessReconciliation(access: cn.jianwei.domain.model.PhotoAccess) =
             error("not used")
         override fun scheduleDailyRefresh() = error("not used")
+        override suspend fun restartAutomaticDiscovery(access: cn.jianwei.domain.model.PhotoAccess) =
+            error("not used")
         override suspend fun stopAutomaticDiscovery() = error("not used")
         override suspend fun pauseAndCancel() = error("not used")
         override fun cancelAll() = error("not used")

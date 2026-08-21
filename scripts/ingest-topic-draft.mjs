@@ -17,7 +17,8 @@ if (process.argv.includes("--self-test")) {
   if (imported.topics.length !== 1 || imported.topics[0].facts.length !== 3) {
     throw new Error("Ingest self-test did not add one complete topic");
   }
-  if (imported.topics[0].facts.some((fact) => fact.reviewStatus !== "draft" || fact.review !== undefined)) {
+  if (imported.topics[0].facts.some((fact) =>
+    fact.reviewStatus !== "draft" || fact.review !== undefined || fact.aiReview !== undefined)) {
     throw new Error("Ingest self-test unexpectedly granted release authority");
   }
   expectFailure(() => mergeTopicDraft(imported, draft), "duplicate facts must fail");

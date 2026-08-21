@@ -10,7 +10,7 @@ import org.junit.Test
 class DiscoveryUiPolicyTest {
     @Test
     fun `denied broad access never claims or schedules automatic scanning`() {
-        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PICKER_ONLY)).isFalse()
+        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PICKER_ONLY, true)).isFalse()
         assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY, AutomaticCardMode.DAILY_ONE))
             .contains("不会自动扫描")
         assertThat(discoveryStartMessage(PhotoAccess.PICKER_ONLY, AutomaticCardMode.PREPARED_POOL))
@@ -30,47 +30,60 @@ class DiscoveryUiPolicyTest {
 
     @Test
     fun `full and partial access can schedule automatic discovery`() {
-        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.FULL)).isTrue()
-        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PARTIAL)).isTrue()
+        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.FULL, true)).isTrue()
+        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.PARTIAL, true)).isTrue()
+        assertThat(shouldScheduleAutomaticDiscovery(PhotoAccess.FULL, false)).isFalse()
         assertThat(discoveryStartMessage(PhotoAccess.FULL, AutomaticCardMode.PREPARED_POOL))
             .contains("已开始本机扫描")
     }
 
     @Test
     fun `photo access summary explains behavior without sounding like a permission screen`() {
-        assertThat(photoAccessSummary(PhotoAccess.FULL, AutomaticCardMode.PREPARED_POOL))
-            .isEqualTo("自动发现已开启 · 提前准备 · 全部授权照片")
-        assertThat(photoAccessSummary(PhotoAccess.PARTIAL, AutomaticCardMode.DAILY_ONE))
-            .isEqualTo("自动发现已开启 · 每天一张 · 仅限你选中的照片")
-        assertThat(photoAccessSummary(PhotoAccess.PICKER_ONLY, AutomaticCardMode.DAILY_ONE))
+        assertThat(photoAccessSummary(PhotoAccess.FULL, AutomaticCardMode.PREPARED_POOL, true))
+            .isEqualTo("自动发现已开启 · 提前备好一周 · 全部授权照片")
+        assertThat(photoAccessSummary(PhotoAccess.PARTIAL, AutomaticCardMode.DAILY_ONE, true))
+            .isEqualTo("自动发现已开启 · 当天只理解一张 · 仅限你选中的照片")
+        assertThat(photoAccessSummary(PhotoAccess.PICKER_ONLY, AutomaticCardMode.DAILY_ONE, true))
+            .isEqualTo("自动发现等待照片访问权限 · 当天只理解一张")
+        assertThat(photoAccessSummary(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE, false))
             .isEqualTo("仅分析你选择或分享的照片")
     }
 
     @Test
     fun `automatic discovery can be enabled or adjusted after onboarding`() {
-        assertThat(automaticDiscoveryControl(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE)).isNull()
+        assertThat(automaticDiscoveryControl(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE, true)).isNull()
         assertThat(automaticDiscoveryControl(
             PhotoAccess.PARTIAL,
-            AutomaticCardMode.PREPARED_POOL
+            AutomaticCardMode.PREPARED_POOL,
+            true
         )?.actionLabel)
             .isEqualTo("调整可访问照片")
         assertThat(automaticDiscoveryControl(
             PhotoAccess.PICKER_ONLY,
-            AutomaticCardMode.DAILY_ONE
+            AutomaticCardMode.DAILY_ONE,
+            true
         )?.actionLabel)
             .isEqualTo("开启自动发现")
         assertThat(automaticDiscoveryControl(
             PhotoAccess.PICKER_ONLY,
-            AutomaticCardMode.DAILY_ONE
+            AutomaticCardMode.DAILY_ONE,
+            true
         )?.explanation).contains("最多上传分析 1 张")
         assertThat(automaticDiscoveryControl(
             PhotoAccess.PICKER_ONLY,
-            AutomaticCardMode.DAILY_ONE
+            AutomaticCardMode.DAILY_ONE,
+            true
         )?.emphasized).isTrue()
         assertThat(automaticDiscoveryControl(
             PhotoAccess.PARTIAL,
-            AutomaticCardMode.PREPARED_POOL
+            AutomaticCardMode.PREPARED_POOL,
+            true
         )?.emphasized).isFalse()
+        assertThat(automaticDiscoveryControl(
+            PhotoAccess.FULL,
+            AutomaticCardMode.PREPARED_POOL,
+            false
+        )?.actionLabel).isEqualTo("开启自动发现")
     }
 
     @Test
@@ -141,6 +154,24 @@ class DiscoveryUiPolicyTest {
                 widgetInstalled = true
             )
         ).isFalse()
+        assertThat(
+            shouldShowImportedResultWidgetCallToAction(
+                fromRecentImport = true,
+                widgetInstalled = false
+            )
+        ).isTrue()
+        assertThat(
+            shouldShowImportedResultWidgetCallToAction(
+                fromRecentImport = false,
+                widgetInstalled = false
+            )
+        ).isFalse()
+        assertThat(
+            shouldShowImportedResultWidgetCallToAction(
+                fromRecentImport = true,
+                widgetInstalled = true
+            )
+        ).isFalse()
         assertThat(widgetManagementActionLabel(widgetInstalled = false)).isEqualTo("添加桌面组件")
         assertThat(widgetManagementActionLabel(widgetInstalled = true)).isEqualTo("再添加一个桌面组件")
     }
@@ -208,7 +239,8 @@ class DiscoveryUiPolicyTest {
         val start = discoveryStartMessage(PhotoAccess.FULL, AutomaticCardMode.DAILY_ONE)
         val control = automaticDiscoveryControl(
             PhotoAccess.PICKER_ONLY,
-            AutomaticCardMode.DAILY_ONE
+            AutomaticCardMode.DAILY_ONE,
+            true
         )
         val scanning = emptyDiscoveryCopy(
             paused = false,
@@ -271,10 +303,28 @@ class DiscoveryUiPolicyTest {
     @Test
     fun `photo analysis indicator remains truthful when no user mutation is active`() {
         val active = homeActivityIndicator(null, AnalysisProgress(phase = AnalysisPhase.SYNCING))
+        val representedByImportCard = homeActivityIndicator(
+            activeOperation = null,
+            progress = AnalysisProgress(phase = AnalysisPhase.SYNCING),
+            analysisProgressShownInContent = true
+        )
         val idle = homeActivityIndicator(null, AnalysisProgress(phase = AnalysisPhase.READY))
 
         assertThat(active?.contentDescription).isEqualTo("照片分析")
         assertThat(active?.stateDescription).isEqualTo("正在处理")
+        assertThat(representedByImportCard).isNull()
         assertThat(idle).isNull()
+    }
+
+    @Test
+    fun `user mutation indicator is retained when imported analysis is shown in content`() {
+        val active = homeActivityIndicator(
+            activeOperation = UserOperation.DELETE_CLOUD_DATA,
+            progress = AnalysisProgress(phase = AnalysisPhase.SYNCING),
+            analysisProgressShownInContent = true
+        )
+
+        assertThat(active?.contentDescription).isEqualTo("操作进度")
+        assertThat(active?.stateDescription).isEqualTo("正在删除云端数据")
     }
 }

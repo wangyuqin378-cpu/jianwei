@@ -48,7 +48,11 @@ data class CardEntity(
     val sources: String,
     val status: String,
     val scheduledDate: String,
-    val createdAtMillis: Long
+    val createdAtMillis: Long,
+    val objectBoxX: Double? = null,
+    val objectBoxY: Double? = null,
+    val objectBoxWidth: Double? = null,
+    val objectBoxHeight: Double? = null
 )
 
 @Entity(
@@ -68,7 +72,8 @@ data class SavedCardEntity(
     val isSaved: Boolean,
     val feedbackSignaled: Boolean,
     val savedAtMillis: Long,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val affinityDeltaApplied: Double = 0.0
 )
 
 @Entity(
@@ -85,7 +90,8 @@ data class SavedCardEntity(
 data class CardFeedbackStateEntity(
     @PrimaryKey val cardId: String,
     val action: String,
-    val submittedAtMillis: Long
+    val submittedAtMillis: Long,
+    val affinityDeltaApplied: Double = 0.0
 )
 
 @Entity(tableName = "pending_feedback", indices = [Index(value = ["cardId", "action"], unique = true)])

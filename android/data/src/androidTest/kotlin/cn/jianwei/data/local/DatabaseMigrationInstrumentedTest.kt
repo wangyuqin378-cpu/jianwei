@@ -345,6 +345,96 @@ class DatabaseMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion13To14PreservesLegacyCardsAndStoresObjectBounds() {
+        helper.createDatabase(OBJECT_BOUNDS_DATABASE, 13).apply {
+            execSQL(
+                "INSERT INTO knowledge_cards " +
+                    "(cardId, candidateToken, photoUri, topicId, factId, title, detectedObjectName, body, " +
+                    "personalContext, confidence, sources, status, scheduledDate, createdAtMillis) VALUES " +
+                    "('card-bounds', 'candidate-bounds', '', 'broom', 'broom-001', '扫帚', " +
+                    "'扫帚', 'Fact', 'Context', 0.9, '[]', 'scheduled', '2026-07-28', 1)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            OBJECT_BOUNDS_DATABASE,
+            14,
+            true,
+            MIGRATION_13_14
+        ).use { database ->
+            database.query(
+                "SELECT objectBoxX, objectBoxY, objectBoxWidth, objectBoxHeight " +
+                    "FROM knowledge_cards WHERE cardId = 'card-bounds'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.isNull(0)).isTrue()
+                assertThat(cursor.isNull(1)).isTrue()
+                assertThat(cursor.isNull(2)).isTrue()
+                assertThat(cursor.isNull(3)).isTrue()
+            }
+            database.execSQL(
+                "UPDATE knowledge_cards SET objectBoxX = 0.62, objectBoxY = 0.08, " +
+                    "objectBoxWidth = 0.28, objectBoxHeight = 0.84 WHERE cardId = 'card-bounds'"
+            )
+            database.query(
+                "SELECT objectBoxX, objectBoxWidth FROM knowledge_cards WHERE cardId = 'card-bounds'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getDouble(0)).isEqualTo(0.62)
+                assertThat(cursor.getDouble(1)).isEqualTo(0.28)
+            }
+        }
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migratesVersion14To15BackfillsReversibleFeedbackContributions() {
+        helper.createDatabase(FEEDBACK_CONTRIBUTION_DATABASE, 14).apply {
+            execSQL(
+                "INSERT INTO knowledge_cards " +
+                    "(cardId, candidateToken, photoUri, topicId, factId, title, detectedObjectName, body, " +
+                    "personalContext, confidence, sources, status, scheduledDate, createdAtMillis) VALUES " +
+                    "('card-contribution', 'candidate-contribution', '', 'broom', 'broom-001', '扫帚', " +
+                    "'扫帚', 'Fact', 'Context', 0.9, '[]', 'scheduled', '2026-07-29', 1)"
+            )
+            execSQL(
+                "INSERT INTO card_feedback_states (cardId, action, submittedAtMillis) " +
+                    "VALUES ('card-contribution', 'LIKE', 100)"
+            )
+            execSQL(
+                "INSERT INTO saved_cards " +
+                    "(cardId, isSaved, feedbackSignaled, savedAtMillis, updatedAtMillis) " +
+                    "VALUES ('card-contribution', 1, 1, 90, 90)"
+            )
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            FEEDBACK_CONTRIBUTION_DATABASE,
+            15,
+            true,
+            MIGRATION_14_15
+        ).use { database ->
+            database.query(
+                "SELECT affinityDeltaApplied FROM card_feedback_states " +
+                    "WHERE cardId = 'card-contribution'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getDouble(0)).isWithin(0.000_001).of(0.35)
+            }
+            database.query(
+                "SELECT affinityDeltaApplied FROM saved_cards " +
+                    "WHERE cardId = 'card-contribution'"
+            ).use { cursor ->
+                assertThat(cursor.moveToFirst()).isTrue()
+                assertThat(cursor.getDouble(0)).isWithin(0.000_001).of(0.50)
+            }
+        }
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-2-3-test"
         const val CURSOR_DATABASE = "migration-3-4-cursor-test"
@@ -357,5 +447,7 @@ class DatabaseMigrationInstrumentedTest {
         const val PRIVACY_REFERENCE_DATABASE = "migration-10-11-privacy-reference-test"
         const val REMINDER_SCHEDULE_DATABASE = "migration-11-12-reminder-schedule-test"
         const val FEEDBACK_TOPIC_DATABASE = "migration-12-13-feedback-topic-test"
+        const val OBJECT_BOUNDS_DATABASE = "migration-13-14-object-bounds-test"
+        const val FEEDBACK_CONTRIBUTION_DATABASE = "migration-14-15-feedback-contribution-test"
     }
 }

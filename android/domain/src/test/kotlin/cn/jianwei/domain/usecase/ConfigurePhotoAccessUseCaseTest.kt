@@ -45,6 +45,7 @@ class ConfigurePhotoAccessUseCaseTest {
         override fun scheduleDailyRefresh() {
             dailyRefreshes++
         }
+        override suspend fun restartAutomaticDiscovery(access: PhotoAccess) = Unit
 
         override suspend fun stopAutomaticDiscovery() {
             stopCalls++

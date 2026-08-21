@@ -2,22 +2,31 @@ import { describe, expect, it } from "vitest";
 import { cardTitleForConfidence, composeCardTitle, UNCERTAIN_OBJECT_CONFIDENCE } from "./card-presentation.js";
 
 describe("composeCardTitle", () => {
-  it("creates a stable, safe title without model-written facts", () => {
-    const first = composeCardTitle(" 扫帚 ", "broom-001");
-    expect(first).toBe(composeCardTitle("扫帚", "broom-001"));
-    expect(first).toContain("扫帚");
-    expect(Array.from(first).length).toBeLessThanOrEqual(30);
+  it("uses the reviewed fact lead without model-written facts", () => {
+    const fact = "现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角。";
+    const first = composeCardTitle(" 扫帚 ", "broom-001", fact);
+    expect(first).toBe(composeCardTitle("扫帚", "broom-001", fact));
+    expect(first).toBe("现代扫帚常把刷毛设计成略带角度的扇形");
   });
 
-  it("varies safe phrasing between facts and bounds long object names", () => {
-    const titles = new Set(["a", "b", "c", "d", "e", "f"].map((factId) => composeCardTitle("牙刷", factId)));
+  it("falls back to varied safe phrasing for context-dependent fact leads", () => {
+    const titles = new Set(
+      ["a", "b", "c", "d", "e", "f"].map((factId) =>
+        composeCardTitle("牙刷", factId, "这项设计需要前文才能理解，因此不直接作为标题。")
+      )
+    );
     expect(titles.size).toBe(3);
-    expect(Array.from(composeCardTitle("很长".repeat(30), "fact-long"))).toHaveLength(30);
+    expect(Array.from(composeCardTitle(
+      "很长".repeat(30),
+      "fact-long",
+      "这项设计需要前文才能理解，因此不直接作为标题。"
+    ))).toHaveLength(30);
   });
 
   it("fails closed when the catalog identity is missing", () => {
-    expect(() => composeCardTitle(" ", "fact")).toThrow("invalid");
-    expect(() => composeCardTitle("扫帚", " ")).toThrow("invalid");
+    expect(() => composeCardTitle(" ", "fact", "有效事实正文。" )).toThrow("invalid");
+    expect(() => composeCardTitle("扫帚", " ", "有效事实正文。" )).toThrow("invalid");
+    expect(() => composeCardTitle("扫帚", "fact", " ")).toThrow("invalid");
   });
 });
 

@@ -193,6 +193,12 @@ data class SourceDto(
     val publisher: String?,
     val authority: String?
 )
+data class BoundingBoxDto(
+    val x: Double?,
+    val y: Double?,
+    val width: Double?,
+    val height: Double?
+)
 data class CardDto(
     val cardId: String?,
     val candidateToken: String?,
@@ -206,7 +212,8 @@ data class CardDto(
     val sources: List<SourceDto?>?,
     val status: String?,
     val scheduledDate: String?,
-    val createdAt: String?
+    val createdAt: String?,
+    val boundingBox: BoundingBoxDto? = null
 )
 data class FeedbackRequest(val action: String)
 data class FeedbackResponse(

@@ -133,13 +133,32 @@ export function assessApiContract(input) {
     }
   }
   const cardSchema = contract.components?.schemas?.Card;
+  const boundingBoxSchema = contract.components?.schemas?.BoundingBox;
+  const cardBoundingBox = cardSchema?.properties?.boundingBox;
   if (
     !cardSchema || cardSchema.additionalProperties !== false ||
     Object.hasOwn(cardSchema.properties ?? {}, "deviceId") ||
     cardSchema.properties?.status?.enum?.length !== 3 ||
-    cardSchema.properties?.body?.maxLength !== 240
+    cardSchema.properties?.body?.maxLength !== 240 ||
+    !new Set(cardSchema.required ?? []).has("boundingBox") ||
+    !Array.isArray(cardBoundingBox?.oneOf) ||
+    cardBoundingBox.oneOf[0]?.$ref !== "#/components/schemas/BoundingBox" ||
+    cardBoundingBox.oneOf[1]?.type !== "null"
   ) {
     failures.push("Card must be a strict bounded public response without internal device identity");
+  }
+  if (
+    !boundingBoxSchema || boundingBoxSchema.additionalProperties !== false ||
+    !["x", "y", "width", "height"].every((field) =>
+      new Set(boundingBoxSchema.required ?? []).has(field) &&
+      boundingBoxSchema.properties?.[field]?.type === "number"
+    ) ||
+    boundingBoxSchema.properties?.x?.minimum !== 0 ||
+    boundingBoxSchema.properties?.y?.minimum !== 0 ||
+    boundingBoxSchema.properties?.width?.exclusiveMinimum !== 0 ||
+    boundingBoxSchema.properties?.height?.exclusiveMinimum !== 0
+  ) {
+    failures.push("BoundingBox must be a strict normalized object");
   }
   for (const marker of [".put(", "isAllowedUploadUrl", "isExpectedApiUploadPath", "PermissionCheckedRequestBody"]) {
     if (!input.remoteAnalysis.includes(marker)) failures.push(`raw upload client is missing: ${marker}`);
@@ -209,6 +228,7 @@ if (process.argv.includes("--self-test")) {
     ["removed device deletion acknowledgement", (value) => { value.openapi = value.openapi.replace("#/components/schemas/DeleteDeviceDataResponse", "#/components/schemas/ErrorResponse"); }],
     ["loosened card page", (value) => { value.openapi = value.openapi.replace('"CardsResponse": { "type": "object", "additionalProperties": false', '"CardsResponse": { "type": "object"'); }],
     ["loosened public card", (value) => { value.openapi = value.openapi.replace('"Card": {\n        "type": "object",\n        "additionalProperties": false', '"Card": {\n        "type": "object"'); }],
+    ["removed card bounds", (value) => { value.openapi = value.openapi.replace('"boundingBox", ', ""); }],
     ["request field drift", (value) => { value.androidApi = value.androidApi.replace("val qualityScore: Double", "val quality: Double"); }],
     ["invalid OpenAPI", (value) => { value.openapi = "{"; }]
   ];

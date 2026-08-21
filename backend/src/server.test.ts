@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -20,7 +20,7 @@ const SECOND_INSTALLATION_ID = "c31d7b10-5af0-4bdd-b7dd-5b65112cfa11";
 const CANDIDATE_ID = "126820f9-8f55-4f30-888c-d5baab090b52";
 const SECOND_CANDIDATE_ID = "7f684985-7f7a-49b5-8f02-2a893f875fee";
 const PUBLIC_CARD_FIELDS = [
-  "body", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
+  "body", "boundingBox", "candidateToken", "cardId", "confidence", "createdAt", "detectedObjectName", "factId",
   "personalContext", "scheduledDate", "sources", "status", "title", "topicId"
 ];
 
@@ -240,7 +240,7 @@ describe("见微 API", () => {
     expect(completed.json().candidateToken).toBe(CANDIDATE_ID);
     expect(completed.json().status).toBe("completed");
     expect(card.topicId).toBe("broom");
-    expect(card.factId).toBe("broom-001");
+    expect(card.factId).toMatch(/^broom-/);
     expect(card.detectedObjectName).toBe("扫帚");
     expect(card.body.length).toBeGreaterThanOrEqual(28);
     expect(card.sources[0].url).toMatch(/^https:\/\//);
@@ -475,7 +475,7 @@ describe("见微 API", () => {
         canonicalTopicId: "broom",
         displayName: "清扫刷",
         confidence: 0.68,
-        boundingBox: null,
+        boundingBox: { x: 0.62, y: 0.08, width: 0.28, height: 0.84 },
         alternatives: ["扫帚"],
         sensitiveFlags: []
       })
@@ -515,7 +515,8 @@ describe("见微 API", () => {
       detectedObjectName: "扫帚",
       title: "这可能是扫帚",
       personalContext: "你在 2026 年 7 月 18 日拍下了「扫帚」，所以今天从它讲起。",
-      confidence: 0.68
+      confidence: 0.68,
+      boundingBox: { x: 0.62, y: 0.08, width: 0.28, height: 0.84 }
     });
     expect(await readdir(objectDir)).toEqual([]);
     await app.close();
@@ -558,6 +559,49 @@ describe("见微 API", () => {
     expect(staleLike.json().action).toBe("WRONG_OBJECT");
     expect(staleLike.json().topicAffinities[0].weight).toBe(0);
     expect(await readdir(objectDir)).toEqual([]);
+    await app.close();
+  });
+
+  it("restores the exact pre-card preference after saturated feedback is corrected", async () => {
+    const objectDir = await temporaryObjectDir();
+    const app = await buildServer({ config: testConfig(objectDir) });
+    const token = await register(app);
+
+    for (let index = 0; index < 4; index += 1) {
+      const prior = await completeTestCard(app, token, randomUUID());
+      const liked = await app.inject({
+        method: "POST",
+        url: `/v1/cards/${prior.cardId}/feedback`,
+        headers: bearer(token),
+        payload: { action: "LIKE" }
+      });
+      expect(liked.statusCode).toBe(201);
+    }
+
+    const target = await completeTestCard(app, token, randomUUID());
+    const saved = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${target.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "SAVE" }
+    });
+    expect(saved.json().topicAffinities[0].weight).toBe(2);
+    const saturatedLike = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${target.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "LIKE" }
+    });
+    expect(saturatedLike.json().topicAffinities[0].weight).toBe(2);
+
+    const corrected = await app.inject({
+      method: "POST",
+      url: `/v1/cards/${target.cardId}/feedback`,
+      headers: bearer(token),
+      payload: { action: "WRONG_OBJECT" }
+    });
+    expect(corrected.statusCode).toBe(201);
+    expect(corrected.json().topicAffinities[0].weight).toBe(1.6);
     await app.close();
   });
 
@@ -635,7 +679,7 @@ describe("见微 API", () => {
     await app.close();
   });
 
-  it("never publishes a draft-only topic", async () => {
+  it("never publishes a high-risk-only topic", async () => {
     const objectDir = await temporaryObjectDir();
     const app = await buildServer({ config: testConfig(objectDir) });
     const token = await register(app);
@@ -646,7 +690,7 @@ describe("见微 API", () => {
       payload: {
         candidateToken: CANDIDATE_ID,
         capturedAtBucket: null,
-        localLabels: ["mug", "coffee cup"],
+        localLabels: ["toothbrush", "牙刷"],
         qualityScore: 0.9,
         sensitiveFlags: [],
         contentType: "image/jpeg"

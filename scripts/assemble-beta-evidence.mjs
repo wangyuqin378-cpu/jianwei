@@ -105,7 +105,7 @@ async function runSelfTest() {
   manifest.evidenceOwner = "human-evidence-owner";
   manifest.assemblyApproved = true;
   manifest.approvedAt = approvedAt.toISOString();
-  const readyKnowledge = { status: "GO", metrics: { topics: 200, readyTopics: 200, humanAttestedFacts: 600 }, blockers: [] };
+  const readyKnowledge = { status: "GO", metrics: { topics: 200, readyTopics: 200, verifiedFacts: 600, aiReviewedFacts: 600, humanAttestedFacts: 0 }, blockers: [] };
   const assemble = (candidateManifest = manifest, candidateArtifacts = artifacts, overrides = {}) => {
     const manifestBytes = Buffer.from(`${JSON.stringify(candidateManifest, null, 2)}\n`, "utf8");
     return assembleBetaEvidence({

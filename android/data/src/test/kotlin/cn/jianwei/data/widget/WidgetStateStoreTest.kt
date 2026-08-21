@@ -58,6 +58,19 @@ class WidgetStateStoreTest {
     }
 
     @Test
+    fun `database reorder after consuming a future card never returns to the first card`() = runBlocking {
+        val store = WidgetStateStore(InMemoryPreferencesDataStore())
+        store.selectForDisplay(DAY_ONE, listOf("first", "second", "third"), "first")
+
+        assertThat(
+            store.tryAdvance(DAY_ONE, listOf("first", "second", "third"), "first").state.currentCardId
+        ).isEqualTo("second")
+        assertThat(
+            store.tryAdvance(DAY_ONE, listOf("second", "first", "third"), "second").state.currentCardId
+        ).isEqualTo("third")
+    }
+
+    @Test
     fun `next day resets once and still commits exactly two concurrent switches`() = runBlocking {
         val store = WidgetStateStore(InMemoryPreferencesDataStore())
         store.selectForDisplay(DAY_ONE, CARDS, "first")

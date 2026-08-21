@@ -26,8 +26,10 @@ import cn.jianwei.domain.model.FeedbackSubmissionResult
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.PendingReminderSchedule
 import cn.jianwei.domain.model.KnowledgeSource
+import cn.jianwei.domain.model.NormalizedBoundingBox
 import cn.jianwei.domain.model.SavedCardUpdateResult
 import cn.jianwei.domain.model.TrackedItem
+import cn.jianwei.domain.model.TopicAffinitySignal
 import cn.jianwei.domain.model.isOrdinaryCardFeedback
 import cn.jianwei.domain.model.normalizedSafeKnowledgeSourceUrl
 import cn.jianwei.domain.repository.CardRepository
@@ -84,6 +86,12 @@ class RoomCardRepository @Inject constructor(
                     }
             }
         }
+    override fun observeTopicAffinitySignals(): Flow<List<TopicAffinitySignal>> =
+        cards.observeTopicAffinityEntities().map { items ->
+            items.map { item ->
+                TopicAffinitySignal(item.topicId, item.weight, item.aliases.toSet())
+            }
+        }
 
     override suspend fun syncCards() = sessionGate.withActiveSession { session ->
         // A privacy deletion is a barrier: never download cards while one is unacknowledged.
@@ -137,7 +145,11 @@ class RoomCardRepository @Inject constructor(
                         sources = sourcesToJson(payload.sources),
                         status = if (payload.cardId in wrongObjectCardIds) "archived" else payload.status,
                         scheduledDate = payload.scheduledDate,
-                        createdAtMillis = payload.createdAtMillis
+                        createdAtMillis = payload.createdAtMillis,
+                        objectBoxX = payload.objectBounds?.x,
+                        objectBoxY = payload.objectBounds?.y,
+                        objectBoxWidth = payload.objectBounds?.width,
+                        objectBoxHeight = payload.objectBounds?.height
                     )
                     if (entitiesById.putIfAbsent(payload.cardId, entity) != null) {
                         throw IOException("Duplicate card ID across paginated response")
@@ -476,6 +488,7 @@ internal data class ValidatedCardPayload(
     val body: String,
     val personalContext: String,
     val confidence: Double,
+    val objectBounds: NormalizedBoundingBox?,
     val sources: List<KnowledgeSource>,
     val status: String,
     val scheduledDate: String,
@@ -548,6 +561,21 @@ internal fun cn.jianwei.data.network.CardDto.validatedForPersistence(
     val statusValue = status?.takeIf { it in CARD_STATUSES }
         ?: throw IOException("Card contains an invalid status")
     val sourceValues = sources ?: throw IOException("Card contains invalid knowledge sources")
+    val objectBounds = boundingBox?.let { box ->
+        val x = box.x
+        val y = box.y
+        val width = box.width
+        val height = box.height
+        if (
+            x == null || y == null || width == null || height == null ||
+            !x.isFinite() || !y.isFinite() || !width.isFinite() || !height.isFinite() ||
+            x < 0.0 || y < 0.0 || width <= 0.0 || height <= 0.0 ||
+            x + width > 1.0 || y + height > 1.0
+        ) {
+            throw IOException("Card contains invalid object bounds")
+        }
+        NormalizedBoundingBox(x, y, width, height)
+    }
 
     return ValidatedCardPayload(
         cardId = identity.cardId,
@@ -559,6 +587,7 @@ internal fun cn.jianwei.data.network.CardDto.validatedForPersistence(
         body = text(body, "body", MAX_CARD_BODY_CODE_POINTS),
         personalContext = text(personalContext, "personal context", MAX_PERSONAL_CONTEXT_CODE_POINTS),
         confidence = confidenceValue,
+        objectBounds = objectBounds,
         sources = sourceValues.validatedSources(),
         status = statusValue,
         scheduledDate = scheduledDateValue,

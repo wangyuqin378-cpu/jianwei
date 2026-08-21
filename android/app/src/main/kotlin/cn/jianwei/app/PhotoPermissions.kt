@@ -24,5 +24,13 @@ fun currentPhotoAccess(context: Context): PhotoAccess = when {
     else -> PhotoAccess.PICKER_ONLY
 }
 
+internal fun shouldOpenPhotoPermissionSettings(
+    access: PhotoAccess,
+    previousRequestCount: Int,
+    shouldShowRationale: Boolean
+): Boolean = access == PhotoAccess.PICKER_ONLY &&
+    previousRequestCount > 0 &&
+    !shouldShowRationale
+
 private fun granted(context: Context, permission: String) =
     ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

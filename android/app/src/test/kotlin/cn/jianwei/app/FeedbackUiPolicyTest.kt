@@ -3,8 +3,13 @@ package cn.jianwei.app
 import cn.jianwei.domain.model.CardFeedbackState
 import cn.jianwei.domain.model.FeedbackAction
 import cn.jianwei.domain.model.FeedbackSubmissionResult
+import cn.jianwei.domain.model.KnowledgeCard
+import cn.jianwei.domain.model.KnowledgeSource
 import cn.jianwei.domain.model.SavedCardUpdateResult
+import cn.jianwei.domain.model.TopicAffinitySignal
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
+import java.time.LocalDate
 import org.junit.Test
 
 class FeedbackUiPolicyTest {
@@ -72,4 +77,66 @@ class FeedbackUiPolicyTest {
         assertThat(message).contains("已隐藏")
         assertThat(message).contains("不会把它当作兴趣信号")
     }
+
+    @Test
+    fun `ordinary feedback explains the visible recommendation effect`() {
+        assertThat(
+            feedbackResultMessage(FeedbackSubmissionResult(true, FeedbackAction.LIKE))
+        ).contains("更常留意")
+        assertThat(
+            feedbackResultMessage(FeedbackSubmissionResult(true, FeedbackAction.DISLIKE))
+        ).contains("降低这类内容的推荐权重")
+
+        val liked = feedbackLearningPresentation(FeedbackAction.LIKE, "扫帚")
+        val disliked = feedbackLearningPresentation(FeedbackAction.DISLIKE, "充电线")
+        assertThat(liked.title).isEqualTo("已记住 · 有意思")
+        assertThat(liked.body).contains("扫帚")
+        assertThat(liked.body).contains("本次安装")
+        assertThat(disliked.body).contains("充电线")
+        assertThat(disliked.body).contains("降低")
+    }
+
+    @Test
+    fun `learned preference summary only exposes retained scheduled card objects`() {
+        val summary = learnedPreferenceSummary(
+            affinities = listOf(
+                TopicAffinitySignal("broom", 0.7, setOf("扫帚")),
+                TopicAffinitySignal("cable", -0.4, setOf("充电线")),
+                TopicAffinitySignal("private", -0.75, setOf("私人对象")),
+                TopicAffinitySignal("wrong", 1.0, setOf("识错对象"))
+            ),
+            cards = listOf(
+                card("broom-card", "broom", "扫帚", status = "scheduled"),
+                card("cable-card", "cable", "充电线", status = "scheduled"),
+                card("wrong-card", "wrong", "错误对象", status = "archived")
+            )
+        )
+
+        assertThat(summary.moreOften).containsExactly("扫帚")
+        assertThat(summary.lessOften).containsExactly("充电线")
+        assertThat(summary.moreOften).doesNotContain("错误对象")
+        assertThat(summary.lessOften).doesNotContain("私人对象")
+    }
+
+    private fun card(
+        cardId: String,
+        topicId: String,
+        detectedObjectName: String,
+        status: String
+    ) = KnowledgeCard(
+        cardId = cardId,
+        candidateToken = "candidate-$cardId",
+        photoUri = "",
+        topicId = topicId,
+        factId = "fact-$cardId",
+        title = "$detectedObjectName 的知识",
+        detectedObjectName = detectedObjectName,
+        body = "经过审核的测试正文",
+        personalContext = "来自授权照片",
+        confidence = 0.9,
+        sources = listOf(KnowledgeSource("source-$cardId", "来源", "https://example.com/$cardId", "Example", "reference")),
+        status = status,
+        scheduledDate = LocalDate.of(2026, 7, 29),
+        createdAt = Instant.parse("2026-07-29T00:00:00Z")
+    )
 }

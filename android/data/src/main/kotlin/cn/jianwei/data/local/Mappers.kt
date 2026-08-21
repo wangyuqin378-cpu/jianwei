@@ -3,6 +3,7 @@ package cn.jianwei.data.local
 import cn.jianwei.domain.model.AnalysisState
 import cn.jianwei.domain.model.KnowledgeCard
 import cn.jianwei.domain.model.KnowledgeSource
+import cn.jianwei.domain.model.NormalizedBoundingBox
 import cn.jianwei.domain.model.PhotoCandidate
 import cn.jianwei.domain.model.PhotoOrigin
 import cn.jianwei.domain.model.normalizedSafeKnowledgeSourceUrl
@@ -40,8 +41,23 @@ fun CardEntity.toDomain() = KnowledgeCard(
     sources = sourcesFromJson(sources),
     status = status,
     scheduledDate = LocalDate.parse(scheduledDate),
-    createdAt = Instant.ofEpochMilli(createdAtMillis)
+    createdAt = Instant.ofEpochMilli(createdAtMillis),
+    objectBounds = normalizedObjectBoundsOrNull()
 )
+
+private fun CardEntity.normalizedObjectBoundsOrNull(): NormalizedBoundingBox? {
+    val x = objectBoxX ?: return null
+    val y = objectBoxY ?: return null
+    val width = objectBoxWidth ?: return null
+    val height = objectBoxHeight ?: return null
+    return NormalizedBoundingBox(x, y, width, height).takeIf { bounds ->
+        bounds.x.isFinite() && bounds.y.isFinite() &&
+            bounds.width.isFinite() && bounds.height.isFinite() &&
+            bounds.x >= 0.0 && bounds.y >= 0.0 &&
+            bounds.width > 0.0 && bounds.height > 0.0 &&
+            bounds.x + bounds.width <= 1.0 && bounds.y + bounds.height <= 1.0
+    }
+}
 
 fun sourcesToJson(sources: List<KnowledgeSource>): String = JSONArray().apply {
     sources.forEach { source ->

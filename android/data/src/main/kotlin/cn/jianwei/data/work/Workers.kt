@@ -18,6 +18,7 @@ import cn.jianwei.data.local.CardDao
 import cn.jianwei.data.local.toDomain
 import cn.jianwei.data.cards.LocalTopicAffinityStore
 import cn.jianwei.data.control.AnalysisStoppedException
+import cn.jianwei.data.control.AnalysisSessionGate
 import cn.jianwei.data.network.AuthenticationExpiredException
 import cn.jianwei.data.network.RemoteAnalysisClient
 import cn.jianwei.data.network.UploadHttpStatusException
@@ -65,10 +66,22 @@ class ScanWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val photos: PhotoRepository,
     private val permissionGate: PhotoPermissionGate,
-    private val status: AnalysisStatusRepository
+    private val status: AnalysisStatusRepository,
+    private val automaticCardMode: AutomaticCardModeRepository,
+    private val sessionGate: AnalysisSessionGate
 ) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = try {
+        sessionGate.withActiveSession { runScanWork() }
+    } catch (_: AnalysisStoppedException) {
+        Result.success()
+    }
+
+    private suspend fun runScanWork(): Result {
         if (applicationContext.analysisIsPaused()) return Result.success()
+        if (!automaticCardMode.discoveryEnabled()) {
+            status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
+            return Result.success()
+        }
         status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.SCANNING))
         val requestedAccess = runCatching { PhotoAccess.valueOf(inputData.getString(KEY_ACCESS) ?: PhotoAccess.PICKER_ONLY.name) }
             .getOrDefault(PhotoAccess.PICKER_ONLY)
@@ -119,12 +132,23 @@ class PrivacyScanWorker @AssistedInject constructor(
     private val automaticCardMode: AutomaticCardModeRepository,
     private val automaticDailyUploadQuota: SharedPreferencesAutomaticDailyUploadQuota,
     private val status: AnalysisStatusRepository,
-    private val privacyExecutionGate: PrivacyExecutionGate
+    private val privacyExecutionGate: PrivacyExecutionGate,
+    private val sessionGate: AnalysisSessionGate
 ) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = try {
+        sessionGate.withActiveSession { runPrivacyEntry() }
+    } catch (_: AnalysisStoppedException) {
+        Result.success()
+    }
+
+    private suspend fun runPrivacyEntry(): Result {
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
             status.publishInvalidScopeFailure()
             return Result.failure()
+        }
+        if (originScope == UploadOriginScope.MEDIA_STORE && !automaticCardMode.discoveryEnabled()) {
+            status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
+            return Result.success()
         }
         return privacyExecutionGate.run(originScope) { runPrivacyWork(originScope) }
     }
@@ -169,6 +193,9 @@ class PrivacyScanWorker @AssistedInject constructor(
         var inspectedCandidates = 0
         var uniqueEligibleCandidates = 0
         for (entity in dao.discoveredForPrivacy(MAX_PRIVACY_QUEUE_INSPECTIONS, originScope.name)) {
+            if (!supplyModeMatchesPreference(supplyMode, automaticCardMode.mode())) {
+                return Result.success()
+            }
             if (!shouldContinuePrivacyBatch(batchPlan, inspectedCandidates, uniqueEligibleCandidates)) break
             inspectedCandidates += 1
             if (entity.origin == PhotoOrigin.MEDIA_STORE.name &&
@@ -261,10 +288,15 @@ class UploadWorker @AssistedInject constructor(
     private val status: AnalysisStatusRepository,
     private val automaticCardMode: AutomaticCardModeRepository,
     private val automaticDailyUploadQuota: SharedPreferencesAutomaticDailyUploadQuota,
-    private val uploadExecutionGate: UploadExecutionGate
+    private val uploadExecutionGate: UploadExecutionGate,
+    private val sessionGate: AnalysisSessionGate
 ) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result = uploadExecutionGate.runExclusive {
-        runUploadWork()
+    override suspend fun doWork(): Result = try {
+        sessionGate.withActiveSession {
+            uploadExecutionGate.runExclusive { runUploadWork() }
+        }
+    } catch (_: AnalysisStoppedException) {
+        Result.success()
     }
 
     private suspend fun runUploadWork(): Result {
@@ -273,6 +305,10 @@ class UploadWorker @AssistedInject constructor(
         val originScope = parseUploadOriginScope(inputData.getString(KEY_ORIGIN_SCOPE)) ?: run {
             status.publishInvalidScopeFailure()
             return Result.failure()
+        }
+        if (originScope == UploadOriginScope.MEDIA_STORE && !automaticCardMode.discoveryEnabled()) {
+            status.publishProgress(AUTOMATIC_PROGRESS, AnalysisProgress(phase = AnalysisPhase.IDLE))
+            return Result.success()
         }
         val progressScope = originScope.analysisProgressScope()
         status.publishProgress(progressScope, AnalysisProgress(phase = AnalysisPhase.SYNCING))
@@ -327,6 +363,9 @@ class UploadWorker @AssistedInject constructor(
                     ).map { it.toDomain() }
                 }
                 for (candidate in candidates) {
+                    if (!supplyModeMatchesPreference(supplyMode, automaticCardMode.mode())) {
+                        return Result.success()
+                    }
                     if (candidate.origin == PhotoOrigin.MEDIA_STORE &&
                         !permissionGate.canReadMediaStoreItem(candidate.contentUri)
                     ) {
@@ -433,6 +472,11 @@ internal fun UploadOriginScope.analysisProgressScope(): AnalysisProgressScope = 
 
 internal fun automaticSerendipitySeed(originScope: UploadOriginScope, now: Instant): String? =
     if (originScope == UploadOriginScope.MEDIA_STORE) ChinaCalendar.dateOf(now).toString() else null
+
+internal fun supplyModeMatchesPreference(
+    plannedMode: CardSupplyMode,
+    currentMode: cn.jianwei.domain.card.AutomaticCardMode
+): Boolean = !plannedMode.isAutomatic() || plannedMode == currentMode.toSupplyMode()
 
 internal fun invalidScopeFailureProgress(): Map<AnalysisProgressScope, AnalysisProgress> =
     AnalysisProgressScope.entries.associateWith {

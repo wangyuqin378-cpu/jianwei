@@ -1,6 +1,7 @@
 package cn.jianwei.data.work
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -12,10 +13,10 @@ import cn.jianwei.domain.repository.AnalysisStatusRepository
 import cn.jianwei.data.control.AnalysisSessionGate
 import cn.jianwei.data.status.SharedPreferencesAnalysisStatusRepository
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import org.junit.Test
 
 class AnalysisPauseInstrumentedTest {
     @Test
@@ -78,6 +79,43 @@ class AnalysisPauseInstrumentedTest {
     }
 
     @Test
+    fun liveGateTracksPersistedPauseStateChangesInTheSameProcess() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val preferences = context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)
+        preferences.edit().clear().commit()
+        val gate = AnalysisSessionGate(context)
+
+        try {
+            preferences.edit()
+                .putLong("analysis_session_epoch", 41)
+                .putBoolean(DailyPipelineKickWorker.KEY_PAUSED, true)
+                .commit()
+            awaitGateState(gate, expectedPaused = true)
+
+            preferences.edit()
+                .putLong("analysis_session_epoch", 42)
+                .putBoolean(DailyPipelineKickWorker.KEY_PAUSED, false)
+                .commit()
+            awaitGateState(gate, expectedPaused = false)
+        } finally {
+            preferences.edit().clear().commit()
+        }
+    }
+
+    private fun awaitGateState(
+        gate: AnalysisSessionGate,
+        expectedPaused: Boolean,
+        timeoutMillis: Long = 5_000
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMillis
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (gate.isPaused() == expectedPaused) return
+            SystemClock.sleep(50)
+        }
+        error("Timed out waiting for live analysis gate paused=$expectedPaused")
+    }
+
+    @Test
     fun revocationCancelsAutomaticWorkButPreservesExplicitImports() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val manager = WorkManager.getInstance(context)
@@ -108,6 +146,53 @@ class AnalysisPauseInstrumentedTest {
             automaticNames.forEach { name ->
                 assertThat(manager.getWorkInfosForUniqueWork(name).get().none { it.state in activeStates }).isTrue()
             }
+        } finally {
+            scheduler.cancelAll()
+            scheduler.setPaused(false)
+        }
+    }
+
+    @Test
+    fun modeChangeReplacesAutomaticChainsButPreservesExplicitImports() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val manager = WorkManager.getInstance(context)
+        manager.cancelAllWork().result.get()
+        manager.pruneWork().result.get()
+        val scheduler = WorkManagerScheduler(
+            context,
+            AnalysisSessionGate(context),
+            SharedPreferencesAnalysisStatusRepository(context)
+        )
+
+        try {
+            scheduler.setPaused(false)
+            scheduler.scheduleImportedPhotos()
+            scheduler.scheduleInitialScan(PhotoAccess.FULL)
+            scheduler.scheduleDailyRefresh()
+
+            scheduler.restartAutomaticDiscovery(PhotoAccess.PARTIAL)
+
+            val imported = manager.getWorkInfosForUniqueWork(WorkManagerScheduler.IMPORTED).get()
+            assertThat(imported).isNotEmpty()
+            assertThat(imported.none { it.state == WorkInfo.State.CANCELLED }).isTrue()
+
+            val activeStates = setOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED)
+            assertThat(
+                manager.getWorkInfosForUniqueWork(WorkManagerScheduler.INITIAL).get()
+                    .none { it.state in activeStates }
+            ).isTrue()
+            assertThat(
+                manager.getWorkInfosForUniqueWork(WorkManagerScheduler.RECONCILIATION).get()
+                    .any { it.state != WorkInfo.State.CANCELLED }
+            ).isTrue()
+            assertThat(
+                manager.getWorkInfosForUniqueWork(WorkManagerScheduler.DAILY).get()
+                    .any { it.state != WorkInfo.State.CANCELLED }
+            ).isTrue()
+            assertThat(
+                context.getSharedPreferences(DailyPipelineKickWorker.PREFS, Context.MODE_PRIVATE)
+                    .getString(DailyPipelineKickWorker.KEY_ACCESS, null)
+            ).isEqualTo(PhotoAccess.PARTIAL.name)
         } finally {
             scheduler.cancelAll()
             scheduler.setPaused(false)

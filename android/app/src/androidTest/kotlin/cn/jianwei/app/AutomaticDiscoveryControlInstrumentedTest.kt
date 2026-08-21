@@ -24,6 +24,11 @@ class AutomaticDiscoveryControlInstrumentedTest {
         val previousPendingImport = pendingImportResults.snapshot()
         val wasOnboarded = preferences.getBoolean("completed", false)
         val previousMode = schedulerPreferences.getString(AUTOMATIC_CARD_MODE_KEY, null)
+        val hadDiscoveryPreference = schedulerPreferences.contains(AUTOMATIC_DISCOVERY_ENABLED_KEY)
+        val previousDiscoveryEnabled = schedulerPreferences.getBoolean(
+            AUTOMATIC_DISCOVERY_ENABLED_KEY,
+            false
+        )
         assumeTrue(
             "System permission prompt evidence requires a picker-only installation",
             currentPhotoAccess(context) == PhotoAccess.PICKER_ONLY
@@ -32,7 +37,10 @@ class AutomaticDiscoveryControlInstrumentedTest {
         try {
             pendingImportResults.clearAll()
             preferences.edit().putBoolean("completed", true).commit()
-            schedulerPreferences.edit().putString(AUTOMATIC_CARD_MODE_KEY, "DAILY_ONE").commit()
+            schedulerPreferences.edit()
+                .putString(AUTOMATIC_CARD_MODE_KEY, "DAILY_ONE")
+                .putBoolean(AUTOMATIC_DISCOVERY_ENABLED_KEY, false)
+                .commit()
 
             scenario = ActivityScenario.launch(MainActivity::class.java)
             clickNode(instrumentation, "设置与隐私")
@@ -42,7 +50,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
                 instrumentation,
                 listOf(
                     "照片发现方式",
-                    "开启后先在本机筛选最近照片，每个自然日最多上传分析 1 张；没有可靠命中时不会凑数。",
+                    "目前只处理你主动选择或分享的照片。开启后每个自然日最多上传分析 1 张；没有可靠命中时不会凑数。",
                     "开启自动发现"
                 )
             )
@@ -71,6 +79,11 @@ class AutomaticDiscoveryControlInstrumentedTest {
             schedulerPreferences.edit().apply {
                 if (previousMode == null) remove(AUTOMATIC_CARD_MODE_KEY)
                 else putString(AUTOMATIC_CARD_MODE_KEY, previousMode)
+                if (hadDiscoveryPreference) {
+                    putBoolean(AUTOMATIC_DISCOVERY_ENABLED_KEY, previousDiscoveryEnabled)
+                } else {
+                    remove(AUTOMATIC_DISCOVERY_ENABLED_KEY)
+                }
             }.commit()
             restorePendingImport(pendingImportResults, previousPendingImport)
         }
@@ -143,6 +156,7 @@ class AutomaticDiscoveryControlInstrumentedTest {
         val deadline = SystemClock.uptimeMillis() + timeoutMillis
         var nextIndex = 0
         while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.uiAutomation.clearCache()
             val root = instrumentation.uiAutomation.rootInActiveWindow
             val node = findTextNode(root, texts[nextIndex])
             if (node != null) {
@@ -150,7 +164,14 @@ class AutomaticDiscoveryControlInstrumentedTest {
                 if (nextIndex == texts.size) return node
                 continue
             }
-            swipeForwardSmall(instrumentation)
+            val laterNodeIsVisible = texts
+                .drop(nextIndex + 1)
+                .any { laterText -> findTextNode(root, laterText) != null }
+            if (laterNodeIsVisible) {
+                swipeBackwardSmall(instrumentation)
+            } else {
+                swipeForwardSmall(instrumentation)
+            }
             SystemClock.sleep(200)
         }
         val root = instrumentation.uiAutomation.rootInActiveWindow
@@ -175,6 +196,15 @@ class AutomaticDiscoveryControlInstrumentedTest {
         instrumentation.uiAutomation.executeShellCommand(
             "input swipe $centerX ${(metrics.heightPixels * 0.64f).toInt()} " +
                 "$centerX ${(metrics.heightPixels * 0.50f).toInt()} 180"
+        ).close()
+    }
+
+    private fun swipeBackwardSmall(instrumentation: android.app.Instrumentation) {
+        val metrics = instrumentation.targetContext.resources.displayMetrics
+        val centerX = metrics.widthPixels / 2
+        instrumentation.uiAutomation.executeShellCommand(
+            "input swipe $centerX ${(metrics.heightPixels * 0.50f).toInt()} " +
+                "$centerX ${(metrics.heightPixels * 0.64f).toInt()} 180"
         ).close()
     }
 
@@ -205,5 +235,6 @@ class AutomaticDiscoveryControlInstrumentedTest {
     private companion object {
         const val SCREENSHOT_NAME = "automatic-discovery-control.png"
         const val AUTOMATIC_CARD_MODE_KEY = "automatic_card_mode"
+        const val AUTOMATIC_DISCOVERY_ENABLED_KEY = "automatic_discovery_enabled"
     }
 }
