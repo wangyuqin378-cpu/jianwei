@@ -2227,8 +2227,15 @@ for (const marker of ["forbiddenRuntimeLogPatterns", "--uid=$packageUid", "relea
   check(releaseSmoke.includes(marker), `Release runtime log privacy audit is missing marker: ${marker}`);
 }
 check(androidReferenceSuite.includes("releaseLogPrivacy=1"), "Android reference result does not bind the Release runtime log privacy gate");
+const backendCommandAlternatives = new Map([
+  ["pnpm build", ["pnpm build", "pnpm --dir backend build"]],
+  ["pnpm release:identity -- --self-test", ["pnpm release:identity -- --self-test", "pnpm --dir backend release:identity -- --self-test"]],
+  ["pnpm e2e:self-test", ["pnpm e2e:self-test", "pnpm --dir backend e2e:self-test"]],
+  ["pnpm e2e", ["pnpm e2e", "pnpm --dir backend e2e"]]
+]);
 for (const command of ["pnpm build", "pnpm release:identity -- --self-test", "pnpm e2e:self-test", "pnpm e2e", "check-api-contract.mjs --self-test", "check-api-contract.mjs", "check-supply-chain.mjs --self-test", "check-supply-chain.mjs", "check-container-security-evidence.mjs --self-test", "check-beta-readiness.mjs --self-test", "sign-beta-evidence.mjs --self-test", "sign-beta-evidence-assembly.mjs --self-test", "create-image-evaluation-run.mjs --self-test", "compile-image-evaluation.mjs --self-test", "compile-card-audit.mjs --self-test", "create-card-audit-template.mjs --self-test", "compile-beta-cohort.mjs --self-test", "create-physical-device-run-manifest.mjs --self-test", "compile-physical-device-runs.mjs --self-test", "create-accessibility-audit-manifest.mjs --self-test", "compile-accessibility-audit.mjs --self-test", "create-beta-evidence-assembly-manifest.mjs --self-test", "assemble-beta-evidence.mjs --self-test", "kimi-adversarial-review.mjs --self-test", "verify-release-apk-windows.ps1 -SelfTest", "check-knowledge-sources.mjs --self-test", "check-knowledge-sources.mjs", "preflight-knowledge-sources.mjs --self-test", "ingest-topic-batch.mjs --self-test", "apply-catalog-draft-correction.mjs --self-test", "create-rejected-fact-replacement-batch.mjs --self-test", "apply-rejected-fact-replacements.mjs --self-test", "build-knowledge-review-queue.mjs --self-test", "create-knowledge-review-batch.mjs --self-test", "knowledge-review-workbench.mjs --self-test", "apply-knowledge-review-batch.mjs --self-test"]) {
-  check(ciWorkflow.includes(command), `CI is missing required gate: ${command}`);
+  const alternatives = backendCommandAlternatives.get(command) ?? [command];
+  check(alternatives.some((alternative) => ciWorkflow.includes(alternative)), `CI is missing required gate: ${command}`);
 }
 for (const marker of ["ExpectedSignerSha256", "Android Debug|Test Only|Local R8 Smoke", '$badging.PackageName -ne "cn.jianwei.app"', "$badging.MinSdk -ne 26", "$badging.TargetSdk -ne 36", "formalSigning = $true", "debugCertificate = $false", "RELEASE_APK_VERIFIER_SELF_TEST=GO"]) {
   check(releaseApkVerifier.includes(marker), `Release APK verifier is missing fail-closed marker: ${marker}`);

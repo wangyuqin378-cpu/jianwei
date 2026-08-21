@@ -26,9 +26,6 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgres://jianwei:jianwei_ci@127.0.0.1:5432/jianwei
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -39,70 +36,70 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: backend/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --prod --audit-level high
-      - run: pnpm check
-      - run: pnpm test
-      - run: pnpm release:identity -- --self-test
-      - run: pnpm build
-      - run: node ../scripts/assemble-release-candidate.mjs --self-test
-      - run: pnpm e2e:self-test
-      - run: pnpm e2e
-      - run: pnpm e2e
+      - run: pnpm --dir backend install --frozen-lockfile
+      - run: pnpm --dir backend audit --prod --audit-level high
+      - run: pnpm --dir backend check
+      - run: pnpm --dir backend test
+      - run: pnpm --dir backend release:identity -- --self-test
+      - run: pnpm --dir backend build
+      - run: node scripts/assemble-release-candidate.mjs --self-test
+      - run: pnpm --dir backend e2e:self-test
+      - run: pnpm --dir backend e2e
+      - run: pnpm --dir backend e2e
         env:
           BACKEND_E2E_DATABASE_URL: ${{ env.DATABASE_URL }}
-      - run: pnpm migrate
-      - run: pnpm migrate
-      - run: pnpm test:postgres
+      - run: pnpm --dir backend migrate
+      - run: pnpm --dir backend migrate
+      - run: pnpm --dir backend test:postgres
         env:
           RUN_POSTGRES_INTEGRATION: "1"
-      - run: node ../scripts/check-beta-readiness.mjs --self-test
-      - run: node ../scripts/sign-beta-evidence.mjs --self-test
-      - run: node ../scripts/sign-beta-evidence-assembly.mjs --self-test
-      - run: node ../scripts/create-image-evaluation-run.mjs --self-test
-      - run: node ../scripts/compile-image-evaluation.mjs --self-test
-      - run: node ../scripts/compile-card-audit.mjs --self-test
-      - run: node ../scripts/create-card-audit-template.mjs --self-test
-      - run: node ../scripts/compile-beta-cohort.mjs --self-test
-      - run: node ../scripts/create-physical-device-run-manifest.mjs --self-test
-      - run: node ../scripts/compile-physical-device-runs.mjs --self-test
-      - run: node ../scripts/create-accessibility-audit-manifest.mjs --self-test
-      - run: node ../scripts/compile-accessibility-audit.mjs --self-test
-      - run: node ../scripts/create-beta-evidence-assembly-manifest.mjs --self-test
-      - run: node ../scripts/assemble-beta-evidence.mjs --self-test
-      - run: node ../scripts/kimi-adversarial-review.mjs --self-test
-      - run: pwsh -NoProfile -File ../scripts/verify-release-apk-windows.ps1 -SelfTest
-      - run: node ../scripts/summarize-beta-device-metrics.mjs --self-test
-      - run: node ../scripts/build-topic-backlog.mjs
-      - run: git diff --exit-code -- ../knowledge/topic-backlog.json
-      - run: node ../scripts/check-knowledge-readiness.mjs --self-test
-      - run: node ../scripts/check-knowledge-sources.mjs --self-test
-      - run: node ../scripts/check-knowledge-sources.mjs
-      - run: node ../scripts/preflight-knowledge-sources.mjs --self-test
-      - run: node ../scripts/validate-topic-draft.mjs --self-test
-      - run: node ../scripts/ingest-topic-draft.mjs --self-test
-      - run: node ../scripts/ingest-topic-batch.mjs --self-test
-      - run: node ../scripts/apply-catalog-draft-correction.mjs --self-test
-      - run: node ../scripts/create-rejected-fact-replacement-batch.mjs --self-test
-      - run: node ../scripts/apply-rejected-fact-replacements.mjs --self-test
-      - run: node ../scripts/build-knowledge-review-queue.mjs --self-test
-      - run: node ../scripts/create-knowledge-review-batch.mjs --self-test
-      - run: node ../scripts/knowledge-review-workbench.mjs --self-test
-      - run: node ../scripts/apply-knowledge-review-batch.mjs --self-test
-      - run: node ../scripts/check-deployment-manifest.mjs --self-test
-      - run: node ../scripts/check-deployment-manifest.mjs
-      - run: node ../scripts/check-container-deployment-inputs.mjs --self-test
-      - run: node ../scripts/check-container-security-evidence.mjs --self-test
-      - run: node ../scripts/check-cloud-deployment-preflight.mjs --self-test
-      - run: node ../scripts/run-serverless-with-aliyun-oauth.mjs --self-test
-      - run: node ../scripts/check-runtime-budgets.mjs --self-test
-      - run: node ../scripts/check-runtime-budgets.mjs
-      - run: node ../scripts/check-api-contract.mjs --self-test
-      - run: node ../scripts/check-api-contract.mjs
-      - run: node ../scripts/check-supply-chain.mjs --self-test
-      - run: node ../scripts/check-supply-chain.mjs
-      - run: node ../scripts/hash-knowledge-catalog.mjs ../knowledge/catalog.json
-      - run: node ../scripts/check-source-guardrails.mjs
+      - run: node scripts/check-beta-readiness.mjs --self-test
+      - run: node scripts/sign-beta-evidence.mjs --self-test
+      - run: node scripts/sign-beta-evidence-assembly.mjs --self-test
+      - run: node scripts/create-image-evaluation-run.mjs --self-test
+      - run: node scripts/compile-image-evaluation.mjs --self-test
+      - run: node scripts/compile-card-audit.mjs --self-test
+      - run: node scripts/create-card-audit-template.mjs --self-test
+      - run: node scripts/compile-beta-cohort.mjs --self-test
+      - run: node scripts/create-physical-device-run-manifest.mjs --self-test
+      - run: node scripts/compile-physical-device-runs.mjs --self-test
+      - run: node scripts/create-accessibility-audit-manifest.mjs --self-test
+      - run: node scripts/compile-accessibility-audit.mjs --self-test
+      - run: node scripts/create-beta-evidence-assembly-manifest.mjs --self-test
+      - run: node scripts/assemble-beta-evidence.mjs --self-test
+      - run: node scripts/kimi-adversarial-review.mjs --self-test
+      - run: pwsh -NoProfile -File scripts/verify-release-apk-windows.ps1 -SelfTest
+      - run: node scripts/summarize-beta-device-metrics.mjs --self-test
+      - run: node scripts/build-topic-backlog.mjs
+      - run: git diff --exit-code -- knowledge/topic-backlog.json
+      - run: node scripts/check-knowledge-readiness.mjs --self-test
+      - run: node scripts/check-knowledge-sources.mjs --self-test
+      - run: node scripts/check-knowledge-sources.mjs
+      - run: node scripts/preflight-knowledge-sources.mjs --self-test
+      - run: node scripts/validate-topic-draft.mjs --self-test
+      - run: node scripts/ingest-topic-draft.mjs --self-test
+      - run: node scripts/ingest-topic-batch.mjs --self-test
+      - run: node scripts/apply-catalog-draft-correction.mjs --self-test
+      - run: node scripts/create-rejected-fact-replacement-batch.mjs --self-test
+      - run: node scripts/apply-rejected-fact-replacements.mjs --self-test
+      - run: node scripts/build-knowledge-review-queue.mjs --self-test
+      - run: node scripts/create-knowledge-review-batch.mjs --self-test
+      - run: node scripts/knowledge-review-workbench.mjs --self-test
+      - run: node scripts/apply-knowledge-review-batch.mjs --self-test
+      - run: node scripts/check-deployment-manifest.mjs --self-test
+      - run: node scripts/check-deployment-manifest.mjs
+      - run: node scripts/check-container-deployment-inputs.mjs --self-test
+      - run: node scripts/check-container-security-evidence.mjs --self-test
+      - run: node scripts/check-cloud-deployment-preflight.mjs --self-test
+      - run: node scripts/run-serverless-with-aliyun-oauth.mjs --self-test
+      - run: node scripts/check-runtime-budgets.mjs --self-test
+      - run: node scripts/check-runtime-budgets.mjs
+      - run: node scripts/check-api-contract.mjs --self-test
+      - run: node scripts/check-api-contract.mjs
+      - run: node scripts/check-supply-chain.mjs --self-test
+      - run: node scripts/check-supply-chain.mjs
+      - run: node scripts/hash-knowledge-catalog.mjs knowledge/catalog.json
+      - run: node scripts/check-source-guardrails.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: backend-tcp-e2e-evidence
