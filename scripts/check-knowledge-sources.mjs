@@ -1,9 +1,13 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   parsePublicHttpsUrl,
   requestPublicHttpsMetadata,
   resolveHostWithGoogleDoh
 } from "./lib/safe-source-request.mjs";
+
+const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export function assessSourceCatalog(catalog) {
   const failures = [];
@@ -94,7 +98,7 @@ export function selectResumableSuccesses(evidence, { catalogVersion, sourceScope
     .map((result) => [result.sourceId, { ...result, checkedAt: result.checkedAt ?? evidence.checkedAt, reused: true }]));
 }
 
-const catalog = JSON.parse(await readFile("knowledge/catalog.json", "utf8"));
+const catalog = JSON.parse(await readFile(path.join(REPOSITORY_ROOT, "knowledge/catalog.json"), "utf8"));
 if (process.argv.includes("--self-test")) {
   const passing = assessSourceCatalog(catalog);
   if (passing.status !== "GO") throw new Error(`Knowledge source fixture failed: ${passing.blockers.join("; ")}`);
