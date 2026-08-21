@@ -126,7 +126,7 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - run: sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
       - run: chmod +x gradlew
       - run: ./gradlew :domain:test :app:testDebugUnitTest :data:testDebugUnitTest :data:assembleDebugAndroidTest lintDebug assembleDebug assembleRelease --no-daemon --max-workers=2
