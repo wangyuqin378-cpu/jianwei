@@ -55,9 +55,11 @@
         "operationId": "completeAnalysisJob",
         "x-android-client": "retrofit",
         "x-android-response-model": "CompleteJobResponse",
+        "x-backend-zod-schema": "completeAnalysisJobSchema",
         "security": [{ "deviceBearer": [] }],
         "parameters": [{ "$ref": "#/components/parameters/Id" }],
-        "responses": { "200": { "description": "Completed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompleteJobResponse" } } } }, "401": { "$ref": "#/components/responses/Error" } }
+        "requestBody": { "required": false, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompleteJobRequest" } } } },
+        "responses": { "200": { "description": "Completed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompleteJobResponse" } } } }, "401": { "$ref": "#/components/responses/Error" }, "402": { "$ref": "#/components/responses/Error" } }
       }
     },
     "/v1/analysis-jobs/{id}": {
@@ -79,6 +81,15 @@
           { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } }
         ],
         "responses": { "200": { "description": "Cards", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CardsResponse" } } } }, "401": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v1/cards/select-daily": {
+      "post": {
+        "operationId": "selectDailyCard",
+        "x-backend-zod-schema": "selectDailyCardSchema",
+        "security": [{ "deviceBearer": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SelectDailyCardRequest" } } } },
+        "responses": { "200": { "description": "AI-selected daily card", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DailyCardSelectionResponse" } } } }, "400": { "$ref": "#/components/responses/Error" }, "401": { "$ref": "#/components/responses/Error" }, "402": { "$ref": "#/components/responses/Error" }, "404": { "$ref": "#/components/responses/Error" }, "502": { "$ref": "#/components/responses/Error" } }
       }
     },
     "/v1/cards/{id}/feedback": {
@@ -169,8 +180,17 @@
       "CreateJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "uploadUrl", "uploadSessionId", "expiresAt"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["awaiting_upload", "uploaded", "completed", "needs_content", "rejected"] }, "uploadUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "string", "maxLength": 0 }, { "type": "null" }] }, "uploadSessionId": { "type": ["string", "null"], "format": "uuid" }, "expiresAt": { "type": "string", "format": "date-time" } } },
       "UploadJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "uploadSessionId", "status"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "uploadSessionId": { "type": "string", "format": "uuid" }, "status": { "type": "string", "const": "uploaded" } } },
       "JobStatusResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "errorCode", "createdAt", "updatedAt"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["awaiting_upload", "uploading", "uploaded", "processing", "completed", "needs_content", "rejected", "failed"] }, "errorCode": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9._:-]{1,120}$" }, "createdAt": { "type": "string", "format": "date-time" }, "updatedAt": { "type": "string", "format": "date-time" } } },
+      "ModelAccess": {
+        "oneOf": [
+          { "type": "object", "additionalProperties": false, "required": ["mode"], "properties": { "mode": { "const": "managed" }, "appStoreTransaction": { "type": "string", "minLength": 100, "maxLength": 20000 } } },
+          { "type": "object", "additionalProperties": false, "required": ["mode", "provider", "apiKey"], "properties": { "mode": { "const": "user_key" }, "provider": { "const": "qwen" }, "apiKey": { "type": "string", "minLength": 20, "maxLength": 200, "pattern": "^sk-[A-Za-z0-9_-]+$" } } }
+        ]
+      },
+      "CompleteJobRequest": { "type": "object", "additionalProperties": false, "properties": { "modelAccess": { "$ref": "#/components/schemas/ModelAccess" } } },
       "CompleteJobResponse": { "type": "object", "additionalProperties": false, "required": ["jobId", "candidateToken", "status", "card"], "properties": { "jobId": { "type": "string", "format": "uuid" }, "candidateToken": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["completed", "needs_content", "rejected"] }, "card": { "oneOf": [{ "$ref": "#/components/schemas/Card" }, { "type": "null" }] } } },
       "CardsResponse": { "type": "object", "additionalProperties": false, "required": ["items", "nextCursor"], "properties": { "items": { "type": "array", "maxItems": 50, "items": { "$ref": "#/components/schemas/Card" } }, "nextCursor": { "type": ["string", "null"], "format": "uuid" } } },
+      "SelectDailyCardRequest": { "type": "object", "additionalProperties": false, "required": ["cardIds", "modelAccess"], "properties": { "cardIds": { "type": "array", "minItems": 2, "maxItems": 3, "uniqueItems": true, "items": { "type": "string", "format": "uuid" } }, "modelAccess": { "$ref": "#/components/schemas/ModelAccess" } } },
+      "DailyCardSelectionResponse": { "type": "object", "additionalProperties": false, "required": ["cardId", "reason"], "properties": { "cardId": { "type": "string", "format": "uuid" }, "reason": { "type": "string", "minLength": 1, "maxLength": 160 } } },
       "FeedbackRequest": { "type": "object", "additionalProperties": false, "required": ["action"], "properties": { "action": { "type": "string", "enum": ["LIKE", "DISLIKE", "WRONG_OBJECT", "TOO_PRIVATE", "SAVE"] } } },
       "FeedbackResponse": { "type": "object", "additionalProperties": false, "required": ["id", "cardId", "action", "createdAt", "topicAffinities"], "properties": { "id": { "type": "string", "format": "uuid" }, "cardId": { "type": "string", "format": "uuid" }, "action": { "type": "string", "enum": ["LIKE", "DISLIKE", "WRONG_OBJECT", "TOO_PRIVATE", "SAVE"] }, "createdAt": { "type": "string", "format": "date-time" }, "topicAffinities": { "type": "array", "minItems": 1, "maxItems": 1, "items": { "$ref": "#/components/schemas/TopicAffinity" } } } },
       "TrackRequest": { "type": "object", "additionalProperties": false, "required": ["startedOn", "reminderDays"], "properties": { "startedOn": { "type": "string", "format": "date" }, "reminderDays": { "type": "integer", "minimum": 7, "maximum": 730 } } },

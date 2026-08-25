@@ -20,6 +20,38 @@ export const createAnalysisJobSchema = z.object({
   }).strict().optional()
 }).strict();
 
+const qwenUserKeySchema = z.string().trim()
+  .min(20)
+  .max(200)
+  .regex(/^sk-[A-Za-z0-9_-]+$/, "Qwen API key format is invalid");
+
+export const modelAccessSchema = z.discriminatedUnion("mode", [
+    z.object({
+      mode: z.literal("managed"),
+      appStoreTransaction: z.string().trim().min(100).max(20_000).optional()
+    }).strict(),
+    z.object({
+      mode: z.literal("user_key"),
+      provider: z.literal("qwen"),
+      apiKey: qwenUserKeySchema
+    }).strict()
+  ]).default({ mode: "managed" });
+
+export const completeAnalysisJobSchema = z.object({
+  modelAccess: modelAccessSchema
+}).strict();
+
+export const selectDailyCardSchema = z.object({
+  cardIds: z.array(z.string().uuid()).min(2).max(3)
+    .refine((ids) => new Set(ids).size === ids.length, "cardIds must be unique"),
+  modelAccess: modelAccessSchema
+}).strict();
+
+export const dailyKnowledgeRankingSchema = z.object({
+  cardId: z.string().uuid(),
+  reason: z.string().trim().min(1).max(160)
+}).strict();
+
 export const feedbackSchema = z.object({
   action: z.enum(["LIKE", "DISLIKE", "WRONG_OBJECT", "TOO_PRIVATE", "SAVE"])
 }).strict();

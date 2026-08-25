@@ -6,6 +6,7 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import type {
   CardRepository,
+  DailyKnowledgeRanker,
   Device,
   DeviceRepository,
   EvaluationLeaseDefinition,
@@ -16,10 +17,12 @@ import type {
 import {
   cardIdParamSchema,
   cardsQuerySchema,
+  completeAnalysisJobSchema,
   createAnalysisJobSchema,
   feedbackSchema,
   idParamSchema,
   registerDeviceSchema,
+  selectDailyCardSchema,
   trackItemSchema
 } from "./domain/schemas.js";
 import { loadConfig, type AppConfig } from "./config.js";
@@ -33,9 +36,14 @@ import {
 } from "./infrastructure/object-store.js";
 import { KnowledgeCatalogService } from "./services/knowledge-catalog.js";
 import { AnalysisService } from "./services/analysis-service.js";
-import { LocalVisionProvider } from "./providers/local-providers.js";
-import { ConfidenceFallbackVisionProvider, QwenVisionProvider } from "./providers/qwen-providers.js";
+import { LocalDailyKnowledgeRanker, LocalVisionProvider } from "./providers/local-providers.js";
+import { ConfidenceFallbackVisionProvider, QwenDailyKnowledgeRanker, QwenVisionProvider } from "./providers/qwen-providers.js";
 import { KimiVisionProvider } from "./providers/kimi-providers.js";
+import {
+  AppleManagedEntitlementVerifier,
+  DevelopmentManagedEntitlementVerifier,
+  type ManagedEntitlementVerifier
+} from "./services/managed-entitlement-verifier.js";
 import { loadBackendReleaseSha256 } from "./release-identity.js";
 import { installationBindingSha256 } from "./registration-binding.js";
 
@@ -43,6 +51,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
 export const PRODUCTION_LOG_REDACT_PATHS = [
   "req.headers.authorization",
+  "req.body.modelAccess.apiKey",
+  "req.body.modelAccess.appStoreTransaction",
   "req.headers['x-jianwei-evaluation-lease']",
   "req.headers.cookie",
   "req.headers['x-fc-access-key-id']",
@@ -83,6 +93,10 @@ export interface ServerOverrides {
   config?: AppConfig;
   knowledgePath?: string;
   vision?: VisionProvider;
+  userVisionFactory?: (apiKey: string) => VisionProvider;
+  dailyRanker?: DailyKnowledgeRanker;
+  userDailyRankerFactory?: (apiKey: string) => DailyKnowledgeRanker;
+  managedEntitlementVerifier?: ManagedEntitlementVerifier;
   objects?: ObjectStore;
   ossCredentials?: RotatingOssCredentialSource;
   evaluationLeases?: EvaluationLeaseDefinition[];
@@ -94,6 +108,10 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   const injectedServices = [
     overrides.knowledgePath,
     overrides.vision,
+    overrides.userVisionFactory,
+    overrides.dailyRanker,
+    overrides.userDailyRankerFactory,
+    overrides.managedEntitlementVerifier,
     overrides.objects,
     overrides.ossCredentials,
     overrides.evaluationLeases,
@@ -218,6 +236,25 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
       vision = new KimiVisionProvider({ apiKey, model: config.kimiModel, baseUrl: config.kimiBaseUrl });
     }
   }
+  const userVisionFactory = overrides.userVisionFactory ?? ((apiKey: string): VisionProvider =>
+    new ConfidenceFallbackVisionProvider(
+      new QwenVisionProvider({ apiKey, model: config.qwenFlashModel, baseUrl: config.dashscopeBaseUrl }),
+      new QwenVisionProvider({ apiKey, model: config.qwenPlusModel, baseUrl: config.dashscopeBaseUrl })
+    ));
+  let dailyRanker: DailyKnowledgeRanker = overrides.dailyRanker ?? new LocalDailyKnowledgeRanker();
+  if (!overrides.dailyRanker && config.visionProvider === "qwen") {
+    dailyRanker = new QwenDailyKnowledgeRanker({
+      apiKey: required(config.dashscopeApiKey, "DASHSCOPE_API_KEY"),
+      model: config.qwenFlashModel,
+      baseUrl: config.dashscopeBaseUrl
+    });
+  }
+  const userDailyRankerFactory = overrides.userDailyRankerFactory ?? ((apiKey: string): DailyKnowledgeRanker =>
+    new QwenDailyKnowledgeRanker({ apiKey, model: config.qwenFlashModel, baseUrl: config.dashscopeBaseUrl }));
+  const managedEntitlementVerifier = overrides.managedEntitlementVerifier
+    ?? (config.environment === "production"
+      ? new AppleManagedEntitlementVerifier(config)
+      : new DevelopmentManagedEntitlementVerifier());
   const analysis = new AnalysisService(
     jobs,
     cards,
@@ -347,7 +384,14 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   app.post("/v1/analysis-jobs/:id/complete", async (request, reply) => {
     const device = await authenticate(request);
     const { id } = idParamSchema.parse(request.params);
-    const result = await analysis.complete(device, id);
+    const body = completeAnalysisJobSchema.parse(request.body ?? {});
+    if (body.modelAccess.mode === "managed") {
+      await managedEntitlementVerifier.verify(body.modelAccess.appStoreTransaction, device.installationHash);
+    }
+    const requestVision = body.modelAccess.mode === "user_key"
+      ? userVisionFactory(body.modelAccess.apiKey)
+      : undefined;
+    const result = await analysis.complete(device, id, requestVision);
     return reply.send({
       jobId: result.job.id,
       candidateToken: result.job.candidateToken,
@@ -378,6 +422,27 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
       items: page.items.map(publicCardResponse),
       nextCursor: page.nextCursor
     });
+  });
+
+  app.post("/v1/cards/select-daily", async (request, reply) => {
+    const device = await authenticate(request);
+    const body = selectDailyCardSchema.parse(request.body);
+    if (body.modelAccess.mode === "managed") {
+      await managedEntitlementVerifier.verify(body.modelAccess.appStoreTransaction, device.installationHash);
+    }
+    const candidates = await Promise.all(body.cardIds.map((cardId) => cards.findById(cardId)));
+    if (candidates.some((card) => !card || card.deviceId !== device.id)) {
+      throw new AppError("card_not_found", "候选知识卡不存在", 404);
+    }
+    const selected = await (body.modelAccess.mode === "user_key"
+      ? userDailyRankerFactory(body.modelAccess.apiKey)
+      : dailyRanker
+    ).select(candidates as KnowledgeCard[]);
+    if (!body.cardIds.includes(selected.cardId)) {
+      throw new AppError("invalid_model_output", "AI 返回了候选范围之外的卡片", 502);
+    }
+    await cards.archiveUnselected(device.id, body.cardIds, selected.cardId);
+    return reply.send(selected);
   });
 
   app.post("/v1/cards/:id/feedback", async (request, reply) => {

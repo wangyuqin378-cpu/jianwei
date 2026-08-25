@@ -244,7 +244,11 @@ export class AnalysisService {
     }
   }
 
-  async complete(device: Device, jobId: string): Promise<{ job: AnalysisJob; card: KnowledgeCard | null }> {
+  async complete(
+    device: Device,
+    jobId: string,
+    visionOverride?: VisionProvider
+  ): Promise<{ job: AnalysisJob; card: KnowledgeCard | null }> {
     const job = await this.requireOwnedJob(device, jobId);
     if (await this.jobs.isCandidateSuppressed(device.id, job.candidateToken)) {
       throw new AppError("candidate_suppressed", "该候选已被当前匿名设备排除", 410);
@@ -289,7 +293,7 @@ export class AnalysisService {
         "云端图片内容与声明格式不匹配",
         415
       );
-      const entity = await this.vision.detect({
+      const entity = await (visionOverride ?? this.vision).detect({
         image,
         localLabels: job.localLabels
       });

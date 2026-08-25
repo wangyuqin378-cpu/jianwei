@@ -173,6 +173,11 @@ function productionEnv(): NodeJS.ProcessEnv {
     OBJECT_TTL_HOURS: "24",
     KNOWLEDGE_CATALOG_SHA256: "a".repeat(64),
     KNOWLEDGE_REVIEWER_IDS: "human-editor-01",
-    CONTAINER_IMAGE_DIGEST: `sha256:${"b".repeat(64)}`
+    CONTAINER_IMAGE_DIGEST: `sha256:${"b".repeat(64)}`,
+    APP_STORE_BUNDLE_ID: "cn.jianwei.ios",
+    APP_STORE_APP_APPLE_ID: "1234567890",
+    APP_STORE_SUBSCRIPTION_PRODUCT_ID: "cn.jianwei.ios.pro.monthly",
+    APP_STORE_ENVIRONMENT: "production",
+    APP_STORE_ROOT_CERTIFICATE_PATHS: "/run/secrets/apple-root-ca-g3.cer"
   };
 }

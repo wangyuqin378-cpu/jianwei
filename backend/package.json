@@ -27,6 +27,7 @@
     "test:postgres": "vitest run src/postgres.integration.test.ts --coverage.enabled=false"
   },
   "dependencies": {
+    "@apple/app-store-server-library": "3.1.0",
     "@fastify/cors": "10.1.0",
     "@fastify/rate-limit": "10.3.0",
     "ali-oss": "6.23.0",

@@ -14,7 +14,8 @@ struct OnboardingView: View {
         .objectHistory,
         .science
     ])
-    @State private var preparationMode: AutomaticPreparationMode = .weeklyCache
+    @State private var qwenAPIKey = ""
+    @State private var preparationMode: AutomaticPreparationMode = .dailySingle
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
@@ -230,17 +231,10 @@ struct OnboardingView: View {
                 )
                 if choice == .automatic {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("每天怎么准备")
+                        Text("每天三选一")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        Picker("每天怎么准备", selection: $preparationMode) {
-                            Text("提前备好一周").tag(AutomaticPreparationMode.weeklyCache)
-                            Text("当天理解一张").tag(AutomaticPreparationMode.dailySingle)
-                        }
-                        .pickerStyle(.segmented)
-                        Text(preparationMode == .weeklyCache
-                            ? "联网时准备 7–14 张，断网后小组件也能连续更新。"
-                            : "每天最多理解一张，上传更少，但当天需要联网。")
+                        Text("从未处理过的照片中找出 3 张合适候选，用 AI 分别判断知识潜力，只展示其中最有趣的一条。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -253,6 +247,8 @@ struct OnboardingView: View {
                     detail: "不开放持续访问。每次由你通过系统照片选择器明确选择。",
                     icon: "photo.badge.plus"
                 )
+
+                modelAccessCard
 
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -359,6 +355,115 @@ struct OnboardingView: View {
         .accessibilityAddTraits(choice == value ? .isSelected : [])
     }
 
+    private var modelAccessCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("选择 AI 服务")
+                    .font(.headline)
+                    .foregroundStyle(JianweiBrand.ink)
+                Text("AI 会理解每天 3 张候选照片，只发布最有趣的一条知识。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if model.managedSubscriptionState == .subscribed {
+                Label("见微 Pro 已开通", systemImage: "checkmark.seal.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(JianweiBrand.forest)
+            } else {
+                Button {
+                    Task { await model.purchaseManagedModelService() }
+                } label: {
+                    Label(subscriptionButtonTitle, systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(JianweiBrand.forest)
+                .disabled(model.isWorking || model.managedSubscriptionState == .productUnavailable)
+
+                Text("按月自动续订；每天最多分析 3 张并发布 1 条，每自然月最多 31 条。可随时在 App Store 取消。")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                HStack {
+                    Link("隐私政策", destination: URL(string: "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/PRIVACY.md")!)
+                    Spacer()
+                    Link("使用条款", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                    Spacer()
+                    Button("恢复购买") {
+                        Task { await model.restoreManagedSubscription() }
+                    }
+                    .disabled(model.isWorking)
+                }
+                .font(.caption)
+            }
+
+            HStack {
+                Rectangle()
+                    .fill(JianweiBrand.ink.opacity(0.08))
+                    .frame(height: 1)
+                Text("或者使用自己的 Qwen Key")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                Rectangle()
+                    .fill(JianweiBrand.ink.opacity(0.08))
+                    .frame(height: 1)
+            }
+
+            if model.hasQwenAPIKey {
+                Label("本机 Qwen Key 已配置", systemImage: "key.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(JianweiBrand.forest)
+            } else {
+                SecureField("粘贴百炼 Qwen API Key", text: $qwenAPIKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .privacySensitive()
+                    .textFieldStyle(.roundedBorder)
+
+                Button("保存并使用自己的 Key") {
+                    let value = qwenAPIKey
+                    qwenAPIKey = ""
+                    Task { await model.saveAndUseQwenAPIKey(value) }
+                }
+                .buttonStyle(.bordered)
+                .tint(JianweiBrand.forest)
+                .disabled(qwenAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                Text("Key 只保存在本机 Keychain；分析时通过加密连接单次使用，服务端不保存。")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let message = model.message {
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(JianweiBrand.rust)
+                    .accessibilityLabel("提示：\(message)")
+            }
+        }
+        .padding(16)
+        .background(JianweiBrand.surface, in: RoundedRectangle(cornerRadius: 21, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 21, style: .continuous)
+                .stroke(JianweiBrand.ink.opacity(0.06), lineWidth: 1)
+        }
+    }
+
+    private var hasConfiguredModelAccess: Bool {
+        model.managedSubscriptionState == .subscribed || model.hasQwenAPIKey
+    }
+
+    private var subscriptionButtonTitle: String {
+        if let price = model.managedSubscriptionPrice {
+            return "订阅见微 Pro · \(price)/月"
+        }
+        return model.managedSubscriptionState == .productUnavailable
+            ? "见微 Pro 暂不可购买"
+            : "订阅见微 Pro"
+    }
+
     private var footer: some View {
         HStack(spacing: 12) {
             if page > 0 {
@@ -395,7 +500,7 @@ struct OnboardingView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .tint(JianweiBrand.forest)
-            .disabled(model.isWorking)
+            .disabled(model.isWorking || (page == 2 && !hasConfiguredModelAccess))
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 14)

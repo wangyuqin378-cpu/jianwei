@@ -1,4 +1,5 @@
 import BackgroundTasks
+import CryptoKit
 import Foundation
 import WidgetKit
 
@@ -8,14 +9,19 @@ struct AppEnvironment: Sendable {
     let pipeline: AnalysisPipeline?
     let api: APIClient?
     let identity: DeviceIdentityStore?
+    let modelAccessStore: AIModelAccessStore
+    let subscriptionStore: SubscriptionStore
     let widgetCoordinator: WidgetCoordinator
 
     var serviceConfigured: Bool { pipeline != nil && api != nil && identity != nil }
 
+    @MainActor
     static func live() throws -> AppEnvironment {
         let repository = try LocalRepository()
         let discovery = PhotoDiscoveryService()
         let widgetCoordinator = WidgetCoordinator(repository: repository)
+        let modelAccessStore = AIModelAccessStore()
+        let subscriptionStore = SubscriptionStore()
         let configuredBaseURL: String
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E") {
@@ -37,6 +43,8 @@ struct AppEnvironment: Sendable {
                 pipeline: nil,
                 api: nil,
                 identity: nil,
+                modelAccessStore: modelAccessStore,
+                subscriptionStore: subscriptionStore,
                 widgetCoordinator: widgetCoordinator
             )
         }
@@ -60,10 +68,15 @@ struct AppEnvironment: Sendable {
             pipeline: AnalysisPipeline(
                 api: api,
                 identity: identity,
-                analyzer: analyzer
+                analyzer: analyzer,
+                modelAccessStore: modelAccessStore,
+                subscriptionStore: subscriptionStore,
+                repository: repository
             ),
             api: api,
             identity: identity,
+            modelAccessStore: modelAccessStore,
+            subscriptionStore: subscriptionStore,
             widgetCoordinator: widgetCoordinator
         )
     }
@@ -96,19 +109,27 @@ actor AutomaticDiscoveryRunner {
         guard state.automaticDiscoveryEnabled else {
             return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
         }
+        let today = ChinaDay.string(from: Date())
+        guard state.lastDailySelectionDay != today else {
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
+        }
         var inspected = 0
+        var completedAnalyses = 0
         var cardsCreated = 0
+        var generatedCards: [KnowledgeCard] = []
         var filtered = 0
         var failed = 0
 
         for candidate in state.candidates where candidate.state == .failed {
-            guard inspected < maximumCandidates else { break }
+            guard completedAnalyses < maximumCandidates else { break }
             guard let jpeg = await environment.repository.imageData(candidateToken: candidate.id) else { continue }
             inspected += 1
             do {
                 let result = try await pipeline.retry(candidate: candidate, sanitizedJPEG: jpeg)
                 try await persist(result)
+                completedAnalyses += 1
                 if result.card == nil { filtered += 1 } else { cardsCreated += 1 }
+                if let card = result.card { generatedCards.append(card) }
             } catch let error as PipelineFailure {
                 try? await persist(error)
                 failed += 1
@@ -131,8 +152,15 @@ actor AutomaticDiscoveryRunner {
         state = await environment.repository.snapshot()
         let knownLocalIDs = Set(state.candidates.compactMap(\.localIdentifier))
         var hashes = Set(state.candidates.compactMap(\.perceptualHash))
-        for asset in assets where !knownLocalIDs.contains(asset.localIdentifier) {
-            guard inspected < maximumCandidates, !Task.isCancelled else { break }
+        let unseenAssets = Self.dailyOrder(
+            assets.filter { !knownLocalIDs.contains($0.localIdentifier) },
+            day: today
+        )
+        let inspectionLimit = max(maximumCandidates, maximumCandidates * 4)
+        for asset in unseenAssets {
+            guard completedAnalyses < maximumCandidates,
+                  inspected < inspectionLimit,
+                  !Task.isCancelled else { break }
             inspected += 1
             do {
                 let source = try await environment.discovery.imageData(for: asset)
@@ -145,7 +173,9 @@ actor AutomaticDiscoveryRunner {
                 )
                 if let hash = result.candidate.perceptualHash { hashes.insert(hash) }
                 try await persist(result)
+                completedAnalyses += 1
                 if result.card == nil { filtered += 1 } else { cardsCreated += 1 }
+                if let card = result.card { generatedCards.append(card) }
             } catch let rejection as PipelineRejection {
                 try? await environment.repository.upsert(candidate: rejection.candidate)
                 filtered += 1
@@ -156,7 +186,18 @@ actor AutomaticDiscoveryRunner {
                 failed += 1
             }
         }
-        try? await environment.repository.markScan(at: Date())
+        if generatedCards.count > 1 {
+            let selectedID = await selectDailyWinner(from: generatedCards)
+            for card in generatedCards where card.id != selectedID {
+                try? await environment.repository.discardUnselectedCard(card)
+            }
+            cardsCreated = 1
+        }
+        if failed == 0, completedAnalyses > 0 {
+            try? await environment.repository.markDailySelection(day: today, scannedAt: Date())
+        } else {
+            try? await environment.repository.markScan(at: Date())
+        }
         let updated = await environment.repository.snapshot()
         try? await environment.widgetCoordinator.synchronize(cards: updated.cards)
         return DiscoveryRunSummary(
@@ -165,6 +206,39 @@ actor AutomaticDiscoveryRunner {
             filtered: filtered,
             failed: failed
         )
+    }
+
+    private func selectDailyWinner(from cards: [KnowledgeCard]) async -> UUID {
+        let localFallback = cards.sorted {
+            $0.confidence > $1.confidence || ($0.confidence == $1.confidence && $0.id.uuidString < $1.id.uuidString)
+        }.first!.id
+        guard let api = environment.api, let identity = environment.identity else { return localFallback }
+        do {
+            let state = await environment.repository.snapshot()
+            let transaction = state.modelAccessMode == .managed
+                ? await environment.subscriptionStore.entitlementJWS()
+                : nil
+            let access = try await environment.modelAccessStore.request(
+                for: state.modelAccessMode,
+                managedTransaction: transaction
+            )
+            let credentials = try await identity.credentials()
+            return try await api.selectDailyCard(
+                bearer: credentials.token,
+                cardIDs: cards.map(\.id),
+                modelAccess: access
+            )
+        } catch {
+            return localFallback
+        }
+    }
+
+    private static func dailyOrder(_ assets: [PhotoAssetReference], day: String) -> [PhotoAssetReference] {
+        assets.sorted { lhs, rhs in
+            let left = SHA256.hash(data: Data((day + "\0" + lhs.localIdentifier).utf8))
+            let right = SHA256.hash(data: Data((day + "\0" + rhs.localIdentifier).utf8))
+            return left.lexicographicallyPrecedes(right)
+        }
     }
 
     private func persist(_ result: AnalysisPipelineResult) async throws {
@@ -197,8 +271,7 @@ enum BackgroundDiscoveryController {
             }
             let handle = BackgroundProcessingTaskHandle(processingTask)
             let work = Task {
-                let snapshot = await environment.repository.snapshot()
-                let maximum = snapshot.preparationMode == .weeklyCache ? 12 : 1
+                let maximum = 3
                 let summary = await AutomaticDiscoveryRunner(environment: environment)
                     .run(maximumCandidates: maximum)
                 handle.complete(success: summary.failed == 0)

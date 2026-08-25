@@ -1,5 +1,5 @@
-import type { DetectedEntity, VisionProvider } from "../domain/types.js";
-import { detectedEntitySchema } from "../domain/schemas.js";
+import type { DailyKnowledgeRanker, DetectedEntity, KnowledgeCard, VisionProvider } from "../domain/types.js";
+import { dailyKnowledgeRankingSchema, detectedEntitySchema } from "../domain/schemas.js";
 import { AppError, invariant } from "../errors.js";
 
 interface QwenOptions {
@@ -100,6 +100,33 @@ export class QwenVisionProvider implements VisionProvider {
     }]);
     const parsed = detectedEntitySchema.safeParse(raw);
     if (!parsed.success) throw schemaError(raw, parsed.error.issues);
+    return parsed.data;
+  }
+}
+
+export class QwenDailyKnowledgeRanker implements DailyKnowledgeRanker {
+  constructor(private readonly options: QwenOptions) {}
+
+  async select(cards: KnowledgeCard[]): Promise<{ cardId: string; reason: string }> {
+    invariant(cards.length >= 2 && cards.length <= 3, "invalid_daily_candidates", "每日候选数量无效", 400);
+    const candidates = cards.map((card) => ({
+      cardId: card.cardId,
+      objectName: card.detectedObjectName,
+      title: card.title,
+      fact: card.body
+    }));
+    const raw = await callQwen(this.options, [{
+      role: "user",
+      content: [
+        "你是日常知识卡编辑。请从候选中选出今天最值得展示的一条。优先具体、反直觉、能从熟悉物件看到新角度的知识；避免只因对象罕见而选择，也不要添加候选之外的事实。",
+        "严格返回 {\"cardId\":\"候选 UUID\",\"reason\":\"不超过 60 字的选择理由\"}，不得返回其他字段。",
+        JSON.stringify(candidates)
+      ].join("\n")
+    }]);
+    const parsed = dailyKnowledgeRankingSchema.safeParse(raw);
+    if (!parsed.success || !cards.some((card) => card.cardId === parsed.data.cardId)) {
+      throw new AppError("invalid_ranking_schema", "知识排序服务返回结构无效", 502);
+    }
     return parsed.data;
   }
 }

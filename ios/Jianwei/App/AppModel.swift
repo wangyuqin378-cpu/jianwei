@@ -40,6 +40,9 @@ final class AppModel {
     private(set) var shouldPresentPhotoPicker = false
     private(set) var activeCardID: UUID?
     private(set) var imageCache: [UUID: Data] = [:]
+    private(set) var hasQwenAPIKey = false
+    private(set) var managedSubscriptionState: ManagedSubscriptionState = .loading
+    private(set) var managedSubscriptionPrice: String?
     var selectedSection: AppSection = .today
     var presentedCardID: UUID?
 
@@ -53,6 +56,7 @@ final class AppModel {
     var automaticDiscoveryEnabled: Bool { state.automaticDiscoveryEnabled }
     var preparationMode: AutomaticPreparationMode { state.preparationMode }
     var interests: Set<KnowledgeInterest> { state.interests }
+    var modelAccessMode: ModelAccessMode { state.modelAccessMode }
     var savedCards: [KnowledgeCard] {
         state.cards.filter { state.savedCardIDs.contains($0.id) }
     }
@@ -81,6 +85,8 @@ final class AppModel {
         }
         #endif
         await reloadFromDisk()
+        await refreshModelAccessStatus()
+        await refreshManagedSubscription()
         await flushPendingFeedback()
         if state.automaticDiscoveryEnabled {
             try? BackgroundDiscoveryController.schedule()
@@ -146,17 +152,22 @@ final class AppModel {
             return
         }
         guard !isWorking else { return }
+        let today = ChinaDay.string(from: Date())
+        guard state.lastDailySelectionDay != today else {
+            message = "今天的三张候选已经分析过了，明天会从未选过的照片继续。"
+            return
+        }
         isWorking = true
         analysisStage = .filtering
         message = nil
-        let maximum = state.preparationMode == .weeklyCache ? 12 : 1
+        let maximum = 3
         let summary = await AutomaticDiscoveryRunner(environment: environment)
             .run(maximumCandidates: maximum)
         await reloadFromDisk()
         isWorking = false
         analysisStage = summary.cardsCreated > 0 ? .ready : .idle
         if summary.cardsCreated > 0 {
-            message = "新准备了 \(summary.cardsCreated) 张知识卡。"
+            message = "今天从三张候选里准备了 \(summary.cardsCreated) 个知识点，正在选择最有趣的一条。"
         } else if summary.failed > 0 {
             message = "网络暂时不可用，候选照片已加密保留在本机，可稍后重试。"
         } else if summary.inspected > 0 {
@@ -352,6 +363,81 @@ final class AppModel {
         await reloadFromDisk()
     }
 
+    func useManagedModelService() async {
+        guard managedSubscriptionState == .subscribed else {
+            message = "请先订阅见微 Pro，或改用自己的 Qwen API Key。"
+            return
+        }
+        do {
+            try await environment.repository.setModelAccessMode(.managed)
+            await reloadFromDisk()
+            message = "已切换到见微托管服务。正式使用需要有效订阅。"
+        } catch {
+            message = "暂时无法保存 AI 服务设置。"
+        }
+    }
+
+    func purchaseManagedModelService() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            guard let identity = environment.identity else { throw ProductError.apiNotConfigured }
+            let installationID = try await identity.installationID()
+            try await environment.subscriptionStore.purchase(appAccountToken: installationID)
+            await refreshManagedSubscription()
+            guard managedSubscriptionState == .subscribed else { return }
+            try await environment.repository.setModelAccessMode(.managed)
+            await reloadFromDisk()
+            message = "见微 Pro 已开通：每天 3 张候选，发布 1 条知识。"
+        } catch let error as ProductError {
+            message = error.errorDescription
+        } catch {
+            message = "暂时无法完成购买，请稍后再试。"
+        }
+    }
+
+    func restoreManagedSubscription() async {
+        guard !isWorking else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await environment.subscriptionStore.restore()
+            await refreshManagedSubscription()
+            message = managedSubscriptionState == .subscribed
+                ? "已恢复见微 Pro 订阅。"
+                : "没有找到当前有效的见微 Pro 订阅。"
+        } catch {
+            message = "暂时无法恢复购买，请稍后再试。"
+        }
+    }
+
+    func saveAndUseQwenAPIKey(_ value: String) async {
+        do {
+            try await environment.modelAccessStore.saveQwenAPIKey(value)
+            try await environment.repository.setModelAccessMode(.qwenUserKey)
+            await refreshModelAccessStatus()
+            await reloadFromDisk()
+            message = "Qwen API Key 已安全保存在这台 iPhone，并已切换为自带 Key。"
+        } catch let error as ProductError {
+            message = error.errorDescription
+        } catch {
+            message = "暂时无法保存 Qwen API Key。"
+        }
+    }
+
+    func removeQwenAPIKey() async {
+        do {
+            try await environment.modelAccessStore.removeQwenAPIKey()
+            try await environment.repository.setModelAccessMode(.managed)
+            await refreshModelAccessStatus()
+            await reloadFromDisk()
+            message = "Qwen API Key 已从这台 iPhone 删除。"
+        } catch {
+            message = "暂时无法删除 Qwen API Key。"
+        }
+    }
+
     func imageData(for card: KnowledgeCard) -> Data? {
         imageCache[card.candidateToken]
     }
@@ -384,6 +470,16 @@ final class AppModel {
         imageCache = images
         try? await environment.widgetCoordinator.synchronize(cards: state.cards)
         await reloadWidgetSelection()
+    }
+
+    private func refreshModelAccessStatus() async {
+        hasQwenAPIKey = (try? await environment.modelAccessStore.hasQwenAPIKey()) == true
+    }
+
+    private func refreshManagedSubscription() async {
+        await environment.subscriptionStore.refresh()
+        managedSubscriptionState = environment.subscriptionStore.state
+        managedSubscriptionPrice = environment.subscriptionStore.displayPrice
     }
 
     private func reloadWidgetSelection() async {

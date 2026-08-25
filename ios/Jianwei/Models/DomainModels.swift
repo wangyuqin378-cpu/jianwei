@@ -72,8 +72,20 @@ enum AutomaticPreparationMode: String, Codable, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .weeklyCache: "提前备好一周"
-        case .dailySingle: "当天理解一张"
+        case .weeklyCache: "旧版一周缓存"
+        case .dailySingle: "每天三选一"
+        }
+    }
+}
+
+enum ModelAccessMode: String, Codable, CaseIterable, Sendable {
+    case managed
+    case qwenUserKey
+
+    var title: String {
+        switch self {
+        case .managed: "见微托管服务"
+        case .qwenUserKey: "使用自己的 Qwen Key"
         }
     }
 }
@@ -135,25 +147,29 @@ struct PersistedAppState: Codable, Sendable {
     var hiddenCardIDs: Set<UUID>
     var interests: Set<KnowledgeInterest>
     var preparationMode: AutomaticPreparationMode
+    var modelAccessMode: ModelAccessMode
     var feedbackByCardID: [UUID: FeedbackAction]
     var pendingFeedback: [PendingFeedback]
     var onboardingCompleted: Bool
     var automaticDiscoveryEnabled: Bool
     var lastIncrementalScanAt: Date?
+    var lastDailySelectionDay: String?
 
     static let empty = PersistedAppState(
-        schemaVersion: 1,
+        schemaVersion: 2,
         cards: [],
         candidates: [],
         savedCardIDs: [],
         hiddenCardIDs: [],
         interests: [.everydayDesign, .objectHistory, .science],
-        preparationMode: .weeklyCache,
+        preparationMode: .dailySingle,
+        modelAccessMode: .managed,
         feedbackByCardID: [:],
         pendingFeedback: [],
         onboardingCompleted: false,
         automaticDiscoveryEnabled: false,
-        lastIncrementalScanAt: nil
+        lastIncrementalScanAt: nil,
+        lastDailySelectionDay: nil
     )
 }
 
@@ -166,16 +182,18 @@ extension PersistedAppState {
         case hiddenCardIDs
         case interests
         case preparationMode
+        case modelAccessMode
         case feedbackByCardID
         case pendingFeedback
         case onboardingCompleted
         case automaticDiscoveryEnabled
         case lastIncrementalScanAt
+        case lastDailySelectionDay
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        schemaVersion = max(2, try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1)
         cards = try container.decodeIfPresent([KnowledgeCard].self, forKey: .cards) ?? []
         candidates = try container.decodeIfPresent([PhotoCandidateRecord].self, forKey: .candidates) ?? []
         savedCardIDs = try container.decodeIfPresent(Set<UUID>.self, forKey: .savedCardIDs) ?? []
@@ -187,7 +205,11 @@ extension PersistedAppState {
         preparationMode = try container.decodeIfPresent(
             AutomaticPreparationMode.self,
             forKey: .preparationMode
-        ) ?? .weeklyCache
+        ) ?? .dailySingle
+        modelAccessMode = try container.decodeIfPresent(
+            ModelAccessMode.self,
+            forKey: .modelAccessMode
+        ) ?? .managed
         feedbackByCardID = try container.decodeIfPresent(
             [UUID: FeedbackAction].self,
             forKey: .feedbackByCardID
@@ -208,6 +230,10 @@ extension PersistedAppState {
             Date.self,
             forKey: .lastIncrementalScanAt
         )
+        lastDailySelectionDay = try container.decodeIfPresent(
+            String.self,
+            forKey: .lastDailySelectionDay
+        )
     }
 
     func encode(to encoder: Encoder) throws {
@@ -219,16 +245,24 @@ extension PersistedAppState {
         try container.encode(hiddenCardIDs, forKey: .hiddenCardIDs)
         try container.encode(interests, forKey: .interests)
         try container.encode(preparationMode, forKey: .preparationMode)
+        try container.encode(modelAccessMode, forKey: .modelAccessMode)
         try container.encode(feedbackByCardID, forKey: .feedbackByCardID)
         try container.encode(pendingFeedback, forKey: .pendingFeedback)
         try container.encode(onboardingCompleted, forKey: .onboardingCompleted)
         try container.encode(automaticDiscoveryEnabled, forKey: .automaticDiscoveryEnabled)
         try container.encodeIfPresent(lastIncrementalScanAt, forKey: .lastIncrementalScanAt)
+        try container.encodeIfPresent(lastDailySelectionDay, forKey: .lastDailySelectionDay)
     }
 }
 
 enum ProductError: LocalizedError, Equatable {
     case apiNotConfigured
+    case apiKeyRequired
+    case invalidAPIKey
+    case subscriptionUnavailable
+    case subscriptionVerificationFailed
+    case subscriptionPending
+    case subscriptionRequired
     case invalidServerResponse
     case photoUnavailable
     case sensitivePhoto(Set<String>)
@@ -241,6 +275,12 @@ enum ProductError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .apiNotConfigured: "云端服务尚未配置，请先使用本地开发地址或生产 HTTPS 地址。"
+        case .apiKeyRequired: "请先在设置中保存有效的 Qwen API Key。"
+        case .invalidAPIKey: "Qwen API Key 格式不正确。"
+        case .subscriptionUnavailable: "暂时无法从 App Store 获取见微 Pro。"
+        case .subscriptionVerificationFailed: "App Store 购买凭证无法验证，请稍后重试。"
+        case .subscriptionPending: "购买仍在等待 App Store 确认。"
+        case .subscriptionRequired: "需要有效的见微 Pro 订阅，或在设置中改用自己的 Qwen API Key。"
         case .invalidServerResponse: "服务返回的数据无法安全验证。"
         case .photoUnavailable: "这张照片暂时无法读取，可以换一张试试。"
         case .sensitivePhoto: "这张照片可能包含人物、证件或较多文字，已留在设备上。"

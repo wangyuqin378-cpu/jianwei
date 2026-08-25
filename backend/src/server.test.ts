@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { AppConfig } from "./config.js";
-import type { EvaluationLeaseDefinition, VisionProvider } from "./domain/types.js";
+import type { DailyKnowledgeRanker, EvaluationLeaseDefinition, VisionProvider } from "./domain/types.js";
 import { LocalObjectStore, RotatingOssCredentialSource } from "./infrastructure/object-store.js";
 import {
   buildServer,
@@ -14,6 +14,7 @@ import {
 } from "./server.js";
 import { evaluationCandidateToken } from "./services/evaluation-lease.js";
 import { installationBindingSha256 } from "./registration-binding.js";
+import { AppError } from "./errors.js";
 
 const INSTALLATION_ID = "a2c468a6-8c08-4bbd-a1f1-0cb9ec0f30ad";
 const SECOND_INSTALLATION_ID = "c31d7b10-5af0-4bdd-b7dd-5b65112cfa11";
@@ -32,11 +33,174 @@ afterEach(async () => {
 
 it("redacts Function Compute credential headers from production logs", () => {
   expect(PRODUCTION_LOG_REDACT_PATHS).toEqual(expect.arrayContaining([
+    "req.body.modelAccess.apiKey",
+    "req.body.modelAccess.appStoreTransaction",
     "req.headers['x-fc-access-key-id']",
     "req.headers['x-fc-access-key-secret']",
     "req.headers['x-fc-security-token']"
     , "req.headers['x-jianwei-evaluation-lease']"
   ]));
+});
+
+it("requires and consumes a request-scoped App Store entitlement for managed inference", async () => {
+  const directory = await temporaryObjectDir();
+  let receivedTransaction: string | undefined;
+  const app = await buildServer({
+    config: testConfig(directory),
+    managedEntitlementVerifier: {
+      async verify(transaction, installationHash) {
+        receivedTransaction = transaction;
+        expect(installationHash).toMatch(/^[a-f0-9]{64}$/);
+        if (!transaction) throw new AppError("subscription_required", "subscription required", 402);
+      }
+    }
+  });
+  const token = await register(app);
+  const created = await app.inject({
+    method: "POST",
+    url: "/v1/analysis-jobs",
+    headers: bearer(token),
+    payload: {
+      candidateToken: CANDIDATE_ID,
+      capturedAtBucket: "2026-08-26",
+      localLabels: ["broom"],
+      qualityScore: 0.91,
+      sensitiveFlags: [],
+      contentType: "image/jpeg"
+    }
+  });
+  await app.inject({
+    method: "PUT",
+    url: uploadPath(created.json().uploadUrl as string),
+    headers: { ...bearer(token), "content-type": "image/jpeg" },
+    payload: jpegPayload(10)
+  });
+
+  const missing = await app.inject({
+    method: "POST",
+    url: `/v1/analysis-jobs/${created.json().jobId as string}/complete`,
+    headers: bearer(token),
+    payload: { modelAccess: { mode: "managed" } }
+  });
+  expect(missing.statusCode).toBe(402);
+  expect(missing.json().error.code).toBe("subscription_required");
+
+  const transaction = `eyJhbGciOiJFUzI1NiJ9.${"x".repeat(100)}.signature`;
+  const completed = await app.inject({
+    method: "POST",
+    url: `/v1/analysis-jobs/${created.json().jobId as string}/complete`,
+    headers: bearer(token),
+    payload: { modelAccess: { mode: "managed", appStoreTransaction: transaction } }
+  });
+  expect(completed.statusCode).toBe(200);
+  expect(receivedTransaction).toBe(transaction);
+  expect(completed.body).not.toContain(transaction);
+  await app.close();
+});
+
+it("uses a Qwen BYOK credential for one completion without returning or persisting it", async () => {
+  const directory = await temporaryObjectDir();
+  let receivedKey: string | null = null;
+  const byokVision: VisionProvider = {
+    async detect() {
+      return {
+        canonicalTopicId: "broom",
+        displayName: "扫帚",
+        confidence: 0.93,
+        boundingBox: null,
+        alternatives: [],
+        sensitiveFlags: []
+      };
+    }
+  };
+  const app = await buildServer({
+    config: testConfig(directory),
+    userVisionFactory: (apiKey) => {
+      receivedKey = apiKey;
+      return byokVision;
+    }
+  });
+  const token = await register(app);
+  const created = await app.inject({
+    method: "POST",
+    url: "/v1/analysis-jobs",
+    headers: bearer(token),
+    payload: {
+      candidateToken: CANDIDATE_ID,
+      capturedAtBucket: "2026-08-26",
+      localLabels: ["cleaning tool"],
+      qualityScore: 0.91,
+      sensitiveFlags: [],
+      contentType: "image/jpeg"
+    }
+  });
+  await app.inject({
+    method: "PUT",
+    url: uploadPath(created.json().uploadUrl as string),
+    headers: { ...bearer(token), "content-type": "image/jpeg" },
+    payload: jpegPayload(12)
+  });
+  const apiKey = "sk-test_12345678901234567890";
+  const completed = await app.inject({
+    method: "POST",
+    url: `/v1/analysis-jobs/${created.json().jobId as string}/complete`,
+    headers: bearer(token),
+    payload: { modelAccess: { mode: "user_key", provider: "qwen", apiKey } }
+  });
+
+  expect(completed.statusCode).toBe(200);
+  expect(receivedKey).toBe(apiKey);
+  expect(completed.body).not.toContain(apiKey);
+  const job = await app.inject({
+    method: "GET",
+    url: `/v1/analysis-jobs/${created.json().jobId as string}`,
+    headers: bearer(token)
+  });
+  expect(job.body).not.toContain(apiKey);
+  await app.close();
+});
+
+it("ranks two owned knowledge cards with the request-scoped BYOK credential", async () => {
+  const directory = await temporaryObjectDir();
+  let receivedKey: string | null = null;
+  let candidateIDs: string[] = [];
+  const app = await buildServer({
+    config: testConfig(directory),
+    userDailyRankerFactory: (apiKey): DailyKnowledgeRanker => {
+      receivedKey = apiKey;
+      return {
+        async select(cards) {
+          candidateIDs = cards.map((card) => card.cardId);
+          return { cardId: cards[1]!.cardId, reason: "第二条知识更具体，也更反直觉" };
+        }
+      };
+    }
+  });
+  const token = await register(app);
+  const first = await completeTestCard(app, token, CANDIDATE_ID);
+  const second = await completeTestCard(app, token, SECOND_CANDIDATE_ID);
+  const apiKey = "sk-test_12345678901234567890";
+  const response = await app.inject({
+    method: "POST",
+    url: "/v1/cards/select-daily",
+    headers: bearer(token),
+    payload: {
+      cardIds: [first.cardId, second.cardId],
+      modelAccess: { mode: "user_key", provider: "qwen", apiKey }
+    }
+  });
+
+  expect(response.statusCode).toBe(200);
+  expect(receivedKey).toBe(apiKey);
+  expect(candidateIDs).toEqual([first.cardId, second.cardId]);
+  expect(response.json()).toEqual({ cardId: second.cardId, reason: "第二条知识更具体，也更反直觉" });
+  expect(response.body).not.toContain(apiKey);
+  const remaining = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
+  expect(remaining.json().items).toEqual([
+    expect.objectContaining({ cardId: first.cardId, status: "archived" }),
+    expect.objectContaining({ cardId: second.cardId, status: "scheduled" })
+  ]);
+  await app.close();
 });
 
 it("serializes production logs without request instances, network identity, or exception text", () => {
@@ -1474,7 +1638,12 @@ function testConfig(localObjectDir: string): AppConfig {
     allowUnattestedFacts: true,
     knowledgeCatalogSha256: null,
     knowledgeReviewerIds: [],
-    containerImageDigest: null
+    containerImageDigest: null,
+    appStoreBundleId: "cn.jianwei.ios",
+    appStoreAppAppleId: null,
+    appStoreSubscriptionProductId: "cn.jianwei.ios.pro.monthly",
+    appStoreEnvironment: "sandbox",
+    appStoreRootCertificatePaths: []
   };
 }
 

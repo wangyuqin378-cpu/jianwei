@@ -37,6 +37,11 @@ export interface AppConfig {
   knowledgeCatalogSha256: string | null;
   knowledgeReviewerIds: string[];
   containerImageDigest: string | null;
+  appStoreBundleId: string;
+  appStoreAppAppleId: number | null;
+  appStoreSubscriptionProductId: string;
+  appStoreEnvironment: "sandbox" | "production";
+  appStoreRootCertificatePaths: string[];
 }
 
 function optional(value: string | undefined): string | null {
@@ -47,8 +52,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const environment = parseEnvironment(env.NODE_ENV);
   const visionProvider = parseProvider(env.VISION_PROVIDER, "VISION_PROVIDER", ["local", "qwen", "kimi"], "local");
   const port = Number(env.PORT ?? "8787");
-  const maxJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_DAY ?? "24");
-  const maxMonthlyJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_MONTH ?? "300");
+  const maxJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_DAY ?? "3");
+  const maxMonthlyJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_MONTH ?? "93");
   const maxGlobalJobs = Number(env.MAX_JOBS_GLOBAL_PER_DAY ?? "2000");
   const maxGlobalMonthlyJobs = Number(env.MAX_JOBS_GLOBAL_PER_MONTH ?? "50000");
   const worstCaseCostMicroCnyPerJob = Number(env.WORST_CASE_COST_MICRO_CNY_PER_JOB ?? "1");
@@ -65,6 +70,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     .map((value) => value.trim())
     .filter(Boolean))];
   const containerImageDigest = optional(env.CONTAINER_IMAGE_DIGEST)?.toLowerCase() ?? null;
+  const appStoreBundleId = env.APP_STORE_BUNDLE_ID?.trim() || "cn.jianwei.ios";
+  const appStoreSubscriptionProductId = env.APP_STORE_SUBSCRIPTION_PRODUCT_ID?.trim()
+    || "cn.jianwei.ios.pro.monthly";
+  const appStoreEnvironment = env.APP_STORE_ENVIRONMENT?.trim() || "sandbox";
+  if (appStoreEnvironment !== "sandbox" && appStoreEnvironment !== "production") {
+    throw new Error("APP_STORE_ENVIRONMENT must be sandbox or production");
+  }
+  const appStoreAppAppleIdRaw = optional(env.APP_STORE_APP_APPLE_ID);
+  const appStoreAppAppleId = appStoreAppAppleIdRaw === null ? null : Number(appStoreAppAppleIdRaw);
+  if (appStoreAppAppleId !== null && (!Number.isSafeInteger(appStoreAppAppleId) || appStoreAppAppleId <= 0)) {
+    throw new Error("APP_STORE_APP_APPLE_ID must be a positive integer");
+  }
+  const appStoreRootCertificatePaths = (env.APP_STORE_ROOT_CERTIFICATE_PATHS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
   if (containerImageDigest && !/^sha256:[a-f0-9]{64}$/.test(containerImageDigest)) {
     throw new Error("CONTAINER_IMAGE_DIGEST must be an OCI sha256 digest");
   }
@@ -129,6 +150,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (ttl > 24) throw new Error("OBJECT_TTL_HOURS must not exceed 24 in production");
     if (!knowledgeCatalogSha256) throw new Error("KNOWLEDGE_CATALOG_SHA256 is required in production");
     if (!containerImageDigest) throw new Error("CONTAINER_IMAGE_DIGEST is required in production");
+    if (appStoreEnvironment !== "production") {
+      throw new Error("APP_STORE_ENVIRONMENT must be production in production");
+    }
+    if (!appStoreAppAppleId) throw new Error("APP_STORE_APP_APPLE_ID is required in production");
+    if (appStoreRootCertificatePaths.length === 0) {
+      throw new Error("APP_STORE_ROOT_CERTIFICATE_PATHS is required in production");
+    }
     if (visionProvider === "qwen" && !env.DASHSCOPE_BASE_URL?.trim()) {
       throw new Error("DASHSCOPE_BASE_URL is required for Qwen in production");
     }
@@ -185,7 +213,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     allowUnattestedFacts,
     knowledgeCatalogSha256,
     knowledgeReviewerIds,
-    containerImageDigest
+    containerImageDigest,
+    appStoreBundleId,
+    appStoreAppAppleId,
+    appStoreSubscriptionProductId,
+    appStoreEnvironment,
+    appStoreRootCertificatePaths
   };
 }
 

@@ -533,6 +533,16 @@ export class PostgresRepositories {
       const items = rows.slice(0, limit).map(cardFrom);
       return { items, nextCursor: hasMore ? items.at(-1)?.cardId ?? null : null };
     },
+    archiveUnselected: async (deviceId, cardIds, selectedCardId) => {
+      await this.sql.begin(async (transaction) => {
+        for (const cardId of cardIds) {
+          if (cardId === selectedCardId) continue;
+          await transaction`
+            UPDATE cards SET status = 'archived'
+            WHERE id = ${cardId} AND device_id = ${deviceId}`;
+        }
+      });
+    },
     listRecentFactIds: async (deviceId, topicId, limit) => {
       if (limit <= 0) return [];
       const rows = await this.sql<{ fact_id: string }[]>`

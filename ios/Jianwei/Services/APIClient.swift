@@ -101,11 +101,16 @@ actor APIClient {
         else { throw ProductError.invalidServerResponse }
     }
 
-    func completeJob(bearer: String, jobID: UUID, candidateToken: UUID) async throws -> KnowledgeCard? {
+    func completeJob(
+        bearer: String,
+        jobID: UUID,
+        candidateToken: UUID,
+        modelAccess: ModelAccessRequest
+    ) async throws -> KnowledgeCard? {
         let response: CompleteJobResponse = try await jsonRequest(
             path: "/v1/analysis-jobs/\(jobID.uuidString.lowercased())/complete",
             method: "POST",
-            body: EmptyBody(),
+            body: CompleteJobRequest(modelAccess: ModelAccessDTO(modelAccess)),
             bearer: bearer,
             expectedStatus: 200
         )
@@ -122,14 +127,51 @@ actor APIClient {
     }
 
     func cards(bearer: String) async throws -> [KnowledgeCard] {
-        let response: CardsResponse = try await jsonRequest(
-            path: "/v1/cards?limit=50",
-            method: "GET",
-            body: Optional<EmptyBody>.none,
+        var result: [KnowledgeCard] = []
+        var cursor: String?
+        repeat {
+            let query = cursor.map { "/v1/cards?limit=50&cursor=\($0)" } ?? "/v1/cards?limit=50"
+            let response: CardsResponse = try await jsonRequest(
+                path: query,
+                method: "GET",
+                body: Optional<EmptyBody>.none,
+                bearer: bearer,
+                expectedStatus: 200
+            )
+            result.append(contentsOf: try response.items.map { try $0.validated(expectedCandidate: nil) })
+            if let next = response.nextCursor {
+                guard let id = UUID(uuidString: next) else { throw ProductError.invalidServerResponse }
+                cursor = id.uuidString.lowercased()
+            } else {
+                cursor = nil
+            }
+        } while cursor != nil && result.count < 500
+        return result.filter { $0.status != "archived" }
+    }
+
+    func selectDailyCard(
+        bearer: String,
+        cardIDs: [UUID],
+        modelAccess: ModelAccessRequest
+    ) async throws -> UUID {
+        guard (2...3).contains(cardIDs.count), Set(cardIDs).count == cardIDs.count else {
+            throw ProductError.invalidServerResponse
+        }
+        let response: DailyCardSelectionResponse = try await jsonRequest(
+            path: "/v1/cards/select-daily",
+            method: "POST",
+            body: DailyCardSelectionRequest(
+                cardIds: cardIDs.map { $0.uuidString.lowercased() },
+                modelAccess: ModelAccessDTO(modelAccess)
+            ),
             bearer: bearer,
             expectedStatus: 200
         )
-        return try response.items.map { try $0.validated(expectedCandidate: nil) }
+        guard let selected = UUID(uuidString: response.cardId),
+              cardIDs.contains(selected),
+              (1...160).contains(response.reason.count)
+        else { throw ProductError.invalidServerResponse }
+        return selected
     }
 
     func feedback(bearer: String, cardID: UUID, action: FeedbackAction) async throws {
@@ -174,7 +216,11 @@ actor APIClient {
         }
         if let bearer { request.setValue("Bearer \(bearer)", forHTTPHeaderField: "Authorization") }
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == expectedStatus else {
+        guard let http = response as? HTTPURLResponse else {
+            throw ProductError.requestFailed(-1)
+        }
+        if http.statusCode == 402 { throw ProductError.subscriptionRequired }
+        guard http.statusCode == expectedStatus else {
             throw ProductError.requestFailed((response as? HTTPURLResponse)?.statusCode ?? -1)
         }
         guard data.count <= 512 * 1024 else { throw ProductError.invalidServerResponse }
@@ -208,6 +254,28 @@ actor APIClient {
 
 struct Registration: Sendable { let deviceID: String; let token: String }
 private struct EmptyBody: Codable {}
+private struct CompleteJobRequest: Codable { let modelAccess: ModelAccessDTO }
+private struct ModelAccessDTO: Codable {
+    let mode: String
+    let provider: String?
+    let apiKey: String?
+    let appStoreTransaction: String?
+
+    init(_ request: ModelAccessRequest) {
+        switch request.mode {
+        case .managed:
+            mode = "managed"
+            provider = nil
+            apiKey = nil
+            appStoreTransaction = request.appStoreTransaction
+        case .qwenUserKey:
+            mode = "user_key"
+            provider = "qwen"
+            apiKey = request.apiKey
+            appStoreTransaction = nil
+        }
+    }
+}
 private struct RegisterRequest: Codable { let installationId: String }
 private struct RegisterResponse: Codable {
     let deviceId: String
@@ -245,6 +313,11 @@ private struct CompleteJobResponse: Codable {
 }
 private struct CardsResponse: Codable { let items: [CardDTO]; let nextCursor: String? }
 private struct FeedbackRequest: Codable { let action: String }
+private struct DailyCardSelectionRequest: Codable {
+    let cardIds: [String]
+    let modelAccess: ModelAccessDTO
+}
+private struct DailyCardSelectionResponse: Codable { let cardId: String; let reason: String }
 private struct FeedbackResponse: Codable { let id: String; let cardId: String; let action: String; let createdAt: Date }
 private struct DeleteDeviceDataResponse: Codable { let deviceId: String; let status: String }
 
@@ -275,6 +348,7 @@ private struct CardDTO: Codable {
             (1...500).contains(personalContext.count),
             (0...1).contains(confidence),
             (1...3).contains(sources.count),
+            ["scheduled", "shown", "archived"].contains(status),
             boundingBox?.isValid != false,
             scheduledDate.range(of: "^\\d{4}-\\d{2}-\\d{2}$", options: .regularExpression) != nil
         else { throw ProductError.invalidServerResponse }

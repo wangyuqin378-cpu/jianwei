@@ -10,6 +10,7 @@
 		00CBD6E57867CD6C0C7CD9D1 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC01ED3D417182E53D19142 /* SavedView.swift */; };
 		0ACDB97D167465076FCC2637 /* PhotoDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92917062655B69E524100B13 /* PhotoDiscoveryService.swift */; };
 		0FD036F042CD7BA009052ABE /* onboarding_broom_example.webp in Resources */ = {isa = PBXBuildFile; fileRef = C2D336916D754B733D27D986 /* onboarding_broom_example.webp */; };
+		1094CE697D6BEF5E9DE8E6C5 /* JianweiOnboardingAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525F54155BB0DFF2E5584FA6 /* JianweiOnboardingAccessTests.swift */; };
 		11B1630E102961B8BD6C62E2 /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E2BA1B88EE3EECDB7452E4 /* CardDetailView.swift */; };
 		17F09EC208D6EF769F47F877 /* JianweiWidgetJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */; };
 		267A819AB59CDC2CCAA80E33 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE5EF5568F00065BF85CBCA /* SettingsView.swift */; };
@@ -17,7 +18,9 @@
 		34AB5FB911AFCF1C4A8E8E45 /* JianweiWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB29278C1AC8F359973E858F /* JianweiWidgetBundle.swift */; };
 		35B0311CECD7D34C17DA63F9 /* SwitchKnowledgeCardIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C374E2FCC43212F43A079 /* SwitchKnowledgeCardIntent.swift */; };
 		36781A3E3DA904265C8D8AC9 /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */; };
+		3E8BC0666258C9D43572C5D2 /* AIModelAccessStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410AAB66F38DD213B80F9385 /* AIModelAccessStore.swift */; };
 		43B661A5B9AC5461AF7AACB1 /* DeviceIdentityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */; };
+		46473F06763D7258F3C44FC5 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E04E1111B54F78DE7B5998E /* SubscriptionStore.swift */; };
 		49BC42435CBDE068BC8E8ED1 /* DailyKnowledgeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED3C42FE61C92A40DAA435A /* DailyKnowledgeWidget.swift */; };
 		4E351955405E1D6A9AF45CE3 /* JianweiCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD378C56B815E60397F76731 /* JianweiCoreTests.swift */; };
 		534FC9907F72EDB57EB3E21F /* JianweiWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 224C951166409D6F49E66665 /* JianweiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -37,6 +40,7 @@
 		D1367CC8947C0F415FC9CD4F /* WidgetCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */; };
 		D39957DAA161805A378F7EC7 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */; };
 		DE068A7A2D06D6519CD829A8 /* AnalysisPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */; };
+		E9CBF2B613B9E6572AA1B0A4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0651C44B739269F1DCD2F180 /* PrivacyInfo.xcprivacy */; };
 		EBA97F0E7564DD842E7E1840 /* SharedWidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */; };
 		F1C28F803F464E78B0FA4323 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0912A556B4FEE4B4FC73F8D2 /* AppModel.swift */; };
 		F24DED91FB301D045C49E266 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8111BE57781A745D89F6030 /* OnboardingView.swift */; };
@@ -90,12 +94,16 @@
 
 /* Begin PBXFileReference section */
 		037801902827CD8341B1707D /* JianweiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0651C44B739269F1DCD2F180 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0912A556B4FEE4B4FC73F8D2 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		12792E82F31D05F313E08BA4 /* SharedConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
 		224C951166409D6F49E66665 /* JianweiWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = JianweiWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		229C374E2FCC43212F43A079 /* SwitchKnowledgeCardIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchKnowledgeCardIntent.swift; sourceTree = "<group>"; };
 		2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		3BF480B53E652898115C27CB /* Jianwei.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Jianwei.entitlements; sourceTree = "<group>"; };
+		3E04E1111B54F78DE7B5998E /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
+		410AAB66F38DD213B80F9385 /* AIModelAccessStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelAccessStore.swift; sourceTree = "<group>"; };
+		525F54155BB0DFF2E5584FA6 /* JianweiOnboardingAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiOnboardingAccessTests.swift; sourceTree = "<group>"; };
 		5297F575821253F1F33917A5 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
 		5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisPipeline.swift; sourceTree = "<group>"; };
 		64196922077C51E13E85363E /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -134,6 +142,7 @@
 		05CA3F018783DF9830AD9CAD /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				410AAB66F38DD213B80F9385 /* AIModelAccessStore.swift */,
 				5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */,
 				2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */,
 				FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */,
@@ -141,6 +150,7 @@
 				A4602308F9F4C713AE468EDE /* LocalRepository.swift */,
 				92917062655B69E524100B13 /* PhotoDiscoveryService.swift */,
 				6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */,
+				3E04E1111B54F78DE7B5998E /* SubscriptionStore.swift */,
 				D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */,
 			);
 			path = Services;
@@ -163,6 +173,7 @@
 			children = (
 				D2A0DD61A1292F712863D706 /* Info.plist */,
 				3BF480B53E652898115C27CB /* Jianwei.entitlements */,
+				0651C44B739269F1DCD2F180 /* PrivacyInfo.xcprivacy */,
 				244CE861F2A29ADCEBC2CEEF /* App */,
 				7B48465805308E9944F73D6C /* Models */,
 				333085535046F499E19AE5B9 /* Resources */,
@@ -255,6 +266,7 @@
 		CF584CED33A820404448E8C6 /* JianweiUITests */ = {
 			isa = PBXGroup;
 			children = (
+				525F54155BB0DFF2E5584FA6 /* JianweiOnboardingAccessTests.swift */,
 				F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */,
 			);
 			path = JianweiUITests;
@@ -434,24 +446,24 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					0D82914B52CC024ADDB344A8 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 69M7GUC67V;
 						ProvisioningStyle = Automatic;
 					};
 					134A55B9727FEEE02F85B299 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 69M7GUC67V;
 						ProvisioningStyle = Automatic;
 					};
 					358CB4BDB6F9EEC3701AA868 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 69M7GUC67V;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 0D82914B52CC024ADDB344A8;
 					};
 					49B4532528B9D50ED2EEC891 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 69M7GUC67V;
 						ProvisioningStyle = Automatic;
 					};
 					99049D4527B2482CEF916401 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 69M7GUC67V;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 0D82914B52CC024ADDB344A8;
 					};
@@ -494,6 +506,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFF85ACA90387B6D8C1B659F /* Assets.xcassets in Resources */,
+				E9CBF2B613B9E6572AA1B0A4 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -517,6 +530,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1094CE697D6BEF5E9DE8E6C5 /* JianweiOnboardingAccessTests.swift in Sources */,
 				17F09EC208D6EF769F47F877 /* JianweiWidgetJourneyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -541,6 +555,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E8BC0666258C9D43572C5D2 /* AIModelAccessStore.swift in Sources */,
 				D39957DAA161805A378F7EC7 /* APIClient.swift in Sources */,
 				DE068A7A2D06D6519CD829A8 /* AnalysisPipeline.swift in Sources */,
 				F366E74C41518F7AB070FEC1 /* AppEnvironment.swift in Sources */,
@@ -560,6 +575,7 @@
 				267A819AB59CDC2CCAA80E33 /* SettingsView.swift in Sources */,
 				92B4E6F70D8B6D67BFA7C70E /* SharedConstants.swift in Sources */,
 				2970B0A9F8CEA6F7553B01BB /* SharedWidgetStore.swift in Sources */,
+				46473F06763D7258F3C44FC5 /* SubscriptionStore.swift in Sources */,
 				5A969123C5E75EC14EE87438 /* TodayView.swift in Sources */,
 				D1367CC8947C0F415FC9CD4F /* WidgetCoordinator.swift in Sources */,
 				36781A3E3DA904265C8D8AC9 /* WidgetModels.swift in Sources */,
@@ -741,7 +757,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 69M7GUC67V;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -883,7 +899,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 69M7GUC67V;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;

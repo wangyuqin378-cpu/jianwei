@@ -406,6 +406,14 @@ export class InMemoryRepositories {
     return { items, nextCursor };
   }
 
+  async archiveUnselected(deviceId: string, cardIds: string[], selectedCardId: string): Promise<void> {
+    for (const cardId of cardIds) {
+      if (cardId === selectedCardId) continue;
+      const card = this.cards.get(cardId);
+      if (card?.deviceId === deviceId) this.cards.set(cardId, { ...card, status: "archived" });
+    }
+  }
+
   async listRecentFactIds(deviceId: string, topicId: string, limit: number): Promise<string[]> {
     if (limit <= 0) return [];
     return [...this.cards.values()]
@@ -593,6 +601,8 @@ export class InMemoryRepositories {
     create: (card) => this.createCard(card),
     findById: (cardId) => this.findCardById(cardId),
     list: (deviceId, cursor, limit) => this.list(deviceId, cursor, limit),
+    archiveUnselected: (deviceId, cardIds, selectedCardId) =>
+      this.archiveUnselected(deviceId, cardIds, selectedCardId),
     listRecentFactIds: (deviceId, topicId, limit) => this.listRecentFactIds(deviceId, topicId, limit),
     addFeedback: (input) => this.addFeedback(input),
     deleteTooPrivate: (deviceId, cardId) => this.deleteTooPrivate(deviceId, cardId),

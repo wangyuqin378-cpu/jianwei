@@ -121,6 +121,10 @@ export interface KnowledgeCard {
   createdAt: string;
 }
 
+export interface DailyKnowledgeRanker {
+  select(cards: KnowledgeCard[]): Promise<{ cardId: string; reason: string }>;
+}
+
 export interface CardFeedback {
   id: string;
   deviceId: string;
@@ -252,6 +256,7 @@ export interface CardRepository {
   create(card: Omit<KnowledgeCard, "cardId" | "createdAt">): Promise<KnowledgeCard>;
   findById(cardId: string): Promise<KnowledgeCard | null>;
   list(deviceId: string, cursor: string | null, limit: number): Promise<{ items: KnowledgeCard[]; nextCursor: string | null }>;
+  archiveUnselected(deviceId: string, cardIds: string[], selectedCardId: string): Promise<void>;
   listRecentFactIds(deviceId: string, topicId: string, limit: number): Promise<string[]>;
   addFeedback(
     input: Omit<CardFeedback, "id" | "createdAt"> & { topicId: string }

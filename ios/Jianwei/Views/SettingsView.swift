@@ -4,21 +4,24 @@ import UIKit
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var interests = Set<KnowledgeInterest>()
-    @State private var preparationMode: AutomaticPreparationMode = .weeklyCache
+    @State private var preparationMode: AutomaticPreparationMode = .dailySingle
     @State private var confirmLocalDeletion = false
     @State private var confirmCloudDeletion = false
+    @State private var qwenAPIKey = ""
 
     var body: some View {
         ZStack {
             JianweiBrand.paper.ignoresSafeArea()
             Form {
                 discoverySection
+                modelServiceSection
                 preferenceSection
                 privacySection
                 aboutSection
             }
             .scrollContentBackground(.hidden)
         }
+        .onDisappear { qwenAPIKey = "" }
         .navigationTitle("设置")
         .onAppear {
             interests = model.interests
@@ -48,6 +51,87 @@ struct SettingsView: View {
         } message: {
             Text("需要联网取得服务端确认。此操作完成后无法恢复。")
         }
+    }
+
+    private var modelServiceSection: some View {
+        Section {
+            LabeledContent("当前方式", value: model.modelAccessMode.title)
+            LabeledContent("见微 Pro", value: model.managedSubscriptionState.title)
+
+            if model.managedSubscriptionState == .subscribed {
+                Button {
+                    Task { await model.useManagedModelService() }
+                } label: {
+                    HStack {
+                        Label("使用见微托管服务", systemImage: "sparkles")
+                        Spacer()
+                        if model.modelAccessMode == .managed {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(JianweiBrand.forest)
+                        }
+                    }
+                }
+                .foregroundStyle(JianweiBrand.ink)
+            } else {
+                Button {
+                    Task { await model.purchaseManagedModelService() }
+                } label: {
+                    Label(subscriptionButtonTitle, systemImage: "sparkles")
+                }
+                .disabled(model.isWorking || model.managedSubscriptionState == .productUnavailable)
+            }
+
+            Button("恢复购买") {
+                Task { await model.restoreManagedSubscription() }
+            }
+            .disabled(model.isWorking)
+
+            if model.managedSubscriptionState == .subscribed {
+                Link("管理或取消订阅", destination: URL(string: "https://apps.apple.com/account/subscriptions")!)
+            }
+
+            HStack {
+                Link("隐私政策", destination: URL(string: "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/PRIVACY.md")!)
+                Spacer()
+                Link("使用条款", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+            }
+
+            SecureField("粘贴百炼 Qwen API Key", text: $qwenAPIKey)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .privacySensitive()
+
+            Button {
+                let value = qwenAPIKey
+                qwenAPIKey = ""
+                Task { await model.saveAndUseQwenAPIKey(value) }
+            } label: {
+                Label(
+                    model.hasQwenAPIKey ? "更新并使用自己的 Key" : "保存并使用自己的 Key",
+                    systemImage: "key.fill"
+                )
+            }
+            .disabled(qwenAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+            if model.hasQwenAPIKey {
+                LabeledContent("本机 Key", value: "已安全保存")
+                Button("删除本机 Qwen Key", role: .destructive) {
+                    qwenAPIKey = ""
+                    Task { await model.removeQwenAPIKey() }
+                }
+            }
+        } header: {
+            Text("AI 服务")
+        } footer: {
+            Text("见微 Pro 为按月自动续订服务：每天最多分析 3 张未处理照片并发布 1 条知识，每自然月最多 31 条；可随时在 App Store 取消。购买时显示的本地价格为准。自己的 Key 只保存在本机 Keychain，分析时通过加密连接单次使用，服务端不保存。")
+        }
+    }
+
+    private var subscriptionButtonTitle: String {
+        if let price = model.managedSubscriptionPrice {
+            return "订阅见微 Pro · \(price)/月"
+        }
+        return "订阅见微 Pro"
     }
 
     private var discoverySection: some View {
@@ -106,12 +190,7 @@ struct SettingsView: View {
 
     private var preferenceSection: some View {
         Section {
-            Picker("准备方式", selection: $preparationMode) {
-                ForEach(AutomaticPreparationMode.allCases, id: \.self) { mode in
-                    Text(mode.title).tag(mode)
-                }
-            }
-            .onChange(of: preparationMode) { _, _ in savePreferences() }
+            LabeledContent("每日准备", value: "3 张候选 → 1 条知识")
 
             ForEach(KnowledgeInterest.allCases) { interest in
                 Button {

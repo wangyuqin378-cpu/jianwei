@@ -14,7 +14,7 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "69M7GUC67V"
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
@@ -49,6 +49,7 @@ targets:
         UIBackgroundModes:
           - processing
         JianweiAPIBaseURL: $(JIANWEI_API_BASE_URL)
+        JianweiMonthlyProductID: cn.jianwei.ios.pro.monthly
         CFBundleURLTypes:
           - CFBundleURLName: cn.jianwei.ios.card
             CFBundleURLSchemes:

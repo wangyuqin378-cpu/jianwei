@@ -10,12 +10,25 @@ actor AnalysisPipeline {
     private let api: APIClient
     private let identity: DeviceIdentityStore
     private let analyzer: PhotoPrivacyAnalyzer
+    private let modelAccessStore: AIModelAccessStore
+    private let subscriptionStore: SubscriptionStore
+    private let repository: LocalRepository
     private let sanitizer = ImageSanitizer()
 
-    init(api: APIClient, identity: DeviceIdentityStore, analyzer: PhotoPrivacyAnalyzer) {
+    init(
+        api: APIClient,
+        identity: DeviceIdentityStore,
+        analyzer: PhotoPrivacyAnalyzer,
+        modelAccessStore: AIModelAccessStore,
+        subscriptionStore: SubscriptionStore,
+        repository: LocalRepository
+    ) {
         self.api = api
         self.identity = identity
         self.analyzer = analyzer
+        self.modelAccessStore = modelAccessStore
+        self.subscriptionStore = subscriptionStore
+        self.repository = repository
     }
 
     func analyze(
@@ -111,10 +124,19 @@ actor AnalysisPipeline {
         } else if created.status == "needs_content" || created.status == "rejected" {
             card = nil
         } else {
+            let state = await repository.snapshot()
+            let transaction = state.modelAccessMode == .managed
+                ? await subscriptionStore.entitlementJWS()
+                : nil
+            let access = try await modelAccessStore.request(
+                for: state.modelAccessMode,
+                managedTransaction: transaction
+            )
             card = try await api.completeJob(
                 bearer: credentials.token,
                 jobID: jobID,
-                candidateToken: candidate.id
+                candidateToken: candidate.id,
+                modelAccess: access
             )
         }
         candidate.state = card == nil ? .noMatch : .completed

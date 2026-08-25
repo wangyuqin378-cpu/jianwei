@@ -56,8 +56,19 @@ actor LocalRepository {
         try persist()
     }
 
+    func setModelAccessMode(_ mode: ModelAccessMode) throws {
+        state.modelAccessMode = mode
+        try persist()
+    }
+
     func markScan(at date: Date) throws {
         state.lastIncrementalScanAt = date
+        try persist()
+    }
+
+    func markDailySelection(day: String, scannedAt: Date) throws {
+        state.lastDailySelectionDay = day
+        state.lastIncrementalScanAt = scannedAt
         try persist()
     }
 
@@ -124,6 +135,14 @@ actor LocalRepository {
             state.candidates[index].updatedAt = Date()
         }
         try? FileManager.default.removeItem(at: imageURL(candidateToken: candidateToken))
+        try persist()
+    }
+
+    func discardUnselectedCard(_ card: KnowledgeCard) throws {
+        state.hiddenCardIDs.insert(card.id)
+        state.cards.removeAll { $0.id == card.id }
+        state.savedCardIDs.remove(card.id)
+        try? FileManager.default.removeItem(at: imageURL(candidateToken: card.candidateToken))
         try persist()
     }
 

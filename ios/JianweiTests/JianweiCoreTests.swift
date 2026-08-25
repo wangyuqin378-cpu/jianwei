@@ -23,12 +23,31 @@ final class JianweiCoreTests: XCTestCase {
 
         let state = try decoder.decode(PersistedAppState.self, from: Data("{}".utf8))
 
-        XCTAssertEqual(state.schemaVersion, 1)
+        XCTAssertEqual(state.schemaVersion, 2)
         XCTAssertEqual(state.cards.count, 0)
         XCTAssertEqual(state.interests, PersistedAppState.empty.interests)
-        XCTAssertEqual(state.preparationMode, .weeklyCache)
+        XCTAssertEqual(state.preparationMode, .dailySingle)
         XCTAssertFalse(state.onboardingCompleted)
         XCTAssertFalse(state.automaticDiscoveryEnabled)
+    }
+
+    func testQwenAPIKeyIsStoredOutsidePersistedStateAndCanBeRemoved() async throws {
+        let secrets = TestSecretStore()
+        let store = AIModelAccessStore(keychain: secrets)
+        let key = "sk-test_12345678901234567890"
+
+        let initiallyStored = try await store.hasQwenAPIKey()
+        XCTAssertFalse(initiallyStored)
+        try await store.saveQwenAPIKey(key)
+        let stored = try await store.hasQwenAPIKey()
+        XCTAssertTrue(stored)
+        let request = try await store.request(for: .qwenUserKey)
+        XCTAssertEqual(request.mode, .qwenUserKey)
+        XCTAssertEqual(request.apiKey, key)
+
+        try await store.removeQwenAPIKey()
+        let storedAfterRemoval = try await store.hasQwenAPIKey()
+        XCTAssertFalse(storedAfterRemoval)
     }
 
     func testWidgetQueueAllowsAtMostTwoDistinctSwapsPerDay() {
@@ -177,5 +196,22 @@ final class JianweiCoreTests: XCTestCase {
 
         XCTAssertEqual(try store.load(), .empty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: store.thumbnailDirectoryURL.path))
+    }
+}
+
+private final class TestSecretStore: SecretStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String: String] = [:]
+
+    func string(for account: String) -> String? {
+        lock.withLock { values[account] }
+    }
+
+    func set(_ value: String, for account: String) {
+        lock.withLock { values[account] = value }
+    }
+
+    func remove(_ account: String) {
+        _ = lock.withLock { values.removeValue(forKey: account) }
     }
 }
