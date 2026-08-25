@@ -15,6 +15,18 @@
 
 Qwen3.6-Flash 北京区当前公开价为输入 1.2 元/百万 Token、输出 7.2 元/百万 Token。长边 1280 px、约 1280×960 的候选图按官方公式约为 1,202 个图片 Token；90 张图片的纯视觉输入约 10.8 万 Token，即约 ¥0.13。再计入识别提示词、结构化输出、30 次每日择优和少量低置信度 Plus 升级，模型推理预算约 ¥0.4–0.7/活跃用户/月。
 
+按当前调用方式拆开看：
+
+| 调用 | 每月次数 | 主要计费量 | 月成本估算 |
+| --- | ---: | --- | ---: |
+| Qwen3.6-Flash 图片理解 | 90 | 约 10.8 万图片 Token，加提示词与短 JSON 输出 | ¥0.25–0.4 |
+| 低置信度升级 Qwen3.6-Plus | 约 5–15 | 仅在置信度低于 0.72 时调用 | ¥0.05–0.2 |
+| 每日 3 选 1 | 30 | 只比较已有对象与事实，不重复上传图片 | ¥0.03–0.1 |
+| 图片内容安全 | 90 | 官方按量价 15 元/万次 | 约 ¥0.14 |
+| 文本安全 | 约 90–120 | 单次不足 1,000 Token 按 1,000 Token 计 | 约 ¥0.04–0.05 |
+
+因此，只有 AI 与安全审核时，常见值约 **¥0.6–0.9/活跃用户/月**；把模型升级、重试、临时存储和计量波动都算进去，采用 **¥1/月** 作为日常预算、**¥1.5/月** 作为熔断上界更稳妥。
+
 这个口径基于当前产品实现：AI 识别物件并比较 3 张候选，知识正文只从已审核知识库匹配，不为每张照片临时联网搜索或自由生成事实。若以后增加逐图联网研究，必须另算搜索、长上下文与事实审核成本，不能沿用本表。
 
 预算不只采用理想模型费，还要包含低置信度升级、失败重试、图片内容安全、文本安全、流量和对象存储：
@@ -28,13 +40,15 @@ Qwen3.6-Flash 北京区当前公开价为输入 1.2 元/百万 Token、输出 7.
 
 数据库、API 服务和监控属于固定成本。用户很少时摊销会偏高；达到约 1,000 名月活付费用户后，目标总服务成本为 ¥1–2/人/月。成本熔断仍按 ¥1.5 的变动成本上界和 3 张/天、93 张/月的候选硬额度设置。
 
+按完整变动成本上界估算规模预算：100 名连续活跃用户约 ¥80–150/月，1,000 名约 ¥800–1,500/月，10,000 名约 ¥8,000–15,000/月；这还不包含低用户量阶段无法摊薄的数据库、日志与监控固定费用。
+
 ## 首发价格
 
 - 月订阅：**¥8/月**。
 - 年订阅：验证月订阅留存后再增加，建议 **¥58/年**。
 - Beta：首批用户免费；正式订阅可配置 7 天试用。
 
-若适用 Apple 15% 佣金，月订阅税前到账约 ¥6.8；按 ¥1.5 的压力成本仍有约 ¥5.3 贡献空间。即使按 30% 佣金，税前到账约 ¥5.6，仍可覆盖服务成本。最终本地化售价以 App Store Connect 的价格档位和税务结果为准。
+自 2026 年 3 月 15 日起，中国大陆区现行条款的标准佣金为 25%；符合并加入 App Store Small Business Program 时为 12%。因此 ¥8 月订阅按佣金粗算分别到账约 ¥6.00 或 ¥7.04，尚未扣除适用税费和退款。即使按 25% 佣金及 ¥1.5 压力成本估算，仍有约 ¥4.5/付费用户/月的贡献空间。最终到账以 App Store Connect 财务报告为准。
 
 ## 调价判断
 
@@ -44,4 +58,4 @@ Qwen3.6-Flash 北京区当前公开价为输入 1.2 元/百万 Token、输出 7.
 - 7 日活跃不足 35%：保持 ¥8，先改善内容命中和组件留存。
 - 7 日活跃超过 50%，且用户稳定保存或反馈：再测试 ¥10–12/月。
 
-公开依据：[Qwen3.6-Flash 计费](https://help.aliyun.com/zh/model-studio/qwen3-6-flash)、[视觉 Token 计算](https://help.aliyun.com/zh/model-studio/vision-model/)、[百炼内容安全计费](https://help.aliyun.com/zh/document_detail/2872706.html)、[App Store 审核指南](https://developer.apple.com/app-store/review/guidelines/)。
+公开依据：[Qwen3.6-Flash 计费](https://help.aliyun.com/zh/model-studio/qwen3-6-flash)、[Qwen3.6-Plus 计费](https://help.aliyun.com/zh/model-studio/qwen3-6-plus)、[视觉 Token 计算](https://help.aliyun.com/zh/model-studio/vision-model/)、[百炼图片内容安全计费](https://help.aliyun.com/zh/document_detail/2871402.html)、[百炼文本内容安全计费](https://help.aliyun.com/zh/document_detail/2861797.html)、[Apple 中国大陆区现行条款](https://developer.apple.com/support/terms/apple-developer-program-license-agreement/)、[App Store 审核指南](https://developer.apple.com/app-store/review/guidelines/)。

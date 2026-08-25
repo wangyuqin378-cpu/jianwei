@@ -382,8 +382,7 @@ final class AppModel {
         isWorking = true
         defer { isWorking = false }
         do {
-            guard let identity = environment.identity else { throw ProductError.apiNotConfigured }
-            let installationID = try await identity.installationID()
+            let installationID = try DeviceIdentityStore.installationIDForSubscription()
             try await environment.subscriptionStore.purchase(appAccountToken: installationID)
             await refreshManagedSubscription()
             guard managedSubscriptionState == .subscribed else { return }

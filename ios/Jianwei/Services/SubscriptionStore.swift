@@ -27,8 +27,9 @@ final class SubscriptionStore {
 
     private let productID: String
 
-    init(bundle: Bundle = .main) {
-        productID = bundle.object(forInfoDictionaryKey: "JianweiMonthlyProductID") as? String
+    init(productID: String? = nil, bundle: Bundle = .main) {
+        self.productID = productID
+            ?? bundle.object(forInfoDictionaryKey: "JianweiMonthlyProductID") as? String
             ?? "cn.jianwei.ios.pro.monthly"
     }
 

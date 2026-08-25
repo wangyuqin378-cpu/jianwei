@@ -8,35 +8,43 @@ actor DeviceIdentityStore {
         static let deviceToken = "device-token"
     }
 
+    private static let keychain = KeychainStore(service: "cn.jianwei.ios.identity")
+    private static let installationIDLock = NSLock()
+
     private let api: APIClient
-    private let keychain = KeychainStore(service: "cn.jianwei.ios.identity")
 
     init(api: APIClient) { self.api = api }
 
     func installationID() throws -> UUID {
-        if let stored = try keychain.string(for: Key.installationID).flatMap(UUID.init(uuidString:)) {
-            return stored
+        try Self.installationIDForSubscription()
+    }
+
+    nonisolated static func installationIDForSubscription() throws -> UUID {
+        try installationIDLock.withLock {
+            if let stored = try keychain.string(for: Key.installationID).flatMap(UUID.init(uuidString:)) {
+                return stored
+            }
+            let id = UUID()
+            try keychain.set(id.uuidString.lowercased(), for: Key.installationID)
+            return id
         }
-        let id = UUID()
-        try keychain.set(id.uuidString.lowercased(), for: Key.installationID)
-        return id
     }
 
     func credentials() async throws -> Registration {
-        if let deviceID = try keychain.string(for: Key.deviceID),
-           let token = try keychain.string(for: Key.deviceToken) {
+        if let deviceID = try Self.keychain.string(for: Key.deviceID),
+           let token = try Self.keychain.string(for: Key.deviceToken) {
             return Registration(deviceID: deviceID, token: token)
         }
         let installationID = try installationID()
         let registration = try await api.register(installationID: installationID)
-        try keychain.set(registration.deviceID, for: Key.deviceID)
-        try keychain.set(registration.token, for: Key.deviceToken)
+        try Self.keychain.set(registration.deviceID, for: Key.deviceID)
+        try Self.keychain.set(registration.token, for: Key.deviceToken)
         return registration
     }
 
     func invalidateServerCredential() throws {
-        try keychain.remove(Key.deviceID)
-        try keychain.remove(Key.deviceToken)
+        try Self.keychain.remove(Key.deviceID)
+        try Self.keychain.remove(Key.deviceToken)
     }
 }
 

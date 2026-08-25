@@ -31,6 +31,8 @@ targets:
     sources:
       - path: Jianwei
       - path: Shared
+      - path: StoreKit/Jianwei.storekit
+        buildPhase: resources
     info:
       path: Jianwei/Info.plist
       properties:
@@ -67,6 +69,9 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: Jianwei.storekit
     dependencies:
       - target: JianweiWidget
         embed: true
@@ -104,6 +109,8 @@ targets:
       - path: JianweiTests
       - path: ../android/app/src/main/res/drawable/onboarding_broom_example.webp
         buildPhase: resources
+      - path: StoreKit/Jianwei.storekit
+        buildPhase: resources
     dependencies:
       - target: Jianwei
     settings:
@@ -115,6 +122,8 @@ targets:
     platform: iOS
     sources:
       - path: JianweiUITests
+      - path: StoreKit/Jianwei.storekit
+        buildPhase: resources
     dependencies:
       - target: Jianwei
     settings:
@@ -147,6 +156,8 @@ schemes:
       targets:
         - JianweiTests
         - JianweiUITests
+    run:
+      storeKitConfiguration: StoreKit/Jianwei.storekit
   JianweiCloudE2E:
     build:
       targets:

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00CBD6E57867CD6C0C7CD9D1 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC01ED3D417182E53D19142 /* SavedView.swift */; };
+		06DE33A529C627A06F154C85 /* Jianwei.storekit in Resources */ = {isa = PBXBuildFile; fileRef = AABE408F85064FE94DC7FB7C /* Jianwei.storekit */; };
 		0ACDB97D167465076FCC2637 /* PhotoDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92917062655B69E524100B13 /* PhotoDiscoveryService.swift */; };
 		0FD036F042CD7BA009052ABE /* onboarding_broom_example.webp in Resources */ = {isa = PBXBuildFile; fileRef = C2D336916D754B733D27D986 /* onboarding_broom_example.webp */; };
 		1094CE697D6BEF5E9DE8E6C5 /* JianweiOnboardingAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525F54155BB0DFF2E5584FA6 /* JianweiOnboardingAccessTests.swift */; };
@@ -26,11 +27,14 @@
 		534FC9907F72EDB57EB3E21F /* JianweiWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 224C951166409D6F49E66665 /* JianweiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		547C17764E1A30FF6AE48AFE /* ImageSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B3130802370987BAAD0DF8 /* ImageSanitizer.swift */; };
 		5A969123C5E75EC14EE87438 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE259379975EEB2DC07C4F59 /* TodayView.swift */; };
+		606FAB98D5D264CED401787E /* Jianwei.storekit in Resources */ = {isa = PBXBuildFile; fileRef = AABE408F85064FE94DC7FB7C /* Jianwei.storekit */; };
 		76CF51B39EC9B028AC7220D1 /* JianweiAuthorizedPhotoJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAED5F737AB1A406D18F8CE9 /* JianweiAuthorizedPhotoJourneyTests.swift */; };
 		79D3F14DEF5705E33CF057D2 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5297F575821253F1F33917A5 /* Brand.swift */; };
 		880CAFF80DEA5B415CD37DD7 /* DomainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A620B9263DB612430C3BF5 /* DomainModels.swift */; };
 		8EED6FA4140AE5018D60E86D /* WidgetModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3BD1736A44748CEFD4075 /* WidgetModels.swift */; };
 		92B4E6F70D8B6D67BFA7C70E /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12792E82F31D05F313E08BA4 /* SharedConstants.swift */; };
+		92C64E3E67A14AB7DB142167 /* Jianwei.storekit in Resources */ = {isa = PBXBuildFile; fileRef = AABE408F85064FE94DC7FB7C /* Jianwei.storekit */; };
+		9DA651121E429116778EDDA7 /* SubscriptionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F71EF9FAE274CD872DDBFEB5 /* SubscriptionStoreTests.swift */; };
 		B74415FB769C8B5083A9927E /* JianweiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F5AF89C1A7FEF6428F3D32 /* JianweiApp.swift */; };
 		BA3C611A43BD01ED30108C00 /* LocalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4602308F9F4C713AE468EDE /* LocalRepository.swift */; };
 		BB219DCF8DF8FFAC919A84AA /* PhotoPrivacyAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */; };
@@ -114,6 +118,7 @@
 		99E12E29296E7533DC4C155C /* JianweiWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JianweiWidget.entitlements; sourceTree = "<group>"; };
 		A4602308F9F4C713AE468EDE /* LocalRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalRepository.swift; sourceTree = "<group>"; };
 		A5AE2B302C14A34B27261EF1 /* JianweiCloudE2ETests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiCloudE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AABE408F85064FE94DC7FB7C /* Jianwei.storekit */ = {isa = PBXFileReference; path = Jianwei.storekit; sourceTree = "<group>"; };
 		AAED5F737AB1A406D18F8CE9 /* JianweiAuthorizedPhotoJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiAuthorizedPhotoJourneyTests.swift; sourceTree = "<group>"; };
 		AD378C56B815E60397F76731 /* JianweiCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiCoreTests.swift; sourceTree = "<group>"; };
 		AE259379975EEB2DC07C4F59 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -131,6 +136,7 @@
 		E97D673BFA41A19613BD7937 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiWidgetJourneyTests.swift; sourceTree = "<group>"; };
 		F3F5AF89C1A7FEF6428F3D32 /* JianweiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiApp.swift; sourceTree = "<group>"; };
+		F71EF9FAE274CD872DDBFEB5 /* SubscriptionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStoreTests.swift; sourceTree = "<group>"; };
 		FB29278C1AC8F359973E858F /* JianweiWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiWidgetBundle.swift; sourceTree = "<group>"; };
 		FBE5EF5568F00065BF85CBCA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FC7FD1A1829B37EDD3EFFB47 /* DeviceIdentityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceIdentityStore.swift; sourceTree = "<group>"; };
@@ -289,6 +295,14 @@
 			path = ..;
 			sourceTree = "<group>";
 		};
+		D62B47AAAF01F3DC544D3C31 /* StoreKit */ = {
+			isa = PBXGroup;
+			children = (
+				AABE408F85064FE94DC7FB7C /* Jianwei.storekit */,
+			);
+			path = StoreKit;
+			sourceTree = "<group>";
+		};
 		D6B53B0554DE9502FD87400E = {
 			isa = PBXGroup;
 			children = (
@@ -299,6 +313,7 @@
 				CF584CED33A820404448E8C6 /* JianweiUITests */,
 				B95B9515CC7D564B1252E346 /* JianweiWidget */,
 				6C642BB2ADAA0A081F55F158 /* Shared */,
+				D62B47AAAF01F3DC544D3C31 /* StoreKit */,
 				0BFECD09FA0C60F22502EB50 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -307,6 +322,7 @@
 			isa = PBXGroup;
 			children = (
 				AD378C56B815E60397F76731 /* JianweiCoreTests.swift */,
+				F71EF9FAE274CD872DDBFEB5 /* SubscriptionStoreTests.swift */,
 			);
 			path = JianweiTests;
 			sourceTree = "<group>";
@@ -423,6 +439,7 @@
 			buildConfigurationList = CB2D1DFF5DD4396567BCAA95 /* Build configuration list for PBXNativeTarget "JianweiUITests" */;
 			buildPhases = (
 				3C640D64C5D61DFC0EBA11F6 /* Sources */,
+				0667A23F7B442CC171844898 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -493,10 +510,19 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0667A23F7B442CC171844898 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				606FAB98D5D264CED401787E /* Jianwei.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4ADD5FC3B422C1455AEDC2E1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92C64E3E67A14AB7DB142167 /* Jianwei.storekit in Resources */,
 				0FD036F042CD7BA009052ABE /* onboarding_broom_example.webp in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -506,6 +532,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFF85ACA90387B6D8C1B659F /* Assets.xcassets in Resources */,
+				06DE33A529C627A06F154C85 /* Jianwei.storekit in Resources */,
 				E9CBF2B613B9E6572AA1B0A4 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -548,6 +575,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4E351955405E1D6A9AF45CE3 /* JianweiCoreTests.swift in Sources */,
+				9DA651121E429116778EDDA7 /* SubscriptionStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -814,6 +842,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Jianwei/Jianwei.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				EXCLUDED_SOURCE_FILE_NAMES = Jianwei.storekit;
 				INFOPLIST_FILE = Jianwei/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -31,6 +31,16 @@ iPhone or iPad, valid signatures on both archived bundles, and the public HTTPS 
 the archived App. The report emits only booleans, counts and blocker names; it never emits the Team
 ID, API origin, signing certificate name or provisioning profile contents.
 
+### StoreKit subscription gate
+
+`ios/StoreKit/Jianwei.storekit` is a local-only configuration for the monthly product
+`cn.jianwei.ios.pro.monthly`, priced at ¥8 with a seven-day free trial. It is included in Debug test
+bundles and explicitly excluded from Release. Before TestFlight, create the same product and offer in
+App Store Connect, then run `SubscriptionStoreTests` from the Xcode IDE to prove product loading,
+purchase, entitlement JWS and restore. The iOS 26.5 simulator currently has an Apple-reported
+`xcodebuild` regression that fails to synchronize local StoreKit configurations with
+`SKInternalErrorDomain Code=3`; a CLI skip is not purchase evidence.
+
 ## Cloud prerequisites
 
 1. Put RDS PostgreSQL, Function Compute and OSS in the same region and VPC where possible.
