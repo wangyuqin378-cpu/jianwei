@@ -304,7 +304,7 @@ final class AppModel {
     func deleteLocalData() async {
         do {
             try await environment.repository.deleteLocalData()
-            try? SharedWidgetStore().replaceCards([], thumbnails: [:])
+            try? SharedWidgetStore().clear()
             WidgetCenter.shared.reloadAllTimelines()
             await reloadFromDisk()
             message = "本机索引、卡片和脱敏缩略图已清除。"
@@ -328,7 +328,7 @@ final class AppModel {
             )
             try await identity.invalidateServerCredential()
             try await environment.repository.deleteLocalData()
-            try? SharedWidgetStore().replaceCards([], thumbnails: [:])
+            try? SharedWidgetStore().clear()
             WidgetCenter.shared.reloadAllTimelines()
             await reloadFromDisk()
             message = "云端设备数据与本机索引都已删除。"
@@ -432,6 +432,7 @@ final class AppModel {
 
     #if DEBUG
     private func installDemoState() async throws {
+        try? SharedWidgetStore().clear()
         try await environment.repository.deleteLocalData()
         try await environment.repository.setOnboardingCompleted(true)
         try await environment.repository.setAutomaticDiscovery(false)

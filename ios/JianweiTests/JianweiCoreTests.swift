@@ -172,5 +172,10 @@ final class JianweiCoreTests: XCTestCase {
 
         XCTAssertEqual(try store.load().cards, [card])
         XCTAssertEqual(try Data(contentsOf: store.thumbnailURL(for: card.candidateToken)), thumbnail)
+
+        try store.clear()
+
+        XCTAssertEqual(try store.load(), .empty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.thumbnailDirectoryURL.path))
     }
 }

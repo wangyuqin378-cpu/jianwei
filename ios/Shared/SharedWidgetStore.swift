@@ -51,6 +51,18 @@ struct SharedWidgetStore: Sendable {
         }
     }
 
+    func clear() throws {
+        try withLock {
+            let stateURL = baseURL.appendingPathComponent(SharedConstants.widgetStateFilename)
+            if FileManager.default.fileExists(atPath: stateURL.path) {
+                try FileManager.default.removeItem(at: stateURL)
+            }
+            if FileManager.default.fileExists(atPath: thumbnailDirectoryURL.path) {
+                try FileManager.default.removeItem(at: thumbnailDirectoryURL)
+            }
+        }
+    }
+
     @discardableResult
     func advance(on day: String) throws -> Bool {
         try withLock {

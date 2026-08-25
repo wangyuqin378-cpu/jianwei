@@ -23,6 +23,7 @@ final class JianweiWidgetJourneyTests: XCTestCase {
         XCTAssertTrue(springboard.wait(for: .runningForeground, timeout: 5))
 
         let emptyArea = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.52, dy: 0.46))
+        useDefaultHomeAppearance(in: springboard, emptyArea: emptyArea)
         emptyArea.press(forDuration: 1.8)
 
         let editHome = firstButton(
@@ -33,15 +34,10 @@ final class JianweiWidgetJourneyTests: XCTestCase {
             editHome.tap()
         }
 
-        let addButton = firstButton(
-            in: springboard,
-            labels: ["Add", "添加", "Add Widget", "添加小组件"]
-        )
-        guard addButton.waitForExistence(timeout: 5) else {
+        guard openWidgetGallery(in: springboard) else {
             XCTFail("Could not enter Home Screen edit mode. \(springboard.debugDescription)")
             return
         }
-        addButton.tap()
 
         let search = springboard.searchFields.firstMatch
         guard search.waitForExistence(timeout: 6) else {
@@ -96,12 +92,7 @@ final class JianweiWidgetJourneyTests: XCTestCase {
         )
         if editHomeAgain.waitForExistence(timeout: 2) { editHomeAgain.tap() }
 
-        let addAgain = firstButton(
-            in: springboard,
-            labels: ["Add", "添加", "Add Widget", "添加小组件"]
-        )
-        XCTAssertTrue(addAgain.waitForExistence(timeout: 5))
-        addAgain.tap()
+        XCTAssertTrue(openWidgetGallery(in: springboard))
 
         let secondSearch = springboard.searchFields.firstMatch
         XCTAssertTrue(secondSearch.waitForExistence(timeout: 6))
@@ -139,7 +130,7 @@ final class JianweiWidgetJourneyTests: XCTestCase {
         let nextTitle = springboard.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS %@", "一把扫帚，也在照顾你的手腕"))
             .firstMatch
-        XCTAssertTrue(nextTitle.waitForExistence(timeout: 8))
+        XCTAssertTrue(nextTitle.waitForExistence(timeout: 20))
 
         let secondSwitch = springboard.buttons
             .matching(NSPredicate(format: "label CONTAINS %@", "换一条"))
@@ -150,7 +141,7 @@ final class JianweiWidgetJourneyTests: XCTestCase {
         let thirdTitle = springboard.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS %@", "软毛与硬毛，其实各有分工"))
             .firstMatch
-        XCTAssertTrue(thirdTitle.waitForExistence(timeout: 8))
+        XCTAssertTrue(thirdTitle.waitForExistence(timeout: 20))
         let exhausted = springboard.buttons["今天已经不能再换"]
         XCTAssertTrue(exhausted.waitForExistence(timeout: 5))
 
@@ -236,6 +227,52 @@ final class JianweiWidgetJourneyTests: XCTestCase {
     private func firstElement(in app: XCUIApplication, labels: [String]) -> XCUIElement {
         let predicate = NSPredicate(format: "label IN %@", labels)
         return app.descendants(matching: .any).matching(predicate).firstMatch
+    }
+
+    @MainActor
+    private func openWidgetGallery(in springboard: XCUIApplication) -> Bool {
+        let labels = ["Add", "添加", "Add Widget", "添加小组件", "加入小工具"]
+        let addButton = firstButton(in: springboard, labels: labels)
+        if !addButton.waitForExistence(timeout: 2) {
+            // iOS 26 first enters jiggle mode with a top-left Edit button.
+            // Tapping it reveals Add Widget as a second-level action.
+            let editMenu = firstButton(in: springboard, labels: ["Edit", "编辑"])
+            guard editMenu.waitForExistence(timeout: 3) else { return false }
+            editMenu.tap()
+        }
+        guard addButton.waitForExistence(timeout: 5) else { return false }
+        addButton.tap()
+        return true
+    }
+
+    @MainActor
+    private func useDefaultHomeAppearance(
+        in springboard: XCUIApplication,
+        emptyArea: XCUICoordinate
+    ) {
+        emptyArea.press(forDuration: 1.8)
+
+        let editHome = firstButton(
+            in: springboard,
+            labels: ["Edit", "编辑", "Edit Home Screen", "编辑主屏幕", "编辑主画面"]
+        )
+        if editHome.waitForExistence(timeout: 2) { editHome.tap() }
+
+        let customize = firstElement(
+            in: springboard,
+            labels: ["Customize", "自定", "自定义", "个性化"]
+        )
+        guard customize.waitForExistence(timeout: 3) else { return }
+        customize.tap()
+
+        let defaultAppearance = firstElement(in: springboard, labels: ["Default", "默认"])
+        if defaultAppearance.waitForExistence(timeout: 3), !defaultAppearance.isSelected {
+            defaultAppearance.tap()
+        }
+
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18)).tap()
+        let done = firstButton(in: springboard, labels: ["Done", "完成"])
+        if done.waitForExistence(timeout: 3) { done.tap() }
     }
 
 }

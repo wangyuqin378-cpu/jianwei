@@ -94,8 +94,8 @@ struct DailyKnowledgeWidget: Widget {
         StaticConfiguration(kind: kind, provider: DailyKnowledgeProvider()) { entry in
             DailyKnowledgeWidgetView(entry: entry)
         }
-        .configurationDisplayName("每日见微")
-        .description("从你的照片里，每天认识一个日常物件。")
+        .configurationDisplayName("见微 · 每日一知")
+        .description("从你拍下的日常里，每天发现一件值得知道的小事。")
         .supportedFamilies([.systemSmall, .systemMedium])
         .contentMarginsDisabled()
     }
@@ -130,69 +130,97 @@ struct DailyKnowledgeWidgetView: View {
     }
 
     private func small(_ card: WidgetCardSnapshot) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            widgetPhoto
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.78)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 5) {
-                    Image(systemName: "viewfinder")
-                    Text(card.confidence < 0.8 ? "可能是\(card.objectName)" : card.objectName)
-                        .lineLimit(1)
+        GeometryReader { geometry in
+            ZStack {
+                widgetPhoto
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
+                LinearGradient(
+                    stops: [
+                        .init(color: .black.opacity(0.16), location: 0),
+                        .init(color: .clear, location: 0.38),
+                        .init(color: .black.opacity(0.84), location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        objectBadge(card)
+                        Spacer(minLength: 4)
+                        Text("见微")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white.opacity(0.86))
+                    }
+                    Spacer(minLength: 8)
+                    Text(card.title)
+                        .font(.system(size: 17, weight: .bold, design: .serif))
+                        .foregroundStyle(.white)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.86)
+                        .allowsTightening(true)
+                        .shadow(color: .black.opacity(0.2), radius: 6, y: 2)
                 }
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.86))
-                Text(card.title)
-                    .font(.system(.headline, design: .serif, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.82)
+                .padding(13)
             }
-            .padding(14)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(card.objectName)。\(card.title)。\(card.body)")
+        .accessibilityLabel("已核验，\(card.objectName)。\(card.title)。\(card.body)")
     }
 
     private func medium(_ card: WidgetCardSnapshot) -> some View {
         HStack(spacing: 0) {
             Link(destination: card.deepLink) {
-                ZStack(alignment: .bottomLeading) {
+                ZStack {
                     widgetPhoto
                     LinearGradient(
-                        colors: [.clear, .black.opacity(0.55)],
-                        startPoint: .center,
+                        colors: [.clear, .black.opacity(0.42)],
+                        startPoint: .top,
                         endPoint: .bottom
                     )
-                    Text(card.confidence < 0.8 ? "可能是 · \(card.objectName)" : card.objectName)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .padding(10)
+                    VStack {
+                        Spacer()
+                        HStack {
+                            objectBadge(card)
+                            Spacer(minLength: 0)
+                        }
+                    }
+                    .padding(10)
                 }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("打开\(card.objectName)知识卡照片")
-            .frame(width: usesCompactMediumLayout ? 116 : 132)
+            .frame(width: usesCompactMediumLayout ? 112 : 124)
             .clipped()
 
-            VStack(alignment: .leading, spacing: usesCompactMediumLayout ? 5 : 7) {
+            VStack(alignment: .leading, spacing: usesCompactMediumLayout ? 4 : 6) {
+                HStack(alignment: .center, spacing: 6) {
+                    Capsule()
+                        .fill(WidgetPalette.rust)
+                        .frame(width: 12, height: 3)
+                    Text("今日一知")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(WidgetPalette.rust)
+                    Spacer(minLength: 4)
+                    Text("见微")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(WidgetPalette.ink.opacity(0.42))
+                }
                 Link(destination: card.deepLink) {
                     VStack(alignment: .leading, spacing: usesCompactMediumLayout ? 5 : 7) {
                         Text(card.title)
-                            .font(.system(.headline, design: .serif, weight: .bold))
+                            .font(.system(size: usesCompactMediumLayout ? 15 : 17, weight: .bold, design: .serif))
                             .foregroundStyle(WidgetPalette.ink)
                             .lineLimit(2)
-                            .minimumScaleFactor(0.85)
+                            .minimumScaleFactor(0.88)
+                            .allowsTightening(true)
                             .layoutPriority(2)
                         Text(card.body)
                             .font(.caption)
-                            .foregroundStyle(WidgetPalette.ink.opacity(0.78))
-                            .lineLimit(usesCompactMediumLayout ? 2 : 3)
-                            .minimumScaleFactor(0.88)
+                            .foregroundStyle(WidgetPalette.ink.opacity(0.68))
+                            .lineLimit(usesCompactMediumLayout ? 1 : 2)
+                            .minimumScaleFactor(0.9)
                             .layoutPriority(1)
                     }
                 }
@@ -200,7 +228,7 @@ struct DailyKnowledgeWidgetView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("打开\(card.objectName)知识卡详情")
                 Spacer(minLength: 0)
-                HStack(spacing: 7) {
+                HStack(spacing: 6) {
                     Image(systemName: "checkmark.seal.fill")
                     Text(card.source.publisher)
                         .lineLimit(1)
@@ -212,13 +240,14 @@ struct DailyKnowledgeWidgetView: View {
                         if entry.canAdvance {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.triangle.2.circlepath")
-                                Text(switchDisplayText)
+                                Text("\(entry.remainingSwaps)")
                                     .monospacedDigit()
                             }
                         } else {
-                            Text(switchDisplayText)
-                                .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: false)
+                            HStack(spacing: 3) {
+                                Image(systemName: entry.remainingSwaps == 0 ? "sunrise.fill" : "clock")
+                                Text(switchDisplayText)
+                            }
                         }
                     }
                     .buttonStyle(.plain)
@@ -234,9 +263,22 @@ struct DailyKnowledgeWidgetView: View {
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(WidgetPalette.forest)
             }
-            .padding(usesCompactMediumLayout ? 11 : 13)
+            .padding(usesCompactMediumLayout ? 10 : 12)
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private func objectBadge(_ card: WidgetCardSnapshot) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: card.confidence < 0.8 ? "viewfinder" : "checkmark.seal.fill")
+            Text(card.confidence < 0.8 ? "可能是 · \(card.objectName)" : card.objectName)
+                .lineLimit(1)
+        }
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5)
+        .background(.black.opacity(0.3), in: Capsule())
     }
 
     private var widgetPhoto: some View {
@@ -260,9 +302,9 @@ struct DailyKnowledgeWidgetView: View {
 
     private var switchDisplayText: String {
         if entry.canAdvance {
-            return "换 · \(entry.remainingSwaps)"
+            return "换一条"
         }
-        return entry.remainingSwaps == 0 ? "明天" : "稍后"
+        return entry.remainingSwaps == 0 ? "明天见" : "稍后"
     }
 
     private var usesCompactMediumLayout: Bool {
@@ -284,23 +326,59 @@ struct DailyKnowledgeWidgetView: View {
     }
 
     private var empty: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            HStack {
-                WidgetMark()
-                Spacer()
-                Image(systemName: "photo.badge.plus")
-                    .foregroundStyle(WidgetPalette.forest)
+        Group {
+            if family == .systemMedium {
+                HStack(spacing: 0) {
+                    ZStack {
+                        LinearGradient(
+                            colors: [WidgetPalette.sand.opacity(0.75), WidgetPalette.forest.opacity(0.9)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.system(size: 32, weight: .light))
+                            .foregroundStyle(.white.opacity(0.82))
+                    }
+                    .frame(width: 124)
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text("见微 · 每日一知")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(WidgetPalette.rust)
+                        Spacer(minLength: 0)
+                        Text("从一张照片开始")
+                            .font(.system(.headline, design: .serif, weight: .bold))
+                            .foregroundStyle(WidgetPalette.ink)
+                        Text("打开见微，选择一个你想重新认识的日常物件。")
+                            .font(.caption)
+                            .foregroundStyle(WidgetPalette.ink.opacity(0.65))
+                            .lineLimit(2)
+                        Spacer(minLength: 0)
+                        Label("选择照片", systemImage: "arrow.up.right")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(WidgetPalette.forest)
+                    }
+                    .padding(13)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 9) {
+                    HStack {
+                        WidgetMark()
+                        Spacer()
+                        Image(systemName: "photo.badge.plus")
+                            .foregroundStyle(WidgetPalette.forest)
+                    }
+                    Spacer()
+                    Text("从一张照片开始")
+                        .font(.system(.headline, design: .serif, weight: .bold))
+                        .foregroundStyle(WidgetPalette.ink)
+                    Text("选择一个你想重新认识的日常物件。")
+                        .font(.caption)
+                        .foregroundStyle(WidgetPalette.ink.opacity(0.62))
+                        .lineLimit(3)
+                }
+                .padding(15)
             }
-            Spacer()
-            Text("从一张照片开始")
-                .font(.system(.headline, design: .serif, weight: .bold))
-                .foregroundStyle(WidgetPalette.ink)
-            Text("打开见微，选择你想理解的日常物品。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(3)
         }
-        .padding(15)
         .widgetURL(URL(string: "jianwei://start"))
     }
 }
@@ -311,12 +389,16 @@ private enum WidgetPalette {
             ? UIColor(red: 0.58, green: 0.78, blue: 0.65, alpha: 1)
             : UIColor(red: 0.21, green: 0.36, blue: 0.29, alpha: 1)
     })
-    static let rust = Color(red: 0.54, green: 0.35, blue: 0.27)
+    static let rust = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.78, green: 0.57, blue: 0.46, alpha: 1)
+            : UIColor(red: 0.54, green: 0.35, blue: 0.27, alpha: 1)
+    })
     static let sand = Color(red: 0.75, green: 0.65, blue: 0.51)
     static let paper = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.12, green: 0.14, blue: 0.13, alpha: 1)
-            : UIColor(red: 0.97, green: 0.95, blue: 0.90, alpha: 1)
+            : UIColor(red: 0.98, green: 0.97, blue: 0.93, alpha: 1)
     })
     static let ink = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
