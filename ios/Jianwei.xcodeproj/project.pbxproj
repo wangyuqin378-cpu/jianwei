@@ -43,6 +43,7 @@
 		CFF85ACA90387B6D8C1B659F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D2F7B6A6B15EB0A0AE121FD1 /* Assets.xcassets */; };
 		D1367CC8947C0F415FC9CD4F /* WidgetCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A7472F0EA858AA2B645CE8 /* WidgetCoordinator.swift */; };
 		D39957DAA161805A378F7EC7 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D8D4EF1FC45687A7C6CB969 /* APIClient.swift */; };
+		D7BD5505C38718C1AD94982D /* JianweiAppStoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87BEEED0D98EC1856ECAFEA3 /* JianweiAppStoreScreenshotTests.swift */; };
 		DE068A7A2D06D6519CD829A8 /* AnalysisPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA25B8ED405D84609CD8335 /* AnalysisPipeline.swift */; };
 		E9CBF2B613B9E6572AA1B0A4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0651C44B739269F1DCD2F180 /* PrivacyInfo.xcprivacy */; };
 		EBA97F0E7564DD842E7E1840 /* SharedWidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB8EB3AE15BE25FFEE7F6A6 /* SharedWidgetStore.swift */; };
@@ -113,6 +114,7 @@
 		64196922077C51E13E85363E /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		6D5F1A00B0E08C742CCEEDD1 /* PhotoPrivacyAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPrivacyAnalyzer.swift; sourceTree = "<group>"; };
 		74EB38DC7EEFC1EBD59D1B92 /* JianweiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = JianweiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		87BEEED0D98EC1856ECAFEA3 /* JianweiAppStoreScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JianweiAppStoreScreenshotTests.swift; sourceTree = "<group>"; };
 		87E2BA1B88EE3EECDB7452E4 /* CardDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
 		92917062655B69E524100B13 /* PhotoDiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDiscoveryService.swift; sourceTree = "<group>"; };
 		99E12E29296E7533DC4C155C /* JianweiWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JianweiWidget.entitlements; sourceTree = "<group>"; };
@@ -272,6 +274,7 @@
 		CF584CED33A820404448E8C6 /* JianweiUITests */ = {
 			isa = PBXGroup;
 			children = (
+				87BEEED0D98EC1856ECAFEA3 /* JianweiAppStoreScreenshotTests.swift */,
 				525F54155BB0DFF2E5584FA6 /* JianweiOnboardingAccessTests.swift */,
 				F0D5668F9D3243560A615BF2 /* JianweiWidgetJourneyTests.swift */,
 			);
@@ -557,6 +560,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7BD5505C38718C1AD94982D /* JianweiAppStoreScreenshotTests.swift in Sources */,
 				1094CE697D6BEF5E9DE8E6C5 /* JianweiOnboardingAccessTests.swift in Sources */,
 				17F09EC208D6EF769F47F877 /* JianweiWidgetJourneyTests.swift in Sources */,
 			);

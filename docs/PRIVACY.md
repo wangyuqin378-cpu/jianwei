@@ -1,5 +1,9 @@
 # 隐私与数据保留
 
+生效日期：2026 年 8 月 26 日。
+
+如需询问、删除数据或反馈隐私问题，请通过[见微支持页面](https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/SUPPORT.md)联系。请勿在公开反馈中附上照片、API Key 或 App Store 交易凭证。
+
 ## 默认不上传
 
 - 检测到人脸或自拍标签的图片；

@@ -1,0 +1,12 @@
+{
+  "name": "见微",
+  "subtitle": "每天从照片里发现一个知识",
+  "promotionalText": "让散落在相册里的日常照片，每天变成一条有来源、与你有关的小知识。",
+  "description": "相册里拍过的物件，不只是回忆，也藏着值得知道的知识。\n\n见微每天从未处理过的照片里选出 3 张候选，用 AI 判断每张照片的知识潜力，只展示其中最有趣的一条。每张知识卡都会标明识别对象、推荐原因和可点击来源。\n\n你可以：\n• 开启自动发现，或每次只选择指定照片\n• 把每日知识放到 iPhone 桌面小组件\n• 对卡片反馈有意思、没意思、识错了或太私人\n• 收藏值得留下的知识\n• 随时暂停分析、清除本机索引或删除云端数据\n\n隐私从照片离开设备之前开始。见微会先在 iPhone 上筛除人物、截图、证件、高文字密度、模糊和重复图片；候选图片会缩小并清除元数据，服务端分析完成后立即删除，最长保留 24 小时。见微不接广告 SDK，也不使用照片建立广告画像。\n\nAI 服务有两种方式：你可以使用自己保存在 iPhone Keychain 中的百炼 Qwen API Key，也可以订阅见微 Pro，由见微提供托管模型服务。见微 Pro 每天最多分析 3 张候选并发布 1 条知识，每自然月最多 31 条，可随时在 App Store 取消。实际价格和试用资格以购买页面显示为准。",
+  "keywords": "照片,相册,冷知识,小组件,物件,科普,生活技巧,设计,历史",
+  "supportURL": "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/SUPPORT.md",
+  "marketingURL": "https://github.com/wangyuqin378-cpu/jianwei",
+  "privacyPolicyURL": "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/PRIVACY.md",
+  "primaryCategory": "Lifestyle",
+  "copyright": "© 2026 王钰钦"
+}

@@ -8,7 +8,7 @@ final class JianweiOnboardingAccessTests: XCTestCase {
     @MainActor
     func testAnalysisCannotStartBeforeAIServiceIsConfigured() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-JianweiOnboardingPage", "2"]
+        app.launchArguments = ["-JianweiResetOnboarding", "-JianweiOnboardingPage", "2"]
         app.launch()
 
         let title = app.staticTexts["选择你的开始方式"]

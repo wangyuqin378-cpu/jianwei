@@ -80,13 +80,27 @@ final class AppModel {
     func start() async {
         photoAccess = await environment.discovery.authorizationState()
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-JianweiSeedDemo") {
+        let launchArguments = ProcessInfo.processInfo.arguments
+        if launchArguments.contains("-JianweiResetOnboarding") {
+            try? SharedWidgetStore().clear()
+            try? await environment.repository.deleteLocalData()
+        }
+        if launchArguments.contains("-JianweiSeedDemo") {
             try? await installDemoState()
         }
         #endif
         await reloadFromDisk()
         await refreshModelAccessStatus()
+        #if DEBUG
+        if launchArguments.contains("-JianweiStorefrontPreview") {
+            managedSubscriptionState = .notSubscribed
+            managedSubscriptionPrice = "¥8.00"
+        } else {
+            await refreshManagedSubscription()
+        }
+        #else
         await refreshManagedSubscription()
+        #endif
         await flushPendingFeedback()
         if state.automaticDiscoveryEnabled {
             try? BackgroundDiscoveryController.schedule()
