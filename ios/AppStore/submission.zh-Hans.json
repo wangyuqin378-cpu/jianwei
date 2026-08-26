@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "platform": "iOS",
+  "locale": "zh-Hans",
+  "app": {
+    "bundleId": "cn.jianwei.ios",
+    "version": "0.1.0",
+    "build": "1",
+    "primaryLanguage": "zh-Hans",
+    "primaryCategory": "Lifestyle",
+    "signInRequired": false,
+    "reviewNotes": "见微不要求登录。建议审核路径：首次启动选择“仅选择照片”，从系统照片选择器导入一张主体清楚、无人脸、少文字的日常物件照片；选择见微 Pro 后可使用 App Store 沙盒完成订阅，或在设置中使用自有百炼 Qwen API Key。App 每天最多分析 3 张未处理照片并发布 1 条知识，知识卡包含来源、反馈、收藏和删除入口。设置页可暂停分析、清除本机索引及删除云端数据。桌面小组件支持小号和中号，点击可返回对应知识卡。"
+  },
+  "screenshots": {
+    "display": "6.9-inch",
+    "width": 1320,
+    "height": 2868,
+    "files": [
+      "app-store-01-daily-three-to-one.png",
+      "app-store-02-daily-knowledge-card.png",
+      "app-store-03-pro-or-own-key.png"
+    ]
+  },
+  "subscription": {
+    "groupReferenceName": "见微 Pro",
+    "groupDisplayName": "见微 Pro",
+    "productId": "cn.jianwei.ios.pro.monthly",
+    "referenceName": "见微 Pro 月订阅",
+    "duration": "P1M",
+    "priceCNY": "8",
+    "introductoryOffer": {
+      "type": "free_trial",
+      "duration": "P1W"
+    },
+    "localization": {
+      "displayName": "见微 Pro 月订阅",
+      "description": "每天分析 3 张未处理照片，选出并展示 1 条知识。"
+    },
+    "reviewScreenshot": "app-store-03-pro-or-own-key.png",
+    "reviewNotes": "订阅用于见微托管 AI 服务：每天最多分析 3 张未处理照片、发布 1 条知识，每自然月最多 31 条。审核时可使用 App Store 沙盒购买并在设置页执行恢复购买；App 不要求账号登录。"
+  },
+  "privacy": {
+    "privacyPolicyURL": "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/PRIVACY.md",
+    "supportURL": "https://github.com/wangyuqin378-cpu/jianwei/blob/main/docs/SUPPORT.md",
+    "tracking": false,
+    "accountRequired": false
+  }
+}

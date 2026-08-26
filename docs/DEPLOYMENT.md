@@ -42,6 +42,26 @@ The iOS client uses SHA-256 for deterministic binding/ranking and Apple-provided
 `ITSAppUsesNonExemptEncryption=false`, avoiding a false “Missing Compliance” state for every beta
 build. Reassess this declaration before adding any new cryptographic library or protocol.
 
+### App Store submission package
+
+`ios/AppStore/submission.zh-Hans.json` is the reviewed launch contract for the App version, three
+6.9-inch screenshots, App Review path and the monthly subscription. It intentionally excludes the
+private App Review contact name, email and phone number, which must be entered directly in App Store
+Connect. Verify the source contract in CI and bind the generated screenshots locally:
+
+```bash
+node scripts/check-ios-app-store-submission.mjs --self-test
+node scripts/check-ios-app-store-submission.mjs
+node scripts/check-ios-app-store-submission.mjs \
+  --screenshots .tooling/ios-beta/app-store-screens
+```
+
+Capture the screenshot UI test on an iPhone 17 Pro Max simulator. The exporter and submission gate
+require exactly the three declared 1320x2868 PNG files with no alpha channel; a 6.3-inch iPhone 17
+Pro capture is valid simulator evidence but is not this launch package. After building the final App,
+pass both `--screenshots` and `--release-app`; this additionally binds the Bundle ID, version, build,
+subscription product, absence of the local StoreKit configuration and public HTTPS API origin.
+
 ### StoreKit subscription gate
 
 `ios/StoreKit/Jianwei.storekit` is a local-only configuration for the monthly product
