@@ -19,6 +19,7 @@ interface VerificationArguments {
   imageFile: string;
   authorizedImageConfirmed: boolean;
   outputFile: string;
+  model: string | null;
 }
 
 interface AccessProbeResult {
@@ -87,12 +88,14 @@ export function parseVerificationArguments(args: string[]): VerificationArgument
   let imageFile = "";
   let authorizedImageConfirmed = false;
   let outputFile = "";
+  let model: string | null = null;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--") continue;
     if (argument === "--credentials-file") credentialsFile = args[++index] ?? "";
     else if (argument === "--image") imageFile = args[++index] ?? "";
     else if (argument === "--output") outputFile = args[++index] ?? "";
+    else if (argument === "--model") model = args[++index] ?? "";
     else if (argument === "--confirm-authorized-image") authorizedImageConfirmed = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
@@ -102,7 +105,10 @@ export function parseVerificationArguments(args: string[]): VerificationArgument
     throw new Error("--confirm-authorized-image is required before sending image bytes to Qwen");
   }
   if (!outputFile) throw new Error("--output is required and must name a new private report file");
-  return { credentialsFile, imageFile, authorizedImageConfirmed, outputFile };
+  if (model !== null && !/^qwen3\.[67]-flash(?:-\d{4}-\d{2}-\d{2})?$/.test(model)) {
+    throw new Error("--model must name a reviewed Qwen 3.6 or 3.7 Flash model");
+  }
+  return { credentialsFile, imageFile, authorizedImageConfirmed, outputFile, model };
 }
 
 async function prepareVerification(args: VerificationArguments): Promise<PreparedVerification> {
@@ -119,6 +125,7 @@ async function prepareVerification(args: VerificationArguments): Promise<Prepare
     VISION_PROVIDER: "qwen",
     DASHSCOPE_API_KEY: credentials.apiKey,
     DASHSCOPE_BASE_URL: credentials.openAiCompatible,
+    QWEN_FLASH_MODEL: args.model ?? undefined,
     WORST_CASE_COST_MICRO_CNY_PER_JOB: "1000000",
     MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: "2000000000",
     MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: "50000000000"

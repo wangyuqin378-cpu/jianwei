@@ -53,6 +53,14 @@ pnpm dev
 
 默认地址是 `http://127.0.0.1:8787`。保持 `VISION_PROVIDER=local` 时不需要云密钥，可运行本地闭环。
 
+已有百炼凭据 CSV 时，可直接启动不依赖 RDS、OSS 或函数计算的 Qwen 体验服务：
+
+```bash
+pnpm experience:free -- --credentials-file /absolute/path/to/bailian-credentials.csv
+```
+
+该模式固定使用 `qwen3.7-flash-2026-07-15`，图片只临时保存在本机；默认每天最多 3 次、每月最多 12 次分析。
+
 ### Android
 
 Windows 可直接运行：

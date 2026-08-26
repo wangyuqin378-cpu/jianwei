@@ -36,6 +36,14 @@ final class SubscriptionStore {
     var displayPrice: String? { product?.displayPrice }
 
     func refresh() async {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E") {
+            product = nil
+            currentTransactionJWS = nil
+            state = .subscribed
+            return
+        }
+        #endif
         if product == nil {
             product = try? await Product.products(for: [productID]).first
         }
@@ -72,6 +80,13 @@ final class SubscriptionStore {
     }
 
     private func refreshEntitlement() async {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E") {
+            currentTransactionJWS = nil
+            state = .subscribed
+            return
+        }
+        #endif
         currentTransactionJWS = nil
         for await result in Transaction.currentEntitlements {
             guard case let .verified(transaction) = result,

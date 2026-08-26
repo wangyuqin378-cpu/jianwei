@@ -45,7 +45,8 @@ describe("Qwen provider verification inputs", () => {
       credentialsFile: "credentials.csv",
       imageFile: "fixture.jpg",
       authorizedImageConfirmed: true,
-      outputFile: "provider-report.json"
+      outputFile: "provider-report.json",
+      model: null
     });
 
     expect(parseVerificationArguments([
@@ -54,6 +55,22 @@ describe("Qwen provider verification inputs", () => {
       "--output", "provider-report.json",
       "--confirm-authorized-image"
     ])).toMatchObject({ outputFile: "provider-report.json" });
+
+    expect(parseVerificationArguments([
+      "--credentials-file", "credentials.csv",
+      "--image", "fixture.jpg",
+      "--output", "provider-report.json",
+      "--model", "qwen3.7-flash-2026-07-15",
+      "--confirm-authorized-image"
+    ])).toMatchObject({ model: "qwen3.7-flash-2026-07-15" });
+
+    expect(() => parseVerificationArguments([
+      "--credentials-file", "credentials.csv",
+      "--image", "fixture.jpg",
+      "--output", "provider-report.json",
+      "--model", "qwen3.7-plus",
+      "--confirm-authorized-image"
+    ])).toThrow(/reviewed Qwen/);
 
     expect(() => parseVerificationArguments([
       "--credentials-file", "credentials.csv",
