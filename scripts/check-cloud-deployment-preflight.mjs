@@ -6,8 +6,8 @@ import path from "node:path";
 import { assessContainerDeploymentInputs } from "./check-container-deployment-inputs.mjs";
 import { collectCodePackageEntries, hashCodePackageEntries } from "./build-fc-code-package.mjs";
 
-const FIXED_FLASH_MODEL = "qwen3.6-flash-2026-04-16";
-const FIXED_PLUS_MODEL = "qwen3.6-plus-2026-04-02";
+const FIXED_FLASH_MODEL = "qwen3.7-flash-2026-07-15";
+const FIXED_PLUS_MODEL = "qwen3.7-plus-2026-05-26";
 const DEFAULT_DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 
 function value(env, name) {

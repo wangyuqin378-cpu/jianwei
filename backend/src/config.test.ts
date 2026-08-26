@@ -6,6 +6,12 @@ describe("configuration safety", () => {
     expect(loadConfig({}).allowUnattestedFacts).toBe(false);
   });
 
+  it("pins the reviewed Qwen 3.7 models instead of using floating aliases", () => {
+    const config = loadConfig({});
+    expect(config.qwenFlashModel).toBe("qwen3.7-flash-2026-07-15");
+    expect(config.qwenPlusModel).toBe("qwen3.7-plus-2026-05-26");
+  });
+
   it("refuses the development content escape hatch with OSS storage", () => {
     expect(() => loadConfig({ OBJECT_STORE: "oss", ALLOW_UNATTESTED_FACTS: "true" })).toThrow(
       /cannot be enabled with OSS/

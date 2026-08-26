@@ -126,7 +126,7 @@ if (process.argv.includes("--self-test")) {
   if (passing.status !== "GO") throw new Error(`Checked-in deployment fixture failed: ${passing.blockers.join("; ")}`);
   const cases = [
     ["inline API key", (value) => { value.manifest = value.manifest.replace("${env('JIANWEI_DASHSCOPE_API_KEY')}", "sk-synthetic_key_12"); }],
-    ["floating model", (value) => { value.manifest = value.manifest.replace("qwen3.6-flash-2026-04-16", "qwen-latest"); }],
+    ["floating model", (value) => { value.manifest = value.manifest.replace("qwen3.7-flash-2026-07-15", "qwen-latest"); }],
     ["root runtime", (value) => { value.dockerfile = value.dockerfile.replace("USER node", "USER root"); }],
     ["mutable base", (value) => { value.dockerfile = value.dockerfile.replaceAll("${NODE_IMAGE}", "node:22"); }],
     ["missing generated identity", (value) => { value.dockerfile = value.dockerfile.replace("pnpm release:identity -- --write release-identity.json", "pnpm release:identity-disabled"); }]
