@@ -26,11 +26,28 @@ final class SubscriptionStore {
     private(set) var currentTransactionJWS: String?
 
     private let productID: String
+    private let syncPurchases: @MainActor () async throws -> Void
+    @ObservationIgnored private var transactionUpdatesTask: Task<Void, Never>?
 
-    init(productID: String? = nil, bundle: Bundle = .main) {
+    init(
+        productID: String? = nil,
+        bundle: Bundle = .main,
+        syncPurchases: @escaping @MainActor () async throws -> Void = { try await AppStore.sync() }
+    ) {
         self.productID = productID
             ?? bundle.object(forInfoDictionaryKey: "JianweiMonthlyProductID") as? String
             ?? "cn.jianwei.ios.pro.monthly"
+        self.syncPurchases = syncPurchases
+        transactionUpdatesTask = Task { [weak self] in
+            for await result in Transaction.updates {
+                guard let self, !Task.isCancelled else { return }
+                await self.consume(transaction: result)
+            }
+        }
+    }
+
+    deinit {
+        transactionUpdatesTask?.cancel()
     }
 
     var displayPrice: String? { product?.displayPrice }
@@ -70,7 +87,7 @@ final class SubscriptionStore {
     }
 
     func restore() async throws {
-        try await AppStore.sync()
+        try await syncPurchases()
         await refreshEntitlement()
     }
 
@@ -98,5 +115,12 @@ final class SubscriptionStore {
             return
         }
         state = product == nil ? .productUnavailable : .notSubscribed
+    }
+
+    private func consume(transaction result: VerificationResult<Transaction>) async {
+        guard case let .verified(transaction) = result,
+              transaction.productID == productID else { return }
+        await transaction.finish()
+        await refreshEntitlement()
     }
 }

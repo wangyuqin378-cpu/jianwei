@@ -416,6 +416,7 @@ final class AppModel {
     func restoreManagedSubscription() async {
         guard !isWorking else { return }
         isWorking = true
+        message = "正在恢复 App Store 购买记录…"
         defer { isWorking = false }
         do {
             try await environment.subscriptionStore.restore()

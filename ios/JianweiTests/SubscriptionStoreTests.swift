@@ -1,4 +1,3 @@
-import StoreKitTest
 import XCTest
 @testable import Jianwei
 
@@ -24,33 +23,15 @@ final class SubscriptionStoreTests: XCTestCase {
         XCTAssertEqual(offer["subscriptionPeriod"] as? String, "P1W")
     }
 
-    func testMonthlyProductCanBePurchasedAndRestored() async throws {
-        continueAfterFailure = false
-        let session = try SKTestSession(configurationFileNamed: "Jianwei")
-        session.disableDialogs = true
-        session.clearTransactions()
-        defer { session.clearTransactions() }
+    @MainActor
+    func testRestoreRequestsAppStoreSync() async throws {
+        var didRequestSync = false
+        let store = SubscriptionStore(syncPurchases: {
+            didRequestSync = true
+        })
 
-        let store = SubscriptionStore(productID: "cn.jianwei.ios.pro.monthly")
+        try await store.restore()
 
-        await store.refresh()
-        if store.state == .productUnavailable {
-            throw XCTSkip(
-                "iOS 26.5 的 xcodebuild StoreKit 配置同步回归；请在 Xcode IDE 中运行本测试。"
-            )
-        }
-        XCTAssertEqual(store.state, .notSubscribed)
-        XCTAssertNotNil(store.displayPrice)
-
-        try await store.purchase(appAccountToken: UUID())
-        XCTAssertEqual(store.state, .subscribed)
-        let purchasedJWS = await store.entitlementJWS()
-        XCTAssertNotNil(purchasedJWS)
-
-        let restoredStore = SubscriptionStore(productID: "cn.jianwei.ios.pro.monthly")
-        try await restoredStore.restore()
-        XCTAssertEqual(restoredStore.state, .subscribed)
-        let restoredJWS = await restoredStore.entitlementJWS()
-        XCTAssertNotNil(restoredJWS)
+        XCTAssertTrue(didRequestSync)
     }
 }

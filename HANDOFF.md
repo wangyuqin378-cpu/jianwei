@@ -6,7 +6,9 @@
 - 新增 `pnpm --dir backend experience:free -- --credentials-file <百炼凭据 CSV>`：固定使用北京区 `qwen3.7-flash-2026-07-15`，图片仅写本机临时目录，不依赖数据库或云对象存储；单机限制每日 3 个、每月 12 个分析任务，临时图片 1 小时过期。
 - 真实 Provider 验证已通过：授权无人物扫帚图经压缩和去元数据后识别为 `broom / 扫帚`，置信度 `0.98`，敏感标记为空；报告为 `.tooling/ios-beta/qwen37-free-experience-20260826.json`。
 - iOS 免费体验完整闭环已通过：系统照片选择器 → 真实 Qwen → 有 Google Patents 来源的扫帚卡 → 小号/中号桌面组件 → 点击中号组件回到同一卡详情。结果包为 `.tooling/ios-beta/free-qwen37-experience-v4-20260826.xcresult`，`1/1`、0 失败；截图在 `.tooling/ios-beta/free-qwen37-v4-attachments/`。
-- 重新跑完整 iOS 用户闭环后，13 项通过，唯一跳过项是 iOS 26.5 命令行 StoreKit 购买/恢复回归；独立自动化发布套件为 `10/10`、0 失败、0 跳过，结果包 `.tooling/ios-beta/gate-final-automated-20260826.xcresult`。最新 generic Release 也已成功生成。可安装 Beta 门禁当前只剩生产 HTTPS API 与正式签名 Archive 两项。
+- 2026-08-27 已新增独立 `JianweiReleaseGate`：全新模拟器真实完成本地 StoreKit 首购与权益生效，恢复路径用可注入同步器验证生产代码调用 `AppStore.sync()`；结果 `.tooling/ios-beta/storekit-release-gate.xcresult` 为 `13/13`、0 失败、0 跳过。常规核心与首次体验回归 `.tooling/ios-beta/regression-current.xcresult` 为 `14/14`、0 失败、0 跳过，最新 generic iPhoneOS Release 也已成功生成。
+- StoreKit 验证同时补上常驻 `Transaction.updates` 监听，避免购买结果在异步状态变化时丢失；恢复购买会先展示明确的进行中状态。Xcode 26.6 + iOS 26.5 本地配置中 `AppStore.sync()` 仍会长期不返回，因此不再用会跳过或挂起的 `SKTestSession` CLI 测试伪装完整恢复；正式恢复调用没有降级。
+- 最新开发签名私测 Archive 为 `.tooling/ios-beta/free-https-device-v2/Jianwei.xcarchive`，内置仍在线的免费 Cloudflare HTTPS 隧道，已安装并启动于连接的 iPhone 12 Pro。该包可做本机体验，但隧道不是稳定生产域名，开发描述文件也不是 App Store distribution，不能作为 TestFlight 或上架证据。
 - 门禁已验证本机 7 天 `LocalProvision` 个人开发描述文件会被拒绝；App 与 Widget 都必须嵌入 App Store distribution provisioning profile，开发、Ad Hoc 或企业描述文件都不能作为 TestFlight 证据。
 - App Store 元数据与 `PrivacyInfo.xcprivacy` 已加入 CI 和真实 Release 门禁；移除了当前源码未使用的 `UserDefaults/CA92.1` 过度申报。旧 Release 会被拒绝，新 Release 内清单通过，修正后的自动化套件仍为 `10/10`、0 失败、0 跳过。
 - 当前只使用 SHA-256 哈希与 Apple 系统 HTTPS，已在生成配置和 Release `Info.plist` 写入 `ITSAppUsesNonExemptEncryption=false`，并加入 Release/Archive 门禁，避免 TestFlight 构建反复进入“Missing Compliance”。
@@ -19,7 +21,7 @@
 - 已创建且无实例计费的网络/权限基础：VPC `vpc-2zesdo7jz274xjujmjere`、VSwitch `vsw-2zeqa6eirllg1f4mzxgrw`、安全组 `sg-2zeio8dsdx286l0mezkt`、FC 运行角色 `jianwei-fc-runtime` 及最小 OSS Bucket 策略；RDS 所需两个服务关联角色已就绪。
 - FC 代码包已两次独立构建为相同摘要 `sha256:8e23b08b28a809bac2bb1931866c10633975afb0435fef4e48a940beb40a1b44`，部署模板、OAuth 预检、后端 140 项基础测试、TypeScript 与内存 TCP E2E 通过。
 - 当前唯一云创建阻断是阿里云账户余额：可用余额 `-0.01 CNY`、现金余额 `0.00 CNY`；RDS 返回 `ArrearageOrderExists`，OSS 返回 `UserDisable`。目前 RDS 实例与 OSS Bucket 都是 0，没有产生这两类资源费用。充值并开通 OSS 按量服务后，先复查余额，再按既定幂等令牌创建 0.5–2 RCU PostgreSQL Serverless、20 GB ESSD、私有 OSS 一日生命周期和 FC HTTPS。
-- iOS 当前仍不是可分发 Beta：现有签名归档没有生产 HTTPS 地址；云部署完成后必须用真实 FC URL 重建签名 Archive，并在 Xcode IDE 完成被 CLI 跳过的 StoreKit 购买/恢复验证，再上传 TestFlight。
+- iOS 当前仍不是 TestFlight/App Store 可分发 Beta：免费 HTTPS 开发签名包已可在连接真机体验，但正式门禁仍要求稳定生产 HTTPS 地址，以及 App 与 Widget 的 App Store distribution provisioning profiles。StoreKit 首购门禁已经完成，不再是阻塞项。
 
 ## 2026-08-03 iOS 照片知识组件首个完整本地候选
 

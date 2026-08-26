@@ -28,9 +28,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "49B4532528B9D50ED2EEC891"
-               BuildableName = "JianweiTests.xctest"
-               BlueprintName = "JianweiTests"
+               BlueprintIdentifier = "66E7E9FD5B342434529AA8C6"
+               BuildableName = "JianweiStoreKitUITests.xctest"
+               BlueprintName = "JianweiStoreKitUITests"
                ReferencedContainer = "container:Jianwei.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -42,9 +42,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "99049D4527B2482CEF916401"
-               BuildableName = "JianweiUITests.xctest"
-               BlueprintName = "JianweiUITests"
+               BlueprintIdentifier = "49B4532528B9D50ED2EEC891"
+               BuildableName = "JianweiTests.xctest"
+               BlueprintName = "JianweiTests"
                ReferencedContainer = "container:Jianwei.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -95,9 +95,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "99049D4527B2482CEF916401"
-               BuildableName = "JianweiUITests.xctest"
-               BlueprintName = "JianweiUITests"
+               BlueprintIdentifier = "66E7E9FD5B342434529AA8C6"
+               BuildableName = "JianweiStoreKitUITests.xctest"
+               BlueprintName = "JianweiStoreKitUITests"
                ReferencedContainer = "container:Jianwei.xcodeproj">
             </BuildableReference>
          </TestableReference>

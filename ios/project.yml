@@ -132,6 +132,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: Jianwei
+  JianweiStoreKitUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: JianweiStoreKitUITests
+    dependencies:
+      - target: Jianwei
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cn.jianwei.ios.storekit-ui-tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Jianwei
   JianweiCloudE2ETests:
     type: bundle.ui-testing
     platform: iOS
@@ -168,3 +180,17 @@ schemes:
     test:
       targets:
         - JianweiCloudE2ETests
+  JianweiReleaseGate:
+    build:
+      targets:
+        Jianwei: all
+        JianweiWidget: all
+        JianweiTests: [test]
+        JianweiStoreKitUITests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - JianweiTests
+        - JianweiStoreKitUITests
+    run:
+      storeKitConfiguration: StoreKit/Jianwei.storekit
