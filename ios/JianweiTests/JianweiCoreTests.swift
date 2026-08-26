@@ -50,6 +50,26 @@ final class JianweiCoreTests: XCTestCase {
         XCTAssertFalse(storedAfterRemoval)
     }
 
+    func testManagedModelAccessRequiresAnEntitlementBeforeAnyRequest() async throws {
+        let store = AIModelAccessStore(keychain: TestSecretStore())
+
+        do {
+            _ = try await store.request(for: .managed)
+            XCTFail("Managed access must not proceed without an App Store entitlement")
+        } catch {
+            XCTAssertEqual(error as? ProductError, .subscriptionRequired)
+        }
+
+        let transaction = "eyJhbGciOiJFUzI1NiJ9.\(String(repeating: "x", count: 100)).signature"
+        let request = try await store.request(
+            for: .managed,
+            managedTransaction: transaction
+        )
+        XCTAssertEqual(request.mode, .managed)
+        XCTAssertEqual(request.appStoreTransaction, transaction)
+        XCTAssertNil(request.apiKey)
+    }
+
     func testWidgetQueueAllowsAtMostTwoDistinctSwapsPerDay() {
         let cards = (0..<4).map { index in
             WidgetCardSnapshot(

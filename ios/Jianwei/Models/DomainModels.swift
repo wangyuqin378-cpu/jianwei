@@ -255,7 +255,7 @@ extension PersistedAppState {
     }
 }
 
-enum ProductError: LocalizedError, Equatable {
+enum ProductError: LocalizedError, Equatable, Sendable {
     case apiNotConfigured
     case apiKeyRequired
     case invalidAPIKey
@@ -271,6 +271,16 @@ enum ProductError: LocalizedError, Equatable {
     case noReliableKnowledge
     case permissionDenied
     case requestFailed(Int)
+
+    var requiresModelAccessAction: Bool {
+        switch self {
+        case .apiKeyRequired, .invalidAPIKey, .subscriptionUnavailable,
+             .subscriptionVerificationFailed, .subscriptionPending, .subscriptionRequired:
+            true
+        default:
+            false
+        }
+    }
 
     var errorDescription: String? {
         switch self {

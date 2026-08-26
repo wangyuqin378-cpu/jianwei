@@ -33,13 +33,21 @@ actor AIModelAccessStore {
         try keychain.remove(Key.qwenAPIKey)
     }
 
-    func request(for mode: ModelAccessMode, managedTransaction: String? = nil) throws -> ModelAccessRequest {
+    func request(
+        for mode: ModelAccessMode,
+        managedTransaction: String? = nil,
+        allowsMissingManagedTransaction: Bool = false
+    ) throws -> ModelAccessRequest {
         switch mode {
         case .managed:
+            let transaction = managedTransaction?.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard transaction?.isEmpty == false || allowsMissingManagedTransaction else {
+                throw ProductError.subscriptionRequired
+            }
             return ModelAccessRequest(
                 mode: .managed,
                 apiKey: nil,
-                appStoreTransaction: managedTransaction
+                appStoreTransaction: transaction
             )
         case .qwenUserKey:
             guard let key = try keychain.string(for: Key.qwenAPIKey) else {

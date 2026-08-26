@@ -122,6 +122,8 @@ const kimiReview = await readFile(path.join(root, "scripts", "kimi-adversarial-r
 const loopEngineerSkill = await readFile(path.join(root, ".claude", "skills", "loop-engineer", "SKILL.md"), "utf8");
 const loopEngineeringContract = await readFile(path.join(root, "docs", "LOOP_ENGINEERING.md"), "utf8");
 const gitignore = await readFile(path.join(root, ".gitignore"), "utf8");
+const iosAnalysisPipeline = await readFile(path.join(root, "ios", "Jianwei", "Services", "AnalysisPipeline.swift"), "utf8");
+const iosAppEnvironment = await readFile(path.join(root, "ios", "Jianwei", "App", "AppEnvironment.swift"), "utf8");
 
 for (const file of sourceFiles) {
   const content = await readFile(file, "utf8");
@@ -2563,6 +2565,28 @@ for (const marker of ["dnsLookup", "all: true", "verbatim: true", "https.request
 }
 check(ciWorkflow.includes("BACKEND_E2E_DATABASE_URL: ${{ env.DATABASE_URL }}"), "CI is missing the PostgreSQL-backed TCP E2E gate");
 check(ciWorkflow.includes("name: backend-tcp-e2e-evidence"), "CI does not retain the TCP E2E evidence artifact");
+const iosSubmitBlock = iosAnalysisPipeline.slice(
+  iosAnalysisPipeline.indexOf("private func submit("),
+  iosAnalysisPipeline.indexOf("func preflightModelAccess()")
+);
+check(
+  iosSubmitBlock.indexOf("let access = try await preflightModelAccess()") >= 0 &&
+    iosSubmitBlock.indexOf("let access = try await preflightModelAccess()") <
+      iosSubmitBlock.indexOf("let credentials = try await identity.credentials()") &&
+    iosSubmitBlock.indexOf("let access = try await preflightModelAccess()") <
+      iosSubmitBlock.indexOf("let created = try await api.createJob("),
+  "iOS can create an analysis job or upload a photo before model access is authorized"
+);
+const iosDiscoveryRunBlock = iosAppEnvironment.slice(
+  iosAppEnvironment.indexOf("func run(maximumCandidates: Int)"),
+  iosAppEnvironment.indexOf("private func selectDailyWinner(")
+);
+check(
+  iosDiscoveryRunBlock.indexOf("pipeline.preflightModelAccess()") >= 0 &&
+    iosDiscoveryRunBlock.indexOf("pipeline.preflightModelAccess()") <
+      iosDiscoveryRunBlock.indexOf("environment.discovery.authorizationState()"),
+  "iOS automatic discovery can inspect the photo library before model access is authorized"
+);
 
 if (failures.length > 0) throw new Error(`Source guardrails failed:\n${failures.join("\n")}`);
 process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWording=1 deduplicatedPresentation=1 accessibilityPercent=1 app=1 widget=1 roomMigration=1 postgresMigration=1 objectAwareWidgetCrop=1\n");

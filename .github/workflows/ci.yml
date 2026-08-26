@@ -176,4 +176,5 @@ jobs:
           -destination "platform=iOS Simulator,id=$JIANWEI_SIMULATOR_ID"
           -derivedDataPath .build/DerivedData
           -only-testing:JianweiTests
+          -only-testing:JianweiUITests/JianweiOnboardingAccessTests
           test

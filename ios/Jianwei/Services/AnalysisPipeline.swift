@@ -68,6 +68,7 @@ actor AnalysisPipeline {
         do {
             return try await submit(candidate: candidate, sanitizedJPEG: sanitized.jpeg)
         } catch let error as ProductError {
+            if error.requiresModelAccessAction { throw error }
             candidate.state = .failed
             candidate.updatedAt = Date()
             throw PipelineFailure(candidate: candidate, sanitizedJPEG: sanitized.jpeg, cause: error)
@@ -84,6 +85,7 @@ actor AnalysisPipeline {
         do {
             return try await submit(candidate: retrying, sanitizedJPEG: sanitizedJPEG)
         } catch let error as ProductError {
+            if error.requiresModelAccessAction { throw error }
             retrying.state = .failed
             retrying.updatedAt = Date()
             throw PipelineFailure(candidate: retrying, sanitizedJPEG: sanitizedJPEG, cause: error)
@@ -99,6 +101,7 @@ actor AnalysisPipeline {
         sanitizedJPEG: Data
     ) async throws -> AnalysisPipelineResult {
         var candidate = originalCandidate
+        let access = try await preflightModelAccess()
         let credentials = try await identity.credentials()
         let created = try await api.createJob(
             bearer: credentials.token,
@@ -124,14 +127,6 @@ actor AnalysisPipeline {
         } else if created.status == "needs_content" || created.status == "rejected" {
             card = nil
         } else {
-            let state = await repository.snapshot()
-            let transaction = state.modelAccessMode == .managed
-                ? await subscriptionStore.entitlementJWS()
-                : nil
-            let access = try await modelAccessStore.request(
-                for: state.modelAccessMode,
-                managedTransaction: transaction
-            )
             card = try await api.completeJob(
                 bearer: credentials.token,
                 jobID: jobID,
@@ -142,6 +137,26 @@ actor AnalysisPipeline {
         candidate.state = card == nil ? .noMatch : .completed
         candidate.updatedAt = Date()
         return AnalysisPipelineResult(candidate: candidate, card: card, sanitizedJPEG: sanitizedJPEG)
+    }
+
+    func preflightModelAccess() async throws -> ModelAccessRequest {
+        let state = await repository.snapshot()
+        let transaction = state.modelAccessMode == .managed
+            ? await subscriptionStore.entitlementJWS()
+            : nil
+        return try await modelAccessStore.request(
+            for: state.modelAccessMode,
+            managedTransaction: transaction,
+            allowsMissingManagedTransaction: allowsFixtureManagedAccess
+        )
+    }
+
+    private var allowsFixtureManagedAccess: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E")
+        #else
+        false
+        #endif
     }
 }
 

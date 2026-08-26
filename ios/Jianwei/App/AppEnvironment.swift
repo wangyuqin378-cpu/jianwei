@@ -87,6 +87,7 @@ struct DiscoveryRunSummary: Sendable {
     let cardsCreated: Int
     let filtered: Int
     let failed: Int
+    let accessError: ProductError?
 }
 
 actor AutomaticDiscoveryRunner {
@@ -98,20 +99,27 @@ actor AutomaticDiscoveryRunner {
 
     func run(maximumCandidates: Int) async -> DiscoveryRunSummary {
         guard maximumCandidates > 0, let pipeline = environment.pipeline else {
-            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0, accessError: nil)
+        }
+        do {
+            _ = try await pipeline.preflightModelAccess()
+        } catch let error as ProductError where error.requiresModelAccessAction {
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0, accessError: error)
+        } catch {
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 1, accessError: nil)
         }
         let access = await environment.discovery.authorizationState()
         guard access == .full || access == .limited else {
-            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0, accessError: nil)
         }
 
         var state = await environment.repository.snapshot()
         guard state.automaticDiscoveryEnabled else {
-            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0, accessError: nil)
         }
         let today = ChinaDay.string(from: Date())
         guard state.lastDailySelectionDay != today else {
-            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0)
+            return DiscoveryRunSummary(inspected: 0, cardsCreated: 0, filtered: 0, failed: 0, accessError: nil)
         }
         var inspected = 0
         var completedAnalyses = 0
@@ -146,7 +154,8 @@ actor AutomaticDiscoveryRunner {
                 inspected: inspected,
                 cardsCreated: cardsCreated,
                 filtered: filtered,
-                failed: failed + 1
+                failed: failed + 1,
+                accessError: nil
             )
         }
         state = await environment.repository.snapshot()
@@ -204,7 +213,8 @@ actor AutomaticDiscoveryRunner {
             inspected: inspected,
             cardsCreated: cardsCreated,
             filtered: filtered,
-            failed: failed
+            failed: failed,
+            accessError: nil
         )
     }
 

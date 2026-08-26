@@ -84,6 +84,7 @@ final class AppModel {
         if launchArguments.contains("-JianweiResetOnboarding") {
             try? SharedWidgetStore().clear()
             try? await environment.repository.deleteLocalData()
+            try? await environment.modelAccessStore.removeQwenAPIKey()
         }
         if launchArguments.contains("-JianweiSeedDemo") {
             try? await installDemoState()
@@ -180,7 +181,9 @@ final class AppModel {
         await reloadFromDisk()
         isWorking = false
         analysisStage = summary.cardsCreated > 0 ? .ready : .idle
-        if summary.cardsCreated > 0 {
+        if let accessError = summary.accessError {
+            message = accessError.errorDescription
+        } else if summary.cardsCreated > 0 {
             message = "今天从三张候选里准备了 \(summary.cardsCreated) 个知识点，正在选择最有趣的一条。"
         } else if summary.failed > 0 {
             message = "网络暂时不可用，候选照片已加密保留在本机，可稍后重试。"
