@@ -35,6 +35,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>JianweiAPIBaseURL</key>
 	<string>$(JIANWEI_API_BASE_URL)</string>
 	<key>JianweiMonthlyProductID</key>

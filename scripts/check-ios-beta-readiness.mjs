@@ -59,6 +59,7 @@ export function assessIosBetaReadiness(input) {
   require(input.release.unsignedAppPresent, "the final generic iOS Release app is missing");
   require(input.release.currentForSources, "the final generic iOS Release app is older than current iOS source files");
   require(input.release.privacyManifestValid, "the final generic iOS Release app has a missing or invalid privacy manifest");
+  require(input.release.exportComplianceDeclared, "the final generic iOS Release app does not declare exempt encryption use");
   require(input.archive.present, "a signed Jianwei.xcarchive is required");
   if (input.archive.present) {
     require(input.archive.appSigned, "the archived App is not code signed");
@@ -68,6 +69,7 @@ export function assessIosBetaReadiness(input) {
       "the archived App and Widget must use App Store distribution provisioning profiles"
     );
     require(input.archive.privacyManifestValid, "the archived App has a missing or invalid privacy manifest");
+    require(input.archive.exportComplianceDeclared, "the archived App does not declare exempt encryption use");
     require(input.archive.apiOriginConfigured, "the archived App does not contain the production HTTPS API origin");
   }
 
@@ -91,11 +93,13 @@ export function assessIosBetaReadiness(input) {
       unsignedReleasePresent: input.release.unsignedAppPresent ? 1 : 0,
       unsignedReleaseCurrentForSources: input.release.currentForSources ? 1 : 0,
       unsignedReleasePrivacyManifestValid: input.release.privacyManifestValid ? 1 : 0,
+      unsignedReleaseExportComplianceDeclared: input.release.exportComplianceDeclared ? 1 : 0,
       signedArchivePresent: input.archive.present ? 1 : 0,
       archivedAppSigned: input.archive.appSigned ? 1 : 0,
       archivedWidgetSigned: input.archive.widgetSigned ? 1 : 0,
       archivedAppStoreDistributionProfiles: input.archive.appStoreDistributionProfiles ? 1 : 0,
       archivedPrivacyManifestValid: input.archive.privacyManifestValid ? 1 : 0,
+      archivedExportComplianceDeclared: input.archive.exportComplianceDeclared ? 1 : 0,
       archivedProductionApiOriginConfigured: input.archive.apiOriginConfigured ? 1 : 0
     },
     blockers
@@ -223,7 +227,8 @@ function collectRelease(relativePath, sourceMtime) {
   return {
     unsignedAppPresent: present,
     currentForSources: present && statSync(app).mtimeMs >= sourceMtime,
-    privacyManifestValid: present && validPrivacyManifest(app)
+    privacyManifestValid: present && validPrivacyManifest(app),
+    exportComplianceDeclared: present && plistValue(path.join(app, "Info.plist"), "ITSAppUsesNonExemptEncryption") === "false"
   };
 }
 
@@ -321,6 +326,7 @@ function collectArchive(relativePath) {
       widgetSigned: false,
       appStoreDistributionProfiles: false,
       privacyManifestValid: false,
+      exportComplianceDeclared: false,
       apiOriginConfigured: false
     };
   }
@@ -336,6 +342,7 @@ function collectArchive(relativePath) {
       appStoreDistributionProfile(app, EXPECTED_APP_ID) &&
       appStoreDistributionProfile(widget, EXPECTED_WIDGET_ID),
     privacyManifestValid: present && validPrivacyManifest(app),
+    exportComplianceDeclared: present && plistValue(path.join(app, "Info.plist"), "ITSAppUsesNonExemptEncryption") === "false",
     apiOriginConfigured: present && validPublicHttpsOrigin(plistValue(path.join(app, "Info.plist"), "JianweiAPIBaseURL"))
   };
 }
@@ -348,13 +355,19 @@ function validSyntheticInput() {
     signing: { validIdentityCount: 1 },
     device: { inspectionSucceeded: true, physicalDeviceCount: 1 },
     tests: { resultAvailable: true, passed: 9, failed: 0, skipped: 0, currentForSources: true },
-    release: { unsignedAppPresent: true, currentForSources: true, privacyManifestValid: true },
+    release: {
+      unsignedAppPresent: true,
+      currentForSources: true,
+      privacyManifestValid: true,
+      exportComplianceDeclared: true
+    },
     archive: {
       present: true,
       appSigned: true,
       widgetSigned: true,
       appStoreDistributionProfiles: true,
       privacyManifestValid: true,
+      exportComplianceDeclared: true,
       apiOriginConfigured: true
     }
   };
@@ -402,6 +415,7 @@ function runSelfTest() {
     ["stale tests", { tests: { ...valid.tests, currentForSources: false } }],
     ["release", { release: { unsignedAppPresent: false, currentForSources: false } }],
     ["release privacy manifest", { release: { ...valid.release, privacyManifestValid: false } }],
+    ["release export compliance", { release: { ...valid.release, exportComplianceDeclared: false } }],
     ["archive", {
       archive: {
         present: false,
@@ -409,6 +423,7 @@ function runSelfTest() {
         widgetSigned: false,
         appStoreDistributionProfiles: false,
         privacyManifestValid: false,
+        exportComplianceDeclared: false,
         apiOriginConfigured: false
       }
     }],
@@ -417,6 +432,9 @@ function runSelfTest() {
     }],
     ["archive privacy manifest", {
       archive: { ...valid.archive, privacyManifestValid: false }
+    }],
+    ["archive export compliance", {
+      archive: { ...valid.archive, exportComplianceDeclared: false }
     }]
   ];
   for (const [name, patch] of cases) {
