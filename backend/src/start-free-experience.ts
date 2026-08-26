@@ -5,7 +5,8 @@ import { parseBailianCredentialsCsv, type BailianCredentials } from "./bailian-c
 import { isMainModule } from "./main-module.js";
 
 const FREE_EXPERIENCE_MODEL = "qwen3.7-flash-2026-07-15";
-const FREE_EXPERIENCE_MONTHLY_JOB_LIMIT = 10;
+const FREE_EXPERIENCE_MONTHLY_JOB_LIMIT = 93;
+const FREE_EXPERIENCE_WORST_CASE_COST_MICRO_CNY_PER_JOB = 20_000;
 const FREE_EXPERIENCE_MONTHLY_COST_MICRO_CNY = 10_000_000;
 
 interface ExperienceArguments {
@@ -53,8 +54,8 @@ export function freeExperienceEnvironment(
     MAX_JOBS_PER_DEVICE_PER_MONTH: String(FREE_EXPERIENCE_MONTHLY_JOB_LIMIT),
     MAX_JOBS_GLOBAL_PER_DAY: "3",
     MAX_JOBS_GLOBAL_PER_MONTH: String(FREE_EXPERIENCE_MONTHLY_JOB_LIMIT),
-    WORST_CASE_COST_MICRO_CNY_PER_JOB: "1000000",
-    MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: "3000000",
+    WORST_CASE_COST_MICRO_CNY_PER_JOB: String(FREE_EXPERIENCE_WORST_CASE_COST_MICRO_CNY_PER_JOB),
+    MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: String(3 * FREE_EXPERIENCE_WORST_CASE_COST_MICRO_CNY_PER_JOB),
     MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: String(FREE_EXPERIENCE_MONTHLY_COST_MICRO_CNY),
     OBJECT_TTL_HOURS: "1",
     ALLOW_UNATTESTED_FACTS: "false"
@@ -70,12 +71,13 @@ async function main(args: string[]): Promise<void> {
     }, parsed.port, "/tmp/jianwei");
     assert.equal(environment.QWEN_FLASH_MODEL, FREE_EXPERIENCE_MODEL);
     assert.equal(environment.QWEN_PLUS_MODEL, FREE_EXPERIENCE_MODEL);
-    assert.equal(environment.MAX_JOBS_GLOBAL_PER_MONTH, "10");
+    assert.equal(environment.MAX_JOBS_GLOBAL_PER_MONTH, "93");
+    assert.equal(environment.WORST_CASE_COST_MICRO_CNY_PER_JOB, "20000");
     assert.equal(environment.MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH, "10000000");
     assert.equal(environment.OBJECT_STORE, "local");
     assert.equal(environment.DATABASE_URL, undefined);
     process.stdout.write(
-      `FREE_EXPERIENCE_LAUNCHER_SELF_TEST=GO model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=10 monthlyWorstCaseCostCny=10\n`
+      `FREE_EXPERIENCE_LAUNCHER_SELF_TEST=GO model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=93 reservedMonthlyCostCny=1.86 hardCostCapCny=10\n`
     );
     return;
   }
@@ -83,7 +85,7 @@ async function main(args: string[]): Promise<void> {
   const credentials = parseBailianCredentialsCsv(await readFile(parsed.credentialsFile, "utf8"));
   Object.assign(process.env, freeExperienceEnvironment(credentials, parsed.port));
   process.stdout.write(
-    `FREE_EXPERIENCE_SERVER_START model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=10 monthlyWorstCaseCostCny=10\n`
+    `FREE_EXPERIENCE_SERVER_START model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=93 reservedMonthlyCostCny=1.86 hardCostCapCny=10\n`
   );
   await import("./index.js");
 }
