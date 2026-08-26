@@ -28,9 +28,10 @@ node scripts/check-ios-beta-readiness.mjs \
 ```
 
 `GO` requires at least nine current iOS tests with no failures or skips, the current generic Release
-build, matching App/Widget bundle IDs and App Group, a valid signing identity, a connected physical
-iPhone or iPad, valid signatures on both archived bundles, App Store distribution provisioning
-profiles for both the App and Widget, and the public HTTPS origin embedded in the archived App.
+build with a validated privacy manifest, matching App/Widget bundle IDs and App Group, a valid
+signing identity, a connected physical iPhone or iPad, valid signatures on both archived bundles,
+App Store distribution provisioning profiles for both the App and Widget, a validated privacy
+manifest in the archived App, and the public HTTPS origin embedded in the archived App.
 Seven-day personal-development, device-bound development, Ad Hoc and enterprise profiles are not
 TestFlight evidence. The report emits only booleans, counts and blocker names; it never emits the
 Team ID, API origin, signing certificate name or provisioning profile contents.

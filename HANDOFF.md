@@ -8,6 +8,7 @@
 - iOS 免费体验完整闭环已通过：系统照片选择器 → 真实 Qwen → 有 Google Patents 来源的扫帚卡 → 小号/中号桌面组件 → 点击中号组件回到同一卡详情。结果包为 `.tooling/ios-beta/free-qwen37-experience-v4-20260826.xcresult`，`1/1`、0 失败；截图在 `.tooling/ios-beta/free-qwen37-v4-attachments/`。
 - 重新跑完整 iOS 用户闭环后，13 项通过，唯一跳过项是 iOS 26.5 命令行 StoreKit 购买/恢复回归；独立自动化发布套件为 `10/10`、0 失败、0 跳过，结果包 `.tooling/ios-beta/gate-final-automated-20260826.xcresult`。最新 generic Release 也已成功生成。可安装 Beta 门禁当前只剩生产 HTTPS API 与正式签名 Archive 两项。
 - 门禁已验证本机 7 天 `LocalProvision` 个人开发描述文件会被拒绝；App 与 Widget 都必须嵌入 App Store distribution provisioning profile，开发、Ad Hoc 或企业描述文件都不能作为 TestFlight 证据。
+- App Store 元数据与 `PrivacyInfo.xcprivacy` 已加入 CI 和真实 Release 门禁；移除了当前源码未使用的 `UserDefaults/CA92.1` 过度申报。旧 Release 会被拒绝，新 Release 内清单通过，修正后的自动化套件仍为 `10/10`、0 失败、0 跳过。
 - 新模拟器首次启动曾被 StoreKit 商品查询阻塞；现仅在 `#if DEBUG` 且带 `-JianweiAuthorizedFixtureE2E` 时跳过商品查询，正式 Release 的 StoreKit 校验未放宽。系统照片选择器首次载入容差提高到 20 秒；小组件扩展已注册但首次安装后需等 SpringBoard 刷新目录。
 - 这条路径只是本机体验证据，不是 TestFlight 或公开 Beta。百炼模型额度、FC、OSS、RDS 的免费试用彼此独立，后续如需托管体验必须分别确认并领取，不能假定自动生效。
 
