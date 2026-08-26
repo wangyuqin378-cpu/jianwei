@@ -318,7 +318,10 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
         mode: config.visionProvider,
         catalogVersion: knowledge.catalog.version,
         backendReleaseSha256,
-        containerImageDigest: config.containerImageDigest
+        containerImageDigest: config.containerImageDigest,
+        deploymentArtifactKind: config.deploymentArtifactKind,
+        deploymentArtifactDigest: config.deploymentArtifactDigest,
+        releaseChannel: config.releaseChannel
       });
     } catch (error) {
       app.log.error({ err: error }, "readiness check failed");

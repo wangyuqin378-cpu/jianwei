@@ -98,6 +98,8 @@ describe("configuration safety", () => {
     expect(config.objectStore).toBe("oss");
     expect(config.visionProvider).toBe("qwen");
     expect(config.containerImageDigest).toBe(`sha256:${"b".repeat(64)}`);
+    expect(config.deploymentArtifactKind).toBe("container");
+    expect(config.deploymentArtifactDigest).toBe(`sha256:${"b".repeat(64)}`);
     expect(() => loadConfig({ ...production, DATABASE_URL: "" })).toThrow(/DATABASE_URL/);
     expect(() => loadConfig({ ...production, OBJECT_STORE: "local" })).toThrow(/OBJECT_STORE must be oss/);
     expect(() => loadConfig({ ...production, VISION_PROVIDER: "local" })).toThrow(/VISION_PROVIDER must be qwen/);
@@ -108,6 +110,32 @@ describe("configuration safety", () => {
       /CONTAINER_IMAGE_DIGEST/
     );
     expect(() => loadConfig({ ...production, CONTAINER_IMAGE_DIGEST: "" })).toThrow(/CONTAINER_IMAGE_DIGEST/);
+  });
+
+  it("supports a production-hardened TestFlight backend deployed as an FC code package", () => {
+    const beta = {
+      ...productionEnv(),
+      RELEASE_CHANNEL: "beta",
+      APP_STORE_ENVIRONMENT: "sandbox",
+      APP_STORE_APP_APPLE_ID: "",
+      DEPLOYMENT_ARTIFACT_KIND: "code-package",
+      DEPLOYMENT_ARTIFACT_DIGEST: `sha256:${"c".repeat(64)}`,
+      CONTAINER_IMAGE_DIGEST: ""
+    };
+    const config = loadConfig(beta);
+    expect(config.environment).toBe("production");
+    expect(config.releaseChannel).toBe("beta");
+    expect(config.appStoreEnvironment).toBe("sandbox");
+    expect(config.appStoreAppAppleId).toBeNull();
+    expect(config.deploymentArtifactKind).toBe("code-package");
+    expect(config.deploymentArtifactDigest).toBe(`sha256:${"c".repeat(64)}`);
+    expect(config.containerImageDigest).toBeNull();
+
+    expect(() => loadConfig({ ...beta, APP_STORE_ENVIRONMENT: "production" })).toThrow(/sandbox/);
+    expect(() => loadConfig({ ...beta, DEPLOYMENT_ARTIFACT_DIGEST: "" })).toThrow(/DEPLOYMENT_ARTIFACT_DIGEST/);
+    expect(() => loadConfig({ ...productionEnv(), APP_STORE_ENVIRONMENT: "sandbox" })).toThrow(
+      /production release channel/
+    );
   });
 
   it("requires a complete temporary STS credential set in production", () => {

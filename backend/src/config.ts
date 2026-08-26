@@ -6,6 +6,7 @@ if (existsSync(localEnvFile)) process.loadEnvFile(localEnvFile);
 
 export interface AppConfig {
   environment: "development" | "test" | "production";
+  releaseChannel: "beta" | "production";
   host: string;
   port: number;
   publicBaseUrl: string;
@@ -37,6 +38,8 @@ export interface AppConfig {
   knowledgeCatalogSha256: string | null;
   knowledgeReviewerIds: string[];
   containerImageDigest: string | null;
+  deploymentArtifactKind: "container" | "code-package";
+  deploymentArtifactDigest: string | null;
   appStoreBundleId: string;
   appStoreAppAppleId: number | null;
   appStoreSubscriptionProductId: string;
@@ -50,6 +53,12 @@ function optional(value: string | undefined): string | null {
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const environment = parseEnvironment(env.NODE_ENV);
+  const releaseChannel = parseProvider(
+    env.RELEASE_CHANNEL,
+    "RELEASE_CHANNEL",
+    ["beta", "production"],
+    "production"
+  );
   const visionProvider = parseProvider(env.VISION_PROVIDER, "VISION_PROVIDER", ["local", "qwen", "kimi"], "local");
   const port = Number(env.PORT ?? "8787");
   const maxJobs = Number(env.MAX_JOBS_PER_DEVICE_PER_DAY ?? "3");
@@ -70,6 +79,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     .map((value) => value.trim())
     .filter(Boolean))];
   const containerImageDigest = optional(env.CONTAINER_IMAGE_DIGEST)?.toLowerCase() ?? null;
+  const deploymentArtifactKind = parseProvider(
+    env.DEPLOYMENT_ARTIFACT_KIND,
+    "DEPLOYMENT_ARTIFACT_KIND",
+    ["container", "code-package"],
+    "container"
+  );
+  const deploymentArtifactDigest = (
+    optional(env.DEPLOYMENT_ARTIFACT_DIGEST)?.toLowerCase()
+    ?? containerImageDigest
+  );
   const appStoreBundleId = env.APP_STORE_BUNDLE_ID?.trim() || "cn.jianwei.ios";
   const appStoreSubscriptionProductId = env.APP_STORE_SUBSCRIPTION_PRODUCT_ID?.trim()
     || "cn.jianwei.ios.pro.monthly";
@@ -88,6 +107,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     .filter(Boolean);
   if (containerImageDigest && !/^sha256:[a-f0-9]{64}$/.test(containerImageDigest)) {
     throw new Error("CONTAINER_IMAGE_DIGEST must be an OCI sha256 digest");
+  }
+  if (deploymentArtifactDigest && !/^sha256:[a-f0-9]{64}$/.test(deploymentArtifactDigest)) {
+    throw new Error("DEPLOYMENT_ARTIFACT_DIGEST must be a sha256 digest");
+  }
+  if (deploymentArtifactKind === "container" && deploymentArtifactDigest !== containerImageDigest) {
+    throw new Error("Container deployment identity must exactly match CONTAINER_IMAGE_DIGEST");
   }
   if (knowledgeReviewerIds.some((value) => value.length < 3 || value.length > 100)) {
     throw new Error("KNOWLEDGE_REVIEWER_IDS contains an invalid reviewer ID");
@@ -149,11 +174,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (allowUnattestedFacts) throw new Error("ALLOW_UNATTESTED_FACTS cannot be enabled in production");
     if (ttl > 24) throw new Error("OBJECT_TTL_HOURS must not exceed 24 in production");
     if (!knowledgeCatalogSha256) throw new Error("KNOWLEDGE_CATALOG_SHA256 is required in production");
-    if (!containerImageDigest) throw new Error("CONTAINER_IMAGE_DIGEST is required in production");
-    if (appStoreEnvironment !== "production") {
-      throw new Error("APP_STORE_ENVIRONMENT must be production in production");
+    if (deploymentArtifactKind === "container" && !containerImageDigest) {
+      throw new Error("CONTAINER_IMAGE_DIGEST is required for a production container deployment");
     }
-    if (!appStoreAppAppleId) throw new Error("APP_STORE_APP_APPLE_ID is required in production");
+    if (!deploymentArtifactDigest) throw new Error("DEPLOYMENT_ARTIFACT_DIGEST is required in production");
+    if (releaseChannel === "beta") {
+      if (appStoreEnvironment !== "sandbox") {
+        throw new Error("APP_STORE_ENVIRONMENT must be sandbox for the beta release channel");
+      }
+    } else {
+      if (appStoreEnvironment !== "production") {
+        throw new Error("APP_STORE_ENVIRONMENT must be production for the production release channel");
+      }
+      if (!appStoreAppAppleId) throw new Error("APP_STORE_APP_APPLE_ID is required for the production release channel");
+    }
     if (appStoreRootCertificatePaths.length === 0) {
       throw new Error("APP_STORE_ROOT_CERTIFICATE_PATHS is required in production");
     }
@@ -183,6 +217,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 
   return {
     environment,
+    releaseChannel,
     host: env.HOST ?? "127.0.0.1",
     port,
     publicBaseUrl,
@@ -214,6 +249,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     knowledgeCatalogSha256,
     knowledgeReviewerIds,
     containerImageDigest,
+    deploymentArtifactKind,
+    deploymentArtifactDigest,
     appStoreBundleId,
     appStoreAppAppleId,
     appStoreSubscriptionProductId,

@@ -18,11 +18,18 @@ function parseArguments(argv) {
   };
   const profile = valueAfter("--profile") ?? "jianwei";
   const action = valueAfter("--action") ?? "preflight";
+  const template = valueAfter("--template") ?? "deploy/s.code-package.yaml";
   if (!/^[A-Za-z0-9._-]{1,64}$/.test(profile)) throw new Error("--profile is invalid");
   if (!ALLOWED_ACTIONS.has(action)) throw new Error("--action must be preflight, verify, or deploy");
+  const resolvedTemplate = path.resolve(template);
+  const deployRoot = `${path.resolve("deploy")}${path.sep}`;
+  if (!resolvedTemplate.startsWith(deployRoot) || !/\.ya?ml$/.test(resolvedTemplate) || !existsSync(resolvedTemplate)) {
+    throw new Error("--template must select an existing deploy/*.yaml file");
+  }
   return {
     profile,
     action,
+    template: path.relative(process.cwd(), resolvedTemplate),
     confirmCloudMutation: argv.includes("--confirm-cloud-mutation")
   };
 }
@@ -155,10 +162,10 @@ function main() {
   runChild(process.execPath, ["scripts/check-cloud-deployment-preflight.mjs"], env, 60_000);
   if (options.action === "preflight") return;
 
-  runChild("s", ["verify", "-t", "deploy/s.yaml.example"], env, 120_000);
+  runChild("s", ["verify", "-t", options.template], env, 120_000);
   if (options.action === "verify") return;
 
-  runChild("s", ["deploy", "-t", "deploy/s.yaml.example"], env, 20 * 60_000);
+  runChild("s", ["deploy", "-y", "-t", options.template], env, 20 * 60_000);
 }
 
 const isMainModule = process.argv[1] &&

@@ -1,8 +1,10 @@
 # Production deployment
 
-The production target is an Alibaba Cloud Function Compute 3 custom container connected to RDS
-PostgreSQL, a private OSS bucket and fixed-version Qwen models. Local/in-memory mode is a developer
-fallback and is never release evidence.
+The iOS TestFlight target is an Alibaba Cloud Function Compute 3 custom-runtime code package
+connected to RDS PostgreSQL, a private OSS bucket and fixed-version Qwen models. This avoids a paid
+container registry during the small Beta while preserving an immutable package digest. The checked-
+in custom-container path remains available for a later production rollout. Local/in-memory mode is a
+developer fallback and is never release evidence.
 
 ## iOS installable Beta gate
 
@@ -53,11 +55,13 @@ purchase, entitlement JWS and restore. The iOS 26.5 simulator currently has an A
    temporary STS credential set (`accessKeyId`, `accessKeySecret`, and `securityToken`) for each
    instance; production refuses AK-only credentials. Do not put long-lived OSS access keys in the
    image, repository, or deployment manifest.
-4. Bind a filed production domain with HTTPS, set `JIANWEI_PUBLIC_BASE_URL` to that exact origin,
-   and keep the platform HTTP trigger anonymous because the API enforces its own server-issued
-   device bearer on every private route.
+4. For TestFlight, use the HTTPS Function Compute trigger URL as `JIANWEI_PUBLIC_BASE_URL`. Before an
+   App Store production release, replace it with a filed custom domain and HTTPS certificate. Keep
+   the platform HTTP trigger anonymous because the API enforces its own server-issued device bearer
+   on every private route.
 5. Store the database URL and DashScope key in the deployment environment or KMS-backed secret
-   workflow. `deploy/s.yaml.example` reads them from the deploying process and contains no values.
+   workflow. `deploy/s.code-package.yaml` and `deploy/s.yaml.example` read them from the deploying
+   process and contain no values.
 6. Activate the separate pay-as-you-go
    [AI Safety Guardrails service](https://help.aliyun.com/zh/document_detail/2878218.html) with the
    Alibaba Cloud primary account. Then authorize content safety for the same Bailian workspace as the
@@ -140,6 +144,37 @@ not prove which console activation step is missing; confirm both service enablem
 authorization before rerunning.
 
 ## Build and deploy
+
+### iOS Beta code-package path
+
+Build a fresh Function Compute package after every backend, migration, catalog, deployment-template
+or package-builder change. The builder installs lockfile-pinned production dependencies as copied
+files, downloads Apple root certificates only from Apple, verifies their pinned SHA-256 values,
+rejects native modules built for the local Mac, and emits an independent package digest:
+
+```bash
+node scripts/build-fc-code-package.mjs \
+  --output .tooling/fc-code-package \
+  --report .tooling/fc-code-package-report.json
+```
+
+Set `JIANWEI_DEPLOYMENT_ARTIFACT_KIND=code-package`, `JIANWEI_CODE_PATH` to that directory and
+`JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST` to the report value. Then verify or deploy through the OAuth
+bridge without persisting temporary Alibaba Cloud credentials:
+
+```bash
+node scripts/run-serverless-with-aliyun-oauth.mjs \
+  --profile jianwei --action verify --template deploy/s.code-package.yaml
+
+JIANWEI_CLOUD_MUTATION_CONFIRMED=YES \
+node scripts/run-serverless-with-aliyun-oauth.mjs \
+  --profile jianwei --action deploy --template deploy/s.code-package.yaml \
+  --confirm-cloud-mutation
+```
+
+The first deployment may use a temporary valid HTTPS placeholder only to discover the generated FC
+trigger URL. Immediately redeploy with that exact URL, then verify `/health/live` and
+`/health/ready`; a placeholder deployment is never a usable Beta backend.
 
 ### Prepare immutable local candidate inputs first
 

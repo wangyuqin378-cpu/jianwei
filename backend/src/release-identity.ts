@@ -18,6 +18,8 @@ const ROOT_FILES = [
   "backend/pnpm-workspace.yaml",
   "backend/tsconfig.json",
   "deploy/Dockerfile",
+  "deploy/s.code-package.yaml",
+  "scripts/build-fc-code-package.mjs",
   "knowledge/catalog.json"
 ];
 

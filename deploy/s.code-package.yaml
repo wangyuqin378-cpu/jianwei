@@ -1,0 +1,84 @@
+edition: 3.0.0
+name: jianwei-api-beta
+access: ${env('SERVERLESS_DEVS_ACCESS', 'default')}
+
+vars:
+  region: ${env('JIANWEI_REGION', 'cn-beijing')}
+
+resources:
+  jianwei_api:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: ${env('JIANWEI_FUNCTION_NAME', 'jianwei-api-beta')}
+      description: 见微 iOS Beta 照片冷知识 API
+      runtime: custom.debian10
+      code: ${env('JIANWEI_CODE_PATH')}
+      handler: index.handler
+      role: ${env('JIANWEI_FC_ROLE_ARN')}
+      timeout: 180
+      initializationTimeout: 120
+      memorySize: 1024
+      cpu: 1
+      diskSize: 512
+      instanceConcurrency: 20
+      internetAccess: true
+      logConfig: auto
+      vpcConfig:
+        vpcId: ${env('JIANWEI_VPC_ID')}
+        vSwitchIds:
+          - ${env('JIANWEI_VSWITCH_ID')}
+        securityGroupId: ${env('JIANWEI_SECURITY_GROUP_ID')}
+      customRuntimeConfig:
+        port: 9000
+        command:
+          - /var/fc/lang/nodejs20/bin/node
+        args:
+          - dist/index.js
+      environmentVariables:
+        NODE_ENV: production
+        RELEASE_CHANNEL: beta
+        HOST: 0.0.0.0
+        PORT: "9000"
+        TZ: Asia/Shanghai
+        PATH: /var/fc/lang/nodejs20/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+        PUBLIC_BASE_URL: ${env('JIANWEI_PUBLIC_BASE_URL')}
+        DATABASE_URL: ${env('JIANWEI_DATABASE_URL')}
+        OBJECT_STORE: oss
+        VISION_PROVIDER: qwen
+        DASHSCOPE_API_KEY: ${env('JIANWEI_DASHSCOPE_API_KEY')}
+        DASHSCOPE_BASE_URL: ${env('JIANWEI_DASHSCOPE_BASE_URL')}
+        OSS_REGION: oss-cn-beijing
+        OSS_BUCKET: ${env('JIANWEI_OSS_BUCKET')}
+        KNOWLEDGE_CATALOG_SHA256: ${env('JIANWEI_KNOWLEDGE_CATALOG_SHA256')}
+        KNOWLEDGE_REVIEWER_IDS: wyq
+        DEPLOYMENT_ARTIFACT_KIND: code-package
+        DEPLOYMENT_ARTIFACT_DIGEST: ${env('JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST')}
+        QWEN_FLASH_MODEL: ${env('JIANWEI_QWEN_FLASH_MODEL', 'qwen3.6-flash-2026-04-16')}
+        QWEN_PLUS_MODEL: ${env('JIANWEI_QWEN_PLUS_MODEL', 'qwen3.6-plus-2026-04-02')}
+        MAX_JOBS_PER_DEVICE_PER_DAY: ${env('JIANWEI_MAX_DEVICE_DAY', '3')}
+        MAX_JOBS_PER_DEVICE_PER_MONTH: ${env('JIANWEI_MAX_DEVICE_MONTH', '93')}
+        MAX_JOBS_GLOBAL_PER_DAY: ${env('JIANWEI_MAX_GLOBAL_DAY', '300')}
+        MAX_JOBS_GLOBAL_PER_MONTH: ${env('JIANWEI_MAX_GLOBAL_MONTH', '9000')}
+        WORST_CASE_COST_MICRO_CNY_PER_JOB: ${env('JIANWEI_WORST_CASE_COST_MICRO_CNY')}
+        MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: ${env('JIANWEI_MAX_COST_DAY_MICRO_CNY')}
+        MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: ${env('JIANWEI_MAX_COST_MONTH_MICRO_CNY')}
+        OBJECT_TTL_HOURS: "24"
+        ALLOW_UNATTESTED_FACTS: "false"
+        APP_STORE_BUNDLE_ID: cn.jianwei.ios
+        APP_STORE_SUBSCRIPTION_PRODUCT_ID: cn.jianwei.ios.pro.monthly
+        APP_STORE_ENVIRONMENT: sandbox
+        APP_STORE_ROOT_CERTIFICATE_PATHS: /code/certificates/AppleIncRootCertificate.cer,/code/certificates/AppleRootCA-G2.cer,/code/certificates/AppleRootCA-G3.cer
+      triggers:
+        - triggerName: jianwei-beta-http
+          triggerType: http
+          qualifier: LATEST
+          triggerConfig:
+            authType: anonymous
+            disableURLInternet: false
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD
