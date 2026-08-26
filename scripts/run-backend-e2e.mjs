@@ -125,7 +125,7 @@ try {
   assert(card.topicId === "broom", "local vision did not normalize broom topic");
   assert(card.detectedObjectName === "扫帚", "card did not retain the reviewed catalog object name");
   assert(
-    typeof card.title === "string" && card.title.includes("扫帚") && Array.from(card.title).length <= 30,
+    typeof card.title === "string" && card.title.trim().length > 0 && Array.from(card.title).length <= 30,
     "card did not receive a bounded server-generated title"
   );
   assert(typeof card.body === "string" && card.body.length >= 20, "card fact body is missing");

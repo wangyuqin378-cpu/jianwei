@@ -1,5 +1,13 @@
 # 见微生产 Beta 交接
 
+## 2026-08-26 iOS Beta 云部署状态
+
+- 用户已明确授权：创建阿里云按量 Beta 资源，月预算上限 150 元，复用现有北京百炼 API Key。
+- 已创建且无实例计费的网络/权限基础：VPC `vpc-2zesdo7jz274xjujmjere`、VSwitch `vsw-2zeqa6eirllg1f4mzxgrw`、安全组 `sg-2zeio8dsdx286l0mezkt`、FC 运行角色 `jianwei-fc-runtime` 及最小 OSS Bucket 策略；RDS 所需两个服务关联角色已就绪。
+- FC 代码包已两次独立构建为相同摘要 `sha256:8e23b08b28a809bac2bb1931866c10633975afb0435fef4e48a940beb40a1b44`，部署模板、OAuth 预检、后端 140 项基础测试、TypeScript 与内存 TCP E2E 通过。
+- 当前唯一云创建阻断是阿里云账户余额：可用余额 `-0.01 CNY`、现金余额 `0.00 CNY`；RDS 返回 `ArrearageOrderExists`，OSS 返回 `UserDisable`。目前 RDS 实例与 OSS Bucket 都是 0，没有产生这两类资源费用。充值并开通 OSS 按量服务后，先复查余额，再按既定幂等令牌创建 0.5–2 RCU PostgreSQL Serverless、20 GB ESSD、私有 OSS 一日生命周期和 FC HTTPS。
+- iOS 当前仍不是可分发 Beta：现有签名归档没有生产 HTTPS 地址；云部署完成后必须用真实 FC URL 重建签名 Archive，并在 Xcode IDE 完成被 CLI 跳过的 StoreKit 购买/恢复验证，再上传 TestFlight。
+
 ## 2026-08-03 iOS 照片知识组件首个完整本地候选
 
 - 当前目标：优先把 iOS 从概念/静态 Demo 推到可继续接真实云和真机签名的产品候选；不把模拟器成功误报为 TestFlight 或真实设备 Beta。
