@@ -88,7 +88,6 @@ final class SubscriptionStore {
 
     func restore() async throws {
         try await syncPurchases()
-        await refreshEntitlement()
     }
 
     func entitlementJWS() async -> String? {
