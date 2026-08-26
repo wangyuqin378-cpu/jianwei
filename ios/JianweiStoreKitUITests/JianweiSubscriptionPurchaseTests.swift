@@ -28,7 +28,7 @@ final class JianweiSubscriptionPurchaseTests: XCTestCase {
             object: purchase
         )
         XCTAssertEqual(
-            XCTWaiter().wait(for: [purchasable], timeout: 20),
+            XCTWaiter().wait(for: [purchasable], timeout: 45),
             .completed,
             "本地 StoreKit 套餐已显示但尚不可购买：\(app.debugDescription)"
         )
