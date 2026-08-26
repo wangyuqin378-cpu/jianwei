@@ -12,37 +12,55 @@ const FREE_EXPERIENCE_MONTHLY_COST_MICRO_CNY = 10_000_000;
 interface ExperienceArguments {
   credentialsFile: string;
   port: number;
+  publicBaseUrl: string;
   selfTest: boolean;
 }
 
 export function parseExperienceArguments(args: string[]): ExperienceArguments {
   let credentialsFile = "";
   let port = 8787;
+  let publicBaseUrl = "";
   let selfTest = false;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--") continue;
     if (argument === "--credentials-file") credentialsFile = args[++index] ?? "";
     else if (argument === "--port") port = Number(args[++index] ?? "");
+    else if (argument === "--public-base-url") publicBaseUrl = args[++index] ?? "";
     else if (argument === "--self-test") selfTest = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
   if (!selfTest && !credentialsFile) throw new Error("--credentials-file is required");
   if (!Number.isInteger(port) || port < 1024 || port > 65_535) throw new Error("--port is invalid");
-  return { credentialsFile, port, selfTest };
+  publicBaseUrl ||= `http://127.0.0.1:${port}`;
+  const parsedPublicBaseUrl = new URL(publicBaseUrl);
+  const isLoopbackHttp = parsedPublicBaseUrl.protocol === "http:"
+    && ["127.0.0.1", "localhost", "::1"].includes(parsedPublicBaseUrl.hostname);
+  if (
+    (parsedPublicBaseUrl.protocol !== "https:" && !isLoopbackHttp) ||
+    parsedPublicBaseUrl.pathname !== "/" ||
+    parsedPublicBaseUrl.username ||
+    parsedPublicBaseUrl.password ||
+    parsedPublicBaseUrl.search ||
+    parsedPublicBaseUrl.hash
+  ) {
+    throw new Error("--public-base-url must be an HTTPS origin or loopback HTTP origin");
+  }
+  return { credentialsFile, port, publicBaseUrl: parsedPublicBaseUrl.origin, selfTest };
 }
 
 export function freeExperienceEnvironment(
   credentials: BailianCredentials,
   port: number,
-  workingDirectory = process.cwd()
+  workingDirectory = process.cwd(),
+  publicBaseUrl = `http://127.0.0.1:${port}`
 ): NodeJS.ProcessEnv {
   return {
     NODE_ENV: "development",
     RELEASE_CHANNEL: "beta",
     HOST: "127.0.0.1",
     PORT: String(port),
-    PUBLIC_BASE_URL: `http://127.0.0.1:${port}`,
+    PUBLIC_BASE_URL: publicBaseUrl,
     OBJECT_STORE: "local",
     LOCAL_OBJECT_DIR: path.resolve(workingDirectory, ".tooling/free-experience/objects"),
     VISION_PROVIDER: "qwen",
@@ -68,13 +86,14 @@ async function main(args: string[]): Promise<void> {
     const environment = freeExperienceEnvironment({
       apiKey: `sk-ws${"a".repeat(80)}`,
       openAiCompatible: "https://workspace.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-    }, parsed.port, "/tmp/jianwei");
+    }, parsed.port, "/tmp/jianwei", "https://jianwei-test.example.com");
     assert.equal(environment.QWEN_FLASH_MODEL, FREE_EXPERIENCE_MODEL);
     assert.equal(environment.QWEN_PLUS_MODEL, FREE_EXPERIENCE_MODEL);
     assert.equal(environment.MAX_JOBS_GLOBAL_PER_MONTH, "93");
     assert.equal(environment.WORST_CASE_COST_MICRO_CNY_PER_JOB, "20000");
     assert.equal(environment.MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH, "10000000");
     assert.equal(environment.OBJECT_STORE, "local");
+    assert.equal(environment.PUBLIC_BASE_URL, "https://jianwei-test.example.com");
     assert.equal(environment.DATABASE_URL, undefined);
     process.stdout.write(
       `FREE_EXPERIENCE_LAUNCHER_SELF_TEST=GO model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=93 reservedMonthlyCostCny=1.86 hardCostCapCny=10\n`
@@ -83,7 +102,10 @@ async function main(args: string[]): Promise<void> {
   }
 
   const credentials = parseBailianCredentialsCsv(await readFile(parsed.credentialsFile, "utf8"));
-  Object.assign(process.env, freeExperienceEnvironment(credentials, parsed.port));
+  Object.assign(
+    process.env,
+    freeExperienceEnvironment(credentials, parsed.port, process.cwd(), parsed.publicBaseUrl)
+  );
   process.stdout.write(
     `FREE_EXPERIENCE_SERVER_START model=${FREE_EXPERIENCE_MODEL} cloudInfrastructure=0 monthlyJobs=93 reservedMonthlyCostCny=1.86 hardCostCapCny=10\n`
   );

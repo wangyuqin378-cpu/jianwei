@@ -22,15 +22,17 @@ struct AppEnvironment: Sendable {
         let widgetCoordinator = WidgetCoordinator(repository: repository)
         let modelAccessStore = AIModelAccessStore()
         let subscriptionStore = SubscriptionStore()
+        let bundledBaseURL = Bundle.main.object(forInfoDictionaryKey: "JianweiAPIBaseURL") as? String ?? ""
         let configuredBaseURL: String
         #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E") {
+        if ProcessInfo.processInfo.arguments.contains("-JianweiAuthorizedFixtureE2E"),
+           bundledBaseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             configuredBaseURL = "http://127.0.0.1:8787"
         } else {
-            configuredBaseURL = Bundle.main.object(forInfoDictionaryKey: "JianweiAPIBaseURL") as? String ?? ""
+            configuredBaseURL = bundledBaseURL
         }
         #else
-        configuredBaseURL = Bundle.main.object(forInfoDictionaryKey: "JianweiAPIBaseURL") as? String ?? ""
+        configuredBaseURL = bundledBaseURL
         #endif
         guard
             !configuredBaseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,

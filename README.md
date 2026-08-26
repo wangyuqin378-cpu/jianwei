@@ -60,6 +60,7 @@ pnpm experience:free -- --credentials-file /absolute/path/to/bailian-credentials
 ```
 
 该模式固定使用 `qwen3.7-flash-2026-07-15`，图片只临时保存在本机；默认每天最多分析 3 张、每月最多 93 张，可覆盖完整 31 天体验，同时设置 10 元月度模型成本硬熔断。
+需要让测试手机通过 HTTPS 访问时，再追加 `--public-base-url https://你的测试域名`；该地址必须同时转发 API 与图片上传请求。
 
 ### Android
 
