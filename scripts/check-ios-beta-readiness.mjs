@@ -62,6 +62,10 @@ export function assessIosBetaReadiness(input) {
   if (input.archive.present) {
     require(input.archive.appSigned, "the archived App is not code signed");
     require(input.archive.widgetSigned, "the archived Widget extension is not code signed");
+    require(
+      input.archive.appStoreDistributionProfiles,
+      "the archived App and Widget must use App Store distribution provisioning profiles"
+    );
     require(input.archive.apiOriginConfigured, "the archived App does not contain the production HTTPS API origin");
   }
 
@@ -87,6 +91,7 @@ export function assessIosBetaReadiness(input) {
       signedArchivePresent: input.archive.present ? 1 : 0,
       archivedAppSigned: input.archive.appSigned ? 1 : 0,
       archivedWidgetSigned: input.archive.widgetSigned ? 1 : 0,
+      archivedAppStoreDistributionProfiles: input.archive.appStoreDistributionProfiles ? 1 : 0,
       archivedProductionApiOriginConfigured: input.archive.apiOriginConfigured ? 1 : 0
     },
     blockers
@@ -120,7 +125,8 @@ function run(command, args, options = {}) {
       ...process.env,
       DEVELOPER_DIR: process.env.DEVELOPER_DIR || "/Applications/Xcode.app/Contents/Developer"
     },
-    stdio: ["ignore", "pipe", "pipe"]
+    input: options.input,
+    stdio: [options.input === undefined ? "ignore" : "pipe", "pipe", "pipe"]
   });
 }
 
@@ -225,8 +231,82 @@ function codeSigned(bundlePath) {
   return command.status === 0;
 }
 
+function decodeProvisioningProfile(profilePath) {
+  if (!existsSync(profilePath)) return null;
+  const decoded = run("/usr/bin/security", ["cms", "-D", "-i", profilePath]);
+  if (decoded.status !== 0 || !decoded.stdout) return null;
+  const extract = (key, type = "raw") => {
+    const result = run(
+      "/usr/bin/plutil",
+      ["-extract", key, type, "-o", "-", "--", "-"],
+      { input: decoded.stdout }
+    );
+    return result.status === 0 ? (result.stdout || "").trim() : null;
+  };
+  const boolean = (key) => {
+    const value = extract(key);
+    return value === "true" ? true : value === "false" ? false : undefined;
+  };
+  const provisionedDevices = extract("ProvisionedDevices", "json");
+  let parsedDevices;
+  try {
+    const value = provisionedDevices === null ? undefined : JSON.parse(provisionedDevices);
+    parsedDevices = Array.isArray(value) ? value : undefined;
+  } catch {
+    return null;
+  }
+  const teamID = extract("TeamIdentifier.0");
+  const applicationIdentifier = extract("Entitlements.application-identifier");
+  const getTaskAllow = boolean("Entitlements.get-task-allow");
+  if (!teamID || !applicationIdentifier || getTaskAllow === undefined) return null;
+  return {
+    LocalProvision: boolean("LocalProvision"),
+    ProvisionsAllDevices: boolean("ProvisionsAllDevices"),
+    ProvisionedDevices: parsedDevices,
+    TeamIdentifier: [teamID],
+    Entitlements: {
+      "application-identifier": applicationIdentifier,
+      "get-task-allow": getTaskAllow
+    }
+  };
+}
+
+export function isAppStoreDistributionProfile(profile, expectedBundleID) {
+  const entitlements = profile?.Entitlements;
+  const teamID = Array.isArray(profile?.TeamIdentifier) ? profile.TeamIdentifier[0] : null;
+  return Boolean(
+    profile &&
+    entitlements &&
+    profile.LocalProvision !== true &&
+    profile.ProvisionsAllDevices !== true &&
+    !Array.isArray(profile.ProvisionedDevices) &&
+    entitlements["get-task-allow"] === false &&
+    typeof teamID === "string" &&
+    entitlements["application-identifier"] === `${teamID}.${expectedBundleID}`
+  );
+}
+
+function appStoreDistributionProfile(bundlePath, expectedBundleID) {
+  return inspectProvisioningProfile(
+    path.join(bundlePath, "embedded.mobileprovision"),
+    expectedBundleID
+  );
+}
+
+export function inspectProvisioningProfile(profilePath, expectedBundleID) {
+  return isAppStoreDistributionProfile(decodeProvisioningProfile(profilePath), expectedBundleID);
+}
+
 function collectArchive(relativePath) {
-  if (!relativePath) return { present: false, appSigned: false, widgetSigned: false, apiOriginConfigured: false };
+  if (!relativePath) {
+    return {
+      present: false,
+      appSigned: false,
+      widgetSigned: false,
+      appStoreDistributionProfiles: false,
+      apiOriginConfigured: false
+    };
+  }
   const archive = path.resolve(REPOSITORY_ROOT, relativePath);
   const app = path.join(archive, "Products/Applications/Jianwei.app");
   const widget = path.join(app, "PlugIns/JianweiWidget.appex");
@@ -235,6 +315,9 @@ function collectArchive(relativePath) {
     present,
     appSigned: present && codeSigned(app),
     widgetSigned: present && codeSigned(widget),
+    appStoreDistributionProfiles: present &&
+      appStoreDistributionProfile(app, EXPECTED_APP_ID) &&
+      appStoreDistributionProfile(widget, EXPECTED_WIDGET_ID),
     apiOriginConfigured: present && validPublicHttpsOrigin(plistValue(path.join(app, "Info.plist"), "JianweiAPIBaseURL"))
   };
 }
@@ -248,13 +331,49 @@ function validSyntheticInput() {
     device: { inspectionSucceeded: true, physicalDeviceCount: 1 },
     tests: { resultAvailable: true, passed: 9, failed: 0, skipped: 0, currentForSources: true },
     release: { unsignedAppPresent: true, currentForSources: true },
-    archive: { present: true, appSigned: true, widgetSigned: true, apiOriginConfigured: true }
+    archive: {
+      present: true,
+      appSigned: true,
+      widgetSigned: true,
+      appStoreDistributionProfiles: true,
+      apiOriginConfigured: true
+    }
   };
 }
 
 function runSelfTest() {
   const valid = validSyntheticInput();
   if (assessIosBetaReadiness(valid).status !== "GO") throw new Error("valid iOS Beta evidence was rejected");
+  const distributionProfile = {
+    TeamIdentifier: ["69M7GUC67V"],
+    Entitlements: {
+      "application-identifier": "69M7GUC67V.cn.jianwei.ios",
+      "get-task-allow": false
+    }
+  };
+  if (!isAppStoreDistributionProfile(distributionProfile, EXPECTED_APP_ID)) {
+    throw new Error("valid App Store distribution profile was rejected");
+  }
+  for (const profile of [
+    { ...distributionProfile, LocalProvision: true },
+    { ...distributionProfile, ProvisionedDevices: ["synthetic-device"] },
+    { ...distributionProfile, ProvisionsAllDevices: true },
+    {
+      ...distributionProfile,
+      Entitlements: { ...distributionProfile.Entitlements, "get-task-allow": true }
+    },
+    {
+      ...distributionProfile,
+      Entitlements: {
+        ...distributionProfile.Entitlements,
+        "application-identifier": "69M7GUC67V.cn.attacker.app"
+      }
+    }
+  ]) {
+    if (isAppStoreDistributionProfile(profile, EXPECTED_APP_ID)) {
+      throw new Error("non-App-Store provisioning profile bypassed the release gate");
+    }
+  }
   const cases = [
     ["team", { configuration: { ...valid.configuration, teamConfigured: false } }],
     ["origin", { configuration: { ...valid.configuration, apiOriginConfigured: false } }],
@@ -263,13 +382,24 @@ function runSelfTest() {
     ["tests", { tests: { ...valid.tests, failed: 1 } }],
     ["stale tests", { tests: { ...valid.tests, currentForSources: false } }],
     ["release", { release: { unsignedAppPresent: false, currentForSources: false } }],
-    ["archive", { archive: { present: false, appSigned: false, widgetSigned: false, apiOriginConfigured: false } }]
+    ["archive", {
+      archive: {
+        present: false,
+        appSigned: false,
+        widgetSigned: false,
+        appStoreDistributionProfiles: false,
+        apiOriginConfigured: false
+      }
+    }],
+    ["development profile", {
+      archive: { ...valid.archive, appStoreDistributionProfiles: false }
+    }]
   ];
   for (const [name, patch] of cases) {
     const assessed = assessIosBetaReadiness({ ...valid, ...patch });
     if (assessed.status !== "NO_GO") throw new Error(`self-test expected rejection: ${name}`);
   }
-  console.log("IOS_BETA_READINESS_SELF_TEST=GO bypassesRejected=8 secretValuesPrinted=0");
+  console.log(`IOS_BETA_READINESS_SELF_TEST=GO bypassesRejected=${cases.length + 5} secretValuesPrinted=0`);
 }
 
 async function main() {
