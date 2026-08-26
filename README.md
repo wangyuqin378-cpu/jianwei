@@ -59,7 +59,7 @@ pnpm dev
 pnpm experience:free -- --credentials-file /absolute/path/to/bailian-credentials.csv
 ```
 
-该模式固定使用 `qwen3.7-flash-2026-07-15`，图片只临时保存在本机；默认每天最多 3 次、每月最多 12 次分析。
+该模式固定使用 `qwen3.7-flash-2026-07-15`，图片只临时保存在本机；默认每天最多 3 次、每月最多 10 次分析，并按最坏情况设置 10 元月度模型成本熔断。
 
 ### Android
 
