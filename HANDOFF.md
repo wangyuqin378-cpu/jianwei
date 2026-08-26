@@ -1,5 +1,13 @@
 # 见微生产 Beta 交接
 
+## 2026-08-27 10 元体验续跑与 iOS 证据刷新
+
+- 阿里云主账号只读复查成功，可用余额为 `9.99 CNY`；北京区 RDS 实例数仍为 `0`，本轮没有创建、续费或调用任何新的付费云资源。官方北京 RDS PostgreSQL Serverless 20 GB 最小存储约为 `0.816 CNY/天`，未领取免费试用前不得直接创建，否则 10 元余额约 12 天即会仅被存储费耗尽。
+- 当前免费体验后端与 Cloudflare 临时 HTTPS 隧道仍在线，Qwen 模式健康检查为 200；免费体验启动器继续以每设备每日 3 次、每月 93 次和全局每月 10 元最坏成本硬上限运行。
+- 从当前 Git 源码重新完成常规 iOS 套件：`.tooling/ios-beta/regression-continuation-current.xcresult` 为 `16/16`、0 失败、0 跳过。完全新建的无签名 Release 位于 `.tooling/ios-beta/current-release-v2/Build/Products/Release-iphoneos/Jianwei.app`，隐私清单、出口合规声明与源码新鲜度均通过门禁。
+- 重新生成的开发签名 Archive 位于 `.tooling/ios-beta/free-https-device-v3/Jianwei.xcarchive`，内置当前临时 HTTPS；App 与 Widget 签名、隐私清单及 HTTPS 均通过。该包已重新安装并成功启动于连接的 iPhone 12 Pro。
+- 当前正式 iOS 门禁只剩两个外部阻断：项目级稳定生产 `JIANWEI_API_BASE_URL` 仍为空；本机只有 Apple Development 身份与设备绑定开发描述文件，没有 Apple Distribution 身份和 App/Widget 的 App Store distribution profiles。不得将临时隧道开发包称为 TestFlight 或 App Store 可分发版本。
+
 ## 2026-08-26 免费体验路径（当前优先级）
 
 - 用户已充值 10 元用于体验兜底；本轮复查阿里云可用余额为 `9.99 CNY`。当前暂停创建 RDS、OSS 和 Function Compute 等付费资源，优先使用百炼模型免费额度与本机后端。
