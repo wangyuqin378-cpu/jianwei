@@ -29,12 +29,12 @@
   },
   "dependencies": {
     "@apple/app-store-server-library": "3.1.0",
-    "@fastify/cors": "10.1.0",
-    "@fastify/rate-limit": "10.3.0",
+    "@fastify/cors": "11.3.0",
+    "@fastify/rate-limit": "11.2.0",
     "ali-oss": "6.23.0",
-    "fastify": "5.10.0",
-    "postgres": "3.4.7",
-    "zod": "4.1.12"
+    "fastify": "5.12.1",
+    "postgres": "3.4.9",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/ali-oss": "6.16.11",
