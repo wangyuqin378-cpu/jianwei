@@ -29,7 +29,7 @@ jobs:
       DATABASE_URL: postgres://jianwei:jianwei_ci@127.0.0.1:5432/jianwei
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.9.0
       - uses: actions/setup-node@v5
