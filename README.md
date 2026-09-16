@@ -1,80 +1,49 @@
 # Jianwei · 见微
 
-[简体中文](README.zh-CN.md) · [Product story](https://yuqin.wang/#/project/jianwei) · [Development guide](#run-the-public-snapshot)
+[简体中文](README.zh-CN.md) · [Product preview](https://yuqin.wang/#/project/jianwei)
 
-**Discover a little knowledge in your everyday photos.**
+## What it is
 
-Jianwei explores the ordinary objects in a personal photo library and turns suitable photos into daily knowledge cards with traceable sources. It is for people who want a small moment of curiosity in their everyday life.
+Jianwei turns everyday photos into short knowledge cards with sources you can follow. It looks for an interesting detail in an ordinary object, then brings that detail back through the app and its widget.
 
-<img src="docs/images/jianwei-today.webp" width="260" alt="Jianwei development preview showing a broom photo, a knowledge card, and a source link">
+**An iPhone product in development; no public app download yet.** This repository is an earlier iOS, Android and backend engineering snapshot.
 
-*Development preview from the personal website. This interface comes from ongoing product work and is not a promise that the public snapshot reproduces the same build.*
+<img src="docs/images/jianwei-today.webp" width="260" alt="Jianwei development preview: an everyday broom photo, a knowledge card and a source link.">
 
-## Current stage
+*Real interface from ongoing product work. The public source does not reproduce this exact preview.*
 
-**In development; no public app download yet.** Current product work focuses on iPhone. This public repository contains an earlier Android, iOS, and backend engineering snapshot. Final content-quality acceptance, device and cross-day widget checks, and production distribution remain release gates. A local build or passing test does not establish those results.
+## How to use it
 
-## The idea
+To see the intended experience, start with the [product page](https://yuqin.wang/#/project/jianwei). Developers can run the public backend locally without a cloud model key:
 
-1. Start from everyday photos instead of a generic feed.
-2. Filter unsuitable images on the device before analysis.
-3. Match eligible objects to knowledge and sources; leave a gap when no reliable match exists.
-4. Bring a small card back into daily life through the app and widget.
-
-The checked-in snapshot and its exact technical behavior are described in the [implementation status](docs/IMPLEMENTATION_STATUS.md), [privacy design](docs/PRIVACY.md), and [architecture](docs/ARCHITECTURE.md).
-
-## Run the public snapshot
-
-This is a developer checkout, not an installation package for end users.
-
-### Local backend
-
-Requires Node.js 20.12+ and pnpm 11.
-
-```bash
+```sh
 git clone https://github.com/wangyuqin378-cpu/jianwei.git
 cd jianwei/backend
 cp .env.example .env
 pnpm install
-pnpm test
 pnpm dev
 ```
 
-Keep `VISION_PROVIDER=local` for the local provider path, which does not require a cloud model key. The default backend address is `http://127.0.0.1:8787`.
+Requires Node.js 20.12+ and pnpm 11. Keep `VISION_PROVIDER=local` in `.env`. Open [the health check](http://127.0.0.1:8787/health/live) and expect `{"ok":true}`. The API runs at `http://127.0.0.1:8787`; this starts a local backend, not an installed phone app or the full cloud-photo experience.
 
-### iOS engineering project
+To explore the iOS project, use macOS, Xcode and XcodeGen. From the repository root:
 
-Requires macOS, Xcode, and XcodeGen.
-
-From the repository root:
-
-```bash
+```sh
 cd ios
 xcodegen generate
-xcodebuild -project Jianwei.xcodeproj -scheme Jianwei \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+open Jianwei.xcodeproj
 ```
 
-Replace the simulator name with one installed on your Mac. Simulator checks do not cover distribution signing or physical-device acceptance.
+Select an installed simulator in Xcode, then build and run the `Jianwei` scheme. See the [development guide (中文)](docs/DEVELOPMENT.zh-CN.md#本地运行) for client setup, Android and backend checks. Exact implemented behavior is recorded in [implementation status](docs/IMPLEMENTATION_STATUS.md).
 
-### Android engineering project
+The intended daily flow is: choose suitable photos, filter sensitive or unusable images on the device, match an object to reviewed knowledge, and show a card only when a reliable match exists. Final content quality, physical-device and cross-day widget behavior, and distribution remain release checks.
 
-The public snapshot retains the earlier Android implementation. See the [Chinese development instructions](README.zh-CN.md#android); Android is not the current product release focus.
+## Why this project exists
 
-## Repository map
+A photo library records ordinary life, but most of those photos are rarely opened again. A familiar object can also be a starting point for learning: how it works, where it came from, or why it looks that way.
 
-| Directory | Contents |
-| --- | --- |
-| `ios/` | iOS app, widget, and tests |
-| `android/` | Earlier Android app and widget implementation |
-| `backend/` | API, model providers, storage, and tests |
-| `knowledge/` | Topics, facts, sources, and review state |
-| `docs/`, `scripts/` | Architecture, checks, and release evidence tooling |
+Jianwei explores that possibility in a small daily format. The photo gives the knowledge a personal connection; the source gives the reader somewhere to check or keep reading. When the evidence is insufficient, leaving the card empty is better than inventing a fact.
 
-## Read more
+[Privacy and data flow](docs/PRIVACY.md) · [Architecture](docs/ARCHITECTURE.md) · [Release evidence](docs/BETA_EVIDENCE_RUNBOOK.md)
 
-[Privacy](docs/PRIVACY.md) · [Deployment](docs/DEPLOYMENT.md) · [Beta evidence](docs/BETA_EVIDENCE_RUNBOOK.md) · [Completion audit](docs/COMPLETION_AUDIT.md)
-
-## Source availability
-
-The source is public for inspection. This repository currently has no open-source license; public visibility does not grant an open-source license.
+**License:** source is public; no open-source license has been granted.

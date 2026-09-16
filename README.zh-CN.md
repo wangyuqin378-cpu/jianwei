@@ -1,133 +1,49 @@
-# 见微 / Jianwei
+# 见微 · Jianwei
 
-[English](README.md) · [产品介绍](https://yuqin.wang/#/project/jianwei)
+[English](README.md) · [产品预览](https://yuqin.wang/#/project/jianwei)
 
-**从日常照片中发现一点知识。** 当前产品方向聚焦 iPhone；本仓库保留较早的 Android、iOS 和后端工程快照。本页以下为该公开快照的开发说明。当前尚无公开 App 下载，最终内容质量、真机跨日小组件和正式分发仍待验收。
+## 这是什么
 
-<img src="docs/images/jianwei-today.webp" width="260" alt="见微开发预览：照片知识卡与来源入口">
+见微把日常照片变成有来源的知识卡。从一件熟悉的小物件里找到值得了解的细节，再通过 App 和小组件带回日常生活。
 
-图片来自持续开发中的产品预览，不代表当前公开源码能复现同一版本。
+**当前聚焦 iPhone，仍在开发，尚无公开 App 下载。** 本仓库是较早的 iOS、Android 和后端工程快照。
 
-见微把用户相册里的日常照片变成有来源的每日知识卡，并通过桌面小组件持续展示。
+<img src="docs/images/jianwei-today.webp" width="260" alt="见微真实开发预览：扫帚照片、知识卡片和来源入口。">
 
-> 当前处于工程候选阶段：Android、iOS、后端和知识库已形成完整框架，但生产云部署、正式签名、实体机验证和受控 Beta 仍未完成。
+*图片来自持续开发中的产品，当前公开源码不能复现完全相同的预览版本。*
 
-## 产品怎么工作
+## 怎么使用
 
-1. 每天从尚未处理过的相册照片里稳定随机挑选候选。
-2. 客户端在本机排除人脸、证件、截图、文档、高文字密度、模糊和重复图片，直到得到最多 3 张安全候选。
-3. 候选图压缩并清除元数据后，由 AI 分别理解物件、匹配已审核知识和来源。
-4. AI 比较最多 3 条候选知识，只发布其中最有趣的 1 条；没有可靠命中时不猜测。
-5. 卡片缓存在本机，由桌面组件每天展示；用户可以反馈、收藏或主动设置物品提醒。
+想先了解体验，可以看[产品介绍](https://yuqin.wang/#/project/jianwei)。开发者可以先运行本地后端，不需要云模型密钥：
 
-系统照片选择器和分享导入仍可用于主动理解单张照片。
-
-## 隐私边界
-
-- 不识别人是谁，不推断人物关系、颜值、情绪或健康状况。
-- 不自动读取微信等其他 App 的私有数据。
-- 上传前移除 EXIF、文件名和本地媒体 ID；服务端不建立个人照片库。
-- 图片分析完成后立即删除，异常情况下最长保留 24 小时。
-- 小组件只读取本地缓存，不直接调用模型服务。
-- 物品使用周期由用户确认起始时间，AI 不独立断言“用了多久”。
-- 用户可以暂停分析、禁止再次分析某张照片，并删除本地或云端数据。
-
-完整说明见 [隐私设计](docs/PRIVACY.md)。
-
-## 仓库结构
-
-| 目录 | 内容 |
-| --- | --- |
-| `android/` | Kotlin、Compose、Glance、Room、WorkManager 客户端 |
-| `ios/` | Swift 6、SwiftUI、WidgetKit、PhotoKit、Vision 客户端 |
-| `backend/` | TypeScript、Fastify、PostgreSQL、OSS、Qwen Provider |
-| `knowledge/` | 日常物件主题、事实、来源和审核状态 |
-| `docs/` | 架构、部署、隐私、验收和发布证据说明 |
-| `scripts/` | 构建、验证和受控发布工具 |
-
-## 本地运行
-
-### 后端
-
-需要 Node.js 20.12+ 和 pnpm 11。
-
-```bash
-cd backend
+```sh
+git clone https://github.com/wangyuqin378-cpu/jianwei.git
+cd jianwei/backend
 cp .env.example .env
 pnpm install
-pnpm test
 pnpm dev
 ```
 
-默认地址是 `http://127.0.0.1:8787`。保持 `VISION_PROVIDER=local` 时不需要云密钥，可运行本地闭环。
+需要 Node.js 20.12+ 和 pnpm 11，`.env` 保持 `VISION_PROVIDER=local`。打开[健康检查](http://127.0.0.1:8787/health/live)，应返回 `{"ok":true}`。API 地址为 `http://127.0.0.1:8787`；这一步启动的是本地后端，不等于安装手机 App 或完成真实云端照片识别。
 
-已有百炼凭据 CSV 时，可直接启动不依赖 RDS、OSS 或函数计算的 Qwen 体验服务：
+要查看 iOS 工程，需要 macOS、Xcode 和 XcodeGen。从仓库根目录执行：
 
-```bash
-pnpm experience:free -- --credentials-file /absolute/path/to/bailian-credentials.csv
-```
-
-该模式固定使用 `qwen3.7-flash-2026-07-15`，图片只临时保存在本机；默认每天最多分析 3 张、每月最多 93 张，可覆盖完整 31 天体验，同时设置 10 元月度模型成本硬熔断。
-需要让测试手机通过 HTTPS 访问时，再追加 `--public-base-url https://你的测试域名`；该地址必须同时转发 API 与图片上传请求。
-
-### Android
-
-Windows 可直接运行：
-
-```powershell
-.\scripts\bootstrap-android-windows.ps1
-.\scripts\build-android-windows.ps1
-```
-
-已有 Android 工具链时，也可以在 `android/` 下执行：
-
-```bash
-./gradlew :domain:test :app:testDebugUnitTest :data:testDebugUnitTest lintDebug assembleDebug
-```
-
-Android 模拟器通过 `http://10.0.2.2:8787/` 访问本机后端。
-
-### iOS
-
-需要 Xcode 和 XcodeGen。
-
-```bash
+```sh
 cd ios
 xcodegen generate
-xcodebuild -project Jianwei.xcodeproj -scheme Jianwei \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+open Jianwei.xcodeproj
 ```
 
-如果本机没有该模拟器，请把设备名替换为已安装的 iPhone 模拟器。
+在 Xcode 选择已安装的模拟器，构建并运行 `Jianwei` scheme。客户端配置、Android 和后端验证步骤见[开发说明](docs/DEVELOPMENT.zh-CN.md#本地运行)，公开快照的能力以[实现状态](docs/IMPLEMENTATION_STATUS.md)为准。
 
-## 云端配置
+产品希望形成的日常流程是：挑选合适的照片，在本机排除敏感或不可用图片，匹配审核过的知识与来源，有可靠命中才展示卡片。内容质量、真机跨日小组件和正式分发仍是待完成的发布验收。
 
-托管模式的 Qwen、OSS 和数据库凭证只配置在后端环境变量中，不应写入客户端或提交到仓库。iOS 用户也可自行填写百炼 Qwen API Key；Key 只保存在本机 Keychain，服务端仅在单次请求内使用。见微 Pro 通过 StoreKit 购买，生产服务端必须验证 Apple 签名交易后才提供托管推理。
+## 为什么做
 
-具体变量、部署顺序和放行条件见 [部署说明](docs/DEPLOYMENT.md)。
+相册记录了很多日常，但大部分照片拍完就很少再打开。那些熟悉的物件，也可能藏着值得知道的事情：它为什么长这样、从哪里来、是怎样工作的。
 
-## 验证
+见微想用每天一小张卡片，把照片和知识连起来。照片让知识与自己的生活有关，来源让人可以核对、继续读下去。找不到可靠依据时，就暂时留空。
 
-常用验证命令：
+[隐私与数据流](docs/PRIVACY.md) · [架构](docs/ARCHITECTURE.md) · [发布验收](docs/BETA_EVIDENCE_RUNBOOK.md)
 
-```bash
-cd backend
-pnpm check
-pnpm test
-pnpm build
-```
-
-Android 与 iOS 的测试命令与上面的本地运行命令相同。完整自动化流程见 [GitHub CI](.github/workflows/ci.yml)。
-
-## 进一步阅读
-
-- [当前实现状态](docs/IMPLEMENTATION_STATUS.md)
-- [成本与定价](docs/PRICING.md)
-- [系统架构](docs/ARCHITECTURE.md)
-- [知识审核](docs/KNOWLEDGE_REVIEW.md)
-- [Beta 证据与放行手册](docs/BETA_EVIDENCE_RUNBOOK.md)
-- [完整性审计](docs/COMPLETION_AUDIT.md)
-
-## 源码与许可
-
-源码公开供查阅；仓库目前没有开源许可证，公开可见不等于授予开源使用许可。
+**许可：** 源码公开可见，尚未授予开源许可证。
