@@ -12,6 +12,7 @@ struct PrivacyAnalysis: Sendable {
 
 struct PrivacyVisionObservations: Sendable {
     let faceDetected: Bool
+    let humanDetected: Bool
     let recognizedText: String
     let textBlockCount: Int
     let labels: [String]
@@ -20,6 +21,7 @@ struct PrivacyVisionObservations: Sendable {
     #if DEBUG
     static let authorizedFixtureSafe = PrivacyVisionObservations(
         faceDetected: false,
+        humanDetected: false,
         recognizedText: "",
         textBlockCount: 0,
         labels: [],
@@ -29,24 +31,40 @@ struct PrivacyVisionObservations: Sendable {
 }
 
 actor PhotoPrivacyAnalyzer {
-    private let testingObservations: PrivacyVisionObservations?
+    private let observationProvider: @Sendable (CGImage) throws -> PrivacyVisionObservations
 
     init() {
-        testingObservations = nil
+        observationProvider = Self.observe
     }
 
     #if DEBUG
     init(testingObservations: PrivacyVisionObservations) {
-        self.testingObservations = testingObservations
+        observationProvider = { _ in testingObservations }
+    }
+
+    init(testingObservationProvider: @escaping @Sendable (CGImage) throws -> PrivacyVisionObservations) {
+        observationProvider = testingObservationProvider
     }
     #endif
 
     func analyze(jpeg: Data, initialFlags: Set<String> = []) throws -> PrivacyAnalysis {
         guard let image = UIImage(data: jpeg)?.cgImage else { throw ProductError.photoUnavailable }
-        let observations = try testingObservations ?? Self.observe(image)
+        let observations: PrivacyVisionObservations
+        do {
+            try Task.checkCancellation()
+            observations = try observationProvider(image)
+            try Task.checkCancellation()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            // A failed mandatory on-device check must remain retryable and
+            // must not be presented as a network/provider failure or uploaded.
+            throw ProductError.localPhotoAnalysisUnavailable
+        }
         var flags = initialFlags
         flags.formUnion(Self.sensitiveFlags(
             faceDetected: observations.faceDetected,
+            humanDetected: observations.humanDetected,
             recognizedText: observations.recognizedText,
             textBlockCount: observations.textBlockCount,
             labels: observations.labels
@@ -57,7 +75,7 @@ actor PhotoPrivacyAnalyzer {
         }
         let sample = try Self.grayscaleSample(image)
         let quality = Self.qualityScore(sample)
-        if quality < 0.35 { flags.insert("blurred") }
+        if quality < Self.minimumUsableQualityScore { flags.insert("blurred") }
         return PrivacyAnalysis(
             perceptualHash: Self.averageHash(sample),
             qualityScore: quality,
@@ -68,6 +86,8 @@ actor PhotoPrivacyAnalyzer {
 
     private static func observe(_ image: CGImage) throws -> PrivacyVisionObservations {
         let face = VNDetectFaceRectanglesRequest()
+        let human = VNDetectHumanRectanglesRequest()
+        human.upperBodyOnly = false
         let text = VNRecognizeTextRequest()
         text.recognitionLevel = .fast
         text.usesLanguageCorrection = false
@@ -77,7 +97,15 @@ actor PhotoPrivacyAnalyzer {
         rectangles.minimumConfidence = 0.65
         rectangles.minimumSize = 0.45
         let handler = VNImageRequestHandler(cgImage: image, orientation: .up, options: [:])
-        try handler.perform([face, text, rectangles])
+        try performPrivacyRequests([face, human, text, rectangles], with: handler)
+        let segmentation = VNGeneratePersonSegmentationRequest()
+        segmentation.qualityLevel = .balanced
+        segmentation.outputPixelFormat = kCVPixelFormatType_OneComponent8
+        // Person segmentation is part of the privacy boundary, not an optional
+        // ranking signal. If Vision cannot complete it, fail closed so the
+        // photo never reaches a model merely because the local check failed.
+        try performPrivacyRequests([segmentation], with: handler)
+        let segmentedPersonDetected = Self.hasVisiblePerson(in: segmentation.results?.first?.pixelBuffer)
 
         let recognizedText = (text.results ?? [])
             .compactMap { $0.topCandidates(1).first?.string }
@@ -88,6 +116,7 @@ actor PhotoPrivacyAnalyzer {
         let labels = Self.classify(with: handler)
         return PrivacyVisionObservations(
             faceDetected: !(face.results ?? []).isEmpty,
+            humanDetected: !(human.results ?? []).isEmpty || segmentedPersonDetected,
             recognizedText: recognizedText,
             textBlockCount: text.results?.count ?? 0,
             labels: labels,
@@ -95,6 +124,23 @@ actor PhotoPrivacyAnalyzer {
                 $0.boundingBox.width * $0.boundingBox.height >= 0.58
             }
         )
+    }
+
+    private static func performPrivacyRequests(_ requests: [VNRequest], with handler: VNImageRequestHandler) throws {
+        #if targetEnvironment(simulator)
+        // The simulator advertises a GPU even when these Vision models cannot
+        // create its inference context. Run the same mandatory checks on a
+        // supported CPU; never substitute observations or relax privacy rules.
+        // Physical devices retain Vision's automatic hardware selection.
+        for request in requests {
+            for (stage, devices) in try request.supportedComputeStageDevices {
+                if let cpu = devices.first(where: { if case .cpu = $0 { true } else { false } }) {
+                    request.setComputeDevice(cpu, for: stage)
+                }
+            }
+        }
+        #endif
+        try handler.perform(requests)
     }
 
     private static func classify(with handler: VNImageRequestHandler) -> [String] {
@@ -111,8 +157,30 @@ actor PhotoPrivacyAnalyzer {
         }
     }
 
+    private static func hasVisiblePerson(in mask: CVPixelBuffer?) -> Bool {
+        guard let mask else { return false }
+        CVPixelBufferLockBaseAddress(mask, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(mask, .readOnly) }
+        guard let baseAddress = CVPixelBufferGetBaseAddress(mask) else { return false }
+        let width = CVPixelBufferGetWidth(mask)
+        let height = CVPixelBufferGetHeight(mask)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(mask)
+        guard width > 0, height > 0, bytesPerRow >= width else { return false }
+        let pixels = baseAddress.assumingMemoryBound(to: UInt8.self)
+        var foreground = 0
+        var sampled = 0
+        for y in stride(from: 0, to: height, by: 2) {
+            for x in stride(from: 0, to: width, by: 2) {
+                sampled += 1
+                if pixels[y * bytesPerRow + x] >= 128 { foreground += 1 }
+            }
+        }
+        return sampled > 0 && Double(foreground) / Double(sampled) >= 0.002
+    }
+
     static func sensitiveFlags(
         faceDetected: Bool,
+        humanDetected: Bool = false,
         recognizedText: String,
         textBlockCount: Int,
         labels: [String]
@@ -123,6 +191,7 @@ actor PhotoPrivacyAnalyzer {
         var flags = Set<String>()
         let characterCount = compact.count
         if faceDetected { flags.insert("face") }
+        if humanDetected { flags.insert("person") }
         if characterCount >= 80 || textBlockCount >= 10 { flags.insert("high_text_density") }
         if characterCount >= 160 { flags.insert("document") }
 
@@ -140,7 +209,7 @@ actor PhotoPrivacyAnalyzer {
         ) != nil
         if (bankMarker && bankNumber) || groupedNumber { flags.insert("bank_card") }
         if receiptMarkers.contains(where: compact.localizedCaseInsensitiveContains) { flags.insert("receipt") }
-        if labels.contains(where: { $0.caseInsensitiveCompare("person") == .orderedSame || $0.caseInsensitiveCompare("selfie") == .orderedSame }) {
+        if labels.contains(where: { humanLabels.contains($0.lowercased()) }) {
             flags.insert("person")
         }
         return flags
@@ -166,22 +235,35 @@ actor PhotoPrivacyAnalyzer {
         return pixels
     }
 
-    private static func qualityScore(_ pixels: [UInt8]) -> Double {
+    static let minimumUsableQualityScore = 0.35
+
+    static func qualityScore(_ pixels: [UInt8]) -> Double {
+        guard pixels.count == 64 * 64 else { return 0 }
         let mean = pixels.map(Double.init).reduce(0, +) / Double(pixels.count)
-        var edges = 0.0
         var variance = 0.0
-        for y in 0..<64 {
-            for x in 0..<64 {
+        var localSharpness = [Double]()
+        localSharpness.reserveCapacity(62 * 62)
+        for y in 1..<63 {
+            for x in 1..<63 {
                 let index = y * 64 + x
                 let value = Double(pixels[index])
                 variance += (value - mean) * (value - mean)
-                if x > 0 { edges += abs(value - Double(pixels[index - 1])) }
-                if y > 0 { edges += abs(value - Double(pixels[index - 64])) }
+                let laplacian = abs(
+                    value * 4
+                        - Double(pixels[index - 1])
+                        - Double(pixels[index + 1])
+                        - Double(pixels[index - 64])
+                        - Double(pixels[index + 64])
+                )
+                localSharpness.append(laplacian)
             }
         }
-        let edgeScore = min(1, max(0, edges / (Double(pixels.count) * 55)))
+        localSharpness.sort(by: >)
+        let strongestCount = max(32, localSharpness.count / 20)
+        let strongestMean = localSharpness.prefix(strongestCount).reduce(0, +) / Double(strongestCount)
+        let sharpness = min(1, max(0, strongestMean / 96))
         let contrast = min(1, max(0, sqrt(variance / Double(pixels.count)) / 64))
-        return min(1, max(0, edgeScore * 0.7 + contrast * 0.3))
+        return min(1, max(0, sharpness * 0.8 + contrast * 0.2))
     }
 
     private static func averageHash(_ pixels: [UInt8]) -> UInt64 {
@@ -204,4 +286,8 @@ actor PhotoPrivacyAnalyzer {
     private static let identityMarkers = ["姓名", "性别", "民族", "出生", "住址", "公民身份号码", "签发机关", "有效期限"]
     private static let bankMarkers = ["银联", "银行卡", "信用卡", "银行", "DEBIT", "CREDIT", "VISA", "MASTERCARD", "MASTER CARD", "AMERICAN EXPRESS", "AMEX"]
     private static let receiptMarkers = ["发票", "收据", "小票", "invoice", "receipt"]
+    private static let humanLabels: Set<String> = [
+        "person", "people", "human", "selfie", "portrait", "adult", "child", "baby",
+        "man", "woman", "boy", "girl"
+    ]
 }

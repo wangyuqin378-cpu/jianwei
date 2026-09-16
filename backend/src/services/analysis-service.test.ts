@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   AnalysisService,
+  MAX_KNOWLEDGE_VERIFICATION_ATTEMPTS,
+  PROCESSING_LEASE_MS,
   type CreateJobInput,
   personalContextForPhoto,
   scheduledDateInChina,
   UPLOAD_CLAIM_LEASE_MS
 } from "./analysis-service.js";
+import { QWEN_REQUEST_TIMEOUT_MS } from "../providers/qwen-providers.js";
 import { InMemoryRepositories } from "../infrastructure/in-memory-repositories.js";
 import { nextAvailableScheduledDate } from "../domain/card-scheduling.js";
 import type { ObjectStore, VisionProvider } from "../domain/types.js";
@@ -58,12 +61,19 @@ describe("photo provenance copy", () => {
 
   it("does not expose malformed metadata as display copy", () => {
     expect(personalContextForPhoto("not-a-date", " 扫帚 "))
-      .toBe("它来自你主动授权的照片，所以今天从「扫帚」讲起。");
+      .toBe("它来自你主动选择的照片，所以今天从「扫帚」讲起。");
     expect(personalContextForPhoto("2026-02-31", "扫帚"))
-      .toBe("它来自你主动授权的照片，所以今天从「扫帚」讲起。");
+      .toBe("它来自你主动选择的照片，所以今天从「扫帚」讲起。");
     expect(personalContextForPhoto(null, ""))
-      .toBe("它来自你主动授权的照片，所以今天从「这个日常物件」讲起。");
+      .toBe("它来自你主动选择的照片，所以今天从「这个日常物件」讲起。");
   });
+});
+
+it("keeps the processing lease above the bounded worst-case Qwen call window", () => {
+  const worstCaseCalls = 2 + MAX_KNOWLEDGE_VERIFICATION_ATTEMPTS * 2;
+  expect(PROCESSING_LEASE_MS).toBeGreaterThan(
+    worstCaseCalls * QWEN_REQUEST_TIMEOUT_MS + 60_000
+  );
 });
 
 describe("pending object deletion scheduling", () => {
@@ -88,6 +98,70 @@ describe("pending object deletion scheduling", () => {
 });
 
 describe("upload claim recovery", () => {
+  it("charges one bounded retry and refuses a second failed-job retry", async () => {
+    const repositories = new InMemoryRepositories();
+    const device = await repositories.devicesRepository.register("retry-installation", "retry-token");
+    const service = analysisService(repositories, new TrackingObjectStore());
+    const input = createJobInput("00000000-0000-4000-8000-000000000017");
+    const first = await service.createJob(device, input);
+    expect(first.job.retryCount).toBe(0);
+    expect(await repositories.jobsRepository.claimForUpload(
+      first.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    )).not.toBeNull();
+    expect(await repositories.jobsRepository.finishUpload(
+      first.job.id,
+      first.job.uploadSessionId!,
+      "synthetic_upload_failure"
+    )).toMatchObject({ status: "failed", retryCount: 0 });
+
+    const retry = await service.createJob(device, input);
+    expect(retry.job).toMatchObject({ status: "awaiting_upload", retryCount: 1 });
+    expect(await repositories.jobsRepository.claimForUpload(
+      retry.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    )).not.toBeNull();
+    expect(await repositories.jobsRepository.finishUpload(
+      retry.job.id,
+      retry.job.uploadSessionId!,
+      "synthetic_second_failure"
+    )).toMatchObject({ status: "failed", retryCount: 1 });
+
+    await expect(service.createJob(device, input)).rejects.toMatchObject({
+      code: "candidate_retry_exhausted",
+      statusCode: 409
+    });
+  });
+
+  it("fails closed when the retry would exceed the global model-cost fuse", async () => {
+    const repositories = new InMemoryRepositories();
+    const device = await repositories.devicesRepository.register("retry-budget-installation", "retry-budget-token");
+    const service = analysisService(repositories, new TrackingObjectStore(), 1);
+    const input = createJobInput("00000000-0000-4000-8000-000000000018");
+    const first = await service.createJob(device, input);
+    await repositories.jobsRepository.claimForUpload(
+      first.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    );
+    await repositories.jobsRepository.finishUpload(
+      first.job.id,
+      first.job.uploadSessionId!,
+      "synthetic_upload_failure"
+    );
+
+    await expect(service.createJob(device, input)).rejects.toMatchObject({
+      code: "global_daily_cost_budget_exceeded",
+      statusCode: 429
+    });
+    await expect(repositories.jobsRepository.findById(first.job.id)).resolves.toMatchObject({
+      status: "failed",
+      retryCount: 0
+    });
+  });
+
   it("replaces a stale upload claim without letting the old session finish the new upload", async () => {
     const repositories = new InMemoryRepositories();
     const device = await repositories.devicesRepository.register("upload-installation", "upload-token");
@@ -143,7 +217,11 @@ describe("upload claim recovery", () => {
   });
 });
 
-function analysisService(repositories: InMemoryRepositories, objects: ObjectStore): AnalysisService {
+function analysisService(
+  repositories: InMemoryRepositories,
+  objects: ObjectStore,
+  globalCostLimit = 10_000
+): AnalysisService {
   const vision: VisionProvider = {
     detect: async () => ({
       canonicalTopicId: "broom",
@@ -166,8 +244,8 @@ function analysisService(repositories: InMemoryRepositories, objects: ObjectStor
     10_000,
     100_000,
     1,
-    10_000,
-    100_000,
+    globalCostLimit,
+    globalCostLimit,
     true,
     "https://api.example.test"
   );

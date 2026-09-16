@@ -24,7 +24,9 @@ describe("database migrations", () => {
       "012_fair_object_deletion_retries",
       "013_card_detected_object_name",
       "014_card_object_bounds",
-      "015_feedback_affinity_contributions"
+      "015_feedback_affinity_contributions",
+      "016_inference_cost_idempotency",
+      "017_bounded_analysis_retries"
     ]);
     expect(migrations.every((migration) => /^[a-f0-9]{64}$/.test(migration.checksum))).toBe(true);
     expect(migrations.every((migration) => migration.source.trim().endsWith(";"))).toBe(true);

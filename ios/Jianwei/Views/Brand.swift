@@ -9,6 +9,11 @@ enum JianweiBrand {
     })
     static let forest = Color(red: 0.21, green: 0.36, blue: 0.29)
     static let rust = Color(red: 0.54, green: 0.35, blue: 0.27)
+    static let mutedText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.72, green: 0.72, blue: 0.68, alpha: 1)
+            : UIColor(red: 0.31, green: 0.33, blue: 0.30, alpha: 1)
+    })
     static let paper = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.08, green: 0.10, blue: 0.09, alpha: 1)
@@ -57,10 +62,10 @@ struct PillLabel: View {
     var body: some View {
         Label(text, systemImage: icon)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(JianweiBrand.forest)
+            .foregroundStyle(.white)
             .padding(.horizontal, 11)
             .padding(.vertical, 7)
-            .background(JianweiBrand.forest.opacity(0.11), in: Capsule())
+            .background(.black.opacity(0.62), in: Capsule())
     }
 }
 
@@ -69,11 +74,33 @@ struct CardPhoto: View {
     let objectName: String
 
     var body: some View {
-        Group {
+        GeometryReader { proxy in
             if let data, let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
+                let preservesWholeImage = CardPhotoLayout.preservesWholeImage(image.size)
+                let fittedSize = CardPhotoLayout.fittedSize(image.size, in: proxy.size)
+                ZStack {
+                    if preservesWholeImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            // This layer is intentionally stretched: after a
+                            // heavy blur it is only ambient color, and its exact
+                            // frame prevents a panorama's intrinsic width from
+                            // escaping the card layout.
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .blur(radius: 18)
+                            .overlay(.black.opacity(0.16))
+                        Image(uiImage: image)
+                            .resizable()
+                            .frame(width: fittedSize.width, height: fittedSize.height)
+                    } else {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                    }
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
             } else {
                 ZStack {
                     LinearGradient(
@@ -85,10 +112,17 @@ struct CardPhoto: View {
                         .font(.system(size: 34, weight: .light))
                         .foregroundStyle(JianweiBrand.forest.opacity(0.62))
                 }
+                .frame(width: proxy.size.width, height: proxy.size.height)
             }
         }
-        .accessibilityLabel(data == nil ? "照片缩略图暂不可用" : "\(objectName)的原照片")
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        // The surrounding card or saved row already exposes the recognized
+        // object, title and source. A scaled-to-fill UIImage otherwise keeps
+        // its uncropped accessibility frame and can cover nearby controls.
+        .accessibilityHidden(true)
     }
+
 }
 
 extension View {

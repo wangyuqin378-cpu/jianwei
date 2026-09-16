@@ -1,41 +1,93 @@
-# Production deployment
+# Deployment
 
-The iOS TestFlight target is an Alibaba Cloud Function Compute 3 custom-runtime code package
-connected to RDS PostgreSQL, a private OSS bucket and fixed-version Qwen models. This avoids a paid
-container registry during the small Beta while preserving an immutable package digest. The checked-
-in custom-container path remains available for a later production rollout. Local/in-memory mode is a
-developer fallback and is never release evidence.
+## Current source snapshot (2026-09-17)
+
+The active product is the iOS App/Widget plus `cloudflare/gateway`. The checked-in iOS configuration
+points at the managed Beta origin; access still requires a valid server-side entitlement or an
+explicit temporary Beta grant. Public source access does not include a usable service credential.
+BYOK remains a separate direct-to-Qwen path, with no platform-key fallback or forced web search.
+
+For local gateway validation (no deployment or model charges):
+
+```bash
+cd cloudflare/gateway
+npm ci --ignore-scripts
+npm run check
+npm test
+npm run test:runtime
+npm run deploy:dry
+```
+
+Runtime tests intercept external model, source and Apple requests. A real deployment requires your
+own Cloudflare route and D1 configuration, server secrets, migrations and access policy; never copy
+personal device grants or credentials into the repository. The default per-device daily request
+ceiling is 70 (up to 63 photo requests and 7 selections for a cold refill); monthly/global ceilings
+remain independent. This ceiling is not a guarantee of content supply or a fixed spending amount.
+
+This source snapshot includes migrations through 0010 and changes not yet accepted on the installed
+phone or production Worker. Do not deploy the entire checkout as part of a Git sync. Follow the
+[local upgrade rehearsal](MANAGED_UPGRADE_REHEARSAL_2026-09-07.md), separately verify the actual deployed
+schema and version, then perform an explicitly scoped release. [Current validation](SOURCE_SNAPSHOT_2026-09-17.md)
+does not establish App Store or TestFlight readiness.
+
+## Historical: August personal-BYOK release procedure
+
+The remaining BYOK-only instructions describe an earlier candidate. Its requirements for an empty
+API origin and its past account/signing outcomes are not current managed-Beta deployment instructions.
+
+The current TestFlight candidate is BYOK: the iPhone calls Alibaba Cloud Model Studio directly with
+the tester's own Qwen API key. Jianwei does not operate an API, database or image store for this
+Beta, so Function Compute, RDS and OSS are not prerequisites. `JIANWEI_API_BASE_URL` must remain
+empty in both the project and archived App.
+
+The optional managed-service Cloudflare implementation is separate from this BYOK release gate.
+Its new server-side subscription verification and lost-token recovery are documented in
+[Platform subscription authorization](SERVER_SUBSCRIPTION_AUTH_2026-09-07.md). They are local changes,
+not a deployed service: validate the actual Apple configuration and transactions before deployment.
+BYOK does not require these server credentials or an enabled web-search capability.
+
+Before changing the managed Cloudflare service, run `npm run test:upgrade` in
+`cloudflare/gateway`. The [upgrade rehearsal](MANAGED_UPGRADE_REHEARSAL_2026-09-07.md)
+covers the production entry in local workerd/D1, schema 7 to 10, preserved quota,
+photo generation and daily selection with all external calls intercepted. It is not a live AI
+evaluation or deployment. Product readiness requires schema 9; isolated evaluation adds its own
+budget requirements. Apply neither production migrations nor the entire dirty checkout merely
+because this local test passes.
 
 ## iOS installable Beta gate
 
 The local WidgetKit candidate is not an installable Beta until one check binds the current source,
-tests, unsigned Release build, Apple signing identity, physical device, production API origin and
-signed archive. Run the policy self-test in CI or after changing the checker:
+tests, unsigned Release build, Apple signing identity, physical device and signed archive. Run the
+policy self-test in CI or after changing the checker:
 
 ```bash
 node scripts/check-ios-beta-readiness.mjs --self-test
 ```
 
-After the Apple Developer team and public API are available, build a signed archive with the same
-team and origin, then run the real gate. Keep the values in the operator environment rather than
-committing them to `project.yml`:
+After Apple Developer membership and signing assets are available, build a signed archive and run
+the real gate. Keep the Team ID in the operator environment rather than committing personal signing
+details to `project.yml`:
 
 ```bash
 export JIANWEI_IOS_DEVELOPMENT_TEAM="<10-character-team-id>"
-export JIANWEI_API_BASE_URL="https://<production-api-origin>"
+unset JIANWEI_API_BASE_URL
 node scripts/check-ios-beta-readiness.mjs \
-  --archive .tooling/ios-beta/Jianwei.xcarchive
+  --xcresult .tooling/ios-beta/byok-current-full.xcresult \
+  --release-app .tooling/ios-beta/current-release/Build/Products/Release-iphoneos/Jianwei.app \
+  --archive .tooling/ios-beta/Jianwei-current.xcarchive \
+  --ipa .tooling/ios-beta/app-store-export-current/Jianwei.ipa
 ```
 
 `GO` requires at least nine current iOS tests with no failures or skips, the current generic Release
 build with a validated privacy manifest, matching App/Widget bundle IDs and App Group, a valid
 signing identity, a connected physical iPhone or iPad, valid signatures on both archived bundles,
-App Store distribution provisioning profiles for both the App and Widget, a validated privacy
-manifest and exempt-encryption declaration in the archived App, and the public HTTPS origin embedded
-in the archived App.
+and an App Store Connect-exported IPA. The exported App and Widget must both use App Store
+distribution provisioning profiles and retain the validated privacy manifest, exempt-encryption
+declaration and empty Jianwei API origin. The archive may use development signing because Xcode
+re-signs it during export; only the exported IPA is distribution evidence.
 Seven-day personal-development, device-bound development, Ad Hoc and enterprise profiles are not
 TestFlight evidence. The report emits only booleans, counts and blocker names; it never emits the
-Team ID, API origin, signing certificate name or provisioning profile contents.
+Team ID, signing certificate name or provisioning profile contents.
 
 The iOS client uses SHA-256 for deterministic binding/ranking and Apple-provided HTTPS through
 `URLSession`; it does not implement proprietary encryption. The built App must therefore contain
@@ -45,7 +97,7 @@ build. Reassess this declaration before adding any new cryptographic library or 
 ### App Store submission package
 
 `ios/AppStore/submission.zh-Hans.json` is the reviewed launch contract for the App version, three
-6.9-inch screenshots, App Review path and the monthly subscription. It intentionally excludes the
+6.9-inch screenshots and App Review path. It intentionally excludes the
 private App Review contact name, email and phone number, which must be entered directly in App Store
 Connect. Verify the source contract in CI and bind the generated screenshots locally:
 
@@ -60,19 +112,21 @@ Capture the screenshot UI test on an iPhone 17 Pro Max simulator. The exporter a
 require exactly the three declared 1320x2868 PNG files with no alpha channel; a 6.3-inch iPhone 17
 Pro capture is valid simulator evidence but is not this launch package. After building the final App,
 pass both `--screenshots` and `--release-app`; this additionally binds the Bundle ID, version, build,
-subscription product, absence of the local StoreKit configuration and public HTTPS API origin.
+absence of the local StoreKit configuration, empty Jianwei API origin, bundled knowledge catalog
+and privacy manifest.
 
-### StoreKit subscription gate
+### Future managed subscription
 
-`ios/StoreKit/Jianwei.storekit` is a local-only configuration for the monthly product
-`cn.jianwei.ios.pro.monthly`, priced at ¥8 with a seven-day free trial. It is included in Debug test
-bundles and explicitly excluded from Release. Before TestFlight, create the same product and offer in
-App Store Connect, then run `SubscriptionStoreTests` from the Xcode IDE to prove product loading,
-purchase, entitlement JWS and restore. The iOS 26.5 simulator currently has an Apple-reported
-`xcodebuild` regression that fails to synchronize local StoreKit configurations with
-`SKInternalErrorDomain Code=3`; a CLI skip is not purchase evidence.
+Subscription code and local StoreKit fixtures are retained only for a possible future managed
+service. They are excluded from the current Release and submission contract. The personal BYOK Beta
+does not require an App Store product or purchase-flow evidence.
 
-## Cloud prerequisites
+## Future managed-service deployment
+
+Everything below applies only if Jianwei later pays for model calls and operates a multi-user cloud
+service. It is not required for the current personal BYOK Beta.
+
+### Cloud prerequisites
 
 1. Put RDS PostgreSQL, Function Compute and OSS in the same region and VPC where possible.
 2. Create a private OSS bucket whose versioning has never been enabled and with an enabled lifecycle
@@ -190,6 +244,10 @@ node scripts/build-fc-code-package.mjs \
 Set `JIANWEI_DEPLOYMENT_ARTIFACT_KIND=code-package`, `JIANWEI_CODE_PATH` to that directory and
 `JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST` to the report value. Then verify or deploy through the OAuth
 bridge without persisting temporary Alibaba Cloud credentials:
+
+The cloud preflight also recomputes the current backend release identity and compares it with the
+identity embedded in the package. A correctly hashed but stale package is rejected; rebuild instead
+of pointing deployment variables at an older `.tooling` directory.
 
 ```bash
 node scripts/run-serverless-with-aliyun-oauth.mjs \

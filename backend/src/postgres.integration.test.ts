@@ -59,7 +59,8 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
   });
 
   beforeEach(async () => {
-    await repositories[0].sql`TRUNCATE TABLE devices, analysis_budget_events CASCADE`;
+    await repositories[0].sql`
+      TRUNCATE TABLE devices, analysis_budget_events, pending_object_deletions CASCADE`;
   });
 
   afterAll(async () => {
@@ -69,7 +70,7 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
   it("has the complete checksummed schema after repeatable migrations", async () => {
     const migrations = await repositories[0].sql<{ count: string }[]>`
       SELECT count(*)::text AS count FROM schema_migrations`;
-    expect(Number(migrations[0]?.count)).toBe(15);
+    expect(Number(migrations[0]?.count)).toBe(17);
   });
 
   it("backfills and constrains detected object names when migration 013 upgrades existing cards", async () => {
@@ -253,6 +254,94 @@ describe.skipIf(!runIntegration)("PostgreSQL repository integration", () => {
     const rows = await repositories[0].sql<{ cost: string }[]>`
       SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost FROM analysis_budget_events`;
     expect(Number(rows[0]?.cost)).toBe(14);
+  }, 30_000);
+
+  it("deduplicates one managed inference reservation across independent connection pools", async () => {
+    const budget = createBudget({
+      reservedCostMicroCny: 7,
+      globalDailyCostMicroCnyLimit: 20,
+      globalMonthlyCostMicroCnyLimit: 20
+    });
+    const operationKey = "d".repeat(64);
+    const results = await Promise.all(Array.from({ length: 16 }, (_, index) =>
+      repositories[index % repositories.length].jobsRepository.reserveInferenceCost(
+        operationKey,
+        budget.reservedCostMicroCny,
+        budget.globalDailyCostMicroCnyLimit,
+        budget.globalMonthlyCostMicroCnyLimit,
+        budget.dailySince,
+        budget.monthSince
+      )
+    ));
+
+    expect(results.filter((result) => result.status === "reserved")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "existing")).toHaveLength(15);
+    const rows = await repositories[0].sql<{ cost: string }[]>`
+      SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost FROM analysis_budget_events`;
+    expect(Number(rows[0]?.cost)).toBe(7);
+  }, 30_000);
+
+  it("atomically charges at most one failed-job retry and permanently bounds it", async () => {
+    const device = await repositories[0].devicesRepository.register("bounded-retry-installation", "bounded-retry-token");
+    const budget = createBudget({
+      reservedCostMicroCny: 7,
+      globalDailyCostMicroCnyLimit: 20,
+      globalMonthlyCostMicroCnyLimit: 20
+    });
+    const created = await repositories[0].jobsRepository.createWithinBudget(createInput(device.id), budget);
+    if (created.status !== "created") throw new Error("test setup failed");
+    const firstSession = randomUUID();
+    await repositories[0].jobsRepository.prepareUpload(created.job.id, null, {
+      objectKey: `analysis/test/${firstSession}.image`,
+      uploadSessionId: firstSession,
+      uploadExpiresAt: new Date(Date.now() + 60_000).toISOString()
+    });
+    await repositories[0].jobsRepository.claimForUpload(firstSession, device.id, new Date().toISOString());
+    await repositories[0].jobsRepository.finishUpload(created.job.id, firstSession, "synthetic_failure");
+
+    const retryAttempts = await Promise.all(Array.from({ length: 16 }, (_, index) => {
+      const session = randomUUID();
+      return repositories[index % repositories.length].jobsRepository.prepareRetryWithinCostBudget(
+        created.job.id,
+        firstSession,
+        {
+          objectKey: `analysis/test/${session}.image`,
+          uploadSessionId: session,
+          uploadExpiresAt: new Date(Date.now() + 60_000).toISOString()
+        },
+        budget
+      );
+    }));
+    expect(retryAttempts.filter((result) => result.status === "prepared")).toHaveLength(1);
+    expect(retryAttempts.filter((result) => result.status === "state_conflict")).toHaveLength(15);
+    const prepared = retryAttempts.find((result) => result.status === "prepared");
+    if (!prepared || prepared.status !== "prepared") throw new Error("retry was not prepared");
+    expect(prepared.job.retryCount).toBe(1);
+    const costs = await repositories[0].sql<{ cost: string }[]>`
+      SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost FROM analysis_budget_events`;
+    expect(Number(costs[0]?.cost)).toBe(14);
+
+    await repositories[0].jobsRepository.claimForUpload(
+      prepared.job.uploadSessionId!,
+      device.id,
+      new Date().toISOString()
+    );
+    await repositories[0].jobsRepository.finishUpload(
+      prepared.job.id,
+      prepared.job.uploadSessionId!,
+      "synthetic_second_failure"
+    );
+    const exhausted = await repositories[0].jobsRepository.prepareRetryWithinCostBudget(
+      prepared.job.id,
+      prepared.job.uploadSessionId,
+      {
+        objectKey: `analysis/test/${randomUUID()}.image`,
+        uploadSessionId: randomUUID(),
+        uploadExpiresAt: new Date(Date.now() + 60_000).toISOString()
+      },
+      budget
+    );
+    expect(exhausted.status).toBe("retry_exhausted");
   }, 30_000);
 
   it("keeps the identifier-free global ledger after delete and reinstall", async () => {

@@ -7,6 +7,16 @@ describe("AI knowledge review CLI", () => {
     expect(() => parseArguments(["--credentials-file", "/tmp/key.csv", "--write"])).toThrow(/next-version/);
     expect(() => parseArguments(["--credentials-file", "/tmp/key.csv", "--limit", "601"])).toThrow(/1 to 600/);
     expect(parseArguments(["--credentials-file", "/tmp/key.csv", "--all"]).limit).toBeNull();
+    expect(parseArguments([
+      "--credentials-file", "/tmp/key.csv",
+      "--fact-id", "usb-flash-drive-read-disturb",
+      "--fact-id", "watering-can-rose-up"
+    ]).factIds).toEqual(["usb-flash-drive-read-disturb", "watering-can-rose-up"]);
+    expect(() => parseArguments([
+      "--credentials-file", "/tmp/key.csv",
+      "--fact-id", "same-fact",
+      "--fact-id", "same-fact"
+    ])).toThrow(/unique/);
   });
 
   it("demotes legacy unattested high-risk approvals without touching general knowledge", () => {

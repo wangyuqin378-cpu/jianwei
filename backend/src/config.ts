@@ -147,7 +147,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new Error("ALLOW_UNATTESTED_FACTS cannot be enabled with OSS production storage");
   }
 
-  const publicBaseUrl = (env.PUBLIC_BASE_URL ?? `http://127.0.0.1:${port}`).replace(/\/$/, "");
+  const publicBaseUrl = parsePublicBaseUrl(
+    env.PUBLIC_BASE_URL ?? `http://127.0.0.1:${port}`,
+    environment
+  );
   const databaseUrl = optional(env.DATABASE_URL);
   const dashscopeApiKey = optional(env.DASHSCOPE_API_KEY);
   const dashscopeBaseUrl = parseDashscopeBaseUrl(env.DASHSCOPE_BASE_URL);
@@ -169,8 +172,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (!databaseUrl) throw new Error("DATABASE_URL is required in production");
     if (!/^postgres(?:ql)?:\/\//i.test(databaseUrl)) throw new Error("DATABASE_URL must use PostgreSQL in production");
     if (objectStore !== "oss") throw new Error("OBJECT_STORE must be oss in production");
-    if (visionProvider === "local") throw new Error("VISION_PROVIDER must be qwen or kimi in production");
-    if (!publicBaseUrl.startsWith("https://")) throw new Error("PUBLIC_BASE_URL must use HTTPS in production");
+    if (visionProvider !== "qwen") throw new Error("VISION_PROVIDER must be qwen in production");
     if (allowUnattestedFacts) throw new Error("ALLOW_UNATTESTED_FACTS cannot be enabled in production");
     if (ttl > 24) throw new Error("OBJECT_TTL_HOURS must not exceed 24 in production");
     if (!knowledgeCatalogSha256) throw new Error("KNOWLEDGE_CATALOG_SHA256 is required in production");
@@ -194,16 +196,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (visionProvider === "qwen" && !env.DASHSCOPE_BASE_URL?.trim()) {
       throw new Error("DASHSCOPE_BASE_URL is required for Qwen in production");
     }
-    if (visionProvider === "kimi") {
-      if (!env.KIMI_BASE_URL?.trim()) throw new Error("KIMI_BASE_URL is required for Kimi in production");
-      if (kimiBaseUrl !== "https://api.moonshot.cn/v1") {
-        throw new Error("KIMI_BASE_URL must use the China Kimi Open Platform in production");
-      }
-      if (kimiModel !== "kimi-k3") throw new Error("KIMI_MODEL must be the reviewed kimi-k3 model in production");
-    }
     for (const [name, value] of [
-      [visionProvider === "qwen" ? "DASHSCOPE_API_KEY" : "KIMI_API_KEY",
-        visionProvider === "qwen" ? dashscopeApiKey : kimiApiKey],
+      ["DASHSCOPE_API_KEY", dashscopeApiKey],
       ["OSS_BUCKET", ossBucket]
     ] as const) {
       if (!value) throw new Error(`${name} is required in production`);
@@ -285,6 +279,33 @@ function parseKimiBaseUrl(value: string | undefined): string {
     throw new Error("KIMI_BASE_URL must be an official Kimi Open Platform or Kimi Code endpoint");
   }
   return normalized;
+}
+
+function parsePublicBaseUrl(
+  value: string,
+  environment: AppConfig["environment"]
+): string {
+  let url: URL;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    throw new Error("PUBLIC_BASE_URL must be a valid absolute URL");
+  }
+  if (
+    !url.hostname ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash ||
+    (url.pathname !== "/" && url.pathname !== "") ||
+    (url.protocol !== "http:" && url.protocol !== "https:")
+  ) {
+    throw new Error("PUBLIC_BASE_URL must be an HTTP(S) origin without credentials, path, query, or fragment");
+  }
+  if (environment === "production" && url.protocol !== "https:") {
+    throw new Error("PUBLIC_BASE_URL must use HTTPS in production");
+  }
+  return url.origin;
 }
 
 function parseDashscopeBaseUrl(value: string | undefined): string {

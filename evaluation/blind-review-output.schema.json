@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reviews"],
+  "properties": {
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cardId",
+          "surprise",
+          "aha",
+          "retellability",
+          "imageConnection",
+          "naturalness",
+          "sourceSupport",
+          "objectMatch",
+          "hardFactIssue",
+          "interestingSuitable",
+          "reason"
+        ],
+        "properties": {
+          "cardId": { "type": "string" },
+          "surprise": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "aha": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "retellability": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "imageConnection": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "naturalness": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "sourceSupport": { "type": "boolean" },
+          "objectMatch": { "type": "boolean" },
+          "hardFactIssue": { "type": "boolean" },
+          "interestingSuitable": { "type": "boolean" },
+          "reason": { "type": "string", "minLength": 2, "maxLength": 160 }
+        }
+      }
+    }
+  }
+}

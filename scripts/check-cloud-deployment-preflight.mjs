@@ -70,7 +70,9 @@ export function assessCloudDeploymentPreflight({
   tools,
   serverlessAccessConfigured,
   catalogSha256,
-  codePackageDigest = null
+  codePackageDigest = null,
+  codePackageBackendReleaseSha256 = null,
+  currentBackendReleaseSha256 = null
 }) {
   const missingEnvironmentVariables = [];
   const invalidEnvironmentVariables = [];
@@ -116,6 +118,12 @@ export function assessCloudDeploymentPreflight({
   if (artifactKind === "code-package" && codePackageDigest !== value(env, "JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST")) {
     invalidEnvironmentVariables.push("JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST");
   }
+  const codePackageMatchesCurrentSource = artifactKind !== "code-package" || (
+    typeof codePackageBackendReleaseSha256 === "string" &&
+    /^[a-f0-9]{64}$/.test(codePackageBackendReleaseSha256) &&
+    codePackageBackendReleaseSha256 === currentBackendReleaseSha256
+  );
+  if (!codePackageMatchesCurrentSource) invalidEnvironmentVariables.push("JIANWEI_CODE_PATH");
   validate("JIANWEI_KNOWLEDGE_CATALOG_SHA256", (raw) => /^[a-f0-9]{64}$/.test(raw) && raw === catalogSha256);
   for (const name of [
     "JIANWEI_WORST_CASE_COST_MICRO_CNY",
@@ -162,6 +170,7 @@ export function assessCloudDeploymentPreflight({
         !missingEnvironmentVariables.includes("JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST") &&
         !invalidEnvironmentVariables.includes("JIANWEI_CODE_PATH") &&
         !invalidEnvironmentVariables.includes("JIANWEI_DEPLOYMENT_ARTIFACT_DIGEST") ? 1 : 0,
+      codePackageMatchesCurrentSource: codePackageMatchesCurrentSource ? 1 : 0,
       catalogDigestMatches: value(env, "JIANWEI_KNOWLEDGE_CATALOG_SHA256") === catalogSha256 ? 1 : 0,
       fixedQwenModels: flashModel === FIXED_FLASH_MODEL && plusModel === FIXED_PLUS_MODEL ? 1 : 0,
       missingEnvironmentVariables: missingEnvironmentVariables.length,
@@ -273,7 +282,9 @@ async function runSelfTest() {
     tools: { ...tools, docker: false },
     serverlessAccessConfigured: true,
     catalogSha256: digest,
-    codePackageDigest: `sha256:${"e".repeat(64)}`
+    codePackageDigest: `sha256:${"e".repeat(64)}`,
+    codePackageBackendReleaseSha256: "1".repeat(64),
+    currentBackendReleaseSha256: "1".repeat(64)
   });
   if (codePackage.status !== "GO") {
     throw new Error(`Valid code package inputs were rejected: ${codePackage.blockers.join("; ")}`);
@@ -283,10 +294,24 @@ async function runSelfTest() {
     tools,
     serverlessAccessConfigured: true,
     catalogSha256: digest,
-    codePackageDigest: `sha256:${"f".repeat(64)}`
+    codePackageDigest: `sha256:${"f".repeat(64)}`,
+    codePackageBackendReleaseSha256: "1".repeat(64),
+    currentBackendReleaseSha256: "1".repeat(64)
   });
   if (tamperedCodePackage.status !== "NO_GO") {
     throw new Error("A deployment digest that did not match the code package bypassed the gate");
+  }
+  const staleCodePackage = assessCloudDeploymentPreflight({
+    env: validSyntheticCodePackageInput(digest),
+    tools,
+    serverlessAccessConfigured: true,
+    catalogSha256: digest,
+    codePackageDigest: `sha256:${"e".repeat(64)}`,
+    codePackageBackendReleaseSha256: "1".repeat(64),
+    currentBackendReleaseSha256: "2".repeat(64)
+  });
+  if (staleCodePackage.status !== "NO_GO") {
+    throw new Error("A stale code package bypassed the current-source identity gate");
   }
 
   const cases = [
@@ -348,7 +373,7 @@ async function runSelfTest() {
   }));
   if (rendered.includes(ephemeralSecret)) throw new Error("Cloud preflight leaked an ephemeral credential");
   process.stdout.write(
-    `CLOUD_DEPLOYMENT_PREFLIGHT_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length + 4} ephemeralAccess=1 secretValuesPrinted=0\n`
+    `CLOUD_DEPLOYMENT_PREFLIGHT_SELF_TEST=GO synthetic=1 releaseEvidence=0 bypassesRejected=${cases.length + 5} ephemeralAccess=1 secretValuesPrinted=0\n`
   );
 }
 
@@ -369,7 +394,9 @@ async function main() {
     tools,
     serverlessAccessConfigured: hasServerlessAccess(serverlessDevs, accessAlias, process.env),
     catalogSha256: await catalogDigest(),
-    codePackageDigest: await observedCodePackageDigest(process.env)
+    codePackageDigest: await observedCodePackageDigest(process.env),
+    codePackageBackendReleaseSha256: await observedCodePackageBackendReleaseSha256(process.env),
+    currentBackendReleaseSha256: observedCurrentBackendReleaseSha256()
   });
   const outputIndex = process.argv.indexOf("--output");
   if (outputIndex >= 0) {
@@ -391,6 +418,45 @@ async function observedCodePackageDigest(env) {
   if (!raw || !path.isAbsolute(raw) || !existsSync(raw)) return null;
   const entries = await collectCodePackageEntries(path.resolve(raw));
   return `sha256:${hashCodePackageEntries(entries)}`;
+}
+
+async function observedCodePackageBackendReleaseSha256(env) {
+  if ((value(env, "JIANWEI_DEPLOYMENT_ARTIFACT_KIND") || "container") !== "code-package") return null;
+  const raw = value(env, "JIANWEI_CODE_PATH");
+  if (!raw || !path.isAbsolute(raw) || !existsSync(raw)) return null;
+  try {
+    const identity = JSON.parse(await readFile(path.join(raw, "release-identity.json"), "utf8"));
+    return identity?.schemaVersion === 1 &&
+      identity?.evidenceKind === "backend_release_identity" &&
+      typeof identity?.backendReleaseSha256 === "string" &&
+      /^[a-f0-9]{64}$/.test(identity.backendReleaseSha256)
+      ? identity.backendReleaseSha256
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function observedCurrentBackendReleaseSha256() {
+  const result = spawnSync("pnpm", ["--silent", "run", "release:identity"], {
+    cwd: path.resolve("backend"),
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+    timeout: 30_000,
+    maxBuffer: 1024 * 1024
+  });
+  if (result.error || result.status !== 0) return null;
+  try {
+    const identity = JSON.parse(result.stdout);
+    return identity?.schemaVersion === 1 &&
+      identity?.evidenceKind === "backend_release_identity" &&
+      typeof identity?.backendReleaseSha256 === "string" &&
+      /^[a-f0-9]{64}$/.test(identity.backendReleaseSha256)
+      ? identity.backendReleaseSha256
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 await main();

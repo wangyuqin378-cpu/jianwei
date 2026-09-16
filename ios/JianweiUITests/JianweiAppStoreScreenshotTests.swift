@@ -10,30 +10,30 @@ final class JianweiAppStoreScreenshotTests: XCTestCase {
         let onboarding = XCUIApplication()
         onboarding.launchArguments = [
             "-JianweiResetOnboarding",
-            "-JianweiOnboardingPage", "2",
-            "-JianweiStorefrontPreview"
+            "-JianweiOnboardingPage", "2"
         ]
         onboarding.launch()
 
-        XCTAssertTrue(onboarding.staticTexts["选择你的开始方式"].waitForExistence(timeout: 12))
-        XCTAssertTrue(onboarding.buttons["订阅见微 Pro · ¥8.00/月"].waitForExistence(timeout: 4))
-        capture(onboarding, name: "app-store-01-daily-three-to-one")
+        XCTAssertTrue(onboarding.staticTexts["每天替你选出一条"].waitForExistence(timeout: 12))
+        // Resetting onboarding deliberately retains the user's billing choice.
+        // Select this fixture's mode through the same control a user would use.
+        let managed = onboarding.buttons["使用见微体验服务"]
+        if managed.exists { managed.tap() }
+        XCTAssertTrue(onboarding.staticTexts["自动发现"].exists)
+        XCTAssertTrue(onboarding.staticTexts["现有 AI 已配置，无需填写内容或 Key"].waitForExistence(timeout: 8))
+        capture(onboarding, name: "app-store-01-automatic-discovery")
         onboarding.terminate()
 
         let app = XCUIApplication()
-        app.launchArguments = ["-JianweiSeedDemo", "-JianweiStorefrontPreview"]
+        app.launchArguments = ["-JianweiSeedStoreDemo"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["扫帚为什么总有一点斜？"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.staticTexts["有些彩色打印机，会在彩色打印页上留下“隐形身份证”"].waitForExistence(timeout: 12))
         capture(app, name: "app-store-02-daily-knowledge-card")
 
-        app.tabBars.buttons["设置"].tap()
-        XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 4))
-        for _ in 0..<2 where !app.buttons["订阅见微 Pro · ¥8.00/月"].exists {
-            app.swipeUp()
-        }
-        XCTAssertTrue(app.buttons["订阅见微 Pro · ¥8.00/月"].waitForExistence(timeout: 4))
-        capture(app, name: "app-store-03-pro-or-own-key")
+        app.tabBars.buttons["回顾"].tap()
+        XCTAssertTrue(app.navigationBars["回顾"].waitForExistence(timeout: 4))
+        capture(app, name: "app-store-03-history")
     }
 
     @MainActor

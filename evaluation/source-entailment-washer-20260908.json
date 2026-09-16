@@ -1,0 +1,30 @@
+{
+  "description": "Observed washer generation failures from the 2026-09-08 daily-update pilot. Text evidence regressions, not photo or interestingness acceptance. Expected decisions are evaluator labels and must never enter model prompts.",
+  "status": "Observed failures retained; this fixture has not been run as a new regression suite.",
+  "cases": [
+    {
+      "id": "washer-annual-vs-load",
+      "expected": "rejected",
+      "errorClass": "incomparable_periods_and_unsupported_causal_explanation",
+      "objectName": "工业洗衣机",
+      "title": "工业洗衣机年耗水量惊人",
+      "body": "商业洗衣机每年平均消耗约3.47万加仑水。相比家用机每负载41加仑，其高频运转导致水资源消耗巨大，升级高效机型可显著节水。[ref_1]",
+      "source": "https://www.nps.gov/articles/laundry.htm",
+      "sourceTextSHA256": "31bb795bf81e13f8eb88d411f792448241ed97a5efe845a26e86e74e1fb4dfef",
+      "rationale": "原文的家用数字按每次洗涤、商用数字按年，不能仅凭二者比较耗水程度或推导使用频率这个原因。数字本身出现在来源中，不代表数字间的比较和因果也获支持。",
+      "origin": "Frozen-source writer A/B, reference arm, one live model reply. Not published."
+    },
+    {
+      "id": "washer-front-load-borrows-impeller-mechanism",
+      "expected": "rejected",
+      "errorClass": "mechanism_borrowed_from_adjacent_subtype",
+      "objectName": "工业洗衣机",
+      "title": "滚筒翻转代替搅拌，衣物互擦去污",
+      "body": "前开式洗衣机通过滚筒旋转产生翻滚动作，让衣物在筒内互相摩擦以松动污垢。这种机制配合低水位运行，能在减少用水的同时有效清洁织物。[ref_2]",
+      "source": "https://www.whirlpool.com/blog/washers-and-dryers/how-does-a-washing-machine-work.html",
+      "sourceTextSHA256": "3cfe7e1dd6d6e772be5cc1087788fd8ad288e98fe62d383a65e35bc80d8e0674",
+      "rationale": "冻结原文对前开式说明翻滚，对叶轮式说明衣物互擦，对HE机型另述低水位。不能只把这些段落合成前开式的一条完整机制。这里评的是所引原文是否直接支持，不断言互擦在现实滚筒中不可能发生。",
+      "origin": "Primary-first composite writer experiment; unchanged v13 evidence and interestingness reviewers both rejected. Not published."
+    }
+  ]
+}

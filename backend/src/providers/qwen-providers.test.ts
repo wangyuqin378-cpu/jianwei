@@ -1,7 +1,120 @@
 import { describe, expect, it } from "vitest";
-import { QwenProviderError, QwenVisionProvider } from "./qwen-providers.js";
+import type { VisionProvider } from "../domain/types.js";
+import { ConfidenceFallbackVisionProvider, QwenProviderError, QwenVisionProvider } from "./qwen-providers.js";
 
 describe("Qwen server-side image safety contract", () => {
+  it("returns up to three concrete knowledge anchors instead of one scene summary", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      choices: [{
+        message: {
+          content: JSON.stringify({
+            subjects: [
+              {
+                canonicalTopicId: "coconut",
+                displayName: "椰子",
+                confidence: 0.96,
+                boundingBox: null,
+                alternatives: ["椰果"]
+              },
+              {
+                canonicalTopicId: "floating_dock",
+                displayName: "浮动码头",
+                confidence: 0.86,
+                boundingBox: null,
+                alternatives: ["浮桥"]
+              }
+            ],
+            sensitiveFlags: []
+          })
+        }
+      }]
+    }), { status: 200, headers: { "Content-Type": "application/json" } })) as typeof fetch;
+    const provider = new QwenVisionProvider({ apiKey: "test-only", model: "fixed-model", fetchImpl });
+
+    const result = await provider.understand({
+      image: Buffer.from([0xff, 0xd8, 0xff]),
+      localLabels: [],
+      preferredTopics: ["coconut=椰子"]
+    });
+
+    expect(result.subjects.map((subject) => subject.canonicalTopicId)).toEqual(["coconut", "floating_dock"]);
+    expect(result.sensitiveFlags).toEqual([]);
+  });
+
+  it("rejects a knowledge card when the independently observed object does not match", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({
+        accepted: false,
+        imageObject: "龙舌兰和苏铁",
+        objectMatchesImage: false,
+        objectIsPrimarySubject: true,
+        factAppliesToImage: false,
+        titleGrounded: true,
+        bodyGrounded: true,
+        reason: "图片中没有清楚可见的藤蔓"
+      }) } }]
+    }), { status: 200, headers: { "Content-Type": "application/json" } })) as typeof fetch;
+    const provider = new QwenVisionProvider({ apiKey: "test-only", model: "fixed-model", fetchImpl });
+
+    await expect(provider.verifyKnowledgeCandidate({
+      image: Buffer.from([0xff, 0xd8, 0xff]),
+      objectName: "藤蔓",
+      photoApplicability: "category",
+      factText: "藤本植物借助外物承重，从而减少自身支撑组织的投入。",
+      cardTitle: "藤蔓借别人的骨架往上爬",
+      cardBody: "藤本植物借助外物承重，从而减少自身支撑组织的投入。"
+    })).resolves.toMatchObject({ accepted: false, imageObject: "龙舌兰和苏铁" });
+  });
+
+  it("accepts a category fact without requiring its hidden mechanism to be visible", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({
+        accepted: false,
+        imageObject: "楼梯旁清楚可见的藤蔓",
+        objectMatchesImage: true,
+        objectIsPrimarySubject: true,
+        factAppliesToImage: false,
+        titleGrounded: true,
+        bodyGrounded: true,
+        reason: "图片看不到藤蔓内部的支撑组织"
+      }) } }]
+    }), { status: 200, headers: { "Content-Type": "application/json" } })) as typeof fetch;
+    const provider = new QwenVisionProvider({ apiKey: "test-only", model: "fixed-model", fetchImpl });
+
+    await expect(provider.verifyKnowledgeCandidate({
+      image: Buffer.from([0xff, 0xd8, 0xff]),
+      objectName: "藤蔓",
+      photoApplicability: "category",
+      factText: "藤本植物借助外物承重，从而减少自身支撑组织的投入。",
+      cardTitle: "藤蔓借别人的骨架往上爬",
+      cardBody: "藤本植物借助外物承重，从而减少自身支撑组织的投入。"
+    })).resolves.toMatchObject({ accepted: true, imageObject: "楼梯旁清楚可见的藤蔓" });
+  });
+
+  it("uses the fallback provider when primary understanding fails", async () => {
+    const primary: VisionProvider = {
+      detect: async () => { throw new Error("primary failed"); },
+      understand: async () => { throw new Error("primary failed"); }
+    };
+    const fallback: VisionProvider = {
+      detect: async () => ({
+        canonicalTopicId: "broom", displayName: "扫帚", confidence: 0.93,
+        boundingBox: null, alternatives: [], sensitiveFlags: []
+      }),
+      understand: async () => ({
+        subjects: [{
+          canonicalTopicId: "broom", displayName: "扫帚", confidence: 0.93,
+          boundingBox: null, alternatives: [], sensitiveFlags: []
+        }],
+        sensitiveFlags: []
+      })
+    };
+    const provider = new ConfidenceFallbackVisionProvider(primary, fallback);
+
+    await expect(provider.understand({ image: Buffer.from([0xff]), localLabels: [] }))
+      .resolves.toMatchObject({ subjects: [{ canonicalTopicId: "broom" }] });
+  });
+
   it("enables provider inspection and accepts only structured sensitive flags", async () => {
     let inspectionHeader: string | null = null;
     let requestBody = "";

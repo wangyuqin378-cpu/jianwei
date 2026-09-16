@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jianwei-qwen-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-02",
+  "workers_dev": false,
+  "preview_urls": false,
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  "routes": [
+    {
+      "pattern": "jianwei-api.yuqin.wang",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "vars": {
+    "DASHSCOPE_HOST": "ws-2zblrcqmre4crr3r.cn-beijing.maas.aliyuncs.com",
+    "QWEN_FLASH_MODEL": "qwen3.7-flash-2026-07-15",
+    "QWEN_PLUS_MODEL": "qwen3.7-plus-2026-05-26",
+    "QWEN_SEARCH_MODEL": "qwen3.7-plus-2026-05-26",
+    "QWEN_VERIFICATION_MODEL": "qwen3-vl-plus-2025-09-23",
+    "DEVICE_DAILY_REQUEST_LIMIT": "70",
+    "DEVICE_MONTHLY_REQUEST_LIMIT": "279",
+    "GLOBAL_DAILY_REQUEST_LIMIT": "450",
+    "GLOBAL_MONTHLY_REQUEST_LIMIT": "13950",
+    "EVALUATION_DAILY_REQUEST_LIMIT": "1500",
+    "EVALUATION_MONTHLY_REQUEST_LIMIT": "3000"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jianwei-beta",
+      "database_id": "93e2131e-107c-43d7-8293-413c35a7f225",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

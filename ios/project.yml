@@ -21,9 +21,11 @@ settings:
     SWIFT_EMIT_LOC_STRINGS: YES
   configs:
     Debug:
-      JIANWEI_API_BASE_URL: ""
+      JIANWEI_API_BASE_URL: "https://jianwei-api.yuqin.wang"
+      JIANWEI_DEVICE_BETA_EXPERIENCE: "YES"
     Release:
-      JIANWEI_API_BASE_URL: ""
+      JIANWEI_API_BASE_URL: "https://jianwei-api.yuqin.wang"
+      JIANWEI_DEVICE_BETA_EXPERIENCE: "YES"
 targets:
   Jianwei:
     type: application
@@ -31,6 +33,8 @@ targets:
     sources:
       - path: Jianwei
       - path: Shared
+      - path: ../knowledge/catalog.json
+        buildPhase: resources
       - path: StoreKit/Jianwei.storekit
         buildPhase: resources
     info:
@@ -46,12 +50,16 @@ targets:
           UIColorName: LaunchBackground
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-        NSPhotoLibraryUsageDescription: 见微会在设备上筛除人物、证件和高文字图片，只上传少量脱敏候选来生成与你照片有关的知识卡。
+        NSPhotoLibraryUsageDescription: 见微会先在本机筛除人物、证件和高文字图片，再用见微 AI 服务理解少量脱敏候选，生成与你照片有关的知识卡。
+        NSLocalNetworkUsageDescription: 仅在开发调试模式下，见微会连接同一网络中的本地测试服务。
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         BGTaskSchedulerPermittedIdentifiers:
           - cn.jianwei.ios.discovery
         UIBackgroundModes:
           - processing
         JianweiAPIBaseURL: $(JIANWEI_API_BASE_URL)
+        JianweiDeviceBetaExperience: $(JIANWEI_DEVICE_BETA_EXPERIENCE)
         JianweiMonthlyProductID: cn.jianwei.ios.pro.monthly
         CFBundleURLTypes:
           - CFBundleURLName: cn.jianwei.ios.card
@@ -72,7 +80,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
       configs:
         Release:
-          EXCLUDED_SOURCE_FILE_NAMES: Jianwei.storekit
+          EXCLUDED_SOURCE_FILE_NAMES: Jianwei.storekit StoreDemoAssets.xcassets
     dependencies:
       - target: JianweiWidget
         embed: true
@@ -157,6 +165,16 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: Jianwei
 schemes:
+  JianweiCore:
+    build:
+      targets:
+        Jianwei: all
+        JianweiWidget: all
+        JianweiTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - JianweiTests
   Jianwei:
     build:
       targets:

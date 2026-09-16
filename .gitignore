@@ -46,3 +46,10 @@ android/keystore.properties
 *.private.pem
 *.key.pem
 .secrets/
+.wrangler/
+.dev.vars
+.dev.vars.*
+*.p12
+*.p8
+*.mobileprovision
+*.ipa

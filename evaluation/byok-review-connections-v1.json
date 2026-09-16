@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "scope": "Assistant-authored connection regression derived from the failed public stapler output; not new AI generation, human review, or a release benchmark",
+  "cases": [
+    {
+      "id": "stapler-related-design",
+      "fileName": "web-018.jpg",
+      "sha256": "af6f9fc7bfca12fff3854d136fcd7802cc0c455fd2c4cefadae65de132b43eaf",
+      "subject": {"canonicalTopicId": "stapler", "displayName": "订书机"},
+      "candidates": [
+        {"subjectIndex": 0, "title": "有些订书机不打钉，也不打孔", "body": "无针订书机里有一种压合式设计：它把几张纸在局部压合，留下小小的压痕，就能将纸页固定在一起。装订不一定要让金属钉穿过纸张。"},
+        {"subjectIndex": 0, "title": "照片这台订书机不用金属钉", "body": "照片中的这台订书机采用无针压合式结构，把纸页局部压合就能固定在一起。它不需要装入金属钉，也不会在纸页上打出装订孔。"},
+        {"subjectIndex": 0, "title": "减少反光，竟要让反光互相抵消", "body": "镜头的减反射薄膜利用光的干涉：不同界面反射出的光波在一定条件下相互削弱。不是把光染黑吸掉，而是让更多光穿过镜片参与成像。"}
+      ],
+      "oracle": [
+        {"candidateIndex": 0, "expected": "accept", "dimension": "category", "reason": "Kokuyo说明压合式无针装订不打孔。文字明确讲同类替代设计，不断言图中PaperPro采用该设计；趣味是开发期编辑判断。", "sources": ["https://www.kokuyo.com/en/stationery/series/harinacs/press/"]},
+        {"candidateIndex": 1, "expected": "reject", "dimension": "instance", "reason": "主Agent查看脱敏原图：这是带金属钉轨道的PaperPro EVO，不是压合式无针产品。正文明确断言照片这台，不能用同类联想挽救。", "sources": []},
+        {"candidateIndex": 2, "expected": "reject", "dimension": "category", "reason": "照片只有订书机和桌面，没有相机镜头。即使知识本身成立，也不能把无关的光学镀膜话题当作订书机知识；此标签只检查联系。", "sources": []}
+      ]
+    }
+  ]
+}

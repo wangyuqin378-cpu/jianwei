@@ -1,5 +1,15 @@
 # 实现状态
 
+## 2026-09-17 最新源码同步
+
+当前 iOS 与 Cloudflare 源码、自动每日选卡、滚动七天缓存、BYOK/托管分流及回归工具已纳入本次同步；详见[同步内容与验收边界](SOURCE_SNAPSHOT_2026-09-17.md)。下方记录按历史日期保留，其中“当前状态”等表述仅适用于当时，不代表今天的部署、安装包或上架结论。
+
+## 2026-08-27 iOS 个人 BYOK Beta（当前状态）
+
+- 当前 iOS 路径已改为无自建后端的个人 Beta：用户的百炼 Qwen API Key 只保存在 Keychain，iPhone 将净化后的候选图通过 HTTPS 直接发送至固定版本 `qwen3.7-flash-2026-07-15`；识别结果只匹配 App 内置审核知识与来源。当前版本不需要 RDS、OSS、函数计算或 `JIANWEI_API_BASE_URL`。
+- 产品闭环为“每日完成 3 张未判断照片 → 每图最多 3 个可见知识锚点 → 逐项匹配审核事实 → 标记可用或穷尽不选 → 从当天与跨日可用库存中选 1 条 → 本地知识卡与 Widget”。严格 Schema、候选 ID、来源绑定、四维有趣度门槛和失败重试均有代码门禁。
+- 当前 BYOK 套件为 19/19（15 个单元测试、4 个 UI 流程），托管订阅展示与 BYOK 回退套件为 16/16，真实 Qwen 扫帚照片到 App/Widget 的托管链路为 1/1。当前 unsigned Release、三张 6.9 英寸商店截图、元数据、隐私清单与提交合同均为 GO；当前签名归档已安装并启动在 iPhone 12 Pro。TestFlight 仍为 NO_GO：`xcodebuild -exportArchive` 返回 `No Accounts`，尚未生成同时带 App 与 Widget App Store Distribution profiles 的 IPA。首个提交合同仍只发布 BYOK；真实订阅购买/恢复必须在后续托管服务与 TestFlight Sandbox 中复验。
+
 ## 2026-07-30 Beta.73 审核事实标题与卡片去重
 
 - 新生成卡优先从已审核事实中提取 8–30 字的首个完整短句作为标题；上下文依赖、过短或过长时回退到确定性模板，低置信度措辞不变。没有第二次模型调用，也没有目录外知识扩写。App 与 Glance 组件统一去掉正文中完全重复的标题前缀，详情标题使用中文 Heading 均衡断行；自动卡审计策略已升级为 `derived-ai-reviewed-card-v2`。

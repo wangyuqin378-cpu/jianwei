@@ -102,6 +102,8 @@ const cardScheduling = await readFile(path.join(root, "backend", "src", "domain"
 const postgresIntegrationTest = await readFile(path.join(root, "backend", "src", "postgres.integration.test.ts"), "utf8");
 const postgresIntegrationGate = await readFile(path.join(root, "scripts", "run-postgres-integration-windows.ps1"), "utf8");
 const postgresIntegrationMacGate = await readFile(path.join(root, "scripts", "run-postgres-integration-macos.sh"), "utf8");
+const iosWebPhotoEval = await readFile(path.join(root, "scripts", "run-ios-web-photo-eval.mjs"), "utf8");
+const dailyWinnerPanel = await readFile(path.join(root, "scripts", "run-daily-winner-panel.mjs"), "utf8");
 const remoteAnalysisClient = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "network", "RemoteAnalysisClient.kt"), "utf8");
 const androidApiClient = await readFile(path.join(root, "android", "data", "src", "main", "kotlin", "cn", "jianwei", "data", "network", "JianweiApi.kt"), "utf8");
 const authorizedEvaluationClient = await readFile(path.join(root, "android", "data", "src", "debug", "kotlin", "cn", "jianwei", "data", "network", "AuthorizedEvaluationAnalysisClient.kt"), "utf8");
@@ -1539,12 +1541,12 @@ check(
     dailyWidget.split("cardBodyForDisplay(card.title, card.body)").length - 1 === 2,
   "Reviewed fact headlines can repeat or erase the source-bound card body"
 );
-for (const marker of [
-  "const canonicalObjectName = topic.displayName",
-  "composeCardTitle(canonicalObjectName, selection.fact.factId, selection.fact.factText)",
-  "detectedObjectName: canonicalObjectName"
+for (const [label, pattern] of [
+  ["canonical name comes from the reviewed topic", /const\s+canonicalObjectName\s*=\s*topic\.displayName/],
+  ["fallback title uses the reviewed topic identity", /composeCardTitle\(\s*canonicalObjectName\s*,\s*selection\.fact\.factId\s*,\s*selection\.fact\.factText\s*\)/s],
+  ["published object name uses the reviewed topic identity", /detectedObjectName\s*:\s*canonicalObjectName/]
 ]) {
-  check(analysisService.includes(marker), `Analysis service does not use the reviewed topic identity consistently: ${marker}`);
+  check(pattern.test(analysisService), `Analysis service does not use the reviewed topic identity consistently: ${label}`);
 }
 check(
   !analysisService.includes("detectedObjectName: entity.displayName.trim()") &&
@@ -2442,10 +2444,25 @@ for (const marker of ["length: 32", "contiguous per-device days and repairs gaps
 for (const marker of ["--reporter=json", "numTotalTests", "tests=$tests", "cardScheduleConcurrency=1"]) {
   check(postgresIntegrationGate.includes(marker), `PostgreSQL gate does not bind dynamic scheduling test evidence: ${marker}`);
 }
-for (const marker of ["migrations=15", "tests=$TESTS", "detectedObjectMigration=1", "objectBoundsMigration=1", "feedbackContributionMigration=1", "BACKEND_E2E_DATABASE_URL", "schema_migrations", "processStopped=1", "releaseEvidence: false", "local_postgres_integration"]) {
+for (const marker of ["migrations=17", "tests=$TESTS", "detectedObjectMigration=1", "objectBoundsMigration=1", "feedbackContributionMigration=1", "managedDailySelectionCostReservation=1", "failedJobRetryCostReservation=1", "BACKEND_E2E_DATABASE_URL", "schema_migrations", "processStopped=1", "releaseEvidence: false", "local_postgres_integration"]) {
   check(postgresIntegrationMacGate.includes(marker), `macOS PostgreSQL gate is missing evidence marker: ${marker}`);
 }
-for (const marker of ["toBe(15)", "migration_013_upgrade_test", "migration_014_upgrade_test", "migration_015_upgrade_test", "旧卡片对象标题", "detectedObjectName).toBe(\"扫帚\")", "affinity_delta_applied"]) {
+check(
+  iosWebPhotoEval.includes("judgeReused: false") &&
+    !iosWebPhotoEval.includes("canReuseNoCardJudge") &&
+    !iosWebPhotoEval.includes("validateJudge(reusableResult.judge"),
+  "Web-photo evaluation must never reuse historical judge verdicts"
+);
+check(
+  dailyWinnerPanel.includes('"qwen3.7-plus-2026-05-26"') &&
+    dailyWinnerPanel.includes('optionalValue("--batch-size") ?? 3') &&
+    dailyWinnerPanel.includes("batchSize > 3") &&
+    dailyWinnerPanel.includes("applyDeterministicHardIssues(") &&
+    dailyWinnerPanel.includes('["通常", "一般", "往往", "常见情况下"]') &&
+    dailyWinnerPanel.includes('标题使用‘不是 X，而是 Y’时'),
+  "Catalog quality panel can drift away from the three-photo context, Plus review, or scope/contrast controls"
+);
+  for (const marker of ["toBe(17)", "migration_013_upgrade_test", "migration_014_upgrade_test", "migration_015_upgrade_test", "旧卡片对象标题", "detectedObjectName).toBe(\"扫帚\")", "affinity_delta_applied"]) {
   check(postgresIntegrationTest.includes(marker), `PostgreSQL migration-chain evidence is missing marker: ${marker}`);
 }
 check(backendServer.includes("loadBackendReleaseSha256") && backendServer.includes("backendReleaseSha256") && backendServer.includes("containerImageDigest: config.containerImageDigest"), "Backend readiness does not expose the validated Release and OCI identities");
@@ -2574,17 +2591,20 @@ check(
     iosSubmitBlock.indexOf("let access = try await preflightModelAccess()") <
       iosSubmitBlock.indexOf("let credentials = try await identity.credentials()") &&
     iosSubmitBlock.indexOf("let access = try await preflightModelAccess()") <
-      iosSubmitBlock.indexOf("let created = try await api.createJob("),
+      iosSubmitBlock.indexOf("let card = try await api.photoInsight("),
   "iOS can create an analysis job or upload a photo before model access is authorized"
 );
-const iosDiscoveryRunBlock = iosAppEnvironment.slice(
-  iosAppEnvironment.indexOf("func run(maximumCandidates: Int)"),
-  iosAppEnvironment.indexOf("private func selectDailyWinner(")
-);
+const iosDiscoveryRunStart = iosAppEnvironment.indexOf("actor AutomaticDiscoveryRunner");
+const iosDiscoveryRunEnd = iosAppEnvironment.indexOf("enum BackgroundDiscoveryController");
+const iosDiscoveryRunBlock = iosDiscoveryRunStart >= 0 && iosDiscoveryRunEnd > iosDiscoveryRunStart
+  ? iosAppEnvironment.slice(iosDiscoveryRunStart, iosDiscoveryRunEnd)
+  : "";
 check(
   iosDiscoveryRunBlock.indexOf("pipeline.preflightModelAccess()") >= 0 &&
+    iosDiscoveryRunBlock.includes("photoSource ?? environment.discovery") &&
+    iosDiscoveryRunBlock.indexOf("photoSource.recentAssets(") >= 0 &&
     iosDiscoveryRunBlock.indexOf("pipeline.preflightModelAccess()") <
-      iosDiscoveryRunBlock.indexOf("environment.discovery.authorizationState()"),
+      iosDiscoveryRunBlock.indexOf("photoSource.recentAssets("),
   "iOS automatic discovery can inspect the photo library before model access is authorized"
 );
 
@@ -2593,7 +2613,7 @@ process.stdout.write("EXPLICIT_OBJECT_IDENTITY_GATE=GO persisted=1 uncertainWord
 process.stdout.write("FIRST_CARD_COMMIT_METRIC_GATE=GO nonEmpty=1 afterRoomCommit=1 uiObservationRemoved=1 idempotent=1\n");
 process.stdout.write("PRIVACY_QUEUE_GATE=GO originIsolation=1 firstCardUniqueEligibleTarget=12 automaticInspectionCap=24 explicitInspectionCap=20\n");
 process.stdout.write("FIRST_CARD_DELIVERY_GATE=GO automaticFirstInstallImmediateSync=1 explicitImportImmediateSync=1 routineRefillBatchSync=1\n");
-process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 visibleFeedbackLearning=1 postFeedbackWrongCorrection=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 privacyStopVisible=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 registrationResponseBinding=1 deviceDeletionAcknowledgement=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 compactMissingPhoto=1 compactHomeChrome=1 editorialTabs=1 editorialKnowledgeSections=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 truthfulImportProgress=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 staleImportResultRecovery=1 contentAddressedImportIdentity=1 explicitReselectionRecovery=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 sourceTransparency=1 remoteCardPayloadValidation=1 wireResponseNullability=1 strictApiResponseBodies=1 cardCandidateOwnershipBinding=1 publicCardProjection=1 feedbackAffinityPayloadValidation=1 feedbackAcknowledgementBinding=1 feedbackTopicBinding=1 analysisJobResponseBinding=1 uploadAcknowledgementBinding=1 jobStatusResponseBinding=1 reminderAcknowledgementBinding=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewLaunchBatch=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
+process.stdout.write(`SOURCE_GUARDRAIL_GATE=GO files=${sourceFiles.length} placeholders=0 unscopedPromises=0 absolutePromises=0 clientCloudSecrets=0 evidencePrivacy=1 loopEngineer=1 kimiBudget=1 releaseConfigSeparated=1 formalReleaseVerifier=1 backendReleaseIdentity=1 containerImageBinding=1 deploymentReceiptBinding=1 authorizedImageRunner=1 boundedEvaluationLease=1 apkShaBinding=1 backendReleaseBinding=1 betaCohortProvenance=1 physicalDeviceProvenance=1 accessibilityProvenance=1 betaEvidenceAssembly=1 evidenceTrustRoot=1 assemblyAttestation=1 externalPolicyPin=1 threePartyKeySeparation=1 truthfulBetaMetrics=1 privateDeletionTransaction=1 persistentFeedbackState=1 visibleFeedbackLearning=1 postFeedbackWrongCorrection=1 wrongObjectTerminal=1 feedbackIdempotency=1 privateAffinityReplacement=1 pausedLocalActions=1 privacyStopVisible=1 truthfulSavedState=1 staleTokenDeleteRecovery=1 registrationResponseBinding=1 deviceDeletionAcknowledgement=1 crashSafeCloudDeletion=1 unresolvedCloudDeletion=1 destructiveConfirmation=1 privacyRetry=1 bitmapCleanup=1 ocrSensitiveNormalization=1 thumbnailBounds=1 compactMissingPhoto=1 compactHomeChrome=1 editorialTabs=1 editorialKnowledgeSections=1 atomicWidgetQuota=1 calendarDayWidgetRefresh=1 truthfulAnalysisState=1 analysisProgressScopeIsolation=1 truthfulImportProgress=1 workerCancellationPropagation=1 processingLeaseRetryCoverage=1 qualityBoundedSerendipity=1 threePhotoQualityPanel=1 canonicalCardIdentity=1 singleModelCallCardPipeline=1 qwenStructuredContract=1 qwenVerifierPrivacy=1 qwenGuardrailPreflight=1 strictCapturedAtBucket=1 widgetCacheExhaustion=1 futureCardCacheHidden=1 truthfulCardDates=1 independentHomeScroll=1 serializedUserOperations=1 sharedImportFlow=1 staleImportResultRecovery=1 contentAddressedImportIdentity=1 explicitReselectionRecovery=1 reversibleDiscoveryControl=1 widgetInstallCompletion=1 widgetSwitchAffordance=1 widgetLiveRefresh=1 widgetCardDeepLink=1 focusedCardEntry=1 reminderCardDeepLink=1 reminderCardPresence=1 userInterestControl=1 feedbackDrivenRefill=1 contiguousCardSchedule=1 safeKnowledgeSourceLinks=1 sourceTransparency=1 remoteCardPayloadValidation=1 wireResponseNullability=1 strictApiResponseBodies=1 cardCandidateOwnershipBinding=1 publicCardProjection=1 feedbackAffinityPayloadValidation=1 feedbackAcknowledgementBinding=1 feedbackTopicBinding=1 analysisJobResponseBinding=1 uploadAcknowledgementBinding=1 jobStatusResponseBinding=1 reminderAcknowledgementBinding=1 apiSchemaStructure=1 uploadStatusPreserved=1 staleUploadLeaseRecovery=1 authFailureCandidateRetention=1 finalJpegAppReject=1 localImportCleanup=1 cloudEvidenceVerifier=1 feedbackAckGuard=1 reminderConsent=1 reminderLifecycle=1 reminderOutbox=1 durableReminderScheduling=1 durableReminderCancellation=1 reminderPrivacyGuard=1 genericReminderContent=1 mediaStoreIncremental=1 mediaStoreRecencyBoundary=1 partialReconciliation=1 topicBatchAtomic=1 minimalTopicExtension=1 topicCorrectionAtomic=1 reviewQueueNoAuthority=1 reviewLaunchBatch=1 reviewWorkbench=1 reviewBatchAtomic=1 directReviewBypass=0 sourcePreflight=1 sourceRequestDnsPinning=1 sourceEvidenceResume=1 sourceInfrastructureFailurePreserved=1 contractGate=1 supplyGate=1 tcpE2EGate=1 postgresTcpE2EGate=1\n`);
 
 function check(condition, message) {
   if (!condition) failures.push(message);

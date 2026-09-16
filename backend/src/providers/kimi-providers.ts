@@ -95,7 +95,12 @@ async function callKimi(options: KimiOptions, messages: unknown[], responseForma
 export class KimiVisionProvider implements VisionProvider {
   constructor(private readonly options: KimiOptions) {}
 
-  async detect(input: { image: Buffer; imageUrl?: string; localLabels: string[] }): Promise<DetectedEntity> {
+  async detect(input: {
+    image: Buffer;
+    imageUrl?: string;
+    localLabels: string[];
+    preferredTopics?: string[];
+  }): Promise<DetectedEntity> {
     const imageUrl = input.imageUrl ?? `data:image/jpeg;base64,${input.image.toString("base64")}`;
     const raw = await callKimi(this.options, [{
       role: "user",
@@ -105,7 +110,8 @@ export class KimiVisionProvider implements VisionProvider {
           text: [
             "先检查图片是否含人脸/自拍、身份证件、银行卡、票据、文档、截图或高文字密度内容；命中时写入 sensitiveFlags。不要识别人、关系、情绪、健康或位置。",
             `端侧候选标签：${input.localLabels.join("、") || "无"}。`,
-            "只识别最适合讲日常知识的单个物件。返回 JSON：canonicalTopicId 使用简短英文 snake_case；displayName 中文；confidence 0-1；boundingBox 为 0-1 坐标或 null；alternatives 最多 5 个；sensitiveFlags 只能从 face,selfie,identity_document,bank_card,receipt,document,high_text_density,screenshot 中选择。"
+            `已有优质知识的主题：${input.preferredTopics?.slice(0, 80).join("、") || "无"}。只在主题物件清楚可见且能可靠确认时优先选择，不得为了命中列表猜测；若都不清楚，再选择其他最适合讲知识的物件。`,
+            "只识别一个完整物件；displayName 写到图片能确认的最具体子类型，无法在不同类别间可靠判断时 confidence 必须低于 0.6。返回 JSON：canonicalTopicId 使用简短英文 snake_case；displayName 中文；confidence 0-1；boundingBox 为 0-1 坐标或 null；alternatives 最多 5 个；sensitiveFlags 只能从 face,selfie,identity_document,bank_card,receipt,document,high_text_density,screenshot 中选择。"
           ].join("\n")
         },
         { type: "image_url", image_url: { url: imageUrl } }

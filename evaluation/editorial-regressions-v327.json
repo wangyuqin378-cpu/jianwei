@@ -1,0 +1,78 @@
+{
+  "version": "v327",
+  "purpose": "Judge calibration negatives from real public-photo pilots; do not embed in generation prompts or use as a release benchmark.",
+  "reviewer": "Codex main-agent review, not user acceptance or an independent human panel",
+  "requirements": ["Interestingness is not terminology substitution", "A high model score is not proof", "Title and body must preserve applicability and action order"],
+  "cases": [
+    {
+      "id": "semantic-not-surprise",
+      "run": "v327-baseline",
+      "photo": "web-049.jpg",
+      "pipelineReady": true,
+      "title": "玻璃原子排列并非无序而是随机",
+      "body": "玻璃常被误认为“无序”晶体，实则其原子呈随机排列。与晶体不同，穿过玻璃的直线被原子分割成不规则间隔，这种结构无法通过去除缺陷恢复为有序状态，是独立的非晶态固体。",
+      "expectedPublishable": false,
+      "reasons": ["术语区分被当成反直觉发现，十秒内难以复述", "原文的术语提议被写成既定共识；不能把研究提议当普遍事实", "主照片对象是回形针，背景材料判断不稳"]
+    },
+    {
+      "id": "mechanism-scope",
+      "run": "v327-questions",
+      "photo": "web-009.jpg",
+      "pipelineReady": true,
+      "title": "电饭煲跳闸靠的是磁铁失磁而非计时器",
+      "body": "煮饭时水温恒定100℃，水干后温度升高。当超过居里点，中心磁铁失去磁性，弹簧推开杠杆切断加热电路，自动转入保温。",
+      "expectedPublishable": false,
+      "reasons": ["可用的机制入口，但把特定磁控设计写成所有电饭煲", "水温恒定100℃没有保留条件/近似限定"]
+    },
+    {
+      "id": "action-order",
+      "run": "v327-questions",
+      "photo": "web-021.jpg",
+      "pipelineReady": false,
+      "title": "按压向下反让液体向上吸出",
+      "body": "泵头上升时活塞制造低压，像吸管般将皂液吸入腔体；下压时单向阀阻断回流，迫使液体经喷嘴排出。",
+      "expectedPublishable": false,
+      "reasons": ["标题混淆上升吸入和下压排出，正文正确也不能使标题正确", "此次证据审核正确拒绝，但趣味审核仍给高分"]
+    },
+    {
+      "id": "parts-are-not-universal",
+      "run": "v327-questions",
+      "photo": "web-021.jpg",
+      "pipelineReady": true,
+      "title": "出液嘴依赖内部小球防倒流",
+      "body": "出液嘴连接的泵体内藏有小球或蘑菇阀，下压时堵住底部通道防止皂液流回瓶底，确保每次只挤出定量的液体。",
+      "expectedPublishable": false,
+      "reasons": ["标题把特定阀结构当作出液嘴共性，正文自身又列出不同阀形式", "止回与精确定量不是同一个结论"]
+    },
+    {
+      "id": "explaining-is-not-contradicting",
+      "run": "v327-questions",
+      "photo": "web-049.jpg",
+      "pipelineReady": true,
+      "title": "回形针夹纸靠的是弹性产生的摩擦力",
+      "body": "回形针并非单纯“夹住”纸张，而是利用金属丝的弹性恢复力压紧纸面。这种压力在纸张间产生静摩擦力，从而抵抗重力防止滑落，其本质是弹簧力学与摩擦学的结合。",
+      "expectedPublishable": false,
+      "reasons": ["用物理术语解释夹持，却称为对夹持直觉的反驳", "没有具体意外细节，结尾只是学科名称堆叠"]
+    },
+    {
+      "id": "technical-summary",
+      "run": "v327-editorial",
+      "photo": "web-009.jpg",
+      "pipelineReady": true,
+      "title": "米饭粘性源于支链淀粉渗出",
+      "body": "煮饭时，米粒表面的支链淀粉分子会断裂并渗出到水中。这些渗出的短链分子在米粒间形成分子吸附，直接决定了米饭的粘糯口感，而非直链淀粉。",
+      "expectedPublishable": false,
+      "reasons": ["像论文摘要；普通用户需要先理解多个术语才能复述", "本例因表达质量不通过，不声称已完成全部分子机制的事实核验"]
+    },
+    {
+      "id": "ordinary-condensation",
+      "run": "v327-holdout",
+      "photo": "web-033.jpg",
+      "pipelineReady": true,
+      "title": "锅盖水珠源于温差冷凝",
+      "body": "锅盖内侧的水珠并非从食物中“渗出”，而是高温水蒸气遇到较冷的盖面时，微粒聚集并转化为液态水滴。这一过程依赖于盖面与蒸汽之间的显著温差。",
+      "expectedPublishable": false,
+      "reasons": ["基础凝结知识被包装成纠正用户误区，但没有证据表明普通人持有该误区", "错过照片明显的分隔和带孔结构，内容只是普通锅盖的百科说明"]
+    }
+  ]
+}

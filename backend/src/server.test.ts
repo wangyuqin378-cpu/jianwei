@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -164,13 +164,17 @@ it("ranks two owned knowledge cards with the request-scoped BYOK credential", as
   const directory = await temporaryObjectDir();
   let receivedKey: string | null = null;
   let candidateIDs: string[] = [];
+  let receivedPreferences: Array<{ topicId: string; weight: number }> = [];
+  let rankCalls = 0;
   const app = await buildServer({
     config: testConfig(directory),
     userDailyRankerFactory: (apiKey): DailyKnowledgeRanker => {
       receivedKey = apiKey;
       return {
-        async select(cards) {
+        async select(cards, topicPreferences) {
+          rankCalls += 1;
           candidateIDs = cards.map((card) => card.cardId);
+          receivedPreferences = topicPreferences ?? [];
           return { cardId: cards[1]!.cardId, reason: "第二条知识更具体，也更反直觉" };
         }
       };
@@ -179,6 +183,13 @@ it("ranks two owned knowledge cards with the request-scoped BYOK credential", as
   const token = await register(app);
   const first = await completeTestCard(app, token, CANDIDATE_ID);
   const second = await completeTestCard(app, token, SECOND_CANDIDATE_ID);
+  const feedback = await app.inject({
+    method: "POST",
+    url: `/v1/cards/${first.cardId}/feedback`,
+    headers: bearer(token),
+    payload: { action: "LIKE" }
+  });
+  expect(feedback.statusCode).toBe(201);
   const apiKey = "sk-test_12345678901234567890";
   const response = await app.inject({
     method: "POST",
@@ -193,13 +204,60 @@ it("ranks two owned knowledge cards with the request-scoped BYOK credential", as
   expect(response.statusCode).toBe(200);
   expect(receivedKey).toBe(apiKey);
   expect(candidateIDs).toEqual([first.cardId, second.cardId]);
+  expect(receivedPreferences).toEqual([
+    expect.objectContaining({ topicId: "broom", weight: 4 })
+  ]);
   expect(response.json()).toEqual({ cardId: second.cardId, reason: "第二条知识更具体，也更反直觉" });
   expect(response.body).not.toContain(apiKey);
+  const repeated = await app.inject({
+    method: "POST",
+    url: "/v1/cards/select-daily",
+    headers: bearer(token),
+    payload: {
+      cardIds: [first.cardId, second.cardId],
+      modelAccess: { mode: "user_key", provider: "qwen", apiKey }
+    }
+  });
+  expect(repeated.statusCode).toBe(200);
+  expect(repeated.json()).toEqual({ cardId: second.cardId, reason: "今天的选择已完成" });
+  expect(rankCalls).toBe(1);
   const remaining = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(token) });
   expect(remaining.json().items).toEqual([
     expect.objectContaining({ cardId: first.cardId, status: "archived" }),
     expect.objectContaining({ cardId: second.cardId, status: "scheduled" })
   ]);
+  await app.close();
+});
+
+it("charges managed daily ranking against the global model-cost fuse", async () => {
+  const directory = await temporaryObjectDir();
+  const config = testConfig(directory);
+  config.worstCaseCostMicroCnyPerJob = 1;
+  config.maxGlobalCostMicroCnyPerDay = 2;
+  config.maxGlobalCostMicroCnyPerMonth = 20;
+  let rankCalls = 0;
+  const app = await buildServer({
+    config,
+    dailyRanker: {
+      async select(cards) {
+        rankCalls += 1;
+        return { cardId: cards[0]!.cardId, reason: "测试选择" };
+      }
+    }
+  });
+  const token = await register(app);
+  const first = await completeTestCard(app, token, CANDIDATE_ID);
+  const second = await completeTestCard(app, token, SECOND_CANDIDATE_ID);
+  const response = await app.inject({
+    method: "POST",
+    url: "/v1/cards/select-daily",
+    headers: bearer(token),
+    payload: { cardIds: [first.cardId, second.cardId], modelAccess: { mode: "managed" } }
+  });
+
+  expect(response.statusCode).toBe(429);
+  expect(response.json().error.code).toBe("global_daily_cost_budget_exceeded");
+  expect(rankCalls).toBe(0);
   await app.close();
 });
 
@@ -642,6 +700,27 @@ describe("见微 API", () => {
         boundingBox: { x: 0.62, y: 0.08, width: 0.28, height: 0.84 },
         alternatives: ["扫帚"],
         sensitiveFlags: []
+      }),
+      understand: async () => ({
+        subjects: [
+          {
+            canonicalTopicId: "indoor_scene",
+            displayName: "室内空间",
+            confidence: 0.96,
+            boundingBox: null,
+            alternatives: [],
+            sensitiveFlags: []
+          },
+          {
+            canonicalTopicId: "broom",
+            displayName: "清扫刷",
+            confidence: 0.68,
+            boundingBox: { x: 0.62, y: 0.08, width: 0.28, height: 0.84 },
+            alternatives: ["扫帚"],
+            sensitiveFlags: []
+          }
+        ],
+        sensitiveFlags: []
       })
     };
     const app = await buildServer({ config: testConfig(objectDir), vision });
@@ -683,6 +762,84 @@ describe("见微 API", () => {
       boundingBox: { x: 0.62, y: 0.08, width: 0.28, height: 0.84 }
     });
     expect(await readdir(objectDir)).toEqual([]);
+    await app.close();
+  });
+
+  it("tries another reviewed fact when the first fact does not apply to the photo", async () => {
+    const objectDir = await temporaryObjectDir();
+    const catalogPath = path.join(objectDir, "catalog.json");
+    const catalog = JSON.parse(await readFile(new URL("../../knowledge/catalog.json", import.meta.url), "utf8"));
+    const broom = catalog.topics.find((topic: { topicId: string }) => topic.topicId === "broom");
+    const baseFact = broom.facts.find((fact: { reviewStatus?: string; riskLevel?: string }) =>
+      fact.reviewStatus === "approved" && fact.riskLevel === "general"
+    );
+    broom.facts = [
+      {
+        ...baseFact,
+        factId: "broom-photo-option-a",
+        factText: "第一条审核知识只适用于照片中能看清特殊刷毛连接结构的扫帚，此图不一定具备。",
+        cardTitle: "刷毛连接处藏着什么结构",
+        cardBody: "第一条审核知识只适用于照片中能看清特殊刷毛连接结构的扫帚，此图不一定具备。"
+      },
+      {
+        ...baseFact,
+        factId: "broom-photo-option-b",
+        factText: "第二条审核知识说明普通扫帚的斜向刷毛更容易贴近墙角，让边缘也能参与清扫。",
+        cardTitle: "斜向刷毛为什么更贴墙角",
+        cardBody: "第二条审核知识说明普通扫帚的斜向刷毛更容易贴近墙角，让边缘也能参与清扫。"
+      }
+    ];
+    await writeFile(catalogPath, JSON.stringify(catalog), "utf8");
+    const checkedFacts: string[] = [];
+    const vision: VisionProvider = {
+      detect: async () => ({
+        canonicalTopicId: "broom", displayName: "扫帚", confidence: 0.94,
+        boundingBox: null, alternatives: [], sensitiveFlags: []
+      }),
+      understand: async () => ({
+        subjects: [{
+          canonicalTopicId: "broom", displayName: "扫帚", confidence: 0.94,
+          boundingBox: null, alternatives: [], sensitiveFlags: []
+        }],
+        sensitiveFlags: []
+      }),
+      verifyKnowledgeCandidate: async ({ factText }) => {
+        checkedFacts.push(factText);
+        return { accepted: checkedFacts.length === 2, imageObject: "扫帚", reason: "测试核验" };
+      }
+    };
+    const app = await buildServer({ config: testConfig(objectDir), knowledgePath: catalogPath, vision });
+    const token = await register(app);
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: bearer(token),
+      payload: {
+        candidateToken: "126820f9-8f55-4f30-888c-d5baab090b53",
+        capturedAtBucket: null,
+        localLabels: ["broom"],
+        qualityScore: 0.9,
+        sensitiveFlags: [],
+        contentType: "image/jpeg"
+      }
+    });
+    await app.inject({
+      method: "PUT",
+      url: uploadPath(created.json().uploadUrl as string),
+      headers: { ...bearer(token), "content-type": "image/jpeg" },
+      payload: jpegPayload(8)
+    });
+    const completed = await app.inject({
+      method: "POST",
+      url: `/v1/analysis-jobs/${created.json().jobId as string}/complete`,
+      headers: bearer(token)
+    });
+
+    expect(completed.statusCode).toBe(200);
+    expect(checkedFacts).toHaveLength(2);
+    expect(checkedFacts[0]).toContain("第一条");
+    expect(checkedFacts[1]).toContain("第二条");
+    expect(completed.json().card.factId).toBe("broom-photo-option-b");
     await app.close();
   });
 
@@ -1226,6 +1383,7 @@ describe("见微 API", () => {
     const second = await app.inject({
       method: "POST",
       url: "/v1/devices/register",
+      headers: bearer(first.json().deviceToken as string),
       payload: { installationId: INSTALLATION_ID }
     });
     expect(first.json().deviceId).toBe(second.json().deviceId);
@@ -1253,20 +1411,47 @@ describe("见微 API", () => {
     await app.close();
   });
 
+  it("rejects installation credential takeover without proof of the current token", async () => {
+    const objectDir = await temporaryObjectDir();
+    const app = await buildServer({ config: testConfig(objectDir) });
+    const victimToken = await register(app, INSTALLATION_ID);
+    const attackerToken = await register(app, SECOND_INSTALLATION_ID);
+
+    const missingProof = await app.inject({
+      method: "POST",
+      url: "/v1/devices/register",
+      payload: { installationId: INSTALLATION_ID }
+    });
+    const wrongProof = await app.inject({
+      method: "POST",
+      url: "/v1/devices/register",
+      headers: bearer(attackerToken),
+      payload: { installationId: INSTALLATION_ID }
+    });
+
+    expect(missingProof.statusCode).toBe(401);
+    expect(missingProof.json().error.code).toBe("installation_binding_proof_required");
+    expect(wrongProof.statusCode).toBe(401);
+    expect(wrongProof.json().error.code).toBe("installation_binding_proof_required");
+    const victimStillWorks = await app.inject({
+      method: "GET",
+      url: "/v1/cards",
+      headers: bearer(victimToken)
+    });
+    expect(victimStillWorks.statusCode).toBe(200);
+    await app.close();
+  });
+
   it("keeps the minute rate-limit bucket across token rotation and returns 429", async () => {
     const objectDir = await temporaryObjectDir();
     const app = await buildServer({ config: testConfig(objectDir) });
     const firstToken = await register(app, INSTALLATION_ID);
 
-    for (let index = 0; index < 120; index += 1) {
+    for (let index = 0; index < 119; index += 1) {
       const response = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(firstToken) });
       expect(response.statusCode, `request ${index + 1}`).toBe(200);
     }
-    const limited = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(firstToken) });
-    expect(limited.statusCode).toBe(429);
-    expect(limited.json().error.code).toBe("rate_limit_exceeded");
-
-    const rotatedToken = await register(app, INSTALLATION_ID);
+    const rotatedToken = await register(app, INSTALLATION_ID, firstToken);
     expect(rotatedToken).not.toBe(firstToken);
     const afterRotation = await app.inject({ method: "GET", url: "/v1/cards", headers: bearer(rotatedToken) });
     expect(afterRotation.statusCode).toBe(429);
@@ -1294,6 +1479,38 @@ describe("见微 API", () => {
     });
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("invalid_request");
+    await app.close();
+  });
+
+  it("preserves Fastify client-error status codes instead of turning malformed input into 500", async () => {
+    const objectDir = await temporaryObjectDir();
+    const app = await buildServer({ config: testConfig(objectDir) });
+    const token = await register(app);
+    const malformed = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: { ...bearer(token), "content-type": "application/json" },
+      payload: "{\"candidateToken\":"
+    });
+    const unsupported = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: { ...bearer(token), "content-type": "application/xml" },
+      payload: "<candidate />"
+    });
+    const oversized = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: { ...bearer(token), "content-type": "application/json" },
+      payload: Buffer.alloc(3 * 1024 * 1024 + 1, 0x20)
+    });
+
+    expect(malformed.statusCode).toBe(400);
+    expect(malformed.json().error.code).toBe("invalid_request");
+    expect(unsupported.statusCode).toBe(415);
+    expect(unsupported.json().error.code).toBe("unsupported_media_type");
+    expect(oversized.statusCode).toBe(413);
+    expect(oversized.json().error.code).toBe("payload_too_large");
     await app.close();
   });
 
@@ -1384,6 +1601,60 @@ describe("见微 API", () => {
     expect(removedAgain.statusCode).toBe(201);
     expect(removedAgain.json().id).toBe(removed.json().id);
     expect(objects.deleteAttempts).toBe(2);
+    await app.close();
+  });
+
+  it("does not report device data deleted while an uploaded image deletion is pending", async () => {
+    const objectDir = await temporaryObjectDir();
+    class FailOnceDeleteStore extends LocalObjectStore {
+      deleteAttempts = 0;
+      override async delete(objectKey: string): Promise<void> {
+        this.deleteAttempts += 1;
+        if (this.deleteAttempts === 1) throw new Error("transient object deletion failure");
+        await super.delete(objectKey);
+      }
+    }
+    const objects = new FailOnceDeleteStore(objectDir, "http://127.0.0.1:8787", 24);
+    const app = await buildServer({ config: testConfig(objectDir), objects });
+    const token = await register(app);
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/analysis-jobs",
+      headers: bearer(token),
+      payload: {
+        candidateToken: CANDIDATE_ID,
+        capturedAtBucket: null,
+        localLabels: ["broom"],
+        qualityScore: 0.9,
+        sensitiveFlags: [],
+        contentType: "image/jpeg"
+      }
+    });
+    await app.inject({
+      method: "PUT",
+      url: uploadPath(created.json().uploadUrl as string),
+      headers: { ...bearer(token), "content-type": "image/jpeg" },
+      payload: jpegPayload(5)
+    });
+
+    const pending = await app.inject({
+      method: "DELETE",
+      url: "/v1/device-data",
+      headers: bearer(token)
+    });
+    expect(pending.statusCode).toBe(503);
+    expect(pending.json().error.code).toBe("object_deletion_pending");
+    expect(await readdir(objectDir)).toHaveLength(1);
+
+    const deleted = await app.inject({
+      method: "DELETE",
+      url: "/v1/device-data",
+      headers: bearer(token)
+    });
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.json().status).toBe("deleted");
+    expect(objects.deleteAttempts).toBe(2);
+    expect(await readdir(objectDir)).toEqual([]);
     await app.close();
   });
 
@@ -1554,11 +1825,13 @@ function jpegPayload(fill: number, size = 128): Buffer {
 
 async function register(
   app: Awaited<ReturnType<typeof buildServer>>,
-  installationId = INSTALLATION_ID
+  installationId = INSTALLATION_ID,
+  currentToken?: string
 ): Promise<string> {
   const response = await app.inject({
     method: "POST",
     url: "/v1/devices/register",
+    headers: currentToken ? bearer(currentToken) : undefined,
     payload: { installationId }
   });
   expect(response.statusCode).toBe(201);

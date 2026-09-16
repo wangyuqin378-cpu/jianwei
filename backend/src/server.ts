@@ -305,6 +305,20 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     if ((error as { statusCode?: unknown }).statusCode === 429) {
       return reply.status(429).send({ error: { code: "rate_limit_exceeded", message: "请求过于频繁，请稍后再试" } });
     }
+    const transportStatus = (error as { statusCode?: unknown }).statusCode;
+    if (typeof transportStatus === "number" && Number.isInteger(transportStatus) && transportStatus >= 400 && transportStatus < 500) {
+      const code = transportStatus === 413
+        ? "payload_too_large"
+        : transportStatus === 415
+          ? "unsupported_media_type"
+          : "invalid_request";
+      const message = transportStatus === 413
+        ? "请求内容过大"
+        : transportStatus === 415
+          ? "请求格式不受支持"
+          : "请求参数无效";
+      return reply.status(transportStatus).send({ error: { code, message } });
+    }
     app.log.error(error);
     return reply.status(500).send({ error: { code: "internal_error", message: "服务暂时不可用" } });
   });
@@ -334,8 +348,26 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
 
   app.post("/v1/devices/register", async (request, reply) => {
     const body = registerDeviceSchema.parse(request.body);
+    const installationHash = hashToken(body.installationId);
+    const existing = await devices.findByInstallationHash(installationHash);
+    if (existing) {
+      const authorization = request.headers.authorization;
+      const currentToken = authorization?.startsWith("Bearer ")
+        ? authorization.slice("Bearer ".length).trim()
+        : "";
+      const currentDevice = currentToken
+        ? await devices.findByTokenHash(hashToken(currentToken))
+        : null;
+      if (!currentDevice || currentDevice.id !== existing.id) {
+        throw new AppError(
+          "installation_binding_proof_required",
+          "该安装身份已存在，更新凭证需要当前设备令牌",
+          401
+        );
+      }
+    }
     const deviceToken = randomBytes(32).toString("base64url");
-    const device = await devices.register(hashToken(body.installationId), hashToken(deviceToken));
+    const device = await devices.register(installationHash, hashToken(deviceToken));
     return reply.status(201).send({
       deviceId: device.id,
       deviceToken,
@@ -437,15 +469,52 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
     if (candidates.some((card) => !card || card.deviceId !== device.id)) {
       throw new AppError("card_not_found", "候选知识卡不存在", 404);
     }
-    const selected = await (body.modelAccess.mode === "user_key"
-      ? userDailyRankerFactory(body.modelAccess.apiKey)
-      : dailyRanker
-    ).select(candidates as KnowledgeCard[]);
-    if (!body.cardIds.includes(selected.cardId)) {
-      throw new AppError("invalid_model_output", "AI 返回了候选范围之外的卡片", 502);
+    const ownedCards = candidates as KnowledgeCard[];
+    const alreadySelected = ownedCards.filter((card) => card.status !== "archived");
+    if (alreadySelected.length === 1) {
+      return reply.send({ cardId: alreadySelected[0]!.cardId, reason: "今天的选择已完成" });
     }
-    await cards.archiveUnselected(device.id, body.cardIds, selected.cardId);
-    return reply.send(selected);
+    let inferenceOperationKey: string | null = null;
+    if (body.modelAccess.mode === "managed") {
+      inferenceOperationKey = createHash("sha256")
+        .update(`daily-selection\0${device.id}\0${[...body.cardIds].sort().join("\0")}`)
+        .digest("hex");
+      const budgetNow = new Date();
+      const reservation = await jobs.reserveInferenceCost(
+        inferenceOperationKey,
+        config.worstCaseCostMicroCnyPerJob,
+        config.maxGlobalCostMicroCnyPerDay,
+        config.maxGlobalCostMicroCnyPerMonth,
+        new Date(budgetNow.getTime() - 24 * 60 * 60 * 1000).toISOString(),
+        new Date(Date.UTC(budgetNow.getUTCFullYear(), budgetNow.getUTCMonth(), 1)).toISOString()
+      );
+      if (reservation.status === "existing") {
+        throw new AppError("daily_selection_in_progress", "今天的知识选择正在完成", 409);
+      }
+      if (reservation.status === "global_daily_cost_exceeded") {
+        throw new AppError("global_daily_cost_budget_exceeded", "Service daily model-cost budget is exhausted", 429);
+      }
+      if (reservation.status === "global_monthly_cost_exceeded") {
+        throw new AppError("global_monthly_cost_budget_exceeded", "Service monthly model-cost budget is exhausted", 429);
+      }
+    }
+    try {
+      const topicPreferences = await cards.listPreferences(device.id);
+      const selected = await (body.modelAccess.mode === "user_key"
+        ? userDailyRankerFactory(body.modelAccess.apiKey)
+        : dailyRanker
+      ).select(ownedCards, topicPreferences);
+      if (!body.cardIds.includes(selected.cardId)) {
+        throw new AppError("invalid_model_output", "AI 返回了候选范围之外的卡片", 502);
+      }
+      await cards.archiveUnselected(device.id, body.cardIds, selected.cardId);
+      return reply.send(selected);
+    } catch (error) {
+      if (inferenceOperationKey) {
+        await jobs.releaseInferenceOperationKey(inferenceOperationKey);
+      }
+      throw error;
+    }
   });
 
   app.post("/v1/cards/:id/feedback", async (request, reply) => {
@@ -515,7 +584,14 @@ export async function buildServer(overrides: ServerOverrides = {}): Promise<Fast
   app.delete("/v1/device-data", async (request, reply) => {
     const device = await authenticate(request);
     const keys = await jobs.listObjectKeys(device.id);
-    await Promise.all(keys.map((key) => analysis.deleteOrQueueObject(key)));
+    const deletionResults = await Promise.all(keys.map((key) => analysis.deleteOrQueueObject(key)));
+    if (deletionResults.some((deleted) => !deleted)) {
+      throw new AppError(
+        "object_deletion_pending",
+        "云端图片删除仍在重试，请稍后再次删除设备数据",
+        503
+      );
+    }
     await devices.deleteCascade(device.id);
     return reply.send({ deviceId: device.id, status: "deleted" });
   });

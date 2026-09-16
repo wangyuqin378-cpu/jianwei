@@ -1,20 +1,15 @@
 import SwiftUI
 
-private enum StartChoice {
-    case automatic
-    case selectedOnly
-}
-
 struct OnboardingView: View {
     @Environment(AppModel.self) private var model
     @State private var page: Int
-    @State private var choice: StartChoice = .automatic
     @State private var interests = Set<KnowledgeInterest>([
         .everydayDesign,
         .objectHistory,
         .science
     ])
     @State private var qwenAPIKey = ""
+    @FocusState private var keyFieldFocused: Bool
     @State private var preparationMode: AutomaticPreparationMode = .dailySingle
 
     init() {
@@ -108,7 +103,7 @@ struct OnboardingView: View {
                 .frame(height: 220)
                 VStack(alignment: .leading, spacing: 6) {
                     PillLabel(icon: "viewfinder", text: "照片里的扫帚")
-                    Text("扫帚为什么总有一点斜？")
+                    Text("扫帚刷毛做成斜扇形，是为了更贴近墙角")
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.24), radius: 8, y: 2)
@@ -116,7 +111,7 @@ struct OnboardingView: View {
                 .padding(18)
             }
             VStack(alignment: .leading, spacing: 10) {
-                Text("略带角度的扇形刷毛，更容易贴近墙角和家具边缘。")
+                Text("有些扫帚把刷毛做成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。")
                     .font(.body)
                     .foregroundStyle(JianweiBrand.ink)
                     .lineSpacing(3)
@@ -129,7 +124,7 @@ struct OnboardingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .jianweiCard(cornerRadius: 26)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("示例知识卡：扫帚为什么总有一点斜")
+        .accessibilityLabel("示例知识卡：扫帚刷毛做成斜扇形，是为了更贴近墙角")
     }
 
     private var privacyPage: some View {
@@ -140,7 +135,7 @@ struct OnboardingView: View {
                         .font(.system(size: 39, weight: .bold, design: .serif))
                         .tracking(-0.7)
                         .foregroundStyle(JianweiBrand.ink)
-                    Text("人物、证件、截图和高文字密度图片不会上传。只有少量合适候选会被压缩并清除元数据。")
+                    Text("先排除检测到的人物、证件、截图和高文字密度图片，再压缩少量合适候选并清除元数据。自动检测可能有误，你可以随时暂停分析。")
                         .font(.title3)
                         .foregroundStyle(.secondary)
                         .lineSpacing(4)
@@ -157,20 +152,20 @@ struct OnboardingView: View {
                     privacyRow(
                         number: "02",
                         icon: "wand.and.stars.inverse",
-                        title: "只上传候选",
-                        detail: "长边缩至 1280 px，并移除 GPS、设备和文件信息"
+                        title: "只发送候选",
+                        detail: "长边缩至 1280 px，移除元数据后发送给你所选的 AI 服务"
                     )
                     Divider().padding(.leading, 64)
                     privacyRow(
                         number: "03",
                         icon: "trash.slash",
-                        title: "不建立云端相册",
-                        detail: "图片分析后删除；卡片只保留脱敏缩略图"
+                        title: "见微不建立云端相册",
+                        detail: "原图不长期上云；只在本机保留展示所需的脱敏缩略图"
                     )
                 }
                 .jianweiCard()
 
-                Label("拒绝相册权限后，仍可只选一张照片", systemImage: "hand.raised.fill")
+                Label("拒绝相册权限后不会读取或发送任何照片，可随时在系统设置中重新开启", systemImage: "hand.raised.fill")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(JianweiBrand.forest)
             }
@@ -213,46 +208,30 @@ struct OnboardingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("选择你的开始方式")
+                    Text("每天替你选出一条")
                         .font(.system(size: 34, weight: .bold, design: .serif))
                         .tracking(-0.5)
                         .foregroundStyle(JianweiBrand.ink)
-                    Text("两种方式随时可以在设置里切换。")
+                    Text("见微会自动寻找未处理照片。为每一天准备内容时，最多交给 AI 9 张；找到 3 条合格知识后，选出最好的一条。")
                         .font(.body)
                         .foregroundStyle(.secondary)
                 }
 
-                choiceCard(
-                    value: .automatic,
-                    title: "自动发现",
-                    badge: "推荐",
-                    detail: "读取最近 90 天、最多 500 张照片；本机筛选后只处理少量候选。",
-                    icon: "photo.stack.fill"
+                onboardingSectionTitle("1", "自动发现")
+                Label(
+                    "优先读取最近 90 天的照片；候选不足时再从更早照片继续，最多查看 500 张。先在本机筛选，再发送脱敏候选。先准备今天，再补齐未来 6 天；首次补齐一周最多分析 63 张。",
+                    systemImage: "photo.stack.fill"
                 )
-                if choice == .automatic {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("每天三选一")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        Text("从未处理过的照片中找出 3 张合适候选，用 AI 分别判断知识潜力，只展示其中最有趣的一条。")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 4)
-                }
-                choiceCard(
-                    value: .selectedOnly,
-                    title: "仅选择照片",
-                    badge: nil,
-                    detail: "不开放持续访问。每次由你通过系统照片选择器明确选择。",
-                    icon: "photo.badge.plus"
-                )
+                .font(.subheadline)
+                .foregroundStyle(JianweiBrand.forest)
+                .padding(16)
+                .jianweiCard(cornerRadius: 20)
 
-                modelAccessCard
+                onboardingSectionTitle("2", "选择感兴趣的方向")
 
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("先选 3 个兴趣")
+                        Text("至少保留 3 个")
                             .font(.headline)
                             .foregroundStyle(JianweiBrand.ink)
                         Spacer()
@@ -291,6 +270,9 @@ struct OnboardingView: View {
                     }
                 }
                 .padding(.top, 4)
+
+                onboardingSectionTitle("3", "准备 AI 服务")
+                modelAccessCard
             }
             .padding(.horizontal, 22)
             .padding(.top, 18)
@@ -299,77 +281,61 @@ struct OnboardingView: View {
         .scrollIndicators(.hidden)
     }
 
-    private func choiceCard(
-        value: StartChoice,
-        title: String,
-        badge: String?,
-        detail: String,
-        icon: String
-    ) -> some View {
-        Button {
-            choice = value
-        } label: {
-            HStack(alignment: .top, spacing: 14) {
-                Image(systemName: icon)
-                    .font(.title2.weight(.medium))
-                    .foregroundStyle(choice == value ? Color.white : JianweiBrand.forest)
-                    .frame(width: 48, height: 48)
-                    .background(
-                        choice == value ? JianweiBrand.forest : JianweiBrand.forest.opacity(0.10),
-                        in: RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    )
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack(spacing: 8) {
-                        Text(title)
-                            .font(.headline)
-                            .foregroundStyle(JianweiBrand.ink)
-                        if let badge {
-                            Text(badge)
-                                .font(.caption2.weight(.bold))
-                                .foregroundStyle(JianweiBrand.rust)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 4)
-                                .background(JianweiBrand.rust.opacity(0.10), in: Capsule())
-                        }
-                    }
-                    Text(detail)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                        .lineSpacing(2)
-                }
-                Spacer(minLength: 0)
-                Image(systemName: choice == value ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(
-                        choice == value ? JianweiBrand.forest : Color.secondary.opacity(0.45)
-                    )
-            }
-            .padding(16)
-            .background(JianweiBrand.surface, in: RoundedRectangle(cornerRadius: 21, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 21, style: .continuous)
-                    .stroke(choice == value ? JianweiBrand.forest : JianweiBrand.ink.opacity(0.06), lineWidth: 1.5)
-            }
+    private func onboardingSectionTitle(_ number: String, _ title: String) -> some View {
+        HStack(spacing: 9) {
+            Text(number)
+                .font(.caption.monospacedDigit().weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 24, height: 24)
+                .background(JianweiBrand.forest, in: Circle())
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(JianweiBrand.ink)
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(choice == value ? .isSelected : [])
+        .padding(.top, 2)
+        .accessibilityElement(children: .combine)
     }
 
     private var modelAccessCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("选择 AI 服务")
+                Text(model.modelAccessReady ? "AI 服务已准备好" : "选择 AI 服务")
                     .font(.headline)
                     .foregroundStyle(JianweiBrand.ink)
-                Text("AI 会理解每天 3 张候选照片，只发布最有趣的一条知识。")
+                Text("每个待准备日期最多分析 9 张新照片；每张都会尝试多个可见物件和知识角度，找到 3 条合格知识便停止。已备好的日期不会重复分析。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            if model.managedSubscriptionState == .subscribed {
-                Label("见微 Pro 已开通", systemImage: "checkmark.seal.fill")
+            if model.deviceBetaExperienceEnabled && model.managedServiceAvailable {
+                if model.modelAccessMode == .managed {
+                    Label("现有 AI 已配置，无需填写内容或 Key", systemImage: "checkmark.seal.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(JianweiBrand.forest)
+                    Text("完成授权后会直接开始自动准备。")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button("使用见微体验服务") {
+                        Task { await model.useManagedModelService() }
+                    }
+                    .disabled(model.isWorking)
+                }
+            } else if !model.managedServiceAvailable {
+                Label("个人 Beta · 使用自己的 Qwen Key", systemImage: "iphone.and.arrow.forward")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(JianweiBrand.forest)
+            } else if model.managedSubscriptionState == .subscribed {
+                if model.modelAccessMode == .managed {
+                    Label("见微 Pro 已开通", systemImage: "checkmark.seal.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(JianweiBrand.forest)
+                } else {
+                    Button("使用已订阅的见微 Pro") {
+                        Task { await model.useManagedModelService() }
+                    }
+                    .disabled(model.isWorking)
+                }
             } else {
                 Button {
                     Task { await model.purchaseManagedModelService() }
@@ -381,7 +347,7 @@ struct OnboardingView: View {
                 .tint(JianweiBrand.forest)
                 .disabled(model.isWorking || model.managedSubscriptionState == .productUnavailable)
 
-                Text("按月自动续订；每天最多分析 3 张并发布 1 条，每自然月最多 31 条。可随时在 App Store 取消。")
+                Text("按月自动续订；每天展示 1 条。每个待准备日期最多分析 9 张照片，并提前缓存今天及未来 6 天。可随时在 App Store 取消。")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
 
@@ -398,42 +364,10 @@ struct OnboardingView: View {
                 .font(.caption)
             }
 
-            HStack {
-                Rectangle()
-                    .fill(JianweiBrand.ink.opacity(0.08))
-                    .frame(height: 1)
-                Text("或者使用自己的 Qwen Key")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
-                Rectangle()
-                    .fill(JianweiBrand.ink.opacity(0.08))
-                    .frame(height: 1)
-            }
-
-            if model.hasQwenAPIKey {
-                Label("本机 Qwen Key 已配置", systemImage: "key.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(JianweiBrand.forest)
+            if model.modelAccessMode == .qwenUserKey || !model.managedServiceAvailable {
+                qwenKeyControls
             } else {
-                SecureField("粘贴百炼 Qwen API Key", text: $qwenAPIKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .privacySensitive()
-                    .textFieldStyle(.roundedBorder)
-
-                Button("保存并使用自己的 Key") {
-                    let value = qwenAPIKey
-                    qwenAPIKey = ""
-                    Task { await model.saveAndUseQwenAPIKey(value) }
-                }
-                .buttonStyle(.bordered)
-                .tint(JianweiBrand.forest)
-                .disabled(qwenAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
-                Text("Key 只保存在本机 Keychain；分析时通过加密连接单次使用，服务端不保存。")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                DisclosureGroup("使用自己的 Qwen Key") { qwenKeyControls }
             }
 
             if let message = model.message {
@@ -451,8 +385,46 @@ struct OnboardingView: View {
         }
     }
 
+    @ViewBuilder
+    private var qwenKeyControls: some View {
+        if model.hasQwenAPIKey {
+            Label("本机 Qwen Key 已配置", systemImage: "key.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(JianweiBrand.forest)
+            if model.modelAccessMode != .qwenUserKey {
+                Button("使用已保存的 Qwen Key") {
+                    Task { await model.useSavedQwenAPIKey() }
+                }
+                .disabled(model.isWorking)
+            }
+        } else {
+            SecureField("粘贴百炼 Qwen API Key", text: $qwenAPIKey)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .privacySensitive()
+                .focused($keyFieldFocused)
+                .submitLabel(.done)
+                .onSubmit { keyFieldFocused = false }
+                .textFieldStyle(.roundedBorder)
+
+            Button("保存并使用自己的 Key") {
+                keyFieldFocused = false
+                let value = qwenAPIKey
+                qwenAPIKey = ""
+                Task { await model.saveAndUseQwenAPIKey(value) }
+            }
+            .buttonStyle(.bordered)
+            .tint(JianweiBrand.forest)
+            .disabled(model.isWorking || qwenAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+        }
+        Text("Key 只保存在本机；照片直连百炼，不经过见微服务器。不代开或要求联网搜索，AI 可用已有知识生成并标注未联网核实，费用计入自己的百炼账号。")
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+    }
+
     private var hasConfiguredModelAccess: Bool {
-        model.managedSubscriptionState == .subscribed || model.hasQwenAPIKey
+        model.modelAccessReady
     }
 
     private var subscriptionButtonTitle: String {
@@ -480,7 +452,7 @@ struct OnboardingView: View {
                 } else {
                     Task {
                         await model.finishOnboarding(
-                            automatic: choice == .automatic,
+                            automatic: true,
                             interests: interests,
                             preparationMode: preparationMode
                         )
@@ -488,9 +460,7 @@ struct OnboardingView: View {
                 }
             } label: {
                 HStack {
-                    Text(page < 2
-                        ? "继续"
-                        : choice == .automatic ? "开启自动发现" : "开始选择照片")
+                    Text(page < 2 ? "继续" : "授权并开始自动发现")
                     Spacer()
                     Image(systemName: page < 2 ? "arrow.right" : "sparkles")
                 }

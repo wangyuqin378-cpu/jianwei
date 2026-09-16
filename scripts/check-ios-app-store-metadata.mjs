@@ -36,11 +36,14 @@ for (const name of ["supportURL", "marketingURL", "privacyPolicyURL"]) {
   }
 }
 if (metadata.supportURL === metadata.privacyPolicyURL) failures.push("support and privacy URLs must be distinct");
-if (!metadata.description.includes("3 张") || !metadata.description.includes("1 条")) {
-  failures.push("description must state the implemented daily 3-to-1 limit");
+if (!metadata.description.includes("最多送给 AI 9 张") ||
+    !metadata.description.includes("最多 3 条合格知识") ||
+    !metadata.description.includes("最好的一条")) {
+  failures.push("description must state the implemented nine-photo, three-candidate, one-winner limit");
 }
-if (!metadata.description.includes("Qwen API Key") || !metadata.description.includes("见微 Pro")) {
-  failures.push("description must disclose both AI access modes");
+if (!metadata.description.includes("无需填写 API Key") ||
+    !metadata.description.includes("不长期保存原图")) {
+  failures.push("description must disclose the managed AI and image-retention path");
 }
 
 const decodedManifest = spawnSync(
@@ -70,12 +73,15 @@ if (!privacyManifest) {
       "NSPrivacyCollectedDataTypePurposeAppFunctionality",
       "NSPrivacyCollectedDataTypePurposeProductPersonalization"
     ])],
+    ["NSPrivacyCollectedDataTypeOtherUserContent", new Set([
+      "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+      "NSPrivacyCollectedDataTypePurposeProductPersonalization"
+    ])],
     ["NSPrivacyCollectedDataTypeDeviceID", new Set([
       "NSPrivacyCollectedDataTypePurposeAppFunctionality"
     ])],
-    ["NSPrivacyCollectedDataTypeProductInteraction", new Set([
-      "NSPrivacyCollectedDataTypePurposeAppFunctionality",
-      "NSPrivacyCollectedDataTypePurposeProductPersonalization"
+    ["NSPrivacyCollectedDataTypeOtherUsageData", new Set([
+      "NSPrivacyCollectedDataTypePurposeAppFunctionality"
     ])]
   ]);
   const collected = Array.isArray(privacyManifest.NSPrivacyCollectedDataTypes)

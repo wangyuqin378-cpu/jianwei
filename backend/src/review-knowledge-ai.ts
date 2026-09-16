@@ -8,6 +8,7 @@ import { knowledgeCatalogSchema } from "./domain/schemas.js";
 import type { KnowledgeCatalog } from "./domain/types.js";
 import { isMainModule } from "./main-module.js";
 import {
+  AI_REVIEW_REASON_CODES,
   applyAiReviewDecisions,
   buildAiReviewMessages,
   deterministicAiReviewDecision,
@@ -24,6 +25,7 @@ interface Arguments {
   outputFile: string;
   nextVersion: string | null;
   limit: number | null;
+  factIds: string[];
   write: boolean;
 }
 
@@ -58,6 +60,7 @@ export function parseArguments(args: string[], now = new Date()): Arguments {
   );
   let nextVersion: string | null = null;
   let limit: number | null = 20;
+  const factIds: string[] = [];
   let write = false;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -68,6 +71,7 @@ export function parseArguments(args: string[], now = new Date()): Arguments {
     else if (argument === "--next-version") nextVersion = args[++index] ?? "";
     else if (argument === "--limit") limit = Number(args[++index]);
     else if (argument === "--all") limit = null;
+    else if (argument === "--fact-id") factIds.push(args[++index] ?? "");
     else if (argument === "--write") write = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
@@ -75,6 +79,10 @@ export function parseArguments(args: string[], now = new Date()): Arguments {
   if (!catalogFile || !outputFile) throw new Error("Catalog and output paths are required");
   if (limit !== null && (!Number.isSafeInteger(limit) || limit < 1 || limit > 600)) {
     throw new Error("--limit must be an integer from 1 to 600");
+  }
+  if (factIds.some((factId) => !/^[a-z0-9][a-z0-9-]{2,127}$/.test(factId)) ||
+      new Set(factIds).size !== factIds.length) {
+    throw new Error("--fact-id must be a unique lowercase fact ID");
   }
   if (write && (!nextVersion || !nextVersion.trim())) throw new Error("--next-version is required with --write");
   if (!write && nextVersion) throw new Error("--next-version is only valid with --write");
@@ -84,6 +92,7 @@ export function parseArguments(args: string[], now = new Date()): Arguments {
     outputFile: path.resolve(outputFile),
     nextVersion,
     limit,
+    factIds,
     write
   };
 }
@@ -122,7 +131,15 @@ async function main(): Promise<void> {
     MAX_GLOBAL_COST_MICRO_CNY_PER_DAY: "2000000000",
     MAX_GLOBAL_COST_MICRO_CNY_PER_MONTH: "50000000000"
   });
-  const available = selectAiReviewCandidates(catalog);
+  const allAvailable = selectAiReviewCandidates(catalog);
+  const available = args.factIds.length
+    ? allAvailable.filter((candidate) => args.factIds.includes(candidate.factId))
+    : allAvailable;
+  if (args.factIds.length && available.length !== args.factIds.length) {
+    const availableIds = new Set(available.map((candidate) => candidate.factId));
+    const missing = args.factIds.filter((factId) => !availableIds.has(factId));
+    throw new Error(`Requested facts are not eligible for AI review: ${missing.join(",")}`);
+  }
   const selectedCandidates = args.limit === null ? available : available.slice(0, args.limit);
   if (selectedCandidates.length === 0) throw new Error("No eligible general knowledge facts require AI review");
   const selectionDigest = sha256(JSON.stringify(selectedCandidates));
@@ -313,6 +330,7 @@ async function reviewBatch({
 }): Promise<{ decisions: AiReviewDecision[]; usage: Usage }> {
   let lastStatus = 0;
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
+  const messages = buildAiReviewMessages(candidates);
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -323,13 +341,45 @@ async function reviewBatch({
       },
       body: JSON.stringify({
         model,
-        messages: buildAiReviewMessages(candidates),
+        messages,
         enable_thinking: false,
-        response_format: { type: "json_object" },
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "knowledge_review_decisions",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                decisions: {
+                  type: "array",
+                  minItems: candidates.length,
+                  maxItems: candidates.length,
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      factId: { type: "string", enum: candidates.map((candidate) => candidate.factId) },
+                      decision: { type: "string", enum: ["approved", "rejected"] },
+                      reasonCode: { type: "string", enum: [...AI_REVIEW_REASON_CODES] },
+                      note: { type: "string", maxLength: 160 }
+                    },
+                    required: ["factId", "decision", "reasonCode", "note"]
+                  }
+                }
+              },
+              required: ["decisions"]
+            }
+          }
+        },
         temperature: 0
       }),
       redirect: "error",
-      signal: AbortSignal.timeout(30_000)
+      // Model Studio can spend more than a minute applying structured-output
+      // constraints even for a small batch. Keep this offline review path
+      // bounded, but do not turn a slow valid review into a false failure.
+      signal: AbortSignal.timeout(180_000)
     });
     lastStatus = response.status;
     if (response.ok) {
@@ -345,6 +395,14 @@ async function reviewBatch({
         return { decisions: parseAiReviewResponse(content, candidates), usage };
       } catch (error) {
         if (attempt === 2) throw error;
+        messages.push({
+          role: "user",
+          content: [
+            "上一条 JSON 不符合规定。请重新返回完整 decisions 数组。",
+            "decision 只能逐字使用 approved 或 rejected；reasonCode 只能逐字使用系统消息列出的英文枚举。",
+            "不得翻译、缩写、增加状态，也不得遗漏任何 factId。"
+          ].join("\n")
+        });
         continue;
       }
     }

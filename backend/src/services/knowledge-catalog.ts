@@ -45,17 +45,41 @@ export class KnowledgeCatalogService {
     return best?.topic ?? null;
   }
 
+  preferredDetectionTopics(limit = 80): string[] {
+    return this.catalog.topics
+      .filter((topic) => topic.facts.some((fact) =>
+        fact.riskLevel === "general" && fact.reviewStatus === "approved" &&
+        fact.cardQualityStatus === "approved" && fact.cardTitle !== undefined && fact.cardBody !== undefined &&
+        (fact.review !== undefined || fact.aiReview?.decision === "approved")
+      ))
+      .map((topic) => `${topic.topicId}=${topic.displayName}`)
+      .sort()
+      .slice(0, limit);
+  }
+
   selectApprovedFact(
     topic: KnowledgeTopic,
     seed: string,
     allowUnattested = false,
     recentFactIds: readonly string[] = []
   ): { fact: KnowledgeFact; sources: KnowledgeSource[] } | null {
+    return this.selectApprovedFacts(topic, seed, allowUnattested, recentFactIds)[0] ?? null;
+  }
+
+  selectApprovedFacts(
+    topic: KnowledgeTopic,
+    seed: string,
+    allowUnattested = false,
+    recentFactIds: readonly string[] = []
+  ): Array<{ fact: KnowledgeFact; sources: KnowledgeSource[] }> {
     const facts = topic.facts.filter((fact) =>
       fact.riskLevel === "general" && fact.reviewStatus === "approved" &&
+      (allowUnattested || (
+        fact.cardQualityStatus === "approved" && fact.cardTitle !== undefined && fact.cardBody !== undefined
+      )) &&
       (allowUnattested || fact.review !== undefined || fact.aiReview?.decision === "approved")
     );
-    if (!facts.length) return null;
+    if (!facts.length) return [];
     const recent = [...new Set(recentFactIds)];
     const recentSet = new Set(recent);
     const unseenFacts = facts.filter((fact) => !recentSet.has(fact.factId));
@@ -69,9 +93,12 @@ export class KnowledgeCatalogService {
           return rightAge - leftAge;
         });
     const hash = [...seed].reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0);
-    const fact = pool[unseenFacts.length > 0 ? hash % pool.length : 0] as KnowledgeFact;
-    const sources = fact.sourceIds.map((id) => this.sourcesById.get(id)).filter(Boolean) as KnowledgeSource[];
-    return { fact, sources };
+    const start = unseenFacts.length > 0 ? hash % pool.length : 0;
+    const ordered = [...pool.slice(start), ...pool.slice(0, start)];
+    return ordered.map((fact) => ({
+      fact,
+      sources: fact.sourceIds.map((id) => this.sourcesById.get(id)).filter(Boolean) as KnowledgeSource[]
+    }));
   }
 }
 
@@ -114,7 +141,7 @@ export function validateCatalog(catalog: KnowledgeCatalog, policy: CatalogValida
         );
       }
       if (fact.reviewStatus === "approved") {
-        const bodyLength = [...fact.factText].length;
+        const bodyLength = [...(fact.cardBody ?? fact.factText)].length;
         invariant(
           bodyLength >= 28 && bodyLength <= 80,
           "approved_fact_card_length",

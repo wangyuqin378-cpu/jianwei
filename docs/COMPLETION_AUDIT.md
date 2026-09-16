@@ -1,5 +1,11 @@
 # 见微完成度审计
 
+2026-09-17：本轮交付为[最新源码同步](SOURCE_SNAPSHOT_2026-09-17.md)，不是部署或上架。真实内容质量、离 Mac/蜂窝网络、自然跨日组件及正式分发仍待验收。下方为历史审计记录。
+
+2026-09-05 当前 iOS 自动发现 + Cloudflare 托管版本的审查结论为 **NO_GO**，详见 [本轮上线审查](RELEASE_AUDIT_2026-09-05.md)。以下 BYOK、Android 与历史工件记录保留为过去证据，不代表本次模型路线或当前发布状态；新版本质量、费用防护、真机跨日和正式分发仍有未通过项。
+
+2026-08-27 iOS 个人 BYOK Beta：iOS 当前发布目标已从托管云收敛为用户自带百炼 Qwen Key 的直接调用，不再要求 RDS、OSS、函数计算或见微生产 API。最新证据绑定当前源码：BYOK 19/19、托管订阅展示与 BYOK 回退 16/16、真实 Qwen 扫帚托管链路 1/1；unsigned Release、隐私清单、无后端地址、固定模型与内置审核目录、3 张 1320×2868 商店截图和提交合同全部通过。当前签名归档已安装并启动在连接的 iPhone 12 Pro，但真机 XCTest runner 因同一 Xcode 账户缺口无法创建。`xcodebuild -exportArchive` 明确返回 `No Accounts`，且 App 与 Widget 均无 App Store Distribution profile，因此没有可上传 IPA，TestFlight 仍为 `NO_GO`。当前提交合同只发布 BYOK；订阅代码和展示回归不等于真实 App Store 购买，后者必须在托管服务启用后以 TestFlight Sandbox 复验。未上传 App Store Connect，未创建云资源，也未使用 RDS。
+
 2026-08-01 阿里云 OAuth 短期凭据桥接：为了把真实云部署从“需要长期 RAM AccessKey”收敛为可实际操作且更安全的路径，已安装 Alibaba Cloud CLI 3.4.11，并新增 OAuth 到 Serverless Devs 的内存桥接。桥接只接受官方 OAuth profile 返回的完整、剩余有效期不少于 5 分钟的 STS 四元组，不写入 Serverless Devs 凭据库；非 OAuth、缺字段、临近过期和缺少双重云变更确认的 deploy 均失败关闭。云预检同步识别内存 access，11 类绕过与秘密输出自测通过；部署模板、源码、API、供应链、运行预算和知识库门禁均 GO，当前本地候选再次复验 GO。CLI 回调仍在等待用户于浏览器完成 Authorize，因此尚未取得只读云资源清单，也没有创建、修改、购买云资源或上传照片。整体 Beta 仍为 NO_GO，下一项权威证据必须来自 OAuth 完成后的真实资源观察。
 
 2026-08-01 Beta.73 首次体验固定主操作（当前最新产品与工程摘要）：首次体验第 3 屏已把说明、开始方式、3 项兴趣和自动准备模式留在独立滚动区，把返回与唯一主操作固定在底部并应用系统导航栏 inset；主操作随选择切换为“开启自动发现 / 选择一张照片”，主次宽度为 1.28:0.72。API 34 标准与 1.6× 字体专项各 2/2，视觉检查确认两个主操作均保持单行且完整可见；设置页阅读顺序专项连续 3/3，最终 App instrumentation 30/30。源码格式收口后的最终 Gradle 311 个任务通过（2m29s），覆盖 JVM、Debug/Release Lint、Debug、AndroidTest 与 R8 unsigned Release。Debug / unsigned Release / App 测试 APK SHA-256 为 `c4257c719c76ee42eac4396bbd20a1818174819ec9c6803f0e575c8a0839257a` / `66509101d780f55482fd3664c8921f98766ff348015f8a799db63e30b74c746e` / `b09ba07f8bf33fa2b71eec6de17b1c2040f0dbc7e0e26cd88918c0ac6b69ac75`。审计 `.tooling/beta73-onboarding-sticky-action/audit.json` SHA-256 为 `271afcb9c00db944704c334b612a30e2fc87cb23c341a9b8e5f0d626a5ddc057`；当前候选 `.tooling/release-candidate/beta73-onboarding-sticky-action-final.json` 复验为 `LOCAL_CANDIDATE_GO`、`releaseEvidence=false`，SHA-256 `8bc1076d427a89877fa0794d221a441baa932d2e8f6702d1563b30e77d39163c`，旧首次体验候选与安装品牌候选均已被实际拒绝为 stale。本轮没有云请求、Provider 请求或照片外发；真实云、正式签名、授权图片评测、OEM、真人无障碍、生产卡复算与 cohort 仍缺，整体 Beta 保持 `NO_GO`。

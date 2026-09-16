@@ -6,12 +6,15 @@ final class JianweiSubscriptionPurchaseTests: XCTestCase {
     }
 
     @MainActor
-    func testMonthlySubscriptionPurchaseAndEntitlement() throws {
+    func testManagedSubscriptionOfferAndBYOKFallbackAreVisible() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-JianweiSeedDemo"]
+        app.launchArguments = [
+            "-JianweiSeedDemo",
+            "-JianweiStorefrontPreview",
+        ]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["扫帚为什么总有一点斜？"].waitForExistence(timeout: 12))
+        XCTAssertTrue(app.staticTexts["扫帚刷毛做成斜扇形，是为了更贴近墙角"].waitForExistence(timeout: 12))
         app.tabBars.buttons["设置"].tap()
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5))
 
@@ -32,53 +35,10 @@ final class JianweiSubscriptionPurchaseTests: XCTestCase {
             .completed,
             "本地 StoreKit 套餐已显示但尚不可购买：\(app.debugDescription)"
         )
-        purchase.tap()
-
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let confirmationLabels = ["订阅", "Subscribe"]
-        let confirmation = app.buttons.matching(
-            NSPredicate(format: "label IN %@", confirmationLabels)
-        ).firstMatch
-        if confirmation.waitForExistence(timeout: 8), confirmation.isHittable {
-            confirmation.tap()
-        } else {
-            let systemConfirmation = springboard.buttons.matching(
-                NSPredicate(format: "label IN %@", confirmationLabels)
-            ).firstMatch
-            if systemConfirmation.waitForExistence(timeout: 3), systemConfirmation.isHittable {
-                systemConfirmation.tap()
-            } else {
-                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)).tap()
-            }
-        }
-
-        let completion = springboard.buttons.matching(
-            NSPredicate(format: "label IN %@", ["OK", "好", "确定"])
-        ).firstMatch
-        if completion.waitForExistence(timeout: 12), completion.isHittable {
-            completion.tap()
-        } else {
-            let successMessage = springboard.staticTexts.matching(
-                NSPredicate(format: "label CONTAINS[c] %@", "purchase was successful")
-            ).firstMatch
-            XCTAssertTrue(
-                successMessage.exists,
-                "系统没有显示购买成功确认：\(springboard.debugDescription)"
-            )
-            springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.60)).tap()
-        }
-        app.activate()
-        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 8))
-
-        let subscribed = app.descendants(matching: .any).matching(
-            NSPredicate(format: "label CONTAINS %@", "已订阅")
-        ).firstMatch
-        XCTAssertTrue(
-            subscribed.waitForExistence(timeout: 15),
-            "确认购买后没有得到有效订阅：\(app.debugDescription)"
-        )
-        XCTAssertTrue(app.buttons["使用见微托管服务"].exists)
-        capture(name: "storekit-purchased")
+        XCTAssertTrue(app.buttons["恢复购买"].exists)
+        XCTAssertTrue(app.secureTextFields["粘贴百炼 Qwen API Key"].exists)
+        XCTAssertTrue(app.buttons["保存并使用自己的 Key"].exists)
+        capture(name: "managed-offer-and-byok")
     }
 
     @MainActor

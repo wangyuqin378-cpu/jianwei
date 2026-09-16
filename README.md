@@ -1,79 +1,62 @@
 # Jianwei · 见微
 
-[简体中文](README.zh-CN.md) · [Product story](https://yuqin.wang/#/project/jianwei) · [Development guide](#run-the-public-snapshot)
+[简体中文](README.zh-CN.md) · [Product story](https://yuqin.wang/#/project/jianwei)
 
 **Discover a little knowledge in your everyday photos.**
 
-Jianwei explores the ordinary objects in a personal photo library and turns suitable photos into daily knowledge cards with traceable sources. It is for people who want a small moment of curiosity in their everyday life.
+Jianwei turns suitable photos from a personal photo library into daily knowledge cards for iPhone and its home-screen widget.
 
 <img src="docs/images/jianwei-today.webp" width="260" alt="Jianwei development preview showing a broom photo, a knowledge card, and a source link">
 
-*Development preview from the personal website. This interface comes from ongoing product work and is not a promise that the public snapshot reproduces the same build.*
+*Development preview, not evidence of a publicly released build.*
+
+## How it works
+
+1. Authorize photo access; unsuitable images are filtered on the device.
+2. Analyze up to nine sanitized photos per date, keeping up to three eligible knowledge cards.
+3. Pick one card, retain alternatives and history, and prepare today plus the next six days.
+4. Show cached cards in the app and widget. If no new card is ready, keep the latest one.
+
+Use your own Qwen key, stored in the device Keychain, or an authorized Jianwei managed service. BYOK does not force web search or fall back to a platform key: model-knowledge cards are labeled as not verified online. The managed path researches sources and checks evidence. Neither mode guarantees that AI is always correct.
 
 ## Current stage
 
-**In development; no public app download yet.** Current product work focuses on iPhone. This public repository contains an earlier Android, iOS, and backend engineering snapshot. Final content-quality acceptance, device and cross-day widget checks, and production distribution remain release gates. A local build or passing test does not establish those results.
+**Latest development source; no public app download yet.** This snapshot includes the iOS app, Widget, Cloudflare gateway and regression tooling. Android and the Fastify backend remain as earlier engineering paths.
 
-## The idea
+Content quality, natural cross-day widget behavior, away-from-Mac device use and production distribution still require acceptance. Source sync does not deploy the service or update an installed phone. See the [snapshot and validation status](docs/SOURCE_SNAPSHOT_2026-09-17.md).
 
-1. Start from everyday photos instead of a generic feed.
-2. Filter unsuitable images on the device before analysis.
-3. Match eligible objects to knowledge and sources; leave a gap when no reliable match exists.
-4. Bring a small card back into daily life through the app and widget.
+## Run locally
 
-The checked-in snapshot and its exact technical behavior are described in the [implementation status](docs/IMPLEMENTATION_STATUS.md), [privacy design](docs/PRIVACY.md), and [architecture](docs/ARCHITECTURE.md).
-
-## Run the public snapshot
-
-This is a developer checkout, not an installation package for end users.
-
-### Local backend
-
-Requires Node.js 20.12+ and pnpm 11.
+Requires macOS/Xcode for iOS, and Node.js 22+ for the gateway.
 
 ```bash
 git clone https://github.com/wangyuqin378-cpu/jianwei.git
-cd jianwei/backend
-cp .env.example .env
-pnpm install
-pnpm test
-pnpm dev
+cd jianwei/cloudflare/gateway
+npm ci --ignore-scripts
+npm run check
+npm test
+npm run test:runtime
 ```
 
-Keep `VISION_PROVIDER=local` for the local provider path, which does not require a cloud model key. The default backend address is `http://127.0.0.1:8787`.
-
-### iOS engineering project
-
-Requires macOS, Xcode, and XcodeGen.
-
-From the repository root:
+The runtime tests intercept external calls and do not spend model credits. Opening `ios/Jianwei.xcodeproj` lets you build the app and Widget with your own signing configuration. For an unsigned compile check from the repository root:
 
 ```bash
-cd ios
-xcodegen generate
-xcodebuild -project Jianwei.xcodeproj -scheme Jianwei \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+xcodebuild -project ios/Jianwei.xcodeproj -scheme JianweiCore \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build-for-testing
 ```
 
-Replace the simulator name with one installed on your Mac. Simulator checks do not cover distribution signing or physical-device acceptance.
-
-### Android engineering project
-
-The public snapshot retains the earlier Android implementation. See the [Chinese development instructions](README.zh-CN.md#android); Android is not the current product release focus.
+Public source access does not include managed-service credentials. Use your own key or configure your own gateway; never commit keys, device grants or signing files. See [deployment](docs/DEPLOYMENT.md) and the [legacy backend/Android instructions](README.zh-CN.md#本地运行).
 
 ## Repository map
 
-| Directory | Contents |
-| --- | --- |
-| `ios/` | iOS app, widget, and tests |
-| `android/` | Earlier Android app and widget implementation |
-| `backend/` | API, model providers, storage, and tests |
-| `knowledge/` | Topics, facts, sources, and review state |
-| `docs/`, `scripts/` | Architecture, checks, and release evidence tooling |
+- `ios/`: iPhone app, Widget and tests.
+- `cloudflare/gateway/`: Qwen product API, D1 cache, access and usage controls.
+- `knowledge/`: topics, facts, sources and review state.
+- `evaluation/`, `scripts/`: evaluation fixtures and validation tools.
+- `android/`, `backend/`: earlier implementation paths.
 
-## Read more
-
-[Privacy](docs/PRIVACY.md) · [Deployment](docs/DEPLOYMENT.md) · [Beta evidence](docs/BETA_EVIDENCE_RUNBOOK.md) · [Completion audit](docs/COMPLETION_AUDIT.md)
+[Privacy](docs/PRIVACY.md) · [Architecture](docs/ARCHITECTURE.md) · [Support](docs/SUPPORT.md)
 
 ## Source availability
 
