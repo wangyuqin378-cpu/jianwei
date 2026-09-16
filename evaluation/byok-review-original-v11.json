@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "scope": "Frozen titles and bodies from original paid Plus v11 outputs at .tooling/byok-writer-20260907-idea-pool2/results.json; assistant editorial reject labels, not human verification; fact uncertainties must remain distinct from category matching",
+  "cases": [
+    {
+      "id": "original-stapler",
+      "fileName": "web-018.jpg",
+      "sha256": "af6f9fc7bfca12fff3854d136fcd7802cc0c455fd2c4cefadae65de132b43eaf",
+      "subject": {
+        "canonicalTopicId": "stapler",
+        "displayName": "订书机"
+      },
+      "candidates": [
+        {
+          "subjectIndex": 0,
+          "title": "订书钉其实是连体长条",
+          "body": "我们使用的订书钉并非散装颗粒，而是由细金属丝串联成的长条。这种一体化设计配合内部弹簧，能确保每次精准推送一颗钉子，防止单颗散钉在机械通道中卡顿。"
+        },
+        {
+          "subjectIndex": 0,
+          "title": "无针订书机靠纸片互锁",
+          "body": "无针订书机不消耗金属钉，而是利用模具在纸页边缘冲出互相咬合的狭长切口。这种纯物理锁定方式环保且无异物残留，但因受力面积小，只适合固定少量轻薄纸张。"
+        }
+      ],
+      "oracle": [
+        {
+          "candidateIndex": 0,
+          "expected": "reject",
+          "dimension": "fact",
+          "reason": "把独立钉用黏合连接成排写成细金属丝串联一体化，并许诺确保每次精准供钉，依据不足。",
+          "sources": []
+        },
+        {
+          "candidateIndex": 1,
+          "expected": "reject",
+          "dimension": "fact",
+          "reason": "可以从普通订书机讲同类无针装订，但环保、无异物残留与受力面积决定张数等附加解释没有支持，不能因类别联系成立而全部接受。",
+          "sources": []
+        }
+      ]
+    },
+    {
+      "id": "original-paperclip",
+      "fileName": "web-019.jpg",
+      "sha256": "20f23715764e344c0f8ea466c037eb4e629f5de4bae0a6e67aa2c3ab199ba046",
+      "subject": {
+        "canonicalTopicId": "paperclip",
+        "displayName": "回形针"
+      },
+      "candidates": [
+        {
+          "subjectIndex": 0,
+          "title": "回形针是弯出来的，不是冲出来的",
+          "body": "回形针不是冲压出来的，而是由机器将一根钢丝连续弯折成型。这种冷加工方式保留了金属晶格的连续性，使其具备独特的弹性记忆，能承受多次开合而不发生疲劳断裂。"
+        },
+        {
+          "subjectIndex": 0,
+          "title": "回形针的双环造型是生存竞争的结果",
+          "body": "现代常见的双环结构只是数百种历史设计中的幸存者。早期许多铁丝固定器因尖端外露容易勾破口袋或衣物而被淘汰，最终这种内收尖端、不伤纸张的设计成为了通用标准。"
+        }
+      ],
+      "oracle": [
+        {
+          "candidateIndex": 0,
+          "expected": "reject",
+          "dimension": "fact",
+          "reason": "把钢丝冷弯、晶格连续性和弹性记忆串成因果，并承诺多次开合不发生疲劳断裂，缺少条件。",
+          "sources": []
+        },
+        {
+          "candidateIndex": 1,
+          "expected": "reject",
+          "dimension": "fact",
+          "reason": "把历史造型淘汰主要归因于尖端勾破衣物，且暗示通用双环不伤纸张，原输出没有依据。",
+          "sources": []
+        }
+      ]
+    }
+  ]
+}

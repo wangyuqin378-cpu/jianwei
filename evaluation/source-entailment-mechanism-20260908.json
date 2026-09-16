@@ -1,0 +1,46 @@
+{
+  "description": "Frozen regression metadata from a real public-photo false positive. Expected labels must never enter model prompts. Full source snapshots stay in the private evaluation receipts.",
+  "status": "Not a release-passing suite: two-line reviewer pilot matched the four controller conditions once, but failed another mechanism case and ended early on provider 403. The prompt was withdrawn. Passage-selection pilot did not reach these cases.",
+  "sources": [
+    {"sourceId":"search-1","url":"https://eloesports.com/blogs/general/what-are-hall-effect-joysticks-in-gaming","textSHA256":"359e54a92cd7a3a8b15bfa64f0e0a004fcf983808133db268ff33b6e9767bb53"},
+    {"sourceId":"search-2","url":"https://www.turtlebeach.com/blog/hall-effect-thumbsticks-vs-traditional-joysticks","textSHA256":"5dd23f2ae0d68a54b2eed5053623faaacbdeab52ec556087f45bedb7ed05f301"}
+  ],
+  "cases": [
+    {
+      "id":"controller-original-false-positive",
+      "expected":"rejected",
+      "objectName":"游戏手柄",
+      "title":"手柄摇杆不磨损的秘密：磁悬浮感应",
+      "body":"传统摇杆靠金属片摩擦电阻条读取位置，久用必磨损导致‘漂移’。霍尔效应摇杆利用磁铁与传感器非接触测量磁场变化，彻底消除物理摩擦，实现长久精准控制。",
+      "rationale":"把位置感应偷换成悬浮，并把感应元件非接触扩大到整机无摩擦。原来源还有并非完全免疫漂移的限定。",
+      "origin":"Real focused-search public controller photo; evidence, photo and interestingness model reviews all passed. Main-agent review rejected it; not published to production or phone."
+    },
+    {
+      "id":"controller-mechanism-only-error",
+      "expected":"rejected",
+      "objectName":"游戏手柄",
+      "title":"有些手柄靠磁悬浮读取摇杆位置",
+      "body":"这类霍尔效应摇杆把磁铁固定在杆上，移动时磁场随之变化，传感器将变化转成电压，再由手柄换算出位置；感应元件之间无需滑动接触。[ref_1]",
+      "rationale":"正文限定合理不能抵消标题偷换物理机制。",
+      "origin":"Evaluator-created negative control, not a model-generated card."
+    },
+    {
+      "id":"controller-whole-device-overclaim",
+      "expected":"rejected",
+      "objectName":"游戏手柄",
+      "title":"有些手柄靠磁场读取摇杆位置",
+      "body":"这类手柄的全部零件无需接触，永久不会发生磨损或漂移。[ref_1]",
+      "rationale":"局部非接触不支持所有零件、永久无故障保证。",
+      "origin":"Evaluator-created negative control, not a model-generated card."
+    },
+    {
+      "id":"controller-corrected-scope",
+      "expected":"accepted",
+      "objectName":"游戏手柄",
+      "title":"有些手柄靠磁场读取摇杆位置",
+      "body":"这类霍尔效应摇杆把磁铁固定在杆上，移动时磁场随之变化，传感器将变化转成电压，再由手柄换算出位置；感应元件之间无需滑动接触。[ref_1]",
+      "rationale":"仅用于检验证据审核是否误拒正确限定的机制说明；不代表照片具体型号采用此方案，也不自动满足趣味门槛。",
+      "origin":"Evaluator-written positive control, not improved generation evidence."
+    }
+  ]
+}

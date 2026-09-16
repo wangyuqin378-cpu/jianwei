@@ -23,7 +23,8 @@ const BLOCKING_FLAGS = new Set([
 
 export const UPLOAD_SESSION_TTL_MS = 10 * 60 * 1000;
 export const UPLOAD_CLAIM_LEASE_MS = 60_000;
-export const PROCESSING_LEASE_MS = 210_000;
+export const PROCESSING_LEASE_MS = 300_000;
+export const MAX_KNOWLEDGE_VERIFICATION_ATTEMPTS = 3;
 const RECENT_FACT_LOOKBACK_PER_TOPIC = 4;
 
 export interface CreateJobInput {
@@ -109,6 +110,7 @@ export class AnalysisService {
       uploadClaimedAt: null,
       processingClaimToken: null,
       processingLeaseExpiresAt: null,
+      retryCount: 0,
       status: "awaiting_upload",
       errorCode: null
     }, {
@@ -190,11 +192,39 @@ export class AnalysisService {
     const uploadSessionId = randomUUID();
     const objectKey = await this.objects.createObjectKey(job.id, uploadSessionId);
     const uploadExpiresAt = new Date(Date.now() + UPLOAD_SESSION_TTL_MS).toISOString();
-    const updated = await this.jobs.prepareUpload(job.id, job.uploadSessionId, {
-      objectKey,
-      uploadSessionId,
-      uploadExpiresAt
-    });
+    const uploadTarget = { objectKey, uploadSessionId, uploadExpiresAt };
+    let updated: AnalysisJob | null;
+    if (!evaluation && job.status === "failed") {
+      const retryBudget = {
+        reservedCostMicroCny: this.worstCaseCostMicroCnyPerJob,
+        globalDailyCostMicroCnyLimit: this.maxGlobalCostMicroCnyPerDay,
+        globalMonthlyCostMicroCnyLimit: this.maxGlobalCostMicroCnyPerMonth,
+        dailySince: new Date(budgetNow.getTime() - 24 * 60 * 60 * 1000).toISOString(),
+        monthSince: new Date(Date.UTC(
+          budgetNow.getUTCFullYear(),
+          budgetNow.getUTCMonth(),
+          1
+        )).toISOString()
+      };
+      const retry = await this.jobs.prepareRetryWithinCostBudget(
+        job.id,
+        job.uploadSessionId,
+        uploadTarget,
+        retryBudget
+      );
+      if (retry.status === "retry_exhausted") {
+        throw new AppError("candidate_retry_exhausted", "该照片的自动重试次数已用完", 409);
+      }
+      if (retry.status === "global_daily_cost_exceeded") {
+        throw new AppError("global_daily_cost_budget_exceeded", "Service daily model-cost budget is exhausted", 429);
+      }
+      if (retry.status === "global_monthly_cost_exceeded") {
+        throw new AppError("global_monthly_cost_budget_exceeded", "Service monthly model-cost budget is exhausted", 429);
+      }
+      updated = retry.status === "prepared" ? retry.job : null;
+    } else {
+      updated = await this.jobs.prepareUpload(job.id, job.uploadSessionId, uploadTarget);
+    }
     if (!updated) {
       const current = await this.jobs.findById(job.id);
       if (
@@ -293,46 +323,107 @@ export class AnalysisService {
         "云端图片内容与声明格式不匹配",
         415
       );
-      const entity = await (visionOverride ?? this.vision).detect({
+      const provider = visionOverride ?? this.vision;
+      const visionInput = {
         image,
-        localLabels: job.localLabels
-      });
+        localLabels: job.localLabels,
+        preferredTopics: this.knowledge.preferredDetectionTopics()
+      };
+      const understanding = provider.understand
+        ? await provider.understand(visionInput)
+        : understandingFromLegacyEntity(await provider.detect(visionInput));
 
-      if (entity.sensitiveFlags.length > 0) {
+      if (understanding.sensitiveFlags.length > 0) {
         const rejected = await this.finishClaim(
           job.id,
           claimToken,
           "rejected",
-          `server_sensitive_${entity.sensitiveFlags[0]}`
+          `server_sensitive_${understanding.sensitiveFlags[0]}`
         );
         deleteWhenDone = true;
         return { job: rejected, card: null };
       }
 
-      const topic = this.knowledge.findTopic(entity.canonicalTopicId)
-        ?? this.knowledge.matchLabels([entity.canonicalTopicId, entity.displayName, ...entity.alternatives]);
-      if (!topic || entity.confidence < 0.6) {
+      let matchedTopic = false;
+      let hadApprovedFact = false;
+      let selected: {
+        entity: typeof understanding.subjects[number];
+        topic: NonNullable<ReturnType<KnowledgeCatalogService["findTopic"]>>;
+        selection: NonNullable<ReturnType<KnowledgeCatalogService["selectApprovedFact"]>>;
+      } | null = null;
+      const topicCandidates: Array<{
+        entity: typeof understanding.subjects[number];
+        topic: NonNullable<ReturnType<KnowledgeCatalogService["findTopic"]>>;
+        selections: Array<NonNullable<ReturnType<KnowledgeCatalogService["selectApprovedFact"]>>>;
+      }> = [];
+      for (const entity of understanding.subjects.filter((subject) => subject.confidence >= 0.6)) {
+        const topic = this.knowledge.findTopic(entity.canonicalTopicId)
+          ?? this.knowledge.matchLabels([entity.canonicalTopicId, entity.displayName, ...entity.alternatives]);
+        if (!topic) continue;
+        matchedTopic = true;
+        const recentFactIds = await this.cards.listRecentFactIds(
+          device.id,
+          topic.topicId,
+          RECENT_FACT_LOOKBACK_PER_TOPIC
+        );
+        const facts = this.knowledge.selectApprovedFacts(
+          topic,
+          job.candidateToken,
+          this.allowUnattestedFacts,
+          recentFactIds
+        );
+        if (facts.length > 0) hadApprovedFact = true;
+        topicCandidates.push({ entity, topic, selections: facts });
+      }
+      let verificationAttempts = 0;
+      selectionSearch:
+      for (let factIndex = 0; !selected; factIndex += 1) {
+        let foundAtThisDepth = false;
+        for (const candidate of topicCandidates) {
+          const fact = candidate.selections[factIndex];
+          if (!fact) continue;
+          foundAtThisDepth = true;
+          if (!provider.verifyKnowledgeCandidate && !this.allowUnattestedFacts) {
+            continue;
+          }
+          if (provider.verifyKnowledgeCandidate) {
+            if (verificationAttempts >= MAX_KNOWLEDGE_VERIFICATION_ATTEMPTS) break selectionSearch;
+            verificationAttempts += 1;
+            const verification = await provider.verifyKnowledgeCandidate({
+              image,
+              objectName: fact.fact.photoObjectName ?? candidate.topic.displayName,
+              photoApplicability: fact.fact.photoApplicability ?? "visible_subtype",
+              factText: fact.fact.factText,
+              cardTitle: fact.fact.cardTitle ?? composeCardTitle(
+                candidate.topic.displayName,
+                fact.fact.factId,
+                fact.fact.factText
+              ),
+              cardBody: fact.fact.cardBody ?? fact.fact.factText
+            });
+            if (!verification.accepted) continue;
+          }
+          selected = { entity: candidate.entity, topic: candidate.topic, selection: fact };
+          break selectionSearch;
+        }
+        if (!foundAtThisDepth) break;
+      }
+      if (!matchedTopic) {
         const needsContent = await this.finishClaim(job.id, claimToken, "needs_content", "no_reliable_topic");
         deleteWhenDone = true;
         return { job: needsContent, card: null };
       }
-
-      const recentFactIds = await this.cards.listRecentFactIds(
-        device.id,
-        topic.topicId,
-        RECENT_FACT_LOOKBACK_PER_TOPIC
-      );
-      const selection = this.knowledge.selectApprovedFact(
-        topic,
-        job.candidateToken,
-        this.allowUnattestedFacts,
-        recentFactIds
-      );
-      if (!selection) {
-        const needsContent = await this.finishClaim(job.id, claimToken, "needs_content", "no_approved_fact");
+      if (!selected) {
+        const needsContent = await this.finishClaim(
+          job.id,
+          claimToken,
+          "needs_content",
+          hadApprovedFact ? "no_photo_applicable_fact" : "no_approved_fact"
+        );
         deleteWhenDone = true;
         return { job: needsContent, card: null };
       }
+      const { entity, topic, selection } = selected;
 
       // Vision proposes a topic and confidence; the reviewed catalog owns the
       // user-facing identity after a topic match so one card cannot name the
@@ -349,12 +440,16 @@ export class AnalysisService {
         topicId: topic.topicId,
         factId: selection.fact.factId,
         title: cardTitleForConfidence(
-          composeCardTitle(canonicalObjectName, selection.fact.factId, selection.fact.factText),
+          selection.fact.cardTitle ?? composeCardTitle(
+            canonicalObjectName,
+            selection.fact.factId,
+            selection.fact.factText
+          ),
           canonicalObjectName,
           entity.confidence
         ),
         detectedObjectName: canonicalObjectName,
-        body: selection.fact.factText,
+        body: selection.fact.cardBody ?? selection.fact.factText,
         personalContext,
         confidence: entity.confidence,
         boundingBox: entity.boundingBox,
@@ -441,12 +536,19 @@ export class AnalysisService {
   }
 }
 
+function understandingFromLegacyEntity(entity: import("../domain/types.js").DetectedEntity): import("../domain/types.js").PhotoUnderstanding {
+  return {
+    subjects: entity.sensitiveFlags.length > 0 ? [] : [{ ...entity, sensitiveFlags: [] }],
+    sensitiveFlags: entity.sensitiveFlags
+  };
+}
+
 export function personalContextForPhoto(capturedAtBucket: string | null, topicDisplayName: string): string {
   const topic = topicDisplayName.trim() || "这个日常物件";
-  if (!capturedAtBucket) return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+  if (!capturedAtBucket) return `它来自你主动选择的照片，所以今天从「${topic}」讲起。`;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(capturedAtBucket);
   if (!match || !isValidIsoCalendarDate(capturedAtBucket)) {
-    return `它来自你主动授权的照片，所以今天从「${topic}」讲起。`;
+    return `它来自你主动选择的照片，所以今天从「${topic}」讲起。`;
   }
   const [, year, month, day] = match;
   const numericMonth = Number(month);

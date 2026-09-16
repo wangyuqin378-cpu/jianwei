@@ -1,0 +1,26 @@
+{
+  "name": "@jianwei/qwen-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "tsx --test src/*.test.ts",
+    "test:runtime": "node scripts/check-managed-worker.mjs && node scripts/check-upgrade-worker.mjs",
+    "test:upgrade": "node scripts/check-upgrade-worker.mjs",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "seed:reviewed": "node scripts/seed-reviewed-facts.mjs"
+  },
+  "dependencies": {
+    "@apple/app-store-server-library": "3.1.0",
+    "node-fetch": "2.7.0",
+    "htmlparser2": "12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.9.2",
+    "miniflare": "5.20260831.0-alpha",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "wrangler": "4.128.0"
+  }
+}

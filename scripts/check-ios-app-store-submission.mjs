@@ -7,9 +7,9 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const defaults = {
   submission: path.join(repositoryRoot, "ios/AppStore/submission.zh-Hans.json"),
   metadata: path.join(repositoryRoot, "ios/AppStore/metadata.zh-Hans.json"),
-  storeKit: path.join(repositoryRoot, "ios/StoreKit/Jianwei.storekit"),
   project: path.join(repositoryRoot, "ios/project.yml")
 };
+const expectedAPIOrigin = "https://jianwei-api.yuqin.wang";
 
 function parseArguments(args) {
   const result = { ...defaults, screenshots: "", releaseApp: "", selfTest: false };
@@ -18,7 +18,6 @@ function parseArguments(args) {
     if (argument === "--self-test") result.selfTest = true;
     else if (argument === "--submission") result.submission = path.resolve(args[++index] ?? "");
     else if (argument === "--metadata") result.metadata = path.resolve(args[++index] ?? "");
-    else if (argument === "--storekit") result.storeKit = path.resolve(args[++index] ?? "");
     else if (argument === "--project") result.project = path.resolve(args[++index] ?? "");
     else if (argument === "--screenshots") result.screenshots = path.resolve(args[++index] ?? "");
     else if (argument === "--release-app") result.releaseApp = path.resolve(args[++index] ?? "");
@@ -31,11 +30,10 @@ const text = (value) => typeof value === "string" ? value.trim() : "";
 const exactSet = (actual, expected) =>
   actual.length === expected.length && expected.every((value) => actual.includes(value));
 
-function validateSourceContract({ submission, metadata, storeKit, project }) {
+function validateSourceContract({ submission, metadata, project }) {
   const failures = [];
   const app = submission?.app ?? {};
   const screenshots = submission?.screenshots ?? {};
-  const subscription = submission?.subscription ?? {};
   const privacy = submission?.privacy ?? {};
 
   if (submission?.schemaVersion !== 1) failures.push("submission schemaVersion must be 1");
@@ -53,37 +51,21 @@ function validateSourceContract({ submission, metadata, storeKit, project }) {
       Buffer.byteLength(text(app.reviewNotes), "utf8") > 4000) {
     failures.push("app review notes must contain 100-4000 UTF-8 bytes");
   }
-  for (const phrase of ["仅选择照片", "App Store 沙盒", "API Key", "删除云端数据", "小组件"]) {
+  for (const phrase of ["自动发现", "最多 9 张", "无需填写 API Key", "阿里云百炼", "小组件"]) {
     if (!text(app.reviewNotes).includes(phrase)) failures.push(`app review notes must explain ${phrase}`);
   }
+  if (submission.subscription !== undefined) failures.push("the current free release must not declare an App Store subscription");
 
   if (screenshots.display !== "6.9-inch" || screenshots.width !== 1320 || screenshots.height !== 2868) {
     failures.push("launch screenshots must use the reviewed 6.9-inch 1320x2868 contract");
   }
   const expectedScreenshots = [
-    "app-store-01-daily-three-to-one.png",
+    "app-store-01-automatic-discovery.png",
     "app-store-02-daily-knowledge-card.png",
-    "app-store-03-pro-or-own-key.png"
+    "app-store-03-history.png"
   ];
   if (!Array.isArray(screenshots.files) || !exactSet(screenshots.files, expectedScreenshots)) {
     failures.push("submission must declare the three reviewed launch screenshots");
-  }
-
-  if (subscription.productId !== "cn.jianwei.ios.pro.monthly") failures.push("subscription product ID drifted");
-  if (subscription.groupReferenceName !== "见微 Pro" || subscription.groupDisplayName !== "见微 Pro") {
-    failures.push("subscription group names drifted");
-  }
-  if (subscription.referenceName !== "见微 Pro 月订阅" || subscription.duration !== "P1M" ||
-      subscription.priceCNY !== "8") failures.push("monthly subscription launch offer drifted");
-  if (subscription.introductoryOffer?.type !== "free_trial" ||
-      subscription.introductoryOffer?.duration !== "P1W") failures.push("seven-day free trial drifted");
-  if (subscription.localization?.displayName !== "见微 Pro 月订阅" ||
-      subscription.localization?.description !== "每天分析 3 张未处理照片，选出并展示 1 条知识。") {
-    failures.push("subscription localization drifted");
-  }
-  if (subscription.reviewScreenshot !== expectedScreenshots[2]) failures.push("subscription review screenshot drifted");
-  for (const phrase of ["3 张", "1 条", "31 条", "App Store 沙盒", "恢复购买", "不要求账号登录"]) {
-    if (!text(subscription.reviewNotes).includes(phrase)) failures.push(`subscription review notes must explain ${phrase}`);
   }
 
   if (privacy.tracking !== false || privacy.accountRequired !== false) {
@@ -94,34 +76,12 @@ function validateSourceContract({ submission, metadata, storeKit, project }) {
   }
   if (metadata.primaryCategory !== app.primaryCategory) failures.push("metadata primary category drifted");
 
-  const groups = Array.isArray(storeKit.subscriptionGroups) ? storeKit.subscriptionGroups : [];
-  const group = groups.find((item) => item.name === subscription.groupReferenceName);
-  const monthly = group?.subscriptions?.find((item) => item.productID === subscription.productId);
-  if (!group || !monthly) failures.push("StoreKit configuration is missing the launch subscription");
-  else {
-    const groupLocalization = group.localizations?.find((item) => item.locale === "zh_CN");
-    if (groupLocalization?.displayName !== subscription.groupDisplayName) {
-      failures.push("StoreKit subscription group localization drifted");
-    }
-    if (monthly.referenceName !== subscription.referenceName ||
-        monthly.recurringSubscriptionPeriod !== subscription.duration ||
-        monthly.displayPrice !== subscription.priceCNY) failures.push("StoreKit monthly offer drifted");
-    if (monthly.introductoryOffer?.paymentMode !== "free" ||
-        monthly.introductoryOffer?.subscriptionPeriod !== subscription.introductoryOffer.duration) {
-      failures.push("StoreKit introductory offer drifted");
-    }
-    const localization = monthly.localizations?.find((item) => item.locale === "zh_CN");
-    if (localization?.displayName !== subscription.localization.displayName ||
-        localization?.description !== subscription.localization.description) {
-      failures.push("StoreKit subscription localization drifted");
-    }
-  }
-
   for (const fragment of [
     `MARKETING_VERSION: "${app.version}"`,
     `CURRENT_PROJECT_VERSION: "${app.build}"`,
     `PRODUCT_BUNDLE_IDENTIFIER: ${app.bundleId}`,
-    `JianweiMonthlyProductID: ${subscription.productId}`,
+    `JIANWEI_API_BASE_URL: "${expectedAPIOrigin}"`,
+    'JIANWEI_DEVICE_BETA_EXPERIENCE: "YES"',
     "EXCLUDED_SOURCE_FILE_NAMES: Jianwei.storekit"
   ]) {
     if (!project.includes(fragment)) failures.push(`project.yml is missing release contract: ${fragment}`);
@@ -195,8 +155,12 @@ async function validateReleaseApp(appPath, submission) {
   if (info.CFBundleIdentifier !== submission.app.bundleId) failures.push("Release bundle ID drifted");
   if (info.CFBundleShortVersionString !== submission.app.version) failures.push("Release version drifted");
   if (info.CFBundleVersion !== submission.app.build) failures.push("Release build number drifted");
-  if (info.JianweiMonthlyProductID !== submission.subscription.productId) failures.push("Release product ID drifted");
-  if (!isPublicHttpsOrigin(info.JianweiAPIBaseURL)) failures.push("Release API origin must be public HTTPS");
+  if (text(info.JianweiAPIBaseURL) !== expectedAPIOrigin || !isPublicHttpsOrigin(text(info.JianweiAPIBaseURL))) {
+    failures.push("Release must use the reviewed public Jianwei API origin");
+  }
+  for (const required of ["PrivacyInfo.xcprivacy", "catalog.json"]) {
+    try { await access(path.join(appPath, required)); } catch { failures.push(`Release App is missing ${required}`); }
+  }
   try {
     await access(path.join(appPath, "Jianwei.storekit"));
     failures.push("Release App must not bundle the local StoreKit configuration");
@@ -205,13 +169,12 @@ async function validateReleaseApp(appPath, submission) {
 }
 
 async function loadInputs(options) {
-  const [submission, metadata, storeKit, project] = await Promise.all([
+  const [submission, metadata, project] = await Promise.all([
     readFile(options.submission, "utf8").then(JSON.parse),
     readFile(options.metadata, "utf8").then(JSON.parse),
-    readFile(options.storeKit, "utf8").then(JSON.parse),
     readFile(options.project, "utf8")
   ]);
-  return { submission, metadata, storeKit, project };
+  return { submission, metadata, project };
 }
 
 const options = parseArguments(process.argv.slice(2));
@@ -221,7 +184,7 @@ const failures = [...sourceFailures];
 
 if (options.selfTest) {
   const mutated = structuredClone(inputs.submission);
-  mutated.subscription.productId = "cn.jianwei.ios.pro.wrong";
+  mutated.subscription = { productId: "cn.jianwei.ios.pro.monthly" };
   const mutationFailures = validateSourceContract({ ...inputs, submission: mutated });
   const originPolicyWorks = isPublicHttpsOrigin("https://api.jianwei.example") &&
     !isPublicHttpsOrigin("http://api.jianwei.example") &&
@@ -229,7 +192,7 @@ if (options.selfTest) {
     !isPublicHttpsOrigin("https://10.0.0.1") &&
     !isPublicHttpsOrigin("https://api.jianwei.example/private") &&
     !isPublicHttpsOrigin("https://user:secret@api.jianwei.example");
-  if (!mutationFailures.some((failure) => failure.includes("product ID")) ||
+  if (!mutationFailures.some((failure) => failure.includes("must not declare")) ||
       !originPolicyWorks || failures.length > 0) {
     throw new Error(`App Store submission self-test failed: ${[...failures, ...mutationFailures].join("; ")}`);
   }
@@ -237,7 +200,7 @@ if (options.selfTest) {
     status: "GO",
     selfTest: true,
     mutationRejected: true,
-    publicOriginPolicy: true
+    managedOriginPolicy: true
   }, null, 2));
   process.exit(0);
 }

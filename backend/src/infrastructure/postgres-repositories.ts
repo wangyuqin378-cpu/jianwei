@@ -3,12 +3,14 @@ import postgres, { type Sql } from "postgres";
 import type {
   AnalysisJob,
   AnalysisJobRepository,
+  BudgetedRetryPrepareResult,
   BudgetedAnalysisJobCreateResult,
   CardFeedback,
   CardRepository,
   Device,
   DeviceRepository,
   EvaluationLeaseDefinition,
+  InferenceCostReservationResult,
   KnowledgeCard,
   KnowledgeSource,
   ObjectDeletionRepository,
@@ -55,6 +57,7 @@ function jobFrom(row: DbRow): AnalysisJob {
     processingLeaseExpiresAt: row.processing_lease_expires_at
       ? new Date(String(row.processing_lease_expires_at)).toISOString()
       : null,
+    retryCount: Number(row.retry_count ?? 0),
     status: row.status as AnalysisJob["status"],
     errorCode: row.error_code ? String(row.error_code) : null,
     createdAt: new Date(String(row.created_at)).toISOString(),
@@ -128,6 +131,10 @@ export class PostgresRepositories {
         ON CONFLICT (installation_hash) DO UPDATE SET token_hash = excluded.token_hash
         RETURNING devices.*, devices.id = ${id} AS registration_created`;
       return registeredDeviceFrom(rows[0] as DbRow);
+    },
+    findByInstallationHash: async (installationHash) => {
+      const rows = await this.sql<DbRow[]>`SELECT * FROM devices WHERE installation_hash = ${installationHash} LIMIT 1`;
+      return rows[0] ? deviceFrom(rows[0]) : null;
     },
     findByTokenHash: async (tokenHash) => {
       const rows = await this.sql<DbRow[]>`SELECT * FROM devices WHERE token_hash = ${tokenHash} LIMIT 1`;
@@ -269,6 +276,42 @@ export class PostgresRepositories {
         return { status: "created", job: jobFrom(rows[0] as DbRow) };
       });
     },
+    reserveInferenceCost: async (
+      operationKey,
+      reservedCostMicroCny,
+      globalDailyCostMicroCnyLimit,
+      globalMonthlyCostMicroCnyLimit,
+      dailySince,
+      monthSince
+    ): Promise<InferenceCostReservationResult> => this.sql.begin(async (transaction) => {
+      await transaction`SELECT pg_advisory_xact_lock(1784509213)`;
+      const existing = await transaction<{ exists: boolean }[]>`
+        SELECT EXISTS(
+          SELECT 1 FROM analysis_budget_events WHERE operation_key = ${operationKey}
+        ) AS exists`;
+      if (existing[0]?.exists) return { status: "existing" };
+      const daily = await transaction<{ cost: string }[]>`
+        SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost
+        FROM analysis_budget_events WHERE created_at >= ${dailySince}`;
+      if (Number(daily[0]?.cost ?? 0) + reservedCostMicroCny > globalDailyCostMicroCnyLimit) {
+        return { status: "global_daily_cost_exceeded" };
+      }
+      const monthly = await transaction<{ cost: string }[]>`
+        SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost
+        FROM analysis_budget_events WHERE created_at >= ${monthSince}`;
+      if (Number(monthly[0]?.cost ?? 0) + reservedCostMicroCny > globalMonthlyCostMicroCnyLimit) {
+        return { status: "global_monthly_cost_exceeded" };
+      }
+      await transaction`
+        INSERT INTO analysis_budget_events (id, reserved_cost_micro_cny, operation_key)
+        VALUES (${randomUUID()}, ${reservedCostMicroCny}, ${operationKey})`;
+      return { status: "reserved" };
+    }),
+    releaseInferenceOperationKey: async (operationKey) => {
+      await this.sql`
+        UPDATE analysis_budget_events SET operation_key = NULL
+        WHERE operation_key = ${operationKey}`;
+    },
     createEvaluationLease: async (input: EvaluationLeaseDefinition) => {
       await this.sql.begin(async (transaction) => {
         await transaction`
@@ -320,6 +363,53 @@ export class PostgresRepositories {
         RETURNING *`;
       return rows[0] ? jobFrom(rows[0]) : null;
     },
+    prepareRetryWithinCostBudget: async (
+      id,
+      expectedSessionId,
+      input,
+      budget
+    ): Promise<BudgetedRetryPrepareResult> => this.sql.begin(async (transaction) => {
+      await transaction`SELECT pg_advisory_xact_lock(1784509213)`;
+      const currentRows = await transaction<DbRow[]>`
+        SELECT * FROM analysis_jobs WHERE id = ${id} LIMIT 1 FOR UPDATE`;
+      const current = currentRows[0];
+      if (!current || current.status !== "failed" ||
+          (current.upload_session_id ? String(current.upload_session_id) : null) !== expectedSessionId) {
+        return { status: "state_conflict" };
+      }
+      if (Number(current.retry_count ?? 0) >= 1) return { status: "retry_exhausted" };
+      const daily = await transaction<{ cost: string }[]>`
+        SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost
+        FROM analysis_budget_events WHERE created_at >= ${budget.dailySince}`;
+      if (Number(daily[0]?.cost ?? 0) + budget.reservedCostMicroCny > budget.globalDailyCostMicroCnyLimit) {
+        return { status: "global_daily_cost_exceeded" };
+      }
+      const monthly = await transaction<{ cost: string }[]>`
+        SELECT coalesce(sum(reserved_cost_micro_cny), 0)::text AS cost
+        FROM analysis_budget_events WHERE created_at >= ${budget.monthSince}`;
+      if (Number(monthly[0]?.cost ?? 0) + budget.reservedCostMicroCny > budget.globalMonthlyCostMicroCnyLimit) {
+        return { status: "global_monthly_cost_exceeded" };
+      }
+      const retryCount = Number(current.retry_count ?? 0) + 1;
+      await transaction`
+        INSERT INTO analysis_budget_events (id, reserved_cost_micro_cny, operation_key)
+        VALUES (${randomUUID()}, ${budget.reservedCostMicroCny}, ${`analysis-retry:${id}:${retryCount}`})`;
+      const rows = await transaction<DbRow[]>`
+        UPDATE analysis_jobs SET
+          object_key = ${input.objectKey},
+          upload_session_id = ${input.uploadSessionId},
+          upload_expires_at = ${input.uploadExpiresAt},
+          upload_claimed_at = NULL,
+          processing_claim_token = NULL,
+          processing_lease_expires_at = NULL,
+          retry_count = ${retryCount},
+          status = 'awaiting_upload',
+          error_code = NULL,
+          updated_at = now()
+        WHERE id = ${id}
+        RETURNING *`;
+      return { status: "prepared", job: jobFrom(rows[0]!) };
+    }),
     claimForUpload: async (uploadSessionId, deviceId, nowIso) => {
       const rows = await this.sql<DbRow[]>`
         UPDATE analysis_jobs SET status = 'uploading', upload_claimed_at = ${nowIso}, updated_at = now()

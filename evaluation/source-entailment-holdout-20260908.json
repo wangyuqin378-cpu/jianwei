@@ -1,0 +1,47 @@
+{
+  "description": "New text-only source-support holdout, frozen before first API run. Not photo recognition or interestingness acceptance. A true/false pair uses identical source text; labels never enter prompts. Once used to tune, this is a regression set, not a fresh holdout.",
+  "cases": [
+    {
+      "id": "raindrop-shape",
+      "objectName": "雨滴",
+      "source": "https://www.usgs.gov/water-science-school/science/are-raindrops-shaped-teardrops",
+      "sourceTitle": "USGS: Are raindrops shaped like teardrops?",
+      "rejected": {
+        "title": "雨滴越大，越会被拉成尖头泪滴",
+        "body": "小雨滴接近球形。雨滴长大后，表面张力会把它向上拉尖，因此大雨滴就是常画的泪滴形。"
+      },
+      "supported": {
+        "title": "雨滴不是泪滴，大一些反而像汉堡胚",
+        "body": "小雨滴受表面张力影响，接近球形。长大后，下落时底部受到的空气压力使它变扁；再继续变大，还可能碎成小滴。"
+      }
+    },
+    {
+      "id": "moon-phases",
+      "objectName": "月亮",
+      "source": "https://science.nasa.gov/moon/moon-phases/",
+      "sourceTitle": "NASA: Moon Phases",
+      "rejected": {
+        "title": "月亮的阴晴圆缺，是地球影子每天挡出来的",
+        "body": "太阳照亮月球的一半。地球的影子每天遮住不同部分，所以月亮每个月就会由缺变圆。"
+      },
+      "supported": {
+        "title": "月亮并不是一轮小灯，它借的是太阳光",
+        "body": "月球本身不发光，我们看到的是它反射的阳光。太阳照亮月球的一半，随着月球绕地球运行，我们能看到的明亮部分不断变化，于是有了阴晴圆缺。"
+      }
+    },
+    {
+      "id": "rainbow-circle",
+      "objectName": "彩虹",
+      "source": "https://www.weather.gov/fgz/Rainbow",
+      "sourceTitle": "National Weather Service: How Do Rainbows Form?",
+      "rejected": {
+        "title": "彩虹只能是半圆，因为雨滴只反射上半圈",
+        "body": "阳光进入雨滴后会折射和反射。雨滴内部的下半面不能反射阳光，所以彩虹永远不可能形成完整的圆。"
+      },
+      "supported": {
+        "title": "彩虹不止是一座桥，我们通常只看见圆的一段",
+        "body": "彩虹的彩色弧线围绕同一个圆心。平时看到的桥形，其实只是整个圆的一部分；地面挡住了下半段的视野。"
+      }
+    }
+  ]
+}

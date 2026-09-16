@@ -1,0 +1,64 @@
+{
+  "purpose": "Diagnostic paired reproduction of known entailment failures, not a fresh holdout, interestingness score, current scientific consensus, or production acceptance.",
+  "protocol": "Freeze this fixture before calls. Same source snapshot and neutral source-supported title within each pair. No labels, expected judgments, or target sentences in the model prompt. Negative cases pass only if the review is valid, the card is rejected, and every specified erroneous body sentence is rejected. Rejection of a different sentence does not count. Positive controls must be accepted. Invalid/incomplete responses are failures. Never replace the previous 12-case results with this score.",
+  "model": "qwen3.7-plus-2026-05-26",
+  "experimentBundleSHA": "7daa737dab28b447ffebcd6ed5dd21bbeb6020610e72311cac43a298e10880ec",
+  "maxCalls": 8,
+  "maxRetries": 0,
+  "photos": 0,
+  "searches": 0,
+  "timeoutMs": 45000,
+  "temperature": 0,
+  "thinkingBudget": 1024,
+  "maxTokens": 2048,
+  "cases": [
+    {
+      "id": "manatee-degree-negative", "pair": "manatee-degree", "sourceCase": "manatee-limited-mobility-control", "expected": false,
+      "title": "这篇科普提到，海牛的脖子活动受限",
+      "body": "这篇2003年的科普说，海牛的颈椎融合，所以它们完全无法转头。",
+      "requiredUnsupportedTexts": ["这篇2003年的科普说，海牛的颈椎融合，所以它们完全无法转头"]
+    },
+    {
+      "id": "manatee-degree-positive", "pair": "manatee-degree", "sourceCase": "manatee-limited-mobility-control", "expected": true,
+      "title": "这篇科普提到，海牛的脖子活动受限",
+      "body": "这篇2003年的科普说，海牛的颈椎融合，限制了脖子的活动。",
+      "requiredUnsupportedTexts": []
+    },
+    {
+      "id": "scissors-benefit-negative", "pair": "scissors-benefit", "sourceCase": "scissors-observed-scope-error", "expected": false,
+      "title": "刀刃曲线会影响剪刀的受力",
+      "body": "剪刀刃口并非直线，而是带有弧度的曲线。剪切时，接触点随开合角度移动，这种几何设计改变了力臂长度，让手部施加的扭矩更有效地转化为切断物体的力，使切割更顺畅。[ref_2]",
+      "requiredUnsupportedTexts": ["剪刀刃口并非直线，而是带有弧度的曲线", "剪切时，接触点随开合角度移动，这种几何设计改变了力臂长度，让手部施加的扭矩更有效地转化为切断物体的力，使切割更顺畅"]
+    },
+    {
+      "id": "scissors-benefit-positive", "pair": "scissors-benefit", "sourceCase": "scissors-source-supported-control", "expected": true,
+      "title": "刀刃曲线会影响剪刀的受力",
+      "body": "剪刀合拢时，被剪材料先被刀刃压出局部变形，变形积累到一定程度才发生断裂分离。刀刃的曲线形状会影响变形阶段你手上感受到的力的大小。[ref_2]",
+      "requiredUnsupportedTexts": []
+    },
+    {
+      "id": "hdmi-condition-negative", "pair": "hdmi-condition", "sourceCase": "hdmi-observed-crossed-cause", "expected": false,
+      "title": "HDCP握手，还要确认对方是不是获授权设备",
+      "body": "播放高清电影时，若设备间未完成加密握手，播放器会故意降低画质输出。这是为了防止非法拷贝，却导致合法用户看不清细节。",
+      "requiredUnsupportedTexts": ["播放高清电影时，若设备间未完成加密握手，播放器会故意降低画质输出"]
+    },
+    {
+      "id": "hdmi-condition-positive", "pair": "hdmi-condition", "sourceCase": "hdmi-handshake-control", "expected": true,
+      "title": "HDCP握手，还要确认对方是不是获授权设备",
+      "body": "HDCP握手让两台设备确认对方已获授权，并商定加密密钥。文中描述的未授权采集设备若无法完成握手，视频源就会拒绝向它发送内容。",
+      "requiredUnsupportedTexts": []
+    },
+    {
+      "id": "comparison-range-negative", "pair": "comparison-range", "sourceCase": "synthetic-continuous-comparison-error", "expected": false,
+      "title": "这次实验里，低速组更难被检测到",
+      "body": "实验中低速组较难被检测到，所以只要继续降低转速，就能继续降低被检测到的概率。",
+      "requiredUnsupportedTexts": ["实验中低速组较难被检测到，所以只要继续降低转速，就能继续降低被检测到的概率"]
+    },
+    {
+      "id": "comparison-range-positive", "pair": "comparison-range", "sourceCase": "synthetic-bounded-comparison-control", "expected": true,
+      "title": "这次实验里，低速组更难被检测到",
+      "body": "在相同噪声条件下，这次实验的低速组被检测到的概率低于高速组。实验没有测试其他速度，不能据此断言转得越慢就越难被检测到。",
+      "requiredUnsupportedTexts": []
+    }
+  ]
+}

@@ -28,6 +28,7 @@ export interface AnalysisJob {
   uploadClaimedAt: string | null;
   processingClaimToken: string | null;
   processingLeaseExpiresAt: string | null;
+  retryCount: number;
   status: JobStatus;
   errorCode: string | null;
   createdAt: string;
@@ -50,6 +51,11 @@ export interface DetectedEntity {
   sensitiveFlags: Array<"face" | "selfie" | "identity_document" | "bank_card" | "receipt" | "document" | "high_text_density" | "screenshot">;
 }
 
+export interface PhotoUnderstanding {
+  subjects: DetectedEntity[];
+  sensitiveFlags: DetectedEntity["sensitiveFlags"];
+}
+
 export interface KnowledgeSource {
   sourceId: string;
   title: string;
@@ -61,6 +67,11 @@ export interface KnowledgeSource {
 export interface KnowledgeFact {
   factId: string;
   topicId: string;
+  cardTitle?: string;
+  cardBody?: string;
+  cardQualityStatus?: "candidate" | "approved";
+  photoApplicability?: "category" | "visible_subtype" | "visible_feature" | "visible_state";
+  photoObjectName?: string;
   factText: string;
   sourceIds: string[];
   riskLevel: RiskLevel;
@@ -122,7 +133,7 @@ export interface KnowledgeCard {
 }
 
 export interface DailyKnowledgeRanker {
-  select(cards: KnowledgeCard[]): Promise<{ cardId: string; reason: string }>;
+  select(cards: KnowledgeCard[], topicPreferences?: readonly TopicPreference[]): Promise<{ cardId: string; reason: string }>;
 }
 
 export interface CardFeedback {
@@ -161,6 +172,7 @@ export interface TrackedItem {
 
 export interface DeviceRepository {
   register(installationHash: string, tokenHash: string): Promise<RegisteredDevice>;
+  findByInstallationHash(installationHash: string): Promise<Device | null>;
   findByTokenHash(tokenHash: string): Promise<Device | null>;
   deleteCascade(deviceId: string): Promise<void>;
 }
@@ -213,12 +225,34 @@ export type BudgetedAnalysisJobCreateResult =
   | { status: "evaluation_sample_invalid" }
   | { status: "evaluation_sample_conflict" };
 
+export type InferenceCostReservationResult =
+  | { status: "reserved" }
+  | { status: "existing" }
+  | { status: "global_daily_cost_exceeded" }
+  | { status: "global_monthly_cost_exceeded" };
+
+export type BudgetedRetryPrepareResult =
+  | { status: "prepared"; job: AnalysisJob }
+  | { status: "retry_exhausted" }
+  | { status: "state_conflict" }
+  | { status: "global_daily_cost_exceeded" }
+  | { status: "global_monthly_cost_exceeded" };
+
 export interface AnalysisJobRepository {
   createWithinBudget(
     input: Omit<AnalysisJob, "id" | "createdAt" | "updatedAt">,
     budget: AnalysisJobBudget,
     evaluation?: EvaluationJobAuthorization
   ): Promise<BudgetedAnalysisJobCreateResult>;
+  reserveInferenceCost(
+    operationKey: string,
+    reservedCostMicroCny: number,
+    globalDailyCostMicroCnyLimit: number,
+    globalMonthlyCostMicroCnyLimit: number,
+    dailySince: string,
+    monthSince: string
+  ): Promise<InferenceCostReservationResult>;
+  releaseInferenceOperationKey(operationKey: string): Promise<void>;
   createEvaluationLease(input: EvaluationLeaseDefinition): Promise<void>;
   revokeEvaluationLease(id: string, revokedAt: string): Promise<boolean>;
   findById(id: string): Promise<AnalysisJob | null>;
@@ -228,6 +262,19 @@ export interface AnalysisJobRepository {
     expectedSessionId: string | null,
     input: { objectKey: string; uploadSessionId: string; uploadExpiresAt: string }
   ): Promise<AnalysisJob | null>;
+  prepareRetryWithinCostBudget(
+    id: string,
+    expectedSessionId: string | null,
+    input: { objectKey: string; uploadSessionId: string; uploadExpiresAt: string },
+    budget: Pick<
+      AnalysisJobBudget,
+      | "reservedCostMicroCny"
+      | "globalDailyCostMicroCnyLimit"
+      | "globalMonthlyCostMicroCnyLimit"
+      | "dailySince"
+      | "monthSince"
+    >
+  ): Promise<BudgetedRetryPrepareResult>;
   claimForUpload(uploadSessionId: string, deviceId: string, nowIso: string): Promise<AnalysisJob | null>;
   finishUpload(id: string, uploadSessionId: string, errorCode: string | null): Promise<AnalysisJob | null>;
   recoverStaleUpload(id: string, staleBeforeIso: string): Promise<AnalysisJob | null>;
@@ -285,5 +332,25 @@ export interface ObjectDeletionRepository {
 }
 
 export interface VisionProvider {
-  detect(input: { image: Buffer; imageUrl?: string; localLabels: string[] }): Promise<DetectedEntity>;
+  detect(input: {
+    image: Buffer;
+    imageUrl?: string;
+    localLabels: string[];
+    preferredTopics?: string[];
+  }): Promise<DetectedEntity>;
+  understand?(input: {
+    image: Buffer;
+    imageUrl?: string;
+    localLabels: string[];
+    preferredTopics?: string[];
+  }): Promise<PhotoUnderstanding>;
+  verifyKnowledgeCandidate?(input: {
+    image: Buffer;
+    imageUrl?: string;
+    objectName: string;
+    photoApplicability: "category" | "visible_subtype" | "visible_feature" | "visible_state";
+    factText: string;
+    cardTitle: string;
+    cardBody: string;
+  }): Promise<{ accepted: boolean; imageObject: string; reason: string }>;
 }

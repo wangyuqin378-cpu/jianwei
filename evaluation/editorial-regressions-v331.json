@@ -1,0 +1,47 @@
+{
+  "version": "v331",
+  "purpose": "Actual product-route false accepts for independent evidence/editorial regression, not generation examples and not release acceptance. Do not hide the judges' disagreements.",
+  "candidateSourceSha256": "64c898dd973ff9927f58c1c858ebb586b6384ab22cf1f63078e3679647b4d783",
+  "blindInputSha256": "c4199c539ca74ef3346733f1fa52c4c9c2daddf765d64608fd4fdf14820fd058",
+  "artifactDirectory": ".tooling/source-reader-v331",
+  "cases": [
+    {
+      "id": "correlation-is-not-direct-determination",
+      "run": "v331-contract",
+      "photo": "web-009.jpg",
+      "pipelineReady": true,
+      "anonymousCardId": "a3920e323f9b5681",
+      "title": "米饭粘性源于支链淀粉渗出",
+      "body": "煮饭时，米粒表面的支链淀粉会断裂并渗出到水中。这些渗出的短链分子在米粒间形成分子粘附，直接决定了米饭的粘性大小。",
+      "expectedPublishable": false,
+      "reasons": [
+        "GPT and Codex: the supplied evidence describes correlations and a proposed adhesion mechanism, not an established direct determination by short-chain molecules.",
+        "DeepSeek: retellability=3. Multiple molecular terms make the card harder to retell than the product threshold allows."
+      ],
+      "independentReviews": {
+        "gpt": { "passed": false, "sourceSupport": false, "hardFactIssue": true, "aha": 4, "retellability": 4 },
+        "kimi": { "passed": true, "sourceSupport": true, "hardFactIssue": false, "aha": 4, "retellability": 4 },
+        "deepseek": { "passed": false, "sourceSupport": true, "hardFactIssue": false, "aha": 4, "retellability": 3 }
+      }
+    },
+    {
+      "id": "headline-scope-not-repaired-by-body",
+      "run": "v331-contract",
+      "photo": "web-049.jpg",
+      "pipelineReady": true,
+      "anonymousCardId": "e59caeb58bff2ef9",
+      "title": "回形针从未被正式申请专利",
+      "body": "如今通用的Gem型回形针其实从未获得过专利。1899年，William Middlebrook仅为其制造机器申请了专利，图纸角落才画出了这种双环结构。因其设计已臻完美，百年来难以改进，故一直沿用至今。",
+      "expectedPublishable": false,
+      "reasons": [
+        "GPT and Codex: the headline refers to paper clips generally, while both supplied sources themselves describe patented paper-clip designs. The body narrowing to Gem does not repair the headline.",
+        "DeepSeek: aha=3. The event history does not explain how the object's design produces its advantages."
+      ],
+      "independentReviews": {
+        "gpt": { "passed": false, "sourceSupport": false, "hardFactIssue": true, "aha": 3, "retellability": 5 },
+        "kimi": { "passed": true, "sourceSupport": true, "hardFactIssue": false, "aha": 4, "retellability": 5 },
+        "deepseek": { "passed": false, "sourceSupport": true, "hardFactIssue": false, "aha": 3, "retellability": 4 }
+      }
+    }
+  ]
+}

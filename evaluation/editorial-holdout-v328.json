@@ -1,0 +1,39 @@
+{
+  "version": "v328-holdout",
+  "purpose": "Frozen before candidate measurements. New-topic text-only holdout; Codex hypotheses, not user acceptance or photo benchmark. Evidence summaries are paraphrases, not verbatim source excerpts.",
+  "regressionIDs": [],
+  "cases": [
+    {
+      "id": "mug-drainage", "objectName": "带杯底排水槽的宜家 VÄRDERA 马克杯",
+      "title": "这种杯子底下的缺口，是给水留的出口",
+      "body": "宜家有些马克杯的底圈开着小槽。杯子倒扣进洗碗机时，底部原本容易积水；这些槽让水能流走，一个小缺口解决的是杯子翻过来后的麻烦。",
+      "expectedEditorialAccept": true,
+      "labelReason": "Small visible detail explained through an unexpected use orientation; explicitly specific subtype.",
+      "sources": [{ "sourceId": "ikea-vardera", "title": "IKEA — VÄRDERA mug", "url": "https://www.ikea.com/jp/en/p/vaerdera-mug-white-30277365/", "publisher": "IKEA", "authority": "official", "evidenceKind": "Codex paraphrase of primary source checked 2026-09-06", "evidenceSnippet": "宜家说明该杯底部的排水槽能排走杯子倒置于洗碗机时可能积聚的水。" }]
+    },
+    {
+      "id": "zipper-lock", "objectName": "YKK 自动锁拉链头",
+      "title": "有些拉链头，松开拉片就会自己“上锁”",
+      "body": "YKK 的自动锁拉链头带有锁销。提起拉片，锁销脱开，拉链头才能移动；松手又会锁住。所以拉片不只是把手，还控制着锁定机构。",
+      "expectedEditorialAccept": true,
+      "labelReason": "A hidden second function of a familiar control, concrete action order and restricted design scope.",
+      "sources": [{ "sourceId": "ykk-slider", "title": "YKK — Slider catalogue / Fastening catalogue", "url": "https://ykk.pl/wp-content/uploads/2021/02/asia-slider-catalog.pdf", "publisher": "YKK", "authority": "official", "evidenceKind": "Codex paraphrase of primary catalogue checked 2026-09-06", "evidenceSnippet": "自动锁机构在拉片松开时自动起作用。提起拉片离开拉链头时，锁销脱开，拉链头可移动。该说明针对自动锁类型，并非全部拉链。" }]
+    },
+    {
+      "id": "ceramic-definition", "objectName": "陶瓷杯",
+      "title": "陶瓷杯不是把泥晒干，而是让它经历高温变化",
+      "body": "陶瓷杯需要烧制。高温使坯体中的成分发生物理和化学变化，结构逐渐致密，形成坚硬的陶瓷；本质上，这是材料热处理与结构演变的结果。",
+      "expectedEditorialAccept": false,
+      "labelReason": "Common manufacturing definition with unexplained generic terminology and no distinctive detail.",
+      "sources": [{ "sourceId": "control-ceramics", "title": "Calibration-only supplied premise", "url": "https://example.org/calibration-only", "publisher": "Calibration", "authority": "reference", "evidenceKind": "Synthetic premise; cannot be published as a source", "evidenceSnippet": "陶瓷坯体烧制时发生物理和化学变化，得到坚硬的制品。" }]
+    },
+    {
+      "id": "zipper-fake-contrast", "objectName": "拉链",
+      "title": "拉链并非单纯拉拢两边，而是让链牙彼此咬合",
+      "body": "拉链头滑过时，引导两侧的链牙交错咬合，把分开的两边连在一起。看似简单的拉拢动作，背后其实是机械啮合与几何约束共同发挥作用。",
+      "expectedEditorialAccept": false,
+      "labelReason": "Basic visible function restated as a false contradiction with technical filler.",
+      "sources": [{ "sourceId": "control-zipper", "title": "Calibration-only supplied premise", "url": "https://example.org/calibration-only", "publisher": "Calibration", "authority": "reference", "evidenceKind": "Synthetic premise; cannot be published as a source", "evidenceSnippet": "拉链头引导两侧链牙交错咬合，以连接两边。" }]
+    }
+  ]
+}

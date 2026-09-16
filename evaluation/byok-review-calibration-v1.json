@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "scope": "Assistant-authored offline reviewer calibration, not human-reviewed content, fresh image generation, user preference research, or release acceptance",
+  "cases": [
+    {
+      "id": "lens",
+      "fileName": "web-001.jpg",
+      "sha256": "1fdf4957759d85f866d0304e455a4484d8acfb56c61bbd6ef04730815a52013e",
+      "subject": {"canonicalTopicId": "camera_lens", "displayName": "相机镜头"},
+      "candidates": [
+        {"subjectIndex": 0, "title": "镜头镀膜把反光吸收成热", "body": "相机镜头的减反射镀膜靠吸收反射光工作，把原本会反射的光全部变成热量。因此镀膜吸收的光越多，进入相机成像的光也就越多。"},
+        {"subjectIndex": 0, "title": "镜头上的环可以用手转", "body": "相机镜头外侧通常有便于手指操作的环。拍照时，手指可以转动这些环，调整镜头提供的相应功能，不必直接触碰里面的镜片。"},
+        {"subjectIndex": 0, "title": "减少反光，竟要让反光互相抵消", "body": "镜头的减反射薄膜利用光的干涉：不同界面反射出的光波在一定条件下相互削弱。不是把光染黑吸掉，而是让更多光穿过镜片参与成像。"}
+      ],
+      "oracle": [
+        {"candidateIndex": 0, "expected": "reject", "dimension": "fact", "reason": "把减反射薄膜的干涉机制写成吸收变热，且吸收增加不能推导为透射增加。", "sources": ["https://www.zeiss.com/oem-solutions/products-solutions/optical-high-tech-components/optical-coatings/ar-coatings.html", "https://lenspire.zeiss.com/photo/app/uploads/2022/02/technical-article-about-the-reduction-of-reflections-for-camera-lenses.pdf"]},
+        {"candidateIndex": 1, "expected": "reject", "dimension": "banal", "reason": "可直接观察的操作用途，没有机制、背景或意外联系。此项是开发期编辑判断，不代表真实用户偏好。", "sources": []},
+        {"candidateIndex": 2, "expected": "accept", "dimension": "category", "reason": "一般镜头机制可以由镜头照片引出，不要求照片显示薄膜层，也未断言这两枚镜头具体镀膜配方。", "sources": ["https://www.zeiss.com/oem-solutions/products-solutions/optical-high-tech-components/optical-coatings/ar-coatings.html", "https://lenspire.zeiss.com/photo/app/uploads/2022/02/technical-article-about-the-reduction-of-reflections-for-camera-lenses.pdf"]}
+      ]
+    },
+    {
+      "id": "mouse",
+      "fileName": "web-004.jpg",
+      "sha256": "5417dec99baff4dfc98b8099cd840bacd2e64dab3e9d335d0818fc85ffb933b4",
+      "subject": {"canonicalTopicId": "computer_mouse", "displayName": "透明外壳鼠标"},
+      "candidates": [
+        {"subjectIndex": 0, "title": "鼠标按钮用来点击屏幕项目", "body": "鼠标可以移动屏幕上的指针，也能通过按钮完成点击。把指针移到目标上，再按按钮，就能选择项目或触发界面上的相应功能。"},
+        {"subjectIndex": 0, "title": "鼠标的祖先是个木头盒子", "body": "1964年在斯坦福研究所做出的第一只鼠标原型，外壳是木头，底下有两个方向不同的轮子。横向和纵向的位移分别记录，再合成屏幕上的移动。"},
+        {"subjectIndex": 0, "title": "第一只鼠标靠激光认路", "body": "1964年诞生的第一只电脑鼠标没有机械轮子，它已经用激光扫描桌面纹理来判断移动方向。后来的滚球鼠标只是为了降低生产成本才改用机械结构。"}
+      ],
+      "oracle": [
+        {"candidateIndex": 0, "expected": "reject", "dimension": "banal", "reason": "基础操作说明，无新增发现；编辑标签不代表用户盲评。", "sources": []},
+        {"candidateIndex": 1, "expected": "accept", "dimension": "category", "reason": "SRI记载1964年的木制原型和轮式位移检测。正文明确是历史原型，不把现代透明鼠标说成木头。", "sources": ["https://www.sri.com/hoi/computer-mouse-and-interactive-computing/", "https://www.sri.com/75-years-of-innovation/75-years-of-innovation-the-computer-mouse/"]},
+        {"candidateIndex": 2, "expected": "reject", "dimension": "fact", "reason": "第一原型采用轮子，不是激光；还编造滚球设计动机。", "sources": ["https://www.sri.com/hoi/computer-mouse-and-interactive-computing/"]}
+      ]
+    },
+    {
+      "id": "tape",
+      "fileName": "web-013.jpg",
+      "sha256": "b88a30ffe894c3d3e3e6a6d5e3d6c7fd17742ee2ab331ceafec4df6ef0110e7e",
+      "subject": {"canonicalTopicId": "tape_measure", "displayName": "卷尺"},
+      "candidates": [
+        {"subjectIndex": 0, "title": "有些尺钩故意留了一点松动", "body": "带活动尺钩的卷尺，末端那点滑动是在补偿金属钩自身的厚度。往外钩住和往里顶住时，尺钩位置随之改变，抵消两种测量方式的零点差。"},
+        {"subjectIndex": 0, "title": "尺钩的松动是在自动调温", "body": "卷尺末端的钩子留有活动余量，是为了随气温变化自动伸缩。尺钩能感应温度并修正整条尺带的热胀冷缩，所以在任何温度下都能测得完全准确。"},
+        {"subjectIndex": 0, "title": "卷尺上有刻度才能读出长度", "body": "卷尺把连续的长度分成刻度，再配上数字。测量时看物体两端对应的位置，就能读出长度；这些刻度是卷尺供人读取尺寸的基本部分。"}
+      ],
+      "oracle": [
+        {"candidateIndex": 0, "expected": "accept", "dimension": "category", "reason": "制造商支持活动尺钩补偿厚度；正文限定带活动尺钩的卷尺，无全温度完美精度承诺。", "sources": ["https://support.stanleytools.com/hc/en-us/articles/360012677558-Why-does-the-hook-on-my-tape-measure-move"]},
+        {"candidateIndex": 1, "expected": "reject", "dimension": "fact", "reason": "把机械厚度补偿编成温度传感和全尺热胀冷缩补偿，且承诺任何温度完全准确。", "sources": ["https://support.stanleytools.com/hc/en-us/articles/360012677558-Why-does-the-hook-on-my-tape-measure-move"]},
+        {"candidateIndex": 2, "expected": "reject", "dimension": "banal", "reason": "刻度用于读数是基础用途，没有新发现；编辑判断。", "sources": []}
+      ]
+    },
+    {
+      "id": "knife",
+      "fileName": "web-014.jpg",
+      "sha256": "63d9a0a43b699ad0e0a25bbac94a4b2b047fc39f047fc31583e70756a4052b52",
+      "subject": {"canonicalTopicId": "utility_knife", "displayName": "美工刀"},
+      "candidates": [
+        {"subjectIndex": 0, "title": "照片这把刀的刀片分成了小节", "body": "照片里的这把刀使用带斜刻线的长条分段刀片。每条刻线都把刀刃划成一小节，这种分段结构与巧克力块的分格方式有关，是它的设计特点。"},
+        {"subjectIndex": 0, "title": "美工刀的手柄让人更好握住", "body": "美工刀在刀片后面配了手柄，手可以握住外壳来控制刀具。手柄把操作区域与切割部分区分开，是日常手工具中很常见的一种布局。"},
+        {"subjectIndex": 0, "title": "一类美工刀的点子来自巧克力", "body": "美工刀里有一类使用可折断的分段刀片。发明者冈田良男从巧克力的分格和碎玻璃上得到启发，让一片刀刃能够分段更新；这不是所有美工刀的结构。"}
+      ],
+      "oracle": [
+        {"candidateIndex": 0, "expected": "reject", "dimension": "instance", "reason": "本助手查看web-014原脱敏图：TITAN刀具露出梯形刀片，不是带斜线的长条分段片。候选明确指照片这把，类别相同不能挽救错配；这不是用户人工审核。", "sources": []},
+        {"candidateIndex": 1, "expected": "reject", "dimension": "banal", "reason": "手柄供握持是常识，无新信息；编辑判断。", "sources": []},
+        {"candidateIndex": 2, "expected": "accept", "dimension": "category", "reason": "OLFA原始发明史支持巧克力和碎玻璃灵感。明确讨论同类特殊结构，不宣称照片里的TITAN采用折断刀片，也没有操作指导。", "sources": ["https://www.olfa.co.jp/en/birth_of_olfa_cutter.html"]}
+      ]
+    }
+  ]
+}

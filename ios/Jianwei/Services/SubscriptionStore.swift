@@ -18,9 +18,24 @@ enum ManagedSubscriptionState: Equatable, Sendable {
     }
 }
 
+enum SubscriptionPurchaseOutcome: Sendable {
+    case purchased
+    case cancelled
+}
+
+@MainActor
+protocol ManagedSubscriptionServing: Sendable {
+    var state: ManagedSubscriptionState { get }
+    var displayPrice: String? { get }
+    func refresh() async
+    func purchase(appAccountToken: UUID) async throws -> SubscriptionPurchaseOutcome
+    func restore() async throws
+    func entitlementJWS() async -> String?
+}
+
 @MainActor
 @Observable
-final class SubscriptionStore {
+final class SubscriptionStore: ManagedSubscriptionServing {
     private(set) var state: ManagedSubscriptionState = .loading
     private(set) var product: Product?
     private(set) var currentTransactionJWS: String?
@@ -67,7 +82,7 @@ final class SubscriptionStore {
         await refreshEntitlement()
     }
 
-    func purchase(appAccountToken: UUID) async throws {
+    func purchase(appAccountToken: UUID) async throws -> SubscriptionPurchaseOutcome {
         if product == nil { await refresh() }
         guard let product else { throw ProductError.subscriptionUnavailable }
         switch try await product.purchase(options: [.appAccountToken(appAccountToken)]) {
@@ -77,10 +92,11 @@ final class SubscriptionStore {
             }
             await transaction.finish()
             await refreshEntitlement()
+            return .purchased
         case .pending:
             throw ProductError.subscriptionPending
         case .userCancelled:
-            return
+            return .cancelled
         @unknown default:
             throw ProductError.subscriptionUnavailable
         }
@@ -107,8 +123,13 @@ final class SubscriptionStore {
         for await result in Transaction.currentEntitlements {
             guard case let .verified(transaction) = result,
                   transaction.productID == productID,
+                  transaction.productType == .autoRenewable,
                   transaction.revocationDate == nil,
-                  transaction.expirationDate.map({ $0 > Date() }) ?? true else { continue }
+                  !transaction.isUpgraded else { continue }
+            // currentEntitlements already includes subscribed and inGracePeriod,
+            // excluding expired/revoked subscriptions. The billing transaction
+            // can expire before Apple's grace period ends; do not reject it here.
+            // The managed gateway independently checks current Apple status.
             currentTransactionJWS = result.jwsRepresentation
             state = .subscribed
             return

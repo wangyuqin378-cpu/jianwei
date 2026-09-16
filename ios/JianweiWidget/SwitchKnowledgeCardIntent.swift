@@ -8,8 +8,8 @@ struct SwitchKnowledgeCardIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         let store = try SharedWidgetStore()
-        let changed = try store.advance(on: ChinaDay.string(from: Date()))
-        if changed {
+        let result = try store.advance(on: ChinaDay.string(from: Date()))
+        if case .advanced = result {
             WidgetCenter.shared.reloadTimelines(ofKind: SharedConstants.widgetKind)
         }
         return .result()

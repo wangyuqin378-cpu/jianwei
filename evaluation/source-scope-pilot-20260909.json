@@ -1,0 +1,30 @@
+{
+  "description": "Observed source-scope problems from the fixed three-photo Plus-v2 pilot. Evaluator labels must not enter model prompts. These are text evidence cases, not accepted photo cards or interestingness grades.",
+  "status": "Observed failures retained; not yet run as a new regression suite.",
+  "cases": [
+    {
+      "id": "touchscreen-unscoped-capacitive-handheld",
+      "expected": "rejected",
+      "errorClass": "unscoped_subtype_and_form_factor",
+      "objectName": "触摸屏",
+      "title": "手指触屏其实是接通了微弱电流回路",
+      "body": "屏幕电极发出交流电，因人体是良导体，手指接触时感应电荷流动，配合手持设备接地形成完整回路，微控制器借此精准定位触点。[ref_1]",
+      "source": "https://engineering.mit.edu/ask-an-engineer/how-do-touch-sensitive-screens-work",
+      "sourceTextSHA256": "45b679e3dde9410692c1d3759eda491e9eb853017d6b562c42b81e2bb41a632d",
+      "rationale": "原文区分多种触摸感应技术，并将该回路原理限定为电容式；手持和固定安装设备的接地情形分别解释。文案省略电容式前提，又把手持条件作为通用叙述。不能只删除被审核否决的精准定位句便视为整条可靠；不声称原文完全没有位置感应机制。",
+      "origin": "One live full-chain v18 photo-target-plus-v2 attempt on web-059. Photo and interestingness passed; evidence rejected. No card published."
+    },
+    {
+      "id": "scissors-arbitrary-curves-to-universal-improvement",
+      "expected": "rejected",
+      "errorClass": "model_scope_to_universal_design_and_unsupported_improvement",
+      "objectName": "剪刀",
+      "title": "剪厚物费力？刀刃曲线在省力",
+      "body": "剪刀刃口并非直线，而是带有弧度的曲线。剪切时，接触点随开合角度移动，这种几何设计改变了力臂长度，让手部施加的扭矩更有效地转化为切断物体的力，使切割更顺畅。[ref_2]",
+      "source": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2709828/",
+      "sourceTextSHA256": "644501610c6d2e9ea8cfd3587183b047ea649417f497c678a19978109cc1078b",
+      "rationale": "原文从矩形刃模型扩展到任意刃形，并说明刃形影响扭矩响应。它不直接支持所有剪刀刃口非直线，也不直接证明这种影响一定是更省力或更顺畅。审核对这些分句给了通过而只拒绝标题问句；本夹具针对范围与效果扩大，不将所有问句判为无证据。",
+      "origin": "One live full-chain v18 photo-target-plus-v2 attempt on web-011. Photo and interestingness passed; evidence rejected only the introductory question. No card published."
+    }
+  ]
+}

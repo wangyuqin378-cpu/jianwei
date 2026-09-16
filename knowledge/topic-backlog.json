@@ -1,6 +1,6 @@
 {
   "version": "2026-07-18-beta-taxonomy.1",
-  "generatedFromCatalogVersion": "2026-07-28-beta.64",
+  "generatedFromCatalogVersion": "2026-08-31-interest.53",
   "policy": {
     "publishesFacts": false,
     "requiredFactsPerTopic": "3-5",
@@ -19,7 +19,7 @@
     "topics": 200,
     "seededTopics": 200,
     "proposedTopics": 0,
-    "productionReadyTopics": 183
+    "productionReadyTopics": 185
   },
   "topics": [
     {
@@ -105,10 +105,10 @@
         "除湿机"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -383,6 +383,7 @@
       "aliases": [
         "rubber gloves",
         "cleaning gloves",
+        "橡胶手套",
         "清洁手套",
         "洗碗手套"
       ],
@@ -406,10 +407,10 @@
         "按压瓶"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -540,10 +541,10 @@
         "脚踏垃圾桶"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -577,10 +578,10 @@
         "滚筒洗衣机"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 4,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 4,
-      "verifiedGeneralFactCount": 4,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -591,13 +592,16 @@
       "category": "digital",
       "aliases": [
         "camera",
+        "digital camera",
+        "digital_camera",
+        "数码相机",
         "相机"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -613,10 +617,10 @@
         "摄影镜头"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -669,10 +673,10 @@
         "鼠标"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 4,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 4,
-      "verifiedGeneralFactCount": 4,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -755,13 +759,14 @@
       "category": "digital",
       "aliases": [
         "HDMI cable",
-        "HDMI 线"
+        "HDMI 线",
+        "HDMI插头"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -794,10 +799,10 @@
         "键盘"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 4,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 4,
-      "verifiedGeneralFactCount": 4,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -906,10 +911,10 @@
         "laser printer"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -941,10 +946,10 @@
         "SD 卡"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -979,10 +984,10 @@
         "电子手表"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1074,10 +1079,10 @@
         "USB-C 线"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1094,10 +1099,10 @@
         "U 盘"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 4,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 4,
-      "verifiedGeneralFactCount": 4,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1263,10 +1268,10 @@
         "衣夹"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1415,10 +1420,10 @@
         "抽屉导轨"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1781,10 +1786,10 @@
         "鞋带"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1871,10 +1876,10 @@
         "卫生纸"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -1981,10 +1986,10 @@
         "铝箔"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3136,10 +3141,10 @@
         "卷尺"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 4,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 4,
-      "verifiedGeneralFactCount": 4,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3153,10 +3158,10 @@
         "美工刀"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3171,10 +3176,10 @@
         "浇水壶"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 5,
+      "verifiedGeneralFactCount": 5,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3203,7 +3208,10 @@
       "aliases": [
         "wrench",
         "spanner",
-        "扳手"
+        "扳手",
+        "torque wrench",
+        "扭矩扳手",
+        "力矩扳手"
       ],
       "catalogState": "seeded",
       "factsInCatalog": 4,
@@ -3224,13 +3232,13 @@
         "气囊"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 0,
-      "verifiedGeneralFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "ai_review_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "bicycle",
@@ -3243,10 +3251,10 @@
         "单车"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 1,
-      "verifiedGeneralFactCount": 1,
+      "aiReviewedFactCount": 2,
+      "verifiedGeneralFactCount": 2,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3262,10 +3270,10 @@
         "车铃"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 5,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3315,10 +3323,10 @@
         "自行车脚踏"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true
@@ -3385,13 +3393,13 @@
         "汽车轮胎"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 0,
-      "verifiedGeneralFactCount": 0,
+      "aiReviewedFactCount": 1,
+      "verifiedGeneralFactCount": 1,
       "targetFactCount": 3,
-      "researchState": "ai_review_required",
-      "readyForProduction": false
+      "researchState": "ready",
+      "readyForProduction": true
     },
     {
       "topicId": "crosswalk",
@@ -3457,10 +3465,10 @@
         "车牌"
       ],
       "catalogState": "seeded",
-      "factsInCatalog": 3,
+      "factsInCatalog": 4,
       "humanAttestedFactCount": 0,
-      "aiReviewedFactCount": 3,
-      "verifiedGeneralFactCount": 3,
+      "aiReviewedFactCount": 4,
+      "verifiedGeneralFactCount": 4,
       "targetFactCount": 3,
       "researchState": "ready",
       "readyForProduction": true

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-28-beta.64",
+  "version": "2026-09-07-interest.69",
   "sources": [
     {
       "sourceId": "src-broom",
@@ -25,7 +25,7 @@
     {
       "sourceId": "src-zipper",
       "title": "Zipper slider with Y-shaped guide channel",
-      "url": "https://patents.google.com/patent/US9622550B2/en",
+      "url": "https://patentimages.storage.googleapis.com/a6/2f/50/8afda715b5a40a/US9622550.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -79,6 +79,20 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-tape-measure-transverse-curve",
+      "title": "US20060248741A1: Measuring tape and measuring tape end piece",
+      "url": "https://patentimages.storage.googleapis.com/80/bd/0b/119591be2632bd/US20060248741A1.pdf",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-stanley-tape-hook-movement",
+      "title": "US7490414B2: Tape measure with extended standout",
+      "url": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7490414",
+      "publisher": "United States Patent and Trademark Office",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-paperclip",
       "title": "Paper clip",
       "url": "https://en.wikipedia.org/wiki/Paper_clip",
@@ -114,11 +128,18 @@
       "authority": "reference"
     },
     {
-      "sourceId": "src-remote-control",
-      "title": "Remote control",
-      "url": "https://en.wikipedia.org/wiki/Remote_control",
-      "publisher": "Wikipedia",
-      "authority": "reference"
+      "sourceId": "src-logitech-bluetooth-mouse-faq",
+      "title": "Bluetooth FAQ: Logitech MX 1000 for Bluetooth Mouse",
+      "url": "https://download01.logitech.com/web/ftp/pub/pdf/bluetooth/bluetooth-faq.pdf",
+      "publisher": "Logitech",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-sony-ir-remote-camera-test",
+      "title": "如何测试红外遥控器是否正常工作（是否发送 IR 红外信号）？",
+      "url": "https://www.sony.com/zh-cn/electronics/support/televisions-projectors-lcd-tvs-android-/kd-75z9f/articles/00025283",
+      "publisher": "Sony China",
+      "authority": "official"
     },
     {
       "sourceId": "src-power-strip",
@@ -226,6 +247,20 @@
       "authority": "official"
     },
     {
+      "sourceId": "src-bayer-color-imaging-array",
+      "title": "US3971065A: Color imaging array",
+      "url": "https://patents.google.com/patent/US3971065A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-basler-bayer-demosaicing",
+      "title": "Basler scout GigE User's Manual: Color Creation and Enhancement",
+      "url": "https://assets-ctf.baslerweb.com/dg51pdwahxgw/3njopecQMNQey2vb0wrIrI/efddf64fefe12baeb3fb6d1586e97ccc/Manual_scout_GigE_all_except_scA1400.pdf",
+      "publisher": "Basler AG",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-hard-drive-ibm-ramac",
       "title": "RAMAC",
       "url": "https://www.ibm.com/history/ramac",
@@ -254,6 +289,13 @@
       "authority": "official"
     },
     {
+      "sourceId": "src-hdmi-earc",
+      "title": "HDMI Enhanced Audio Return Channel (eARC)",
+      "url": "https://www.hdmi.org/spec2sub/enhancedaudioreturnchannel",
+      "publisher": "HDMI Licensing Administrator",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-hdmi-specifications",
       "title": "HDMI Technology: Specifications and Programs",
       "url": "https://www.hdmi.org/spec/index",
@@ -271,6 +313,13 @@
       "sourceId": "src-sd-compatibility",
       "title": "SD, SDHC, SDXC and SDUC Card Capacity Choices",
       "url": "https://www.sdcard.org/consumers/about-sd-memory-card-choices/sd-sdhc-sdxc-and-sduc-card-capacity-choices/",
+      "publisher": "SD Association",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-sd-mechanical-write-protect",
+      "title": "SD Physical Layer Simplified Specification 6.00",
+      "url": "https://www.sdcard.org/cms/wp-content/themes/sdcard-org/dl.php?f=Part1_Physical_Layer_Simplified_Specification_Ver6.00.pdf",
       "publisher": "SD Association",
       "authority": "official"
     },
@@ -338,24 +387,10 @@
       "authority": "official"
     },
     {
-      "sourceId": "src-usb-if-defined-class-codes",
-      "title": "Defined Class Codes",
-      "url": "https://www.usb.org/defined-class-codes",
-      "publisher": "USB Implementers Forum",
-      "authority": "official"
-    },
-    {
       "sourceId": "src-usb-if-mass-storage-boot",
       "title": "USB Mass Storage Specification for Bootability 1.0",
       "url": "https://www.usb.org/sites/default/files/usb_msc_boot_1.0.pdf",
       "publisher": "USB Implementers Forum",
-      "authority": "official"
-    },
-    {
-      "sourceId": "src-nist-portable-storage",
-      "title": "NIST SP 1334: Reducing the Cybersecurity Risks of Portable Storage Media in OT Environments",
-      "url": "https://csrc.nist.gov/pubs/sp/1334/final",
-      "publisher": "National Institute of Standards and Technology",
       "authority": "official"
     },
     {
@@ -368,7 +403,7 @@
     {
       "sourceId": "src-paperclip-patent",
       "title": "US4949435A: Paper clip",
-      "url": "https://patents.google.com/patent/US4949435A/en",
+      "url": "https://patentimages.storage.googleapis.com/57/70/5a/968d1cbffd5d86/US4949435.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -429,6 +464,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-typical-scissors-contact-patent",
+      "title": "US20010037712A1: Typical scissors cutting contact",
+      "url": "https://patentimages.storage.googleapis.com/2f/a9/d1/edbd71d8db9192/US20010037712A1.pdf",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
       "sourceId": "src-ratchet-screwdriver-patent",
       "title": "US4777852A: Ratcheting screwdriver",
       "url": "https://patents.google.com/patent/US4777852A/en",
@@ -466,7 +508,7 @@
     {
       "sourceId": "src-stapler-patent",
       "title": "US8297485B2: Stapler",
-      "url": "https://patents.google.com/patent/US8297485B2/en",
+      "url": "https://patentimages.storage.googleapis.com/f9/c0/81/7536a4da4f93cd/US8297485.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -567,6 +609,27 @@
       "url": "https://www.ustires.org/tire-care-safety/tire-care-essentials",
       "publisher": "U.S. Tire Manufacturers Association",
       "authority": "professional"
+    },
+    {
+      "sourceId": "src-michelin-white-mascot-rubber",
+      "title": "Unveiling the Michelin Man origins: The Iconic Mascot's Story",
+      "url": "https://middle-east.michelin.com/en/the-birth-and-evolution-of-the-original-michelin-man",
+      "publisher": "Michelin",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-michelin-tire-formulation",
+      "title": "Michelin, tires that make the difference",
+      "url": "https://www.michelin.com/en/group/activities/tires/definition-formulation",
+      "publisher": "Michelin",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-continental-carbon-black-history",
+      "title": "The history of Continental Tires",
+      "url": "https://www.continental-tires.com/ca/en/about-us/history/",
+      "publisher": "Continental Tires",
+      "authority": "official"
     },
     {
       "sourceId": "src-usfa-candle-fire-safety",
@@ -842,6 +905,13 @@
       "authority": "professional"
     },
     {
+      "sourceId": "src-lodge-cast-iron-seasoning",
+      "title": "What is Cast Iron Seasoning?",
+      "url": "https://www.lodgecastiron.com/cleaning-and-care/cast-iron/science-cast-iron-seasoning",
+      "publisher": "Lodge Cast Iron",
+      "authority": "professional"
+    },
+    {
       "sourceId": "src-faber-pencil-production",
       "title": "Pencil manufacturing through the ages",
       "url": "https://www.faber-castell.com/corporate/history/production",
@@ -888,6 +958,13 @@
       "title": "Popular pottery",
       "url": "https://www.vam.ac.uk/articles/popular-pottery",
       "publisher": "Victoria and Albert Museum",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-etymonline-mug-shot",
+      "title": "Mug-shot - Etymology, Origin & Meaning",
+      "url": "https://www.etymonline.com/word/mug-shot",
+      "publisher": "Online Etymology Dictionary",
       "authority": "professional"
     },
     {
@@ -956,7 +1033,7 @@
     {
       "sourceId": "src-1908-rotary-colander-patent",
       "title": "US903104A: Colander",
-      "url": "https://patents.google.com/patent/US903104A/en",
+      "url": "https://patentimages.storage.googleapis.com/a5/ca/af/7441f892578ff3/US903104.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1031,6 +1108,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-smith-1853-spring-clothespin",
+      "title": "US10163A: Spring-clamp for clothes-lines",
+      "url": "https://patents.google.com/patent/US10163A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
       "sourceId": "src-line-retained-clothespin",
       "title": "US3058186A: Line-retained clothespin",
       "url": "https://patents.google.com/patent/US3058186A/en",
@@ -1073,9 +1157,16 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-lotion-pump-priming",
+      "title": "US5775547: Lotion dispensing pump with priming valve",
+      "url": "https://patents.justia.com/patent/5775547",
+      "publisher": "Justia Patents",
+      "authority": "reference"
+    },
+    {
       "sourceId": "src-foaming-soap-dispenser",
       "title": "US11141026B2: Foaming soap dispenser",
-      "url": "https://patents.google.com/patent/US11141026B2/en",
+      "url": "https://patentimages.storage.googleapis.com/5e/b6/aa/520da05e8147d3/US11141026.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1437,6 +1528,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-paris-poubelle-name",
+      "title": "Eugène Poubelle, l'arrêté de 1883 et la boîte Poubelle",
+      "url": "https://cdn.paris.fr/paris/2024/04/15/presentation-cq-ma-08-04-2024_compressed-xDNJ.pdf",
+      "publisher": "Ville de Paris",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-damped-step-trash-can",
       "title": "US9434538B2: Trash can",
       "url": "https://patents.google.com/patent/US9434538B2/en",
@@ -1460,9 +1558,23 @@
     {
       "sourceId": "src-camera-lens-diaphragm",
       "title": "US3997906A: Diaphragm device in a camera lens",
-      "url": "https://patents.google.com/patent/US3997906A/en",
+      "url": "https://patentimages.storage.googleapis.com/38/be/d9/aebab567ba2cc4/US3997906.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
+    },
+    {
+      "sourceId": "src-nikon-anti-reflective-coatings",
+      "title": "Anti-Reflective Coatings",
+      "url": "https://www.nikon.com/company/technology/technology_fields/process/anti_reflective_coating/",
+      "publisher": "Nikon",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-zeiss-t-coating-transmission",
+      "title": "ZEISS T* Coating: An essential technology for optical surfaces",
+      "url": "https://www.zeiss.com/photonics-and-optics/us/photography/mobile-imaging/rd-competencies.html",
+      "publisher": "ZEISS",
+      "authority": "official"
     },
     {
       "sourceId": "src-three-group-zoom-lens",
@@ -1570,6 +1682,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-apple-watch-green-absorption",
+      "title": "使用 Apple Watch 监测你的心率",
+      "url": "https://support.apple.com/zh-cn/120277",
+      "publisher": "Apple",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-watchband-attachment",
       "title": "US20210177108A1: Attachment system for watchband",
       "url": "https://patents.google.com/patent/US20210177108A1/en",
@@ -1586,7 +1705,7 @@
     {
       "sourceId": "src-gamepad-eccentric-rumble",
       "title": "US6693622B1: Vibrotactile haptic feedback devices",
-      "url": "https://patents.google.com/patent/US6693622B1/en",
+      "url": "https://patentimages.storage.googleapis.com/b7/9c/e0/9a774ddbc7885b/US6693622.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1691,7 +1810,7 @@
     {
       "sourceId": "src-wifi-mimo-spatial-multiplexing",
       "title": "US20150244432A1: Beam training for MIMO operation",
-      "url": "https://patents.google.com/patent/US20150244432A1/en",
+      "url": "https://patentimages.storage.googleapis.com/0a/86/63/b4b5fd3ea144ab/US20150244432A1.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1760,8 +1879,8 @@
     },
     {
       "sourceId": "src-tack-button-hollow-shank",
-      "title": "CA1204583A: Button",
-      "url": "https://patents.google.com/patent/CA1204583A/en",
+      "title": "US4512063A: Button",
+      "url": "https://patentimages.storage.googleapis.com/4f/68/9a/df4689cd9621a2/US4512063.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1920,6 +2039,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-skf-bearing-cage-separation",
+      "title": "Experimenting with new challenges: The cage",
+      "url": "https://evolution.skf.com/en/experimenting-with-new-challenges-leading-the-path-to-innovation/",
+      "publisher": "SKF Evolution",
+      "authority": "official"
+    },
+    {
       "sourceId": "src-drawer-slide-three-stage",
       "title": "EP0973422A1: Telescopic drawer slide with soft sequencing latch",
       "url": "https://patents.google.com/patent/EP0973422A1/en",
@@ -1930,6 +2056,13 @@
       "sourceId": "src-drawer-slide-soft-close",
       "title": "US8590989B2: Soft close mechanism in a drawer slide assembly",
       "url": "https://patents.google.com/patent/US8590989B2/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-drawer-slide-air-damper",
+      "title": "US6736471B2: Buffer and return device for a slide rail in a drawer",
+      "url": "https://patents.google.com/patent/US6736471B2/en",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -1985,7 +2118,7 @@
     {
       "sourceId": "src-light-switch-snap-action",
       "title": "US2798127A: Toggle switch mechanism",
-      "url": "https://patents.google.com/patent/US2798127A/en",
+      "url": "https://patentimages.storage.googleapis.com/50/32/3b/fa2a4eb4eccd1f/US2798127.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2083,7 +2216,7 @@
     {
       "sourceId": "src-rubber-band-vulcanized-tube",
       "title": "US1155325A: Manufacture of rubber bands",
-      "url": "https://patents.google.com/patent/US1155325A/en",
+      "url": "https://patentimages.storage.googleapis.com/65/46/08/0e8835b2167712/US1155325.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2223,7 +2356,7 @@
     {
       "sourceId": "src-lighter-flint-wheel",
       "title": "US3730671A: Cigarette-lighter flint wheel action",
-      "url": "https://patents.google.com/patent/US3730671A/en",
+      "url": "https://patentimages.storage.googleapis.com/b2/dc/b8/85bcf54e0cfaf3/US3730671.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2250,10 +2383,10 @@
     },
     {
       "sourceId": "src-mosquito-coil-nested-cutting",
-      "title": "EP1653803A1: Method of manufacturing an insect coil",
-      "url": "https://patents.google.com/patent/EP1653803A1/en",
-      "publisher": "Google Patents",
-      "authority": "reference"
+      "title": "US7582245B2: Method of manufacturing an insect coil",
+      "url": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/7582245",
+      "publisher": "United States Patent and Trademark Office",
+      "authority": "official"
     },
     {
       "sourceId": "src-mosquito-coil-variable-section",
@@ -2312,6 +2445,13 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-wheeler-1891-toilet-paper-roll",
+      "title": "US465588A: Toilet-paper roll",
+      "url": "https://patents.google.com/patent/US465588A/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
       "sourceId": "src-toilet-paper-edge-emboss",
       "title": "JP6454069B2: Toilet roll and toilet paper embossing method",
       "url": "https://patents.google.com/patent/JP6454069B2/en",
@@ -2335,7 +2475,7 @@
     {
       "sourceId": "src-wall-clock-decorative-pendulum",
       "title": "US4720820A: Clock with analog time indicating devices",
-      "url": "https://patents.google.com/patent/US4720820A/en",
+      "url": "https://patentimages.storage.googleapis.com/65/78/a7/61aa13e52e3d93/US4720820.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2474,8 +2614,8 @@
     },
     {
       "sourceId": "src-corkscrew-two-stage-link",
-      "title": "EP1132332A1: Corkscrew",
-      "url": "https://patents.google.com/patent/EP1132332A1/en",
+      "title": "US4437359A: Wine waiter corkscrews",
+      "url": "https://patentimages.storage.googleapis.com/72/32/e4/21f8fd1792b6ee/US4437359.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2692,7 +2832,7 @@
     {
       "sourceId": "src-measuring-cup-interior-ramps",
       "title": "US6263732B1: Measuring cup",
-      "url": "https://patents.google.com/patent/US6263732B1/en",
+      "url": "https://patentimages.storage.googleapis.com/fc/6f/78/96882dd33e1653/US6263732.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -2790,7 +2930,7 @@
     {
       "sourceId": "src-rice-cooker-magnetic-limiter",
       "title": "CN1899171A: Magnetic steel temperature limiter for electric rice cooker",
-      "url": "https://patents.google.com/patent/CN1899171A/en",
+      "url": "https://patentimages.storage.googleapis.com/8c/84/fd/4adbb5a78fe626/CN1899171A.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -3418,6 +3558,20 @@
       "authority": "reference"
     },
     {
+      "sourceId": "src-bicycle-pedal-thread-direction",
+      "title": "Pedal Installation and Removal",
+      "url": "https://www.parktool.com/en-us/blog/repair-help/pedal-installation-and-removal",
+      "publisher": "Park Tool",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-bicycle-pedal-thread-patent",
+      "title": "US20250249976A1: Bicycle Pedal",
+      "url": "https://patents.google.com/patent/US20250249976A1/en",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
       "sourceId": "src-bus-stop-sign-solar-display",
       "title": "GB2453723A: Bus shelter with solar power unit",
       "url": "https://patents.google.com/patent/GB2453723A/en",
@@ -3448,7 +3602,7 @@
     {
       "sourceId": "src-car-key-fob-rolling-code",
       "title": "US5420925A: Rolling code encryption process for remote keyless entry system",
-      "url": "https://patents.google.com/patent/US5420925A/en",
+      "url": "https://patentimages.storage.googleapis.com/b7/90/ac/64f4b11d7f87fe/US5420925.pdf",
       "publisher": "Google Patents",
       "authority": "reference"
     },
@@ -3465,6 +3619,13 @@
       "url": "https://patents.google.com/patent/US6894615B2/en",
       "publisher": "Google Patents",
       "authority": "reference"
+    },
+    {
+      "sourceId": "src-3m-retroreflective-science",
+      "title": "What is retroreflectivity and why is it important?",
+      "url": "https://www.3m.com/3M/en_US/road-safety-us/resources/road-transportation-safety-center-blog/full-story/~/road-signs-retroreflectivity/?storyid=328c8880-941b-4adc-a9f9-46a1cd79e637",
+      "publisher": "3M",
+      "authority": "official"
     },
     {
       "sourceId": "src-license-plate-angle-security-mark",
@@ -3570,6 +3731,13 @@
       "url": "https://www.iihs.org/research-areas/airbags",
       "publisher": "Insurance Institute for Highway Safety",
       "authority": "professional"
+    },
+    {
+      "sourceId": "src-nhtsa-airbag-deployment",
+      "title": "Vehicle Air Bags and Injury Prevention",
+      "url": "https://www.nhtsa.gov/vehicle-safety/air-bags",
+      "publisher": "National Highway Traffic Safety Administration",
+      "authority": "official"
     },
     {
       "sourceId": "src-euroncap-aop-protocol",
@@ -3717,6 +3885,111 @@
       "url": "https://eur-lex.europa.eu/eli/reg/2010/1008/oj/eng/pdf",
       "publisher": "EUR-Lex",
       "authority": "official"
+    },
+    {
+      "sourceId": "src-kioxia-nand-read-disturb",
+      "title": "TC58BVG0S3HBAI4 Serial NAND Flash Memory Datasheet",
+      "url": "https://americas.kioxia.com/content/dam/kioxia/newidr/productinfo/datasheet/202502/DST_TC58BVG0S3HBAI4-TDE_EN_31512.pdf",
+      "publisher": "KIOXIA Corporation",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-kioxia-nand-bad-block-management",
+      "title": "Understanding Bad Block Management in NAND Flash Memory",
+      "url": "https://americas.kioxia.com/content/dam/kioxia/shared/business/memory/mlc-nand/asset/productbrief/KIOXIA_Understanding_Bad_Block_Tech_Brief.pdf",
+      "publisher": "KIOXIA Corporation",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usb-if-usb2-specification",
+      "title": "USB 2.0 Specification",
+      "url": "https://www.usb.org/document-library/usb-20-specification",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-rhs-watering-rose-up",
+      "title": "Sowing seeds in the ground",
+      "url": "https://www.rhs.org.uk/getmedia/d0e0088c-a5fd-4d8b-a5aa-f94b5e5e8773/Sowing-seeds-in-the-ground_RHS-Grow-With-It.pdf",
+      "publisher": "Royal Horticultural Society",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-london-museum-watering-pot",
+      "title": "Pot, watering pot",
+      "url": "https://www.londonmuseum.org.uk/collections/v/object-451853/pot-watering-pot/",
+      "publisher": "London Museum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-met-watering-pot",
+      "title": "Pot, Watering",
+      "url": "https://www.metmuseum.org/art/collection/search/468390",
+      "publisher": "The Metropolitan Museum of Art",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-bicycle-self-stability-science",
+      "title": "A Bicycle Can Be Self-Stable Without Gyroscopic or Caster Effects",
+      "url": "https://arendschwab.com/assets/pdf/kooijman2011bicycle.pdf",
+      "publisher": "Science",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-washing-machine-concrete-counterweight",
+      "title": "EP0798412A2: Anchorage device of the washing machine counterweight",
+      "url": "https://patentimages.storage.googleapis.com/13/7f/c0/a4b0e23d1288e7/EP0798412A2.pdf",
+      "publisher": "Google Patents",
+      "authority": "reference"
+    },
+    {
+      "sourceId": "src-aluminum-foil-double-rolling-surfaces",
+      "title": "Facts and Properties of Aluminium Household Foil",
+      "url": "https://www.alufoil.org/facts-and-properties",
+      "publisher": "European Aluminium Foil Association",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-olfa-snap-off-cutter-origin",
+      "title": "Birth of OLFA cutter",
+      "url": "https://www.olfa.co.jp/en/birth_of_olfa_cutter.html",
+      "publisher": "OLFA Corporation",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-usb-if-type-c-system-overview",
+      "title": "USB Type-C System Overview",
+      "url": "https://www.usb.org/sites/default/files/D1T1-2%20-%20USB%20Type-C%20System%20Overview.pdf",
+      "publisher": "USB Implementers Forum",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-hdmi-cable-version-labeling",
+      "title": "Important Notice to Manufacturers and Resellers of HDMI Cables",
+      "url": "https://www.hdmi.org/announce/detail/81",
+      "publisher": "HDMI Licensing Administrator",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-shoelace-knot-failure",
+      "title": "Shoe-string theory: Science shows why shoelaces come untied",
+      "url": "https://news.berkeley.edu/2017/04/11/shoe-string-theory-science-shows-why-shoelaces-come-untied/",
+      "publisher": "UC Berkeley",
+      "authority": "professional"
+    },
+    {
+      "sourceId": "src-microsoft-keyboard-ghosting",
+      "title": "Keyboard Ghosting and the SideWinder X4",
+      "url": "https://www.microsoft.com/applied-sciences/projects/anti-ghosting",
+      "publisher": "Microsoft Applied Sciences",
+      "authority": "official"
+    },
+    {
+      "sourceId": "src-eff-printer-tracking-dots",
+      "title": "DocuColor Tracking Dot Decoding Guide",
+      "url": "https://w2.eff.org/Privacy/printers/docucolor/",
+      "publisher": "Electronic Frontier Foundation",
+      "authority": "professional"
     }
   ],
   "topics": [
@@ -3734,7 +4007,9 @@
         {
           "factId": "broom-001",
           "topicId": "broom",
-          "factText": "现代扫帚常把刷毛设计成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。",
+          "cardTitle": "有些扫帚故意把毛做斜，是为了贴进墙角",
+          "cardBody": "扇形刷毛会把扫面的一侧伸得更靠前，让边缘贴近墙角和家具边缘；这个看似歪掉的轮廓，其实是在替直角留位置。",
+          "factText": "有些扫帚把刷毛做成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。",
           "sourceIds": [
             "src-broom"
           ],
@@ -3753,6 +4028,8 @@
         {
           "factId": "broom-draft-002",
           "topicId": "broom",
+          "cardTitle": "斜切的扫帚毛，会一边扫地一边均匀磨损",
+          "cardBody": "毛端被切成与手柄斜交的平面后，整条扫面更容易一起贴地；受力不再只挤在一小块，刷毛也就磨得更均匀。",
           "factText": "斜切扫帚的毛端会形成与手柄斜交的平面，使用时整条扫面更容易均匀贴地，也能让刷毛磨损得更均匀。",
           "sourceIds": [
             "src-broom"
@@ -3772,6 +4049,8 @@
         {
           "factId": "broom-draft-003",
           "topicId": "broom",
+          "cardTitle": "有些扫帚把墙角单独交给几根硬毛",
+          "cardBody": "大部分软毛负责普通地面，只有一端藏着少量硬毛，专门对付墙角、边缘和顽固污物——一把扫帚里其实分了工。",
           "factText": "一种扫帚设计让大部分柔软刷毛负责普通地面，再在一端加入少量硬刷毛，用来处理墙角、边缘和较顽固的污物。",
           "sourceIds": [
             "src-broom"
@@ -3791,6 +4070,8 @@
         {
           "factId": "broom-draft-004",
           "topicId": "broom",
+          "cardTitle": "有些扫帚只把前端刷毛做粗，让它变硬",
+          "cardBody": "刷毛不必换材料也能变硬：把扫面前端的一部分刷毛做得更粗，它们就会比其余刷毛更硬，专门承担更难扫的位置。",
           "factText": "刷毛的硬度不只取决于材料；该专利通过增大扫面前端部分刷毛的直径，让这一区域比其余刷毛更硬。",
           "sourceIds": [
             "src-broom"
@@ -3879,6 +4160,11 @@
         {
           "factId": "zipper-001",
           "topicId": "zipper",
+          "cardTitle": "拉链头不是在夹齿，而是在用 Y 形通道给两排齿带路",
+          "cardBody": "滑块内部的 Y 形通道会引导两排链齿逐步啮合；反向移动时，又让已经啮合的链齿逐步分开。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
+          "photoObjectName": "滑块与两排链齿均清晰可见的拉链",
           "factText": "拉链头并不是把两排齿硬压在一起，而是用内部的 Y 形通道让齿逐步啮合或分开。",
           "sourceIds": [
             "src-zipper"
@@ -4145,27 +4431,35 @@
           }
         },
         {
-          "factId": "mug-draft-002",
+          "factId": "mug-word-mug-shot",
           "topicId": "mug",
-          "factText": "马克杯也曾是公开表达立场的媒介：1660 年英国王政复辟后，许多普通啤酒杯印上查理二世肖像，人们用它为复位的国王祝酒。",
+          "cardTitle": "mug 为什么既是杯子又是“脸”？可能怪在杯子自己",
+          "cardBody": "17世纪英国流行怪脸饮酒杯。Etymonline 认为，mug 后来指“脸”，可能正从怪脸杯延伸而来；mug shot 里的 mug 因此不是杯子，而是脸。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "17世纪英国流行怪脸饮酒杯。Etymonline 认为，mug 后来指“脸”，可能正从怪脸杯延伸而来；mug shot 里的 mug 因此不是杯子，而是脸。",
           "sourceIds": [
-            "src-vam-popular-pottery-mugs"
+            "src-etymonline-mug-shot"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-09-03T20:39:44.494Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "5a14b863b6104d1432fde9a9583918058ed94952a28fa7707bb49817c0cf661d"
+            "evidenceSha256": "eb329d43af2c166fec246a722d1b29384aea78d74e744b7a9a873094ef24d9a9"
           }
         },
         {
           "factId": "mug-draft-003",
           "topicId": "mug",
+          "cardTitle": "双层马克杯不是杯壁更厚，而是中间故意留空",
+          "cardBody": "内外两层杯壁之间保留空腔，用更难传热的间隔减慢热量通过；有些设计还会把绝热材料放进这段空腔。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "双层马克杯并不是单纯把杯壁做厚：内外两层之间保留空腔来降低热量传递，有些设计还会在空腔中加入绝热材料。",
           "sourceIds": [
             "src-double-wall-ceramic-mug-patent"
@@ -4335,6 +4629,8 @@
         {
           "factId": "chopsticks-001",
           "topicId": "chopsticks",
+          "cardTitle": "夹筷子时，真正动的通常只有上面那一根",
+          "cardBody": "下方一根通常靠在手上保持稳定，上方一根绕手指转动；两根筷子的末端因此像夹具一样开合。",
           "factText": "使用筷子时通常让下方一根保持稳定，只转动上方一根，末端就能像夹具一样开合。",
           "sourceIds": [
             "src-chopsticks"
@@ -4493,6 +4789,10 @@
         {
           "factId": "colander-draft-002",
           "topicId": "colander",
+          "cardTitle": "1908 年的滤水篮，滤完水还能把苹果磨成果泥",
+          "cardBody": "它中间有旋转的螺旋刮片，把果肉压过小孔；果皮、果核和种子会留在篮里。一只容器同时做了过滤和手摇食物磨。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "1908 年的一种滤水篮其实兼作手动食物磨：旋转螺旋刮片把果蔬压过小孔，苹果的果皮、果核和种子则留在篮内。",
           "sourceIds": [
             "src-1908-rotary-colander-patent"
@@ -4617,9 +4917,11 @@
         {
           "factId": "cast-iron-pan-draft-002",
           "topicId": "cast_iron_pan",
-          "factText": "铸铁锅的“开锅层”是油脂受热后聚合并附着在铁表面形成的保护层，不是没有洗净的油污。",
+          "cardTitle": "铸铁锅的“开锅层”，不是还黏着一层食用油",
+          "cardBody": "油脂受热后会聚合，从湿润液体变成与铁表面结合的硬化保护层；它不是一层没擦净的油，而是已经发生变化的新表层。",
+          "factText": "铸铁锅的开锅层来自油脂受热聚合：油从湿润液体变成与铁表面结合的硬化保护层。",
           "sourceIds": [
-            "src-usu-cast-iron-care"
+            "src-lodge-cast-iron-seasoning"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
@@ -4705,20 +5007,24 @@
         {
           "factId": "scissors-draft-003",
           "topicId": "scissors",
-          "factText": "剪刀闭合时，两条刃口不是正面相撞，而是从彼此旁边交错掠过，用剪切作用逐段分开材料。",
+          "cardTitle": "典型剪刀合拢时，两片刀刃真正碰到的地方只有一个点",
+          "cardBody": "典型剪刀的刀刃并不是整面贴在一起：它们略微弯曲和扭转，使接触点随着剪刀闭合，从刀刃根部一路跑向刀尖。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "典型剪刀的两片刀刃会略微弯曲和扭转，使切削时只有一个接触点；随着剪刀闭合，这个接触点从刀刃根部逐步移向刀尖。",
           "sourceIds": [
-            "src-scissors-patent"
+            "src-typical-scissors-contact-patent"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T18:24:13.852Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "663bc1303eff742a4b16134645f93c701b4cb53de7a6dd279b79d7d0bdfbbe0b"
+            "evidenceSha256": "fa1fda8e006573b79f4a586f4ec7675c45c2082f37e1945f749d3bffec4056fd"
           }
         },
         {
@@ -4809,6 +5115,10 @@
         {
           "factId": "screwdriver-001",
           "topicId": "screwdriver",
+          "cardTitle": "螺丝刀放大力气的关键，不是杆长，而是手柄够粗",
+          "cardBody": "手柄越粗，手指施力的位置离轴心越远；这段半径把较小的手力转成更大的扭矩，再通过金属杆旋转螺钉。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "粗手柄增大手部施力半径，把较小的手力转化为更大的扭矩来旋转螺钉。",
           "sourceIds": [
             "src-hand-tool"
@@ -4897,9 +5207,14 @@
         {
           "factId": "tape-measure-001",
           "topicId": "tape_measure",
+          "cardTitle": "卷尺能悬空伸出去，靠的是尺带那一点横向弧度",
+          "cardBody": "钢带并不是完全平的，横截面略微拱起；这层弧度会增加刚度，让拉出的尺带在一定长度内像细梁一样撑住自己。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
+          "photoObjectName": "尺带已拉出且横向拱起清晰可见的钢卷尺",
           "factText": "卷尺的钢带横截面略微弯曲，这种形状能提高刚度，让拉出的尺带在一定长度内不下垂。",
           "sourceIds": [
-            "src-hand-tool"
+            "src-tape-measure-transverse-curve"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
@@ -4968,6 +5283,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "935be3f94507542b2e66cee2c64609592f54a614d9bc872fd7d65daeff3bf03a"
+          }
+        },
+        {
+          "factId": "tape-measure-hook-thickness-compensation",
+          "topicId": "tape_measure",
+          "cardTitle": "卷尺末端那个松动的小钩，不是坏了，而是在补回自己的厚度",
+          "cardBody": "勾住外沿时它向外移，顶住内壁时它向内缩；活动距离约等于钩片厚度，所以两种量法都不会把钩片多算进去。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "卷尺末端的小钩会前后活动，移动距离约等于钩片厚度：勾住物体外沿测量时向外移，顶住内壁测量时向内缩，从而在两种测量方式中补偿钩片本身的厚度。",
+          "sourceIds": [
+            "src-stanley-tape-hook-movement"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:42:34.738Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "0ea8093b5b57a08d23c583b6c99d3409bac3bdeaf7d6a2ffc7d1037f7da93958"
           }
         }
       ]
@@ -5073,6 +5411,10 @@
         {
           "factId": "pliers-001",
           "topicId": "pliers",
+          "cardTitle": "钳子把支点挪近钳口，是在偷偷放大你的手力",
+          "cardBody": "支点靠近钳口后，手施力的长手柄与短钳口形成杠杆；手里较小的力量传到钳口时，会变成更大的夹持力。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "钳子的支点靠近钳口，使长手柄上的较小力量能在短钳口处放大成较大的夹持力。",
           "sourceIds": [
             "src-hand-tool"
@@ -5154,7 +5496,10 @@
       "synonyms": [
         "wrench",
         "spanner",
-        "扳手"
+        "扳手",
+        "torque wrench",
+        "扭矩扳手",
+        "力矩扳手"
       ],
       "category": "tool",
       "facts": [
@@ -5318,9 +5663,11 @@
         {
           "factId": "stapler-001",
           "topicId": "stapler",
-          "factText": "订书机底座的凹槽会迫使穿过纸张的订书钉脚向内或向外弯曲，从而锁住纸页。",
+          "cardTitle": "订书机底座那块铁片，才负责把钉脚拐弯",
+          "cardBody": "上方驱动片只把订书钉推穿纸张；两只钉脚撞上底座承砧的导向轮廓后，才被逼着向内弯折，把纸页锁住。",
+          "factText": "订书机上方驱动片把订书钉推穿纸张后，两只钉脚会在底座承砧的导向轮廓上向内弯折，从而锁住纸页。",
           "sourceIds": [
-            "src-hand-tool"
+            "src-stapler-patent"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
@@ -5444,7 +5791,12 @@
         {
           "factId": "paper-clip-draft-003",
           "topicId": "paper_clip",
-          "factText": "回形针看似没有弹簧零件，但顶部那段直钢丝可以充当扭转弹簧，为两侧夹持部分提供回弹力。",
+          "cardTitle": "1990 年的一种回形针，把顶边直接当成扭转弹簧",
+          "cardBody": "这项美国专利用一根金属丝弯出整只回形针，并让与侧边等长的顶部直段充当扭转弹簧，使它能在弹性恢复范围内夹住更厚的纸。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "顶边与侧边等长、两端约 45 度斜折并交叉的专利式回形针",
+          "factText": "1990 年公布的一项美国回形针专利使用单根金属丝，顶边与侧边约等长、两端约 45 度斜折并交叉；其顶边相对于侧边充当扭转弹簧。",
           "sourceIds": [
             "src-paperclip-patent"
           ],
@@ -5792,6 +6144,9 @@
         {
           "factId": "keyboard-001",
           "topicId": "keyboard",
+          "cardTitle": "大多数键盘没有一键一根线，而是在扫描坐标",
+          "cardBody": "每个按键位于行列交叉点；控制器快速扫描矩阵，就能从接通的行和列判断你按下了哪一键。",
+          "cardQualityStatus": "candidate",
           "factText": "大多数键盘不是给每个按键单独接线，而是用行列矩阵扫描来判断哪个交叉点被按下。",
           "sourceIds": [
             "src-keyboard"
@@ -5864,6 +6219,29 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "3fc7daf21d9606b121724817ef33c8c569afb3824c4712a7c193db9cf4647e32"
           }
+        },
+        {
+          "factId": "keyboard-ghosting-matrix",
+          "topicId": "keyboard",
+          "cardTitle": "三个键一起按，键盘可能会“看见”第四个键",
+          "cardBody": "普通键盘用行列线路扫描按键；三个键占住一个矩形的三角时，导通结果可能和四键全按相同。它分不清真假，只好漏报部分按键。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "普通矩阵键盘逐列检查哪些行接通。三个键占据两行两列中的三个交叉点时，导通结果可能与四键全按相同，键盘无法分清，只好漏报部分按键。",
+          "sourceIds": [
+            "src-microsoft-keyboard-ghosting"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:20:12.599Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "acae5c6b3fc9a4cd731b0cba93c2a139e9989c59d64a521307eb43f245e1aaca"
+          }
         }
       ]
     },
@@ -5894,6 +6272,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "e295c20f5725e4e4aefa6c0c7d6cabc4caf3e6de1f55bb4c296012cfb670e2da"
+          }
+        },
+        {
+          "factId": "computer-mouse-6000-snapshots",
+          "topicId": "computer_mouse",
+          "cardTitle": "光学鼠标靠给桌面连拍来认路：部分型号一秒超 6000 张",
+          "cardBody": "传感器连续拍下桌面纹理，再比较前后两帧挪了多少，推算移动方向和距离；Logitech 资料显示，部分型号每秒会拍超过 6000 张快照。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "光学鼠标通过连续拍摄并比较桌面纹理判断位移；Logitech 的资料显示，其部分鼠标中的光学传感器每秒会拍摄超过 6000 张“指纹”快照。",
+          "sourceIds": [
+            "src-logitech-bluetooth-mouse-faq"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T16:51:01.775Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "6ced94f1ac2e292c20a66b35b97512b832ee2b9a2c8c73d61f40f4e443e35b38"
           }
         },
         {
@@ -5968,6 +6369,10 @@
         {
           "factId": "headphones-001",
           "topicId": "headphones",
+          "cardTitle": "动圈耳机里，真正推着振膜跑的是一小圈导线",
+          "cardBody": "音频电流流过音圈后，会在永久磁场中受到不断变化的力；这圈导线拖着振膜来回振动，才把电信号变成空气里的声音。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "动圈耳机让电流通过音圈产生变化磁力，推动相连振膜振动并把电信号还原为空气声波。",
           "sourceIds": [
             "src-headphones"
@@ -6056,20 +6461,24 @@
         {
           "factId": "remote-control-001",
           "topicId": "remote_control",
-          "factText": "常见电视遥控器用红外 LED 按特定节奏闪烁，人眼看不见这些闪光，接收器却能解码按键。",
+          "cardTitle": "有些遥控器的闪光，人眼看不见，手机却可能看见",
+          "cardBody": "如果它用红外线，把顶端对准手机摄像头再按键，屏幕里可能会出现闪光；人眼看不见红外光。手机带红外滤镜时，也可能什么都看不到。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "红外遥控器发出的红外光人眼看不见，但数码相机、摄像机和部分智能手机能把它显示出来；许多手机的红外滤镜也可能阻止显示。",
           "sourceIds": [
-            "src-remote-control"
+            "src-sony-ir-remote-camera-test"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T22:34:26.525Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "8375fe5f0c5c4e25101be54acf3733da2edf797c4bc4cf5692056b69024573aa"
+            "evidenceSha256": "41615ce81460b86cb0512ad4084967c60f7565156ee76c019708e2033794d8f0"
           }
         },
         {
@@ -6163,25 +6572,6 @@
           }
         },
         {
-          "factId": "usb-flash-drive-draft-002",
-          "topicId": "usb_flash_drive",
-          "factText": "USB 设备用类别代码标识功能，其中 08h 代表大容量存储；这类代码写在接口描述符中，帮助主机选择相应驱动。",
-          "sourceIds": [
-            "src-usb-if-defined-class-codes"
-          ],
-          "riskLevel": "general",
-          "reviewStatus": "approved",
-          "aiReview": {
-            "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
-            "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
-            "decision": "approved",
-            "reasonCode": "safe_general",
-            "evidenceSha256": "3439f07332e4466c03fe2cefd283b445a7585d45a106770ab5be6f4808c73ea6"
-          }
-        },
-        {
           "factId": "usb-flash-drive-draft-003",
           "topicId": "usb_flash_drive",
           "factText": "USB-IF 还定义了大容量存储设备的可启动规范，规定主机从这类设备加载操作系统时所需的最小命令和数据集合。",
@@ -6201,22 +6591,69 @@
           }
         },
         {
-          "factId": "usb-flash-drive-draft-004",
+          "factId": "usb-flash-drive-read-disturb",
           "topicId": "usb_flash_drive",
-          "factText": "便携存储介质很适合在设备间物理传递数据，但也可能携带恶意软件；NIST 因此建议同时采用流程、物理和技术控制。",
+          "cardTitle": "U 盘不只会被写坏，读得太多也会扰乱数据",
+          "cardBody": "NAND 闪存经历大量读取时，微小电荷可能在同一块的其他页面累积，悄悄改变数据状态；这种现象叫“读扰动”。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "NAND 闪存经历大量读取时，微小电荷可能在同一块的其他页面累积并改变数据状态；这种现象叫“读扰动”。",
           "sourceIds": [
-            "src-nist-portable-storage"
+            "src-kioxia-nand-read-disturb"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T16:37:10.186Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "ea59ea43c1cfa429eb52b50db8fdb14aea01c5bedf77a827ba1f21b9b4eb2f64"
+            "evidenceSha256": "2792e51f02ea9e43b6ea9cd6c877d491b42ec833fb59fa8f81de603902f07654"
+          }
+        },
+        {
+          "factId": "usb-flash-drive-bad-blocks",
+          "topicId": "usb_flash_drive",
+          "cardTitle": "新 U 盘出厂时，就可能已经带着坏块",
+          "cardBody": "NAND 闪存出厂时就可能有已标记的坏块，控制器会绕开它们；使用中发现的新坏块也会被退役，再换用保留块。",
+          "cardQualityStatus": "candidate",
+          "factText": "NAND 闪存出厂时就可能带有已标记的坏块；控制器会绕开它们，使用中发现新坏块时也会将其退役并换用保留块。",
+          "sourceIds": [
+            "src-kioxia-nand-bad-block-management"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T16:51:28.050Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "ff779e8b7dd18ad2f7264a669476c789cfd58db4de5d2b88e85cca2c53d019bb"
+          }
+        },
+        {
+          "factId": "usb-flash-drive-contact-sequence",
+          "topicId": "usb_flash_drive",
+          "cardTitle": "U 盘插进一半时，可能已经通电、还没接上数据",
+          "cardBody": "USB-A 两侧的电源和地线触点会先于中间两根数据触点接通；拔出时数据又先断开，所以四根金属片并不是同时工作的。",
+          "factText": "USB Standard-A 的四根触点采用分阶段接触顺序：位于两侧的电源与地线先接通，中间的 D+、D− 数据触点随后接通；拔出时数据触点先断开。",
+          "sourceIds": [
+            "src-usb-if-usb2-specification"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T17:03:10.952Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "9dadd6bf02935e809b58e3682e42c8cb2955508a27cdee62032d999378541a25"
           }
         }
       ]
@@ -6306,6 +6743,29 @@
           }
         },
         {
+          "factId": "bicycle-self-stability-without-gyro",
+          "topicId": "bicycle",
+          "cardTitle": "自行车能自己保持直立，不只靠车轮的陀螺效应",
+          "cardBody": "研究者造出一辆用反向旋转轮抵消陀螺效应的无人自行车；它被推歪后仍会自己转动车把，重新回到直立状态。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "研究者用反向旋转轮抵消陀螺效应，并把前轮接地点移到转向轴之前；这辆无人自行车受侧向扰动后仍能自动恢复直立。",
+          "sourceIds": [
+            "src-bicycle-self-stability-science"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T19:20:32.302Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "321be772d57de74fc24426d740b23bbafb116b726dd06c369c2f9e815fa53895"
+          }
+        },
+        {
           "factId": "bicycle-draft-002",
           "topicId": "bicycle",
           "factText": "骑车前检查胎压、刹车、链条和车轮固定装置；发现损坏或松动时，先维修再上路。",
@@ -6345,18 +6805,62 @@
           "topicId": "bicycle_bell",
           "factText": "经典车铃让内部小锤连续敲击金属外壳，外壳共振后产生清脆且容易辨认的声音。",
           "sourceIds": [
-            "src-bicycle"
+            "src-inverted-dome-bell"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T17:03:10.952Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "5f819f723f09aad3049b522dc0413f4b19dca24642fb3b27c974d4b626dc48b5"
+            "evidenceSha256": "55c5efcdefef21d1fe728dd0f6a97c0a0959489caade1032d9132ba4f94ee52a"
+          }
+        },
+        {
+          "factId": "bicycle-bell-rain-damping",
+          "topicId": "bicycle_bell",
+          "cardTitle": "对小车铃来说，几滴雨已经像挂上了小配重",
+          "cardBody": "水滴的重量相对小车铃的金属罩并不算小，会压住它被敲后的振动；所以铃声不只变轻，余音也会更快消失。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_state",
+          "factText": "传统车铃的金属钟罩沾上水滴后，水滴相对钟罩的质量会抑制振动，使铃声变轻、持续时间缩短；小车铃尤其明显。",
+          "sourceIds": [
+            "src-inverted-dome-bell"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T18:14:09.188Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "865df8a8b9b3e25f4a8db45dbcac6ecafac4ee2a8dc5e3e31aa326b8223d5a8d"
+          }
+        },
+        {
+          "factId": "bicycle-bell-mouth-down",
+          "topicId": "bicycle_bell",
+          "cardTitle": "车铃和悬钟有个共同姿势：都把“碗口”朝下",
+          "cardBody": "开口朝下时，钟的重心落在固定点下方；放到车把上，这个姿势还让外部击锤更容易碰到金属钟罩。",
+          "factText": "传统自行车铃与悬钟一样把开口朝下；这使钟的重心位于固定点下方，也让钟罩容易被外部击锤敲到。",
+          "sourceIds": [
+            "src-inverted-dome-bell"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T18:39:02.209Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "53b01d9d755f1167971e2c88e8dd82cc77c345a37082c412b7a1c857357dab7b"
           }
         },
         {
@@ -6381,21 +6885,14 @@
         {
           "factId": "bicycle-bell-draft-003",
           "topicId": "bicycle_bell",
-          "factText": "一种倒置钟罩车铃用齿轮让敲击机构转得比外盖更快；活动击锤碰撞后向内退让，减少对继续转动的阻碍。",
+          "cardTitle": "手指只拨四分之一圈，这种车铃却能敲 9 下",
+          "cardBody": "约 1:11 的齿轮比会放大手指动作：外盖只转过略多于 90 度，里面的三枚击锤已经轮流敲了 9 次。",
+          "factText": "一种车铃用约 1:11 的齿轮比放大手指动作：外盖只转过略多于 90 度，三枚击锤就能快速敲出 9 下。",
           "sourceIds": [
             "src-inverted-dome-bell"
           ],
           "riskLevel": "general",
-          "reviewStatus": "approved",
-          "aiReview": {
-            "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
-            "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
-            "decision": "approved",
-            "reasonCode": "safe_general",
-            "evidenceSha256": "a25fbcd35867f97a69dab775852926d6591a7d5cca7ec7b514acf98ad6607673"
-          }
+          "reviewStatus": "draft"
         }
       ]
     },
@@ -6588,6 +7085,8 @@
         {
           "factId": "vacuum-cleaner-001",
           "topicId": "vacuum_cleaner",
+          "cardTitle": "吸尘器不是抓灰，而是让气流把灰带走",
+          "cardBody": "风机先制造压差，让空气持续流动；灰尘只是跟着这股气流，被一路带进过滤和收集系统。",
           "factText": "吸尘器并不是直接把灰尘“吸走”，而是风机制造压差，让气流携带灰尘进入过滤和收集系统。",
           "sourceIds": [
             "src-vacuum"
@@ -6734,6 +7233,8 @@
         {
           "factId": "washing-machine-draft-004",
           "topicId": "washing_machine",
+          "cardTitle": "洗衣机多脱一点水，是在替烘干机省时间",
+          "cardBody": "如果洗衣机有高速脱水选项，适当提高转速会让衣物少留一些水；后面的烘干机也就能缩短工作时间。",
           "factText": "若洗衣机提供高速脱水选项，适当提高转速能减少衣物残余水分，从而缩短后续烘干所需的时间。",
           "sourceIds": [
             "src-energy-star-clothes-washers"
@@ -6748,6 +7249,30 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "586cac84fe4f25aee3dfde675163329bee970f04395c88c6b045e831913e7727"
+          }
+        },
+        {
+          "factId": "washing-machine-concrete-counterweight",
+          "topicId": "washing_machine",
+          "cardTitle": "洗衣机那么难搬，有一部分重量真的是混凝土",
+          "cardBody": "有些滚筒洗衣机会在外桶固定混凝土配重块；它增加整机重量，也能提高稳定性、减小滚筒旋转带来的动态应力和振动。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "滚筒洗衣机",
+          "factText": "家用滚筒洗衣机可在外桶上固定混凝土配重块，用配重提高稳定性并减小滚筒旋转产生的动态应力与振动；这种配重也会明显增加整机重量。",
+          "sourceIds": [
+            "src-washing-machine-concrete-counterweight"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T19:20:07.904Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "8673d445fc7c18800bc9fc1a121aa56eb5197affc78331d53f435f4405f8a43f"
           }
         }
       ]
@@ -6766,6 +7291,10 @@
         {
           "factId": "clothes-hanger-001",
           "topicId": "clothes_hanger",
+          "cardTitle": "衣架不是用两个肩角顶衣服，而是用整条斜肩分摊重量",
+          "cardBody": "两条斜肩把衣物重量分散到更长的接触线上；中间横杆还能支撑裤装，并阻止衣架两侧向内收拢。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "衣架的斜肩把衣物重量分散到较长接触线，横杆还能支撑裤装或阻止两侧向内收拢。",
           "sourceIds": [
             "src-cleaning"
@@ -6836,20 +7365,24 @@
         {
           "factId": "clothespin-001",
           "topicId": "clothespin",
-          "factText": "常见晾衣夹用扭转弹簧同时充当支点和储能部件，松手后弹簧会让夹口自动闭合。",
+          "cardTitle": "衣夹中间那圈弹簧，一份零件同时当关节和“肌肉”",
+          "cardBody": "弹簧线圈套在夹体中部，既让两片夹体绕它转动，又储存回弹力；手一松，它就把夹口重新咬紧。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "常见晾衣夹的扭转弹簧既位于两片夹体的转动支点处，又储存回弹力；松手后弹簧让夹口自动闭合。",
           "sourceIds": [
-            "src-cleaning"
+            "src-guided-clothespin-jaws"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-31T10:47:52.269Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "fc95330216fd77fca1f43ab17cad1d07986e1c438e09868d679e37530ae59980"
+            "evidenceSha256": "3d2a28861b4be86c3f5b9f2cb031f24b5837e0f247675e5ed7259cb916a8fc68"
           }
         },
         {
@@ -6888,6 +7421,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "e9a111c2c978022acd5d2da0524275519c8f1564c88914e76f2353b8ca3faa8a"
+          }
+        },
+        {
+          "factId": "clothespin-1853-wind-problem",
+          "topicId": "clothespin",
+          "cardTitle": "1853 年的弹簧衣夹，重点解决的是“被风吹跑”",
+          "cardBody": "David M. Smith 在专利里把旧式衣夹容易被风从衣服上吹落，称为洗衣人的“严重麻烦”；弹簧夹正是为此而来。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "1853 年 David M. Smith 的弹簧衣夹专利强调，相比普通衣夹，这种夹子不会被风从衣服上吹落；专利把旧式衣夹易脱落称为洗衣人的严重麻烦。",
+          "sourceIds": [
+            "src-smith-1853-spring-clothespin"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:50:47.075Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "d0184e87e035b7bca670317e70ebf0f6fa1ebdcaac1dd8774ad61327452c8964"
           }
         }
       ]
@@ -7031,6 +7587,9 @@
         {
           "factId": "soap-dispenser-001",
           "topicId": "soap_dispenser",
+          "cardTitle": "你按出的这泵皂液，是上一次松手时存下的",
+          "cardBody": "按下只把泵腔里已有的皂液挤向喷嘴；松手回弹时，入口单向阀才打开，从瓶里补进下一泵。每次按压，用的都是上次松手备好的量。",
+          "cardQualityStatus": "candidate",
           "factText": "按压泵先改变泵腔体积，再由两个单向阀控制液体只从瓶内流向出口，松手时自动补液。",
           "sourceIds": [
             "src-cleaning"
@@ -7067,9 +7626,35 @@
           }
         },
         {
+          "factId": "soap-dispenser-priming-air",
+          "topicId": "soap_dispenser",
+          "cardTitle": "你按皂液泵时它在“吐”，松手时才在“吃”",
+          "cardBody": "按下去，泵腔把已有的空气或皂液挤向喷嘴；手松开，弹簧把泵头顶回、泵腔压力下降，底部单向阀才打开，把下一泵皂液吸进来。",
+          "factText": "按压式皂液泵下压时把泵腔内的空气或液体排向喷嘴；松手后的回弹行程产生低压并打开止回阀，把瓶内液体吸入泵腔。",
+          "sourceIds": [
+            "src-lotion-pump-priming"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T18:14:09.188Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "2bc80adc83648400ccd3baf3c8052c81c5e94e0cccee7dfc8444c7bcaf685763"
+          }
+        },
+        {
           "factId": "soap-dispenser-draft-003",
           "topicId": "soap_dispenser",
-          "factText": "泡沫皂液器先把空气混入液体，再让含气皂液穿过发泡网；有些结构还能用阀门调节空气与皂液比例。",
+          "cardTitle": "泡沫皂液瓶里装的，其实还是液态皂液",
+          "cardBody": "泵先从瓶里抽出液态皂液，再混入空气，最后让混合物穿过喷嘴前的发泡网。泡沫不是预先装好的，而是在出液途中被做出来的。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "喷嘴可见发泡网或带有明确泡沫标识的泡沫皂液器",
+          "factText": "泡沫皂液器的瓶内储存液态皂液；泵把它与空气混合，再让混合物穿过喷嘴前的发泡网，才转换成泡沫。",
           "sourceIds": [
             "src-foaming-soap-dispenser"
           ],
@@ -7077,12 +7662,12 @@
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T20:31:35.110Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "e8204dfc85e53e7e5ca9c86978648661ddac4d3687ecf9b846b674bfd1fe0adc"
+            "evidenceSha256": "a0503809cd6d267c11a173d1c6d63ab5feab8822d7bfd5f7b309cf24defca7c9"
           }
         }
       ]
@@ -7418,6 +8003,8 @@
         {
           "factId": "door-hinge-001",
           "topicId": "door_hinge",
+          "cardTitle": "门的重量，最后也要沿着合页送进门框",
+          "cardBody": "合页不只让门绕固定轴转动，也承担传力：门扇的重量会经合页传到门框，所以它同时负责“转”和“扛”。",
           "factText": "铰链把门的复杂移动约束为绕一条固定轴旋转，同时把门的重量传递到门框。",
           "sourceIds": [
             "src-hinge"
@@ -7498,6 +8085,9 @@
       "displayName": "相机",
       "synonyms": [
         "camera",
+        "digital camera",
+        "digital_camera",
+        "数码相机",
         "相机"
       ],
       "category": "digital",
@@ -7558,6 +8148,31 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "78587185d3d943e53b5ee5f6bc16a21b235059cc82d1960a91269b93815e88fd"
           }
+        },
+        {
+          "factId": "camera-bayer-single-color-pixels",
+          "topicId": "camera",
+          "cardTitle": "彩色照片里，每个感光点都缺了两种颜色",
+          "cardBody": "常见的拜耳阵列给每个感光点只分配红、绿、蓝中的一种，其中一半看绿色。另两种颜色并没被那个点拍到，而是相机根据周围点补算出来。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "数码相机",
+          "factText": "常见的拜耳滤色阵列让每个感光点只采集红、绿、蓝中的一种颜色，其中绿色感光点占一半；相机再通过去马赛克算法，依据邻近点重建每个像素缺少的颜色信息。",
+          "sourceIds": [
+            "src-bayer-color-imaging-array",
+            "src-basler-bayer-demosaicing"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:56:08.481Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "e7cdf08f80188eb1bd654e030585a9fa65796204e179d97b6a988a4c43b90ef1"
+          }
         }
       ]
     },
@@ -7573,6 +8188,10 @@
         {
           "factId": "hard-drive-draft-001",
           "topicId": "hard_drive",
+          "cardTitle": "5 MB 数据，曾经需要一整间房",
+          "cardBody": "1956 年的 IBM 305 RAMAC 是第一台使用随机访问磁盘驱动器的计算机；整套设备占据房间般的空间，却只能保存约 5 MB 数据。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "1956年的IBM 305 RAMAC是第一台使用随机访问磁盘驱动器的计算机，整套设备占据房间般的空间，却只能保存约5 MB数据。",
           "sourceIds": [
             "src-hard-drive-ibm-ramac"
@@ -7592,6 +8211,9 @@
         {
           "factId": "hard-drive-draft-002",
           "topicId": "hard_drive",
+          "cardTitle": "RAMAC 的读写臂，是用压缩空气“吹”起来的",
+          "cardBody": "读写臂不能碰到盘面，工程师便用压缩空气让它悬浮；下方的铝盘涂着氧化铁，用来记录磁性信息。",
+          "cardQualityStatus": "candidate",
           "factText": "RAMAC的磁盘是在铝盘表面涂覆氧化铁来记录磁性信息；读写臂不能碰到盘面，工程师用压缩空气让它悬浮。",
           "sourceIds": [
             "src-hard-drive-ibm-ramac"
@@ -7703,13 +8325,16 @@
       "displayName": "HDMI 线",
       "synonyms": [
         "HDMI cable",
-        "HDMI 线"
+        "HDMI 线",
+        "HDMI插头"
       ],
       "category": "digital",
       "facts": [
         {
           "factId": "hdmi-cable-draft-001",
           "topicId": "hdmi_cable",
+          "cardTitle": "HDMI 从第一版起，就让画面和声音共用一根线",
+          "cardBody": "2002 年发布的 HDMI 1.0，目标之一就是让未压缩高清视频和多声道数字音频通过同一根线传输。",
           "factText": "HDMI 1.0规范在2002年12月9日发布，它的重要目标之一，是用一根线传输未压缩的高清视频和多声道数字音频。",
           "sourceIds": [
             "src-hdmi-20-anniversary"
@@ -7729,9 +8354,13 @@
         {
           "factId": "hdmi-cable-draft-002",
           "topicId": "hdmi_cable",
-          "factText": "HDMI 1.x时期陆续加入了音频回传通道、自动唇音同步、CEC控制命令、深色彩和3D视频等能力。",
+          "cardTitle": "一根 HDMI 线里的声音，居然可以逆着画面“往回走”",
+          "cardBody": "电视收到有线、卫星或流媒体的声音后，eARC 能让它沿同一根 HDMI 线回传到功放或回音壁；这就是 Return Channel 里的“返回”。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "带 eARC 的 HDMI 连接能把电视收到的有线、卫星或流媒体声音，沿同一根 HDMI 线送回功放或回音壁。",
           "sourceIds": [
-            "src-hdmi-20-anniversary"
+            "src-hdmi-earc"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
@@ -7763,6 +8392,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "0593bb25c29c26aa2b3bdac3c151de20134d36ab85e63737b9a98a9514092fe7"
+          }
+        },
+        {
+          "factId": "hdmi-cable-no-version-label",
+          "topicId": "hdmi_cable",
+          "cardTitle": "“HDMI 2.1 线”不是官方等级：包装甚至不该这样写",
+          "cardBody": "HDMI 官方要求线材按官方名称和认证等级标识；标签、包装和宣传都不得使用“HDMI 2.1”等版本号。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "HDMI 官方规定，线材的标签、包装或宣传不得使用版本号；线材应按官方名称和认证等级标识，而不是写成“HDMI 2.1 线”或“2.2 线”。",
+          "sourceIds": [
+            "src-hdmi-cable-version-labeling"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:20:12.599Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "6e93726824452af249e6f4fefc3befd75e618f82e3b1c8b504515c8ef9f72fcf"
           }
         }
       ]
@@ -7831,6 +8483,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "b9879cf4e85fd39782d6489409e9de00d58c8e1982a5c908d3ab09289bc0d2e5"
+          }
+        },
+        {
+          "factId": "sd-card-write-protect-signal",
+          "topicId": "sd_card",
+          "cardTitle": "SD 卡的小拨片锁不住数据，它只是给读卡器递个话",
+          "cardBody": "拨片不连接卡内电路；它只改变外壳缺口的位置，让卡槽里的机械开关告诉主机“请勿写入”，主机甚至可以选择不理会。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
+          "factText": "标准尺寸 SD 卡的写保护拨片只是机械位置标记；卡槽侧的匹配开关读取这个位置并把写保护状态报告给主机，拨片本身不会切断卡内电路。",
+          "sourceIds": [
+            "src-sd-mechanical-write-protect"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T19:42:46.890Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "d2bac83bd280bdf324550122dc8896ce3bb7fef05407ca79924e99a8d9616d12"
           }
         }
       ]
@@ -7939,6 +8614,9 @@
         {
           "factId": "usb-cable-draft-002",
           "topicId": "usb_cable",
+          "cardTitle": "两根长得一样的 Type-C 线，本事可能完全不同",
+          "cardBody": "Type-C 只说明连接器体系；相同外形的线，数据速率和供电能力可能不同，也不一定支持 USB4 或 USB PD。",
+          "cardQualityStatus": "candidate",
           "factText": "外形同为 Type-C 的线材，数据速率和供电能力也可能不同；USB Type-C 并不是 USB 3.2、USB4 或 USB PD 的同义词。",
           "sourceIds": [
             "src-usb-if-type-c-guidelines"
@@ -7972,6 +8650,28 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "8289a25993f365ccc6e8c0e1bcca569922eda219a8cf8471f64a72e5ad0346af"
+          }
+        },
+        {
+          "factId": "usb-cable-cc-orientation",
+          "topicId": "usb_cable",
+          "cardTitle": "Type-C 能认出插头朝向，靠的是 CC 配置通道",
+          "cardBody": "接上时，CC 配置通道先判断线缆朝向；系统再据此切换高速信号，把数据总线接到对应通道。正反插背后还有一次“认方向”。",
+          "cardQualityStatus": "candidate",
+          "factText": "USB Type-C 的配置通道 CC 用于判断线缆朝向和扭转关系，并据此建立 USB 数据总线的信号路由；系统实现中可由高速信号切换器连接相应的数据通道。",
+          "sourceIds": [
+            "src-usb-if-type-c-system-overview"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:18:27.170Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "8d8d6e699d1a2db0d2ee264207ace4cb8017b2161427427d9371acb0931e0ef7"
           }
         }
       ]
@@ -8009,6 +8709,8 @@
         {
           "factId": "solid-state-drive-draft-002",
           "topicId": "solid_state_drive",
+          "cardTitle": "NVMe 不是一种硬盘外形，而是一套沟通规则",
+          "cardBody": "同一套 NVMe 标准可以用于 M.2、U.2、扩展卡和 EDSFF 等不同形态；你常见的细长小板，只是其中一种外形。",
           "factText": "NVMe 不等于某一种硬盘外形：同一套标准可用于 M.2、U.2、扩展卡和 EDSFF 等多种 SSD 形态。",
           "sourceIds": [
             "src-nvme-about"
@@ -8098,6 +8800,8 @@
         {
           "factId": "laptop-draft-003",
           "topicId": "laptop",
+          "cardTitle": "屏保看着像休息，电脑却可能还在工作",
+          "cardBody": "屏幕保护程序只是在继续显示画面，并不等于进入低功耗；有些屏保还会让显示器持续耗电，甚至拦住处理器休息。",
           "factText": "屏幕保护程序本身并不节能；有些屏保还会让显示器持续耗电，甚至阻止处理器进入低功耗状态。",
           "sourceIds": [
             "src-energy-star-computers"
@@ -8253,6 +8957,29 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "c133123a961c0aee5fe2eaa5a240163ec75ed3a241d374596192f1e1cf68cec6"
           }
+        },
+        {
+          "factId": "printer-yellow-tracking-dots",
+          "topicId": "printer",
+          "cardTitle": "有些彩色打印机，会在彩色打印页上留下“隐形身份证”",
+          "cardBody": "EFF 发现，部分施乐 DocuColor 会在每张彩色打印页反复铺上 15×8 黄色微点；白光下通常肉眼难见，却能编码打印机序列号及打印日期、时间。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "EFF 发现，部分施乐 DocuColor 会在每张彩色打印页反复铺上 15×8 黄色微点；白光下通常肉眼难见，却能编码打印机序列号及打印日期、时间。",
+          "sourceIds": [
+            "src-eff-printer-tracking-dots"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:20:12.599Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "a1e2044cd231b4368cfd56b3fc61283bf9856910c56dcce1b168c12e3c9575cf"
+          }
         }
       ]
     },
@@ -8388,6 +9115,30 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "be78034e04207c742d135800b0efe38b5fb130b06ada5e9ed28417267f095432"
+          }
+        },
+        {
+          "factId": "dehumidifier-warms-room",
+          "topicId": "dehumidifier",
+          "cardTitle": "除湿机不是小空调，它除湿时还会悄悄给房间加热",
+          "cardBody": "压缩式除湿机会先把空气冷到结露，再把它送过热端；冷热两端都留在屋里，加上压缩机耗电，出风会比进风更暖。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "压缩式除湿机",
+          "factText": "压缩式除湿机让湿空气先经过冷盘管凝结水分，再经过热盘管；冷端和热端都在室内，因此运行时会使设备周围的空间略微升温。",
+          "sourceIds": [
+            "src-energy-star-dehumidifiers"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T19:42:46.890Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "4d1361bb1a71d397fd66f07bf7bd35822566d0c55249c5b861075d0996bcf92f"
           }
         }
       ]
@@ -8613,6 +9364,30 @@
           ],
           "riskLevel": "safety",
           "reviewStatus": "draft"
+        },
+        {
+          "factId": "car-tire-carbon-black-history",
+          "topicId": "car_tire",
+          "cardTitle": "轮胎里的黑色，不只是颜色，还是补强材料",
+          "cardBody": "天然橡胶本来偏浅。现代轮胎加入炭黑，它既带来黑色，也是配方中的补强填料；米其林人保留白色，正是在呼应轮胎最初的浅色。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "米其林官方说明，米其林人保持白色是对天然橡胶浅色外观的呼应；现代轮胎因含有炭类添加物而变黑，炭黑在轮胎配方中属于补强填料。",
+          "sourceIds": [
+            "src-michelin-white-mascot-rubber",
+            "src-michelin-tire-formulation"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:56:08.481Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "340fe8cf5d259c5c7ed879e30c83c7724b8e130eff1036c053f36102dd13024b"
+          }
         }
       ]
     },
@@ -9366,6 +10141,10 @@
         {
           "factId": "laundry-basket-draft-001",
           "topicId": "laundry_basket",
+          "cardTitle": "折叠洗衣篮能压扁又能站住，网孔和加固边各管一件事",
+          "cardBody": "交叉编织带形成的网孔负责通风，上下加固边维持展开后的形状；不用时，整个篮子又能压成小体积。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
           "factText": "一种折叠洗衣篮用交叉编织带形成侧壁，网孔负责通风，上下加固边维持展开后的刚性；不用时可压成小体积。",
           "sourceIds": [
             "src-woven-collapsible-laundry-basket"
@@ -9708,6 +10487,7 @@
       "synonyms": [
         "rubber gloves",
         "cleaning gloves",
+        "橡胶手套",
         "清洁手套",
         "洗碗手套"
       ],
@@ -9875,6 +10655,11 @@
         {
           "factId": "toilet-brush-draft-002",
           "topicId": "toilet_brush",
+          "cardTitle": "马桶刷被盒子遮住后，侧缝还在给它留一条空气路",
+          "cardBody": "封闭刷座让刷头滴水落入底部储液槽，同时用侧缝和背部通风孔形成空气通路；刷头被遮住时，里面仍保留流动空间。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "带封闭刷座的马桶刷",
           "factText": "封闭式刷座可让刷头滴水落入底部储液槽，同时用侧缝和背部通风孔形成空气通路，在遮住刷头时仍保留流动空间。",
           "sourceIds": [
             "src-vented-toilet-brush-holder"
@@ -9994,6 +10779,29 @@
       "category": "cleaning",
       "facts": [
         {
+          "factId": "trash-can-poubelle-name",
+          "topicId": "trash_can",
+          "cardTitle": "法国人说“垃圾桶”时，其实在念一个人的姓",
+          "cardBody": "1883 年，巴黎官员欧仁·普贝勒要求住宅配备带盖垃圾容器。报纸把它叫作“普贝勒箱”，他的姓 Poubelle 后来直接成了法语里的“垃圾桶”。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "1883 年，巴黎塞纳省长欧仁·普贝勒要求住宅配备带盖垃圾容器；报纸称它为“普贝勒箱”，他的姓后来成了法语“垃圾桶”。",
+          "sourceIds": [
+            "src-paris-poubelle-name"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T21:35:38.003Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "de201bdf22ac8c2a040c081528b729a44f80753771e75b04a6814f125cbda628"
+          }
+        },
+        {
           "factId": "trash-can-draft-001",
           "topicId": "trash_can",
           "factText": "大型垃圾桶的侧置脚踏板可带动壳体内的旋转杆，杆的另一端再抬升竖直连杆，把脚向下的动作转换为桶盖向上。",
@@ -10085,6 +10893,10 @@
         {
           "factId": "camera-lens-draft-002",
           "topicId": "camera_lens",
+          "cardTitle": "光圈不是一扇门，而是一圈会同时转身的叶片",
+          "cardBody": "机械光圈由多片叶片围出近似圆孔；转动镜筒里的设定环时，销钉沿凸轮槽移动，带着叶片同步改变开口大小。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "机械光圈由多片叶片围出近似圆孔；转动镜筒内的设定环时，销钉沿凸轮槽移动，带动叶片同步改变开口直径。",
           "sourceIds": [
             "src-camera-lens-diaphragm"
@@ -10118,6 +10930,52 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "22be1ed52a941070158fd295bf41e0262cb60d4d885d9f2d810f7695ce347ac9"
+          }
+        },
+        {
+          "factId": "camera-lens-reflections-cancel",
+          "topicId": "camera_lens",
+          "cardTitle": "相机装了许多片玻璃，却没变成一串小镜子：反光会互相消失",
+          "cardBody": "镀膜的材料和厚度经过设计，让不同界面的反射光发生相消干涉；更多光因此穿过镜组，鬼影和眩光也会减少。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "相机镜头的增透膜会利用光的干涉，通过设计薄膜材料的折射率和厚度来降低特定波长的表面反射，从而提高透光并减少鬼影和眩光。",
+          "sourceIds": [
+            "src-nikon-anti-reflective-coatings"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:47:52.269Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "de96943ffe2f399434a510bbfeb27a0d004b792fc2100f59dbe75f91bcfdd4e2"
+          }
+        },
+        {
+          "factId": "camera-lens-1935-transmission-jump",
+          "topicId": "camera_lens",
+          "cardTitle": "镜头多透过 27 个百分点的光，进光量却多了近一半",
+          "cardBody": "蔡司资料显示，1935 年的增透镀膜把光学系统透光率从 60% 提到 87%。看似只多 27 个百分点，相对原来的 60%，实际多进了约 45% 的光。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "ZEISS 资料称，其 1935 年的增透镀膜把光学系统透光率从 60% 提高到 87%，对应约 45% 的亮度增益，并使多镜片光学设计成为可能。",
+          "sourceIds": [
+            "src-zeiss-t-coating-transmission"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:53:33.174Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "594e0391bfd4f6d52973bdefe08956331d10778eba30abddf2aa94104a299cbe"
           }
         }
       ]
@@ -10365,6 +11223,11 @@
         {
           "factId": "smartphone-draft-002",
           "topicId": "smartphone",
+          "cardTitle": "有些手机的金属边框，本身就是天线",
+          "cardBody": "部分手机会把导电边框分成几段，让它们直接充当天线；不同天线分别覆盖不同的无线频段。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "带分段金属边框的智能手机",
           "factText": "手机金属边框不一定只是外壳；部分导电边框会被分段并直接充当天线，不同天线则用来覆盖不同的无线频段。",
           "sourceIds": [
             "src-housing-integrated-antenna"
@@ -10413,6 +11276,30 @@
       ],
       "category": "digital",
       "facts": [
+        {
+          "factId": "smartwatch-green-led-hundreds",
+          "topicId": "smartwatch",
+          "cardTitle": "Apple Watch 为什么偏偏用绿光照手腕？",
+          "cardBody": "血液呈红色，是因为它反射红光、吸收绿光。心跳时手腕血流和绿光吸收量都会增加；绿灯每秒闪烁数百次，手表就能从明暗变化里算出心率。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "矩形表壳的 Apple Watch",
+          "factText": "血液呈红色是因为反射红光、吸收绿光；Apple Watch 让绿灯每秒闪烁数百次，借绿光吸收量的变化计算心率。",
+          "sourceIds": [
+            "src-apple-watch-green-absorption"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T21:39:36.380Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "e1cd1518e1b938206bad08f222381dca1e5b23a4332870d8d1cd9ac235223ab5"
+          }
+        },
         {
           "factId": "smartwatch-draft-001",
           "topicId": "smartwatch",
@@ -10505,6 +11392,9 @@
         {
           "factId": "game-controller-draft-002",
           "topicId": "game_controller",
+          "cardTitle": "许多传统手柄的震动，来自一块故意偏心的配重",
+          "cardBody": "许多传统手柄会在电机轴上装一块偏心重物；它旋转时产生周期性惯性力，再把这种不平衡的“晃”传遍整个外壳。",
+          "cardQualityStatus": "candidate",
           "factText": "传统手柄震动常来自电机轴上的偏心重块；电机旋转时，失衡质量产生周期性惯性力，并把震动传到整个外壳。",
           "sourceIds": [
             "src-gamepad-eccentric-rumble"
@@ -10855,6 +11745,10 @@
         {
           "factId": "wifi-router-draft-002",
           "topicId": "wifi_router",
+          "cardTitle": "路由器的几根天线，不一定在重复喊同一句话",
+          "cardBody": "MIMO 空间复用会让多副天线沿不同空间路径同时发送不同数据流；天线变多，不只是在重复同一信号，也能并行传更多内容。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "MIMO 的空间复用会让多副天线沿不同空间路径同时发送不同数据流，从而提高数据速率，而不只是把同一信号重复发射。",
           "sourceIds": [
             "src-wifi-mimo-spatial-multiplexing"
@@ -11084,6 +11978,9 @@
         {
           "factId": "button-draft-003",
           "topicId": "button",
+          "cardTitle": "牛仔裤扣子不是缝上去的，它更像被铆进去的",
+          "cardBody": "尖钉底件先穿过布料，再钻进扣面的空心柱；末端被压胀后，两件就隔着布料锁在一起。",
+          "cardQualityStatus": "candidate",
           "factText": "牛仔裤式工字扣可由扣面和带尖钉的底件组成；尖钉穿过布料进入扣面空心柱后，末端被压胀变形来锁住两件。",
           "sourceIds": [
             "src-tack-button-hollow-shank"
@@ -11205,6 +12102,8 @@
         {
           "factId": "comb-draft-002",
           "topicId": "comb",
+          "cardTitle": "塑料梳的齿尖，出模时可能比你想的更扎手",
+          "cardBody": "两半模具的合模线可能在细小齿尖留下锐边；一种后处理会先把齿尖粗化，再蘸涂、干燥，把它们变成圆滑端点。",
           "factText": "塑料梳常用两半模具注塑，合模边界可能在细小齿尖留下锐利分模线；后处理可先粗化齿尖，再蘸涂并干燥成圆滑端点。",
           "sourceIds": [
             "src-comb-molded-tooth-finish"
@@ -11256,6 +12155,10 @@
         {
           "factId": "curtain-draft-001",
           "topicId": "curtain",
+          "cardTitle": "窗帘顶上的整齐褶皱，是几根抽绳一起拉出来的",
+          "cardBody": "褶皱带把抽绳和成排小口袋织进窗帘顶部：抽绳负责收拢布料，小口袋接住挂钩，同一块布就能排出规则褶皱。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
           "factText": "窗帘顶部的褶皱带是一种织造结构：纵向抽绳负责收拢布料，成排小口袋接纳挂钩，因此同一块帘布能形成规则褶皱。",
           "sourceIds": [
             "src-curtain-heading-tape"
@@ -11606,6 +12509,9 @@
         {
           "factId": "drawer-slide-draft-001",
           "topicId": "drawer_slide",
+          "cardTitle": "抽屉滑轨里的滚珠也要排队，不能散着滚",
+          "cardBody": "滚珠被装进带孔保持架，由它们维持间距；这样滚珠会沿内外轨之间的滚道低摩擦移动。",
+          "cardQualityStatus": "candidate",
           "factText": "滚珠滑轨的内外轨各有相对的滚道，滚珠并非散放其中，而是装在带孔保持架里；保持架维持间距并让两轨低摩擦相对移动。",
           "sourceIds": [
             "src-drawer-slide-ball-cage"
@@ -11625,6 +12531,10 @@
         {
           "factId": "drawer-slide-draft-002",
           "topicId": "drawer_slide",
+          "cardTitle": "全拉出滑轨里的三段轨道，并不是同时滑动",
+          "cardBody": "外轨、中轨和内轨之间由滚珠连接，顺序锁扣控制哪一组先动；一段走到位置，再由下一段继续，三段滑轨逐级伸展。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "全拉出滑轨常有外轨、中轨和内轨三段，滚珠分别连接相邻轨道；顺序锁扣控制哪一组先滑动，让抽屉逐级伸展。",
           "sourceIds": [
             "src-drawer-slide-three-stage"
@@ -11644,6 +12554,9 @@
         {
           "factId": "drawer-slide-draft-003",
           "topicId": "drawer_slide",
+          "cardTitle": "软关抽屉最后那一下，负责拉和负责刹的不是同一个零件",
+          "cardBody": "锁扣先抓住抽屉，弹簧把它往里拉，阻尼器只限制速度。看起来是一个动作，其实三个零件各司其职。",
+          "cardQualityStatus": "candidate",
           "factText": "缓闭滑轨把弹簧与阻尼器配合使用：接近关闭时锁扣抓住抽屉，弹簧向内拉，阻尼器限制速度，因此不会突然撞到底。",
           "sourceIds": [
             "src-drawer-slide-soft-close"
@@ -11658,6 +12571,53 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "2a8e485937b08ed29cbdc10234fdd32408bf4fcaa7b9f02d22725b89f00309be"
+          }
+        },
+        {
+          "factId": "drawer-slide-balls-need-separation",
+          "topicId": "drawer_slide",
+          "cardTitle": "滑轨里的钢珠不能挤成一团：挨在一起反而更磨",
+          "cardBody": "滚动体直接接触会增加摩擦和发热；带孔保持架把钢珠隔开、维持间距，再引导它们沿轨道滚动，抽屉才会顺滑。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "滚珠滑轨用保持架维持钢珠间距。SKF 说明，轴承保持架的主要作用之一是让滚动体保持固定间距并避免直接接触，以减少摩擦；抽屉滚珠滑轨也使用带孔保持架约束滚珠。",
+          "sourceIds": [
+            "src-drawer-slide-ball-cage",
+            "src-skf-bearing-cage-separation"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:53:33.174Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "f9c94bae7971d57c27dad1971551b333d6895c60b65c6593a414c02383e037d1"
+          }
+        },
+        {
+          "factId": "drawer-slide-air-escape-damper",
+          "topicId": "drawer_slide",
+          "cardTitle": "关上软关抽屉时，你其实在把一腔空气从窄缝里挤出去",
+          "cardBody": "缓冲器里的柱塞会压缩腔内空气，只让它从狭窄通道慢慢排出；空气阻力拖慢柱塞，也让抽屉缓缓回位。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "一种抽屉滑轨缓冲器让柱塞压缩基座腔体内的空气，并只允许空气通过狭窄通道缓慢排出；空气阻力降低柱塞和抽屉的回位速度。",
+          "sourceIds": [
+            "src-drawer-slide-air-damper"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:57:30.442Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "793387f6b9284f7397867ee88fa036558938557f7f5420b13bcbc51fee28252d"
           }
         }
       ]
@@ -11835,6 +12795,9 @@
         {
           "factId": "light-switch-draft-002",
           "topicId": "light_switch",
+          "cardTitle": "开关的“咔哒”声，来自弹簧越过临界点",
+          "cardBody": "手指拨得再慢，内部弹簧一越过临界点就会快速推走触点，避免触点长时间悬在快要接通的位置。",
+          "cardQualityStatus": "candidate",
           "factText": "开关发出的清脆“咔哒”来自速动机构：弹簧越过临界点后会快速推走触点，避免触点因手指慢慢拨动而长时间悬在近接位置。",
           "sourceIds": [
             "src-light-switch-snap-action"
@@ -11956,6 +12919,10 @@
         {
           "factId": "mirror-draft-001",
           "topicId": "mirror",
+          "cardTitle": "镜子的反光层不在你摸到的这一面，而是藏在玻璃背后",
+          "cardBody": "常见银镜把很薄的银层镀在透明玻璃背面，再在银层后覆盖一层漆；所以手指碰到的是玻璃，真正反光的银层藏在它后面。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "常见家用银镜并不是整块金属：透明玻璃背面先形成很薄的银反射层，银层后方再覆盖油漆，所以日常触摸的是玻璃正面。",
           "sourceIds": [
             "src-mirror-silvered-glass-stack"
@@ -12166,7 +13133,11 @@
         {
           "factId": "rubber-band-draft-001",
           "topicId": "rubber_band",
-          "factText": "橡皮筋通常不是逐个模压出来的：橡胶先被制成并硫化为长管，再像切面包一样横向切成许多窄环，每一刀就得到一个圈。",
+          "cardTitle": "有些橡皮筋，是从一根长橡胶管上切下来的",
+          "cardBody": "一种做法会先把橡胶制成并硫化为长管，再像切面包一样横向切成许多窄环；每落下一刀，就得到一个圈。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "一种制造橡皮筋的方法会先把橡胶制成并硫化为长管，再像切面包一样横向切成许多窄环，每一刀就得到一个圈。",
           "sourceIds": [
             "src-rubber-band-vulcanized-tube"
           ],
@@ -12375,6 +13346,9 @@
         {
           "factId": "shoelace-draft-001",
           "topicId": "shoelace",
+          "cardTitle": "鞋带硬头被做成渐尖弧形，是为了钻孔时会转弯",
+          "cardBody": "这个叫 aglet 的硬头逐渐收尖并带有弧形；它更容易对准鞋孔，拉动时还能顺着孔壁改变方向。",
+          "cardQualityStatus": "candidate",
           "factText": "鞋带末端的硬头叫 aglet。把它做成逐渐收尖的弧形，能让尖端更容易对准鞋孔，并在拉动时顺着孔壁转向。",
           "sourceIds": [
             "src-shoelace-curved-aglet"
@@ -12427,6 +13401,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "48e3cb429a64bcaa95a9766c8ba36e3ba3ac1b341113d245d7da22669909e718"
+          }
+        },
+        {
+          "factId": "shoelace-impact-inertia-failure",
+          "topicId": "shoelace",
+          "cardTitle": "鞋带结散开，通常是先被落脚震松，再被自己的两端拽开",
+          "cardBody": "高速摄影和实验显示，落脚冲击先让结心松动，摆腿时两条自由端又因惯性向外抽；最终失效通常突然发生，主要变化集中在少数几次冲击中。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "高速摄影和受控实验显示，走路时鞋底反复撞击地面会先使鞋带结松动，随后自由端的摆动和惯性促使鞋带滑脱；结的最终失效通常突然发生，主要变化集中在少数几次冲击中。",
+          "sourceIds": [
+            "src-shoelace-knot-failure"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:18:27.170Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "ef6bd544c51fb7be0e35d03823492d8a433313fa5cecf7fac156f9729ef40b2d"
           }
         }
       ]
@@ -12604,6 +13601,8 @@
         {
           "factId": "dental-floss-draft-003",
           "topicId": "dental_floss",
+          "cardTitle": "牙线清不清得净，跟有没有蜡没直接关系",
+          "cardBody": "牙线从过去的多股丝纤维，发展到如今常见的尼龙细丝或塑料单丝；是否上蜡，并不是清洁效果的决定因素。",
           "factText": "牙线过去曾用多股丝纤维捻成；如今常见产品更多采用尼龙细丝或塑料单丝，是否上蜡并不是清洁效果的决定因素。",
           "sourceIds": [
             "src-ada-dental-floss"
@@ -12635,6 +13634,11 @@
         {
           "factId": "lighter-draft-001",
           "topicId": "lighter",
+          "cardTitle": "砂轮打火机的轮子，本身并不会发火",
+          "cardBody": "带纹齿的金属轮高速擦过被弹簧顶住的火石，刮下并点燃细小颗粒，才形成那一束火花。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "带砂轮和火石结构的打火机",
           "factText": "砂轮打火机不是靠轮子自身发火：带纹齿的金属轮高速擦过被弹簧顶住的火石，刮下并点燃细小颗粒，形成一束火花。",
           "sourceIds": [
             "src-lighter-flint-wheel"
@@ -12723,7 +13727,12 @@
         {
           "factId": "mosquito-coil-draft-002",
           "topicId": "mosquito_coil",
-          "factText": "常见双盘蚊香不是两片分别冲出来：模具会在同一张材料片里切出彼此嵌套的两条螺旋，干燥后再轻轻分开。",
+          "cardTitle": "双盘蚊香，可以从同一张材料片里一起切出来",
+          "cardBody": "为了省料并增加成形强度，一种做法会在同一张湿材料片里切出彼此嵌套的两条螺旋；干燥后，再把它们轻轻分开。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "未分离、中心呈S形分界且有两个相向内端的双盘蚊香",
+          "factText": "为了省料并增加成形强度，一种制造双盘蚊香的方法会在同一张湿材料片里切出彼此嵌套的两条螺旋，干燥后再分开。",
           "sourceIds": [
             "src-mosquito-coil-nested-cutting"
           ],
@@ -12842,6 +13851,9 @@
         {
           "factId": "tissue-box-draft-001",
           "topicId": "tissue_box",
+          "cardTitle": "纸巾盒里没有机关，下一张纸是被上一张拽出来的",
+          "cardBody": "相邻两张纸互相折入。前一张离开盒口时，会把后一张的一部分顺手拖出来，刚好摆成待抽姿态；连续出纸靠的是折叠链，不是弹簧。",
+          "cardQualityStatus": "candidate",
           "factText": "抽纸能“一张带出下一张”，关键是相邻纸巾互相折入，形成连续折叠链；前一张离盒时，会把后一张的一部分拖到开口外。",
           "sourceIds": [
             "src-tissue-box-interfold"
@@ -12911,6 +13923,10 @@
         {
           "factId": "toilet-paper-draft-001",
           "topicId": "toilet_paper",
+          "cardTitle": "卫生纸虚线太好撕，反而会在你想撕之前先断",
+          "cardBody": "虚线要在容易撕和不提前断之间折中；一种设计把虚线处的纵向抗拉强度保留到原纸的 30%–50%。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "卫生纸虚线不能只追求容易撕。一种专利设计把虚线处纵向抗拉强度控制为原纸的 30%–50%，在可撕与避免提前断裂之间取平衡。",
           "sourceIds": [
             "src-toilet-paper-perforation-strength"
@@ -12964,6 +13980,29 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "101905539866d027202fc7488d5d095c3dcd253cd8b238b1d9042d609dc7e827"
           }
+        },
+        {
+          "factId": "toilet-paper-1891-drawing-does-not-settle-direction",
+          "topicId": "toilet_paper",
+          "cardTitle": "1891 年的卷纸专利图把纸头画在上方，但它其实没裁决挂法",
+          "cardBody": "图里的纸确实从卷筒上方垂下；不过专利保护的是更容易撕开的切口结构，正文没有规定纸卷必须朝上或朝下。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "1891 年的 US465588A 卷纸专利附图把纸张画成从卷筒上方垂下，但该专利的说明和权利要求讨论的是便于撕开的切口结构，并未规定纸卷的安装朝向。",
+          "sourceIds": [
+            "src-wheeler-1891-toilet-paper-roll"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:47:52.269Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "db55907f267253972137dd7236369b1e326f635e665e0f988652f9b3bf6948d3"
+          }
         }
       ]
     },
@@ -12999,6 +14038,11 @@
         {
           "factId": "wall-clock-draft-002",
           "topicId": "wall_clock",
+          "cardTitle": "有些现代摆钟的摆锤，只是在假装计时",
+          "cardBody": "真正负责计时的是石英系统；摆锤不参与计时，只由脉冲和耦合机构维持摆动，负责保留摆钟的样子。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "照片中可见摆锤且带有明确石英标识的装饰摆锤石英钟",
           "factText": "有些现代“摆钟”的摆锤并不负责计时，只是装饰运动；真正的时基来自石英系统，摆锤另由脉冲和耦合机构维持摆动。",
           "sourceIds": [
             "src-wall-clock-decorative-pendulum"
@@ -13068,6 +14112,10 @@
         {
           "factId": "wallet-draft-002",
           "topicId": "wallet",
+          "cardTitle": "钱包侧面那道风琴折，会被硬币撑开又自己压平",
+          "cardBody": "零钱袋侧边的褶片也叫风琴折：装入硬币时，侧壁张开增加容积；钱包合拢时，它又沿原来的折线压平。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
           "factText": "零钱袋侧边常做成可展开的褶片，也叫风琴折或 gusset；装入硬币时侧壁张开增加容积，钱包合拢时又能沿折线压平。",
           "sourceIds": [
             "src-wallet-gusset-coin-purse"
@@ -13170,6 +14218,47 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "fb8f4ff1b8230844d76539b8ee1a8dfbe5c2bbf123f7bee2efead6fd421aecd2"
+          }
+        },
+        {
+          "factId": "watering-can-rose-up",
+          "topicId": "watering_can",
+          "factText": "给幼苗浇水时，把浇水壶的莲蓬头朝上能形成更轻柔的水流，减少水流把幼苗和培养土冲走的风险。",
+          "sourceIds": [
+            "src-rhs-watering-rose-up"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T16:37:10.186Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "0e7fcaa6a42209ade94ff348b7a3f99bfeb65a1e4bd82efa32671c17905f6b43"
+          }
+        },
+        {
+          "factId": "watering-can-thumb-stop",
+          "topicId": "watering_can",
+          "cardTitle": "中世纪的浇水壶没有按钮：拇指就是阀门",
+          "cardBody": "壶底布满小孔，顶端另留一个气孔：拇指堵住气孔时水不会流，手指一松，水才从壶底洒下来。",
+          "factText": "中世纪常见的一类浇水壶在壶底布置许多小孔、顶部另留气孔；拇指盖住顶部气孔时水不会流，移开拇指后水才会从壶底洒出。",
+          "sourceIds": [
+            "src-london-museum-watering-pot",
+            "src-met-watering-pot"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T18:14:09.188Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "bba63efde2f33a8e94ad6b5d34d8a89532a2a206abb37e729cbab40b4512f891"
           }
         }
       ]
@@ -13432,6 +14521,9 @@
         {
           "factId": "aluminum-foil-draft-003",
           "topicId": "aluminum_foil",
+          "cardTitle": "铝箔质检像看星空：透光的地方就是针孔",
+          "cardBody": "连续移动的铝箔从光源前经过，完整处挡光，裂缝和微孔会漏光；光电元件据此计数并分类缺陷。",
+          "cardQualityStatus": "candidate",
           "factText": "铝箔上的针孔可以用光来找：让连续移动的箔材经过光源，只有裂缝或微孔会透光；光电元件把透过的光变成信号，再对缺陷计数和分类。",
           "sourceIds": [
             "src-aluminum-foil-pinhole-light-test"
@@ -13446,6 +14538,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "0679da68f2eaab29d8b6b05306a7141334b6588fa1f662dd99c2c285822b8bc1"
+          }
+        },
+        {
+          "factId": "aluminum-foil-double-rolling-surfaces",
+          "topicId": "aluminum_foil",
+          "cardTitle": "铝箔的亮面和哑面，只是两张叠轧留下的痕迹",
+          "cardBody": "最薄的铝箔最后要两层一起过轧辊：贴辊的一面被抛亮，两层相贴的一面保持哑光。你看到的正反差异，原来只是生产工序的副产品。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "为了得到最薄的铝箔，生产中会把两层箔同时轧制。双层轧制使贴近轧辊的表面呈光亮状，而两层之间相贴的内侧呈哑光状，随后再把两层分开。",
+          "sourceIds": [
+            "src-aluminum-foil-double-rolling-surfaces"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:18:27.170Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "662edb5771db2739359306301b64d2c990fbaf99eb76db91fa50936252d1a3bb"
           }
         }
       ]
@@ -13464,7 +14579,12 @@
         {
           "factId": "corkscrew-draft-001",
           "topicId": "corkscrew",
-          "factText": "两段式侍者开塞钻可以用连杆改变支撑臂与手柄的位置：同一只卡爪先后两次压在瓶口，分两段抬高手柄，把软木塞逐步拉出而不用重新旋入螺旋。",
+          "cardTitle": "海马刀的两级卡位，是把一次硬拔拆成两次",
+          "cardBody": "两道距离不同的卡槽会先后抵住瓶口，把拔塞行程分成两段；第一档先抬出一截，换第二档完成余下行程，整段都利用杠杆省力。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "两段式侍者开塞钻",
+          "factText": "一种两段式侍者开塞钻在提取杆上设置两道距离不同的卡槽，让它们先后抵住瓶口，把软木塞分两段拉出并降低完成拔塞所需的力。",
           "sourceIds": [
             "src-corkscrew-two-stage-link"
           ],
@@ -13603,6 +14723,10 @@
         {
           "factId": "electric-kettle-draft-001",
           "topicId": "electric_kettle",
+          "cardTitle": "有些电水壶“知道”水开了，靠的是一股蒸汽",
+          "cardBody": "水烧开后，蒸汽经通道吹向双金属片；金属片受热变形并推动密封推杆，再让一对电触点分开。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "电热水壶的沸腾断电可以由蒸汽触发：蒸汽经通道吹到双金属片，金属片受热变形并推动密封推杆，推杆再让一对电触点分开。",
           "sourceIds": [
             "src-electric-kettle-steam-bimetal-switch"
@@ -14193,9 +15317,14 @@
         {
           "factId": "measuring-cup-draft-003",
           "topicId": "measuring_cup",
-          "factText": "透明量杯若从斜上方读外壁刻度，杯壁厚度会让液面位置产生视差；一种做法是把刻度预先偏移到该视角下液面看起来所在的位置。",
+          "cardTitle": "有些量杯把刻度做成斜坡，让你不用蹲下读数",
+          "cardBody": "两道刻度坡从杯底升到杯口，数字印在朝上的坡面；加水时从上方就能同时看到液面和公制、英制读数。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "杯内可见两道斜坡刻度的俯视量杯",
+          "factText": "俯视量杯可以在内壁做两道从杯底连续升到杯口的斜坡，把公制和英制刻度印在朝上的坡面；加水时从上方就能同时看到液面和读数。",
           "sourceIds": [
-            "src-measuring-cup-offset-indicia"
+            "src-measuring-cup-interior-ramps"
           ],
           "riskLevel": "general",
           "reviewStatus": "approved",
@@ -14292,6 +15421,10 @@
         {
           "factId": "nonstick-pan-draft-001",
           "topicId": "nonstick_pan",
+          "cardTitle": "不粘锅底的细沟，有时是在替涂层挡磨损",
+          "cardBody": "锅铲主要会磨到波纹的凸起处，藏在沟槽里的涂层较少被直接摩擦；这些凹槽等于替一部分不粘层挡下磨损。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_feature",
           "factText": "有些不粘锅先把烹饪面压成波状沟槽再覆涂层；器具主要磨到凸起处，沟槽里的涂层因较少直接摩擦而被结构保护。",
           "sourceIds": [
             "src-nonstick-pan-textured-grooves"
@@ -14499,7 +15632,12 @@
         {
           "factId": "rice-cooker-draft-001",
           "topicId": "rice_cooker",
-          "factText": "机械式电饭煲可用感温磁体、永久磁体和弹簧组成温控机构；达到设定温度附近时磁性变化，弹簧便带动开关切换电路。",
+          "cardTitle": "传统电饭煲的“开关脑”，是一块会失去吸力的磁体",
+          "cardBody": "传统按键电饭煲靠一块感温磁体结束煮饭：锅内水分明显减少后，锅底升到设定温度，磁体失去吸力，弹簧便让加热触点断开。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "机械式电饭煲",
+          "factText": "机械式电饭煲在锅内水分明显减少、锅底温度升到感温磁体的设定点后，磁体会失去磁性，永久磁体与弹簧机构随即分离触点并切断加热电路。",
           "sourceIds": [
             "src-rice-cooker-magnetic-limiter"
           ],
@@ -14507,12 +15645,12 @@
           "reviewStatus": "approved",
           "aiReview": {
             "provider": "qwen",
-            "model": "qwen3.6-flash-2026-04-16",
+            "model": "qwen3.7-flash-2026-07-15",
             "policyVersion": "general-content-v1",
-            "reviewedAt": "2026-07-27T14:51:09.277Z",
+            "reviewedAt": "2026-08-30T19:20:07.904Z",
             "decision": "approved",
             "reasonCode": "safe_general",
-            "evidenceSha256": "04e6b637fc8c0319bf80c2c450c1d1060f49e6397365f4156e01f8bab1014846"
+            "evidenceSha256": "3931e3def660518daa89611eddf7c10a5f47703f9a1c9b6e884bb4770855b0ee"
           }
         },
         {
@@ -15932,6 +17070,9 @@
         {
           "factId": "ratchet-wrench-draft-001",
           "topicId": "ratchet_wrench",
+          "cardTitle": "棘轮扳手回摆时的咔哒声，是棘爪在逐齿越过齿面",
+          "cardBody": "拧紧方向，棘爪咬住齿轮带动套筒；手柄回摆时，它从齿面上逐齿滑过，所以扳手不用离开螺母就能复位。",
+          "cardQualityStatus": "candidate",
           "factText": "棘轮扳手在狭窄空间里不必每次都离开紧固件：工作方向带动套筒转动，回摆方向让棘爪越过齿面，手柄即可复位。",
           "sourceIds": [
             "src-ratchet-wrench-limited-swing"
@@ -16136,6 +17277,9 @@
         {
           "factId": "socket-wrench-draft-001",
           "topicId": "socket_wrench",
+          "cardTitle": "套筒扳手侧面那颗小钢珠，是防掉落的门闩",
+          "cardBody": "套筒推上方形驱动头时，钢珠会弹进内壁凹槽把它扣住；按下快脱按钮，内部推杆改变钢珠位置，套筒才会松开。",
+          "cardQualityStatus": "candidate",
           "factText": "套筒套在方形驱动头上时，侧面的钢珠会弹进套筒凹槽阻止脱落；内部推杆改变钢珠位置，就能在快速释放与正向锁定之间切换。",
           "sourceIds": [
             "src-socket-wrench-ball-detent"
@@ -16325,6 +17469,30 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "2e19574b790f5d9efddfd291374d77ed042ef90e8140d61fe54f993f7dd1f559"
           }
+        },
+        {
+          "factId": "utility-knife-snap-off-origin",
+          "topicId": "utility_knife",
+          "cardTitle": "美工刀的斜纹，来自巧克力和一块碎玻璃",
+          "cardBody": "冈田良男见鞋匠把钝玻璃敲碎后继续使用，又想到巧克力能按格掰开，于是把预制折线刻进刀片，并在 1956 年做出首个原型。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "visible_subtype",
+          "photoObjectName": "刀片上清晰可见多道折断斜纹的折刃式美工刀",
+          "factText": "OLFA 官方记载，冈田良男从鞋匠敲碎钝玻璃继续使用、以及巧克力能按格掰开获得灵感；他在刀片上预制折线，1956 年完成首个折刃刀原型。",
+          "sourceIds": [
+            "src-olfa-snap-off-cutter-origin"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:20:12.599Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "1b6cabe4cb99bbfb8cd24518a9c6aa1c81a587c9d68442710be36cb985cbe29a"
+          }
         }
       ]
     },
@@ -16408,6 +17576,10 @@
         {
           "factId": "bicycle-chain-draft-001",
           "topicId": "bicycle_chain",
+          "cardTitle": "自行车链条不是铁片串成一排，中间还藏着一圈圈滚子",
+          "cardBody": "链条由内外链板交替组成，销轴连接相邻链节；每个滚子都套在内链节的圆筒或套管外，并不是直接焊死在链板上。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "自行车链条由内链板与外链板交替组成，销轴把相邻链节连接起来，滚子套在内链节的圆筒或套管外侧。",
           "sourceIds": [
             "src-bicycle-chain-link-structure"
@@ -16529,6 +17701,30 @@
             "reasonCode": "safe_general",
             "evidenceSha256": "d70c0094723c9eeeaee19c1ff45f0ca7663e8649a0e67cf80afbdd346eec109a"
           }
+        },
+        {
+          "factId": "bicycle-pedal-left-hand-thread",
+          "topicId": "bicycle_pedal",
+          "cardTitle": "自行车左脚踏，为什么偏偏要反着拧？",
+          "cardBody": "右侧脚踏通常使用右旋螺纹，左侧则使用左旋螺纹；两边方向相反，可以防止脚踏在骑行转动中自行旋松。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
+          "factText": "自行车右侧脚踏通常使用右旋螺纹，左侧脚踏使用左旋螺纹；螺纹方向的选择可防止脚踏在骑行转动中自行旋松。",
+          "sourceIds": [
+            "src-bicycle-pedal-thread-direction",
+            "src-bicycle-pedal-thread-patent"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T19:42:46.890Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "0623e6ee13667db6ed5432221f9caf00f77fac72c7b52e68554ce7c8c6c29f0d"
+          }
         }
       ]
     },
@@ -16631,6 +17827,9 @@
         {
           "factId": "car-key-fob-draft-002",
           "topicId": "car_key_fob",
+          "cardTitle": "采用滚动码的车钥匙，每按一次都会换一句暗号",
+          "cardBody": "这种钥匙会持续更新序列号和安全码，车辆接收端也同步跟进；所以同一把钥匙每次按键发出的编码数据都不一样。",
+          "cardQualityStatus": "candidate",
           "factText": "滚动码遥控把序列号与安全码持续更新，车辆接收端据此与钥匙保持同步，使每次按键发出的编码数据都不同。",
           "sourceIds": [
             "src-car-key-fob-rolling-code"
@@ -16680,6 +17879,10 @@
         {
           "factId": "license-plate-draft-001",
           "topicId": "license_plate",
+          "cardTitle": "夜里车牌突然变亮，并不是它在发光",
+          "cardBody": "许多车牌贴有逆反射膜，会把车灯大致沿来路送回驾驶者方向；这种膜里还可以同时嵌入有方向性的防伪图案。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "许多车牌并非普通涂漆金属板，而是在基板上贴逆反射膜，让入射光大致沿原方向返回，并可同时嵌入方向性防伪图案。",
           "sourceIds": [
             "src-license-plate-retroreflective-security"
@@ -16699,6 +17902,10 @@
         {
           "factId": "license-plate-draft-002",
           "topicId": "license_plate",
+          "cardTitle": "车牌反光膜里，还能藏一张会随角度变样的图",
+          "cardBody": "有些车牌的逆反射膜能嵌入方向性防伪图案：换一个观察角度，图案外观就会改变；它还能避开字符区域，不妨碍可见光或红外读牌。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "category",
           "factText": "逆反射膜里的防伪标记可以随观察角度改变外观，同时把图案设计在不干扰可见光、红外或逆反射条件下读取字符的位置。",
           "sourceIds": [
             "src-license-plate-angle-security-mark"
@@ -16732,6 +17939,29 @@
             "decision": "approved",
             "reasonCode": "safe_general",
             "evidenceSha256": "775eb39b8bf395656d496102476d6789c53ea767f0531cfe667cf5687439dd36"
+          }
+        },
+        {
+          "factId": "license-plate-microprism-return-path",
+          "topicId": "license_plate",
+          "cardTitle": "车灯照上反光膜，会在无数个微型墙角里连撞三次再返回",
+          "cardBody": "有些反光膜布满只有三个面的立方角；光在三片互相垂直的反射面上各弹一次，便几乎沿原路回到驾驶者方向。",
+          "cardQualityStatus": "approved",
+          "photoApplicability": "category",
+          "factText": "有些微棱镜逆反射膜使用立方角结构，每个立方角有三个经过精确布置的反射面；入射光依次从三面反射后返回光源方向。",
+          "sourceIds": [
+            "src-3m-retroreflective-science"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-31T10:47:52.269Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "91f06a3e28772ff6f8e94d551b33d691613cabe04d9b9546960ac593d7460896"
           }
         }
       ]
@@ -17050,6 +18280,29 @@
           ],
           "riskLevel": "safety",
           "reviewStatus": "draft"
+        },
+        {
+          "factId": "airbag-chemical-gas-inflation",
+          "topicId": "airbag",
+          "cardTitle": "气囊靠一场化学反应，在不到 1/20 秒里鼓起来",
+          "cardBody": "发生中度至严重碰撞时，控制单元会让充气器点火，引发化学反应并生成气体；不到 1/20 秒，折叠的气囊就被撑开。",
+          "cardQualityStatus": "candidate",
+          "photoApplicability": "visible_state",
+          "factText": "发生中度至严重碰撞时，安全气囊控制单元向充气器发送信号；充气器内的点火器启动化学反应并生成气体，使气囊在不到二十分之一秒内展开。",
+          "sourceIds": [
+            "src-nhtsa-airbag-deployment"
+          ],
+          "riskLevel": "general",
+          "reviewStatus": "approved",
+          "aiReview": {
+            "provider": "qwen",
+            "model": "qwen3.7-flash-2026-07-15",
+            "policyVersion": "general-content-v1",
+            "reviewedAt": "2026-08-30T20:56:08.481Z",
+            "decision": "approved",
+            "reasonCode": "safe_general",
+            "evidenceSha256": "4ae7d05952922936a6c567d20e4212e3f2a84c223c1d96c497d441a796034fbf"
+          }
         }
       ]
     },

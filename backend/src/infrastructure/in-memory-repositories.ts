@@ -3,6 +3,7 @@ import type {
   AnalysisJob,
   AnalysisJobBudget,
   AnalysisJobRepository,
+  BudgetedRetryPrepareResult,
   BudgetedAnalysisJobCreateResult,
   CardFeedback,
   CardRepository,
@@ -10,6 +11,7 @@ import type {
   DeviceRepository,
   EvaluationJobAuthorization,
   EvaluationLeaseDefinition,
+  InferenceCostReservationResult,
   KnowledgeCard,
   ObjectDeletionRepository,
   PrivateCardDeletionResult,
@@ -44,7 +46,11 @@ export class InMemoryRepositories {
   }>();
   // Aggregate reservations deliberately survive device-data deletion so the global
   // cost fuse cannot be reset by reinstalling. They contain no device/photo IDs.
-  private readonly analysisBudgetEvents: Array<{ createdAt: string; reservedCostMicroCny: number }> = [];
+  private readonly analysisBudgetEvents: Array<{
+    createdAt: string;
+    reservedCostMicroCny: number;
+    operationKey: string | null;
+  }> = [];
 
   async register(installationHash: string, tokenHash: string): Promise<RegisteredDevice> {
     const existing = [...this.devices.values()].find((device) => device.installationHash === installationHash);
@@ -60,6 +66,10 @@ export class InMemoryRepositories {
 
   async findByTokenHash(tokenHash: string): Promise<Device | null> {
     return [...this.devices.values()].find((device) => device.tokenHash === tokenHash) ?? null;
+  }
+
+  async findByInstallationHash(installationHash: string): Promise<Device | null> {
+    return [...this.devices.values()].find((device) => device.installationHash === installationHash) ?? null;
   }
 
   async deleteCascade(deviceId: string): Promise<void> {
@@ -164,8 +174,46 @@ export class InMemoryRepositories {
       lease.consumedJobs.set(evaluation.sampleId, job.id);
       this.evaluationJobIds.add(job.id);
     }
-    this.analysisBudgetEvents.push({ createdAt: now, reservedCostMicroCny: budget.reservedCostMicroCny });
+    this.analysisBudgetEvents.push({
+      createdAt: now,
+      reservedCostMicroCny: budget.reservedCostMicroCny,
+      operationKey: null
+    });
     return { status: "created", job };
+  }
+
+  async reserveInferenceCost(
+    operationKey: string,
+    reservedCostMicroCny: number,
+    globalDailyCostMicroCnyLimit: number,
+    globalMonthlyCostMicroCnyLimit: number,
+    dailySince: string,
+    monthSince: string
+  ): Promise<InferenceCostReservationResult> {
+    if (this.analysisBudgetEvents.some((event) => event.operationKey === operationKey)) {
+      return { status: "existing" };
+    }
+    const dailyEvents = this.analysisBudgetEvents.filter((event) => event.createdAt >= dailySince);
+    const monthlyEvents = this.analysisBudgetEvents.filter((event) => event.createdAt >= monthSince);
+    if (dailyEvents.reduce((sum, event) => sum + event.reservedCostMicroCny, 0) + reservedCostMicroCny >
+        globalDailyCostMicroCnyLimit) {
+      return { status: "global_daily_cost_exceeded" };
+    }
+    if (monthlyEvents.reduce((sum, event) => sum + event.reservedCostMicroCny, 0) + reservedCostMicroCny >
+        globalMonthlyCostMicroCnyLimit) {
+      return { status: "global_monthly_cost_exceeded" };
+    }
+    this.analysisBudgetEvents.push({
+      createdAt: new Date().toISOString(),
+      reservedCostMicroCny,
+      operationKey
+    });
+    return { status: "reserved" };
+  }
+
+  async releaseInferenceOperationKey(operationKey: string): Promise<void> {
+    const event = this.analysisBudgetEvents.find((candidate) => candidate.operationKey === operationKey);
+    if (event) event.operationKey = null;
   }
 
   async createEvaluationLease(input: EvaluationLeaseDefinition): Promise<void> {
@@ -217,6 +265,56 @@ export class InMemoryRepositories {
     };
     this.jobs.set(id, updated);
     return updated;
+  }
+
+  async prepareRetryWithinCostBudget(
+    id: string,
+    expectedSessionId: string | null,
+    input: { objectKey: string; uploadSessionId: string; uploadExpiresAt: string },
+    budget: Pick<
+      AnalysisJobBudget,
+      | "reservedCostMicroCny"
+      | "globalDailyCostMicroCnyLimit"
+      | "globalMonthlyCostMicroCnyLimit"
+      | "dailySince"
+      | "monthSince"
+    >
+  ): Promise<BudgetedRetryPrepareResult> {
+    const current = this.jobs.get(id);
+    if (!current || current.status !== "failed" || current.uploadSessionId !== expectedSessionId) {
+      return { status: "state_conflict" };
+    }
+    if (current.retryCount >= 1) return { status: "retry_exhausted" };
+    const dailyCost = this.analysisBudgetEvents
+      .filter((event) => event.createdAt >= budget.dailySince)
+      .reduce((sum, event) => sum + event.reservedCostMicroCny, 0);
+    if (dailyCost + budget.reservedCostMicroCny > budget.globalDailyCostMicroCnyLimit) {
+      return { status: "global_daily_cost_exceeded" };
+    }
+    const monthlyCost = this.analysisBudgetEvents
+      .filter((event) => event.createdAt >= budget.monthSince)
+      .reduce((sum, event) => sum + event.reservedCostMicroCny, 0);
+    if (monthlyCost + budget.reservedCostMicroCny > budget.globalMonthlyCostMicroCnyLimit) {
+      return { status: "global_monthly_cost_exceeded" };
+    }
+    const updated: AnalysisJob = {
+      ...current,
+      ...input,
+      uploadClaimedAt: null,
+      processingClaimToken: null,
+      processingLeaseExpiresAt: null,
+      retryCount: current.retryCount + 1,
+      status: "awaiting_upload",
+      errorCode: null,
+      updatedAt: new Date().toISOString()
+    };
+    this.jobs.set(id, updated);
+    this.analysisBudgetEvents.push({
+      createdAt: updated.updatedAt,
+      reservedCostMicroCny: budget.reservedCostMicroCny,
+      operationKey: `analysis-retry:${id}:${updated.retryCount}`
+    });
+    return { status: "prepared", job: updated };
   }
 
   async claimForUpload(uploadSessionId: string, deviceId: string, nowIso: string): Promise<AnalysisJob | null> {
@@ -571,17 +669,22 @@ export class InMemoryRepositories {
   // Explicit adapters avoid overloaded method names when one class implements several repository contracts.
   readonly devicesRepository: DeviceRepository = {
     register: (installationHash, tokenHash) => this.register(installationHash, tokenHash),
+    findByInstallationHash: (installationHash) => this.findByInstallationHash(installationHash),
     findByTokenHash: (tokenHash) => this.findByTokenHash(tokenHash),
     deleteCascade: (deviceId) => this.deleteCascade(deviceId)
   };
 
   readonly jobsRepository: AnalysisJobRepository = {
     createWithinBudget: (input, budget, evaluation) => this.createJobWithinBudget(input, budget, evaluation),
+    reserveInferenceCost: (...args) => this.reserveInferenceCost(...args),
+    releaseInferenceOperationKey: (operationKey) => this.releaseInferenceOperationKey(operationKey),
     createEvaluationLease: (input) => this.createEvaluationLease(input),
     revokeEvaluationLease: (id, revokedAt) => this.revokeEvaluationLease(id, revokedAt),
     findById: (id) => this.findById(id),
     findByCandidateToken: (deviceId, candidateToken) => this.findByCandidateToken(deviceId, candidateToken),
     prepareUpload: (id, expectedSessionId, input) => this.prepareUpload(id, expectedSessionId, input),
+    prepareRetryWithinCostBudget: (id, expectedSessionId, input, budget) =>
+      this.prepareRetryWithinCostBudget(id, expectedSessionId, input, budget),
     claimForUpload: (uploadSessionId, deviceId, nowIso) => this.claimForUpload(uploadSessionId, deviceId, nowIso),
     finishUpload: (id, uploadSessionId, errorCode) => this.finishUpload(id, uploadSessionId, errorCode),
     recoverStaleUpload: (id, staleBeforeIso) => this.recoverStaleUpload(id, staleBeforeIso),

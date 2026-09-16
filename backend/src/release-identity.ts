@@ -20,6 +20,7 @@ const ROOT_FILES = [
   "deploy/Dockerfile",
   "deploy/s.code-package.yaml",
   "scripts/build-fc-code-package.mjs",
+  "scripts/check-cloud-deployment-preflight.mjs",
   "knowledge/catalog.json"
 ];
 

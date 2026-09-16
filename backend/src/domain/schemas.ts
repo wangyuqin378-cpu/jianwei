@@ -100,6 +100,36 @@ export const detectedEntitySchema = z.object({
   ])).max(8)
 }).strict();
 
+export const photoUnderstandingSchema = z.object({
+  subjects: z.array(detectedEntitySchema.omit({ sensitiveFlags: true })).max(3),
+  sensitiveFlags: z.array(z.enum([
+    "face",
+    "selfie",
+    "identity_document",
+    "bank_card",
+    "receipt",
+    "document",
+    "high_text_density",
+    "screenshot"
+  ])).max(8)
+}).strict().superRefine((value, context) => {
+  if (value.sensitiveFlags.length > 0 && value.subjects.length > 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "sensitive photos must not return subjects"
+    });
+  }
+  const identities = value.subjects.map((subject) =>
+    `${subject.canonicalTopicId.trim().toLowerCase()}\0${subject.displayName.trim().toLowerCase()}`
+  );
+  if (new Set(identities).size !== identities.length) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "subjects must be unique"
+    });
+  }
+});
+
 const sourceSchema = z.object({
   sourceId: z.string().trim().min(1).max(100),
   title: z.string().trim().min(1).max(200),
@@ -112,6 +142,11 @@ const sourceSchema = z.object({
 const factSchema = z.object({
   factId: z.string().min(1),
   topicId: z.string().min(1),
+  cardTitle: z.string().trim().min(8).max(30).optional(),
+  cardBody: z.string().trim().min(28).max(80).optional(),
+  cardQualityStatus: z.enum(["candidate", "approved"]).optional(),
+  photoApplicability: z.enum(["category", "visible_subtype", "visible_feature", "visible_state"]).optional(),
+  photoObjectName: z.string().trim().min(1).max(40).optional(),
   factText: z.string().min(20).max(240),
   sourceIds: z.array(z.string().min(1)).min(1)
     .refine((ids) => new Set(ids).size === ids.length, "sourceIds must be unique"),
@@ -140,7 +175,39 @@ const factSchema = z.object({
     ]),
     evidenceSha256: z.string().regex(/^[a-f0-9]{64}$/)
   }).strict().optional()
-}).strict();
+}).strict().superRefine((fact, context) => {
+  if ((fact.cardTitle === undefined) !== (fact.cardBody === undefined)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "cardTitle and cardBody must be reviewed together"
+    });
+  }
+  if (fact.cardQualityStatus !== undefined && (fact.cardTitle === undefined || fact.cardBody === undefined)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "cardQualityStatus requires reviewed card copy"
+    });
+  }
+  if (fact.cardQualityStatus === "approved" &&
+      (fact.riskLevel !== "general" || fact.reviewStatus !== "approved")) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "approved card quality requires an approved general fact"
+    });
+  }
+  if (fact.cardQualityStatus === "approved" && fact.photoApplicability === undefined) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "approved card quality requires an explicit photo applicability policy"
+    });
+  }
+  if (fact.photoApplicability === "visible_subtype" && fact.photoObjectName === undefined) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "visible_subtype requires a concrete photoObjectName"
+    });
+  }
+});
 
 export const knowledgeCatalogSchema = z.object({
   version: z.string().min(1),

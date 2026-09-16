@@ -1,0 +1,13 @@
+{
+  "scope":"Unseen-photo holdout fixed before v2 results. Association-only human-authored fixtures, not published facts.",
+  "cases":[
+    {"id":"camera-tripod","fileName":"web-031.jpg","expected":true,"objectName":"三脚架","title":"三个支点就能确定一个平面","body":"三脚架的三只脚形成三个支点，三个不在同一直线上的点就能确定一个平面，不必像四条腿那样担心其中一脚悬空。","photoRequirement":"三脚架","reason":"相机下方三脚支架清晰可辨。"},
+    {"id":"wheel-nut","fileName":"web-032.jpg","expected":true,"objectName":"螺母","title":"螺母转动也能沿着轴向前进","body":"螺母里的螺纹与螺杆配合，旋转时会沿轴向前进或后退，把转动变成压紧连接处的力量。","photoRequirement":"螺母","reason":"轮毂中心周围固定螺母清晰可见，不要求看到内部螺纹。"},
+    {"id":"clock-hand","fileName":"web-045.jpg","expected":true,"objectName":"时钟指针","title":"时针也一直在两格之间走动","body":"指针式时钟的时针不是每到整点才跳一格，它在两个小时刻度之间逐渐移动，所以半点时会处在两个小时刻度中间。","photoRequirement":"时钟指针","reason":"表盘上的指针清晰可见，不要求拍到运动过程。"},
+    {"id":"router-usb","fileName":"web-053.jpg","expected":true,"objectName":"USB-A接口","title":"USB接口也能靠形状区分方向","body":"USB-A接口中间的舌片并不居中，它与插头相互配合的结构限制了插入方向，不能像USB-C那样正反都插。","photoRequirement":"USB-A接口","reason":"白色设备正面下部矩形USB-A接口可见。"},
+    {"id":"camera-hidden-sensor","fileName":"web-031.jpg","expected":false,"objectName":"相机","title":"图中相机内置全画幅数字传感器","body":"图中这台相机内部装有全画幅CMOS数字传感器，镜头把光聚焦到这块传感器上，你的这台相机正是这样记录图像。","photoRequirement":"相机","reason":"照片不显示内部数字传感器；不能由相机类别作个体断言。"},
+    {"id":"wheel-absent-screen","fileName":"web-032.jpg","expected":false,"objectName":"显示屏","title":"能显示画面不等于能感应触摸","body":"显示和触摸是两套功能：有些显示屏另加触摸感应层来接收手指的位置，屏幕能显示画面并不证明它一定能触摸。","photoRequirement":"显示屏","reason":"车轮照片没有显示屏。"},
+    {"id":"clock-hidden-age","fileName":"web-045.jpg","expected":false,"objectName":"时钟","title":"图中这只时钟已经使用一百年","body":"图中这只时钟已经连续使用了一百年，内部的原装齿轮从来没有被更换过，你的这只老钟保留了最初的传动结构。","photoRequirement":"时钟","reason":"使用年限和内部更换历史无法通过照片确认。"},
+    {"id":"router-wrong-port","fileName":"web-053.jpg","expected":false,"objectName":"接口","title":"这种网络接口有八个触点","body":"RJ45网络接口内部有八个触点，插头上的弹性卡扣与插口配合，插好以后能降低线缆意外脱落的可能。","photoRequirement":"可辨认八个触点且带卡扣凹槽的RJ45网口","reason":"正面可见的是USB-A接口，没有可辨认的RJ45网口。"}
+  ]
+}

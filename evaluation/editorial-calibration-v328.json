@@ -1,0 +1,51 @@
+{
+  "version": "v328",
+  "purpose": "Text-only editorial calibration. Labels are Codex hypotheses, not user acceptance, a human panel or the 60-photo release benchmark. Do not include labels or these examples in production prompts.",
+  "regressionIDs": ["semantic-not-surprise", "explaining-is-not-contradicting", "technical-summary", "ordinary-condensation"],
+  "excludedRegressionIDs": {
+    "mechanism-scope": "Useful mechanism, but evidence scope fails. Not a negative label for interestingness alone.",
+    "action-order": "Title/body factual contradiction is independently evidence-gated.",
+    "parts-are-not-universal": "Evidence applicability and unsupported quantity are independently gated."
+  },
+  "cases": [
+    {
+      "id": "red-barcode",
+      "objectName": "商品条码",
+      "title": "红色的条码，扫码枪可能“看不见”",
+      "body": "用红光读码的扫描器，靠条与空白的明暗反差识别。红色条在红光下可能几乎隐去；所以颜色更鲜艳，不代表机器看得更清楚。",
+      "expectedEditorialAccept": true,
+      "labelReason": "Concrete machine/human perception contrast with a short causal explanation, limited to red-light readers.",
+      "sources": [{
+        "sourceId": "gs1-colours", "title": "GS1 — 10 steps to barcode your product, Step 7", "url": "https://www.gs1.org/standards/barcodes/10-steps-to-barcode-your-product/english", "publisher": "GS1", "authority": "official",
+        "evidenceKind": "Codex paraphrase of primary source, checked 2026-09-06; not a verbatim excerpt",
+        "evidenceSnippet": "GS1说明，多数条码扫描器使用红光；红色文字在红光环境下可能几乎消失。红色及相近颜色可用于背景，却应避免用于条。黑条白底是优选组合，其他组合也可能适用。"
+      }]
+    },
+    {
+      "id": "angled-scale",
+      "objectName": "杯内带斜面刻度的 OXO 量杯",
+      "title": "这种量杯，把刻度做成了杯里的“斜坡”",
+      "body": "OXO 斜面量杯把刻度放在杯内的倾斜面上。倒水时往下看就能读数，不必一次次弯腰对齐杯壁；变的不是你的姿势，而是刻度的朝向。",
+      "expectedEditorialAccept": true,
+      "labelReason": "Visible design trade-off connected to an everyday inconvenience. Specific subtype is explicit.",
+      "sources": [{
+        "sourceId": "oxo-angled", "title": "OXO — 4-Cup Angled Measuring Cup", "url": "https://www.oxo.com/shop/kitchenware/cooking-baking/measuring-scales/4-cup-angled-measuring-cup.html", "publisher": "OXO", "authority": "official",
+        "evidenceKind": "Codex paraphrase of primary source, checked 2026-09-06; not a verbatim excerpt",
+        "evidenceSnippet": "制造商说明，杯内有带刻度的专利斜面，可以从上方读杯、盎司、毫升读数；不用弯腰检查，也减少了反复倒入、检查和调整。"
+      }]
+    },
+    {
+      "id": "floating-steel",
+      "objectName": "浮在水面的小钢制回形针",
+      "title": "钢制回形针，竟能停在水面上",
+      "body": "钢比水密，小回形针却能被水的表面张力托住。水分子相互吸引，让物件不易穿过水面；这里并没有一层真正的“皮”。",
+      "expectedEditorialAccept": true,
+      "labelReason": "A photograph-visible paradox and physical cause; no unsafe action or claim that all paper clips float.",
+      "sources": [{
+        "sourceId": "usgs-paperclip", "title": "USGS — Paper clip can float on water", "url": "https://www.usgs.gov/media/images/paper-clip-can-float-water-due-high-surface-tension-water", "publisher": "USGS", "authority": "official",
+        "evidenceKind": "Codex paraphrase of primary source, checked 2026-09-06; not a verbatim excerpt",
+        "evidenceSnippet": "USGS展示钢制回形针在水面漂浮的照片。钢密度远高于水，但表面张力能帮助托住它。水分子之间的内聚力使物件穿过水面比完全浸没后移动更困难；水面并没有真的形成一层皮。"
+      }]
+    }
+  ]
+}

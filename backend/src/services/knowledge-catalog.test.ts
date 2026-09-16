@@ -48,6 +48,14 @@ describe("knowledge catalog safety gates", () => {
     ]);
     for (const fact of catalog.topics.flatMap((topic) => topic.facts)) {
       fact.reviewStatus = legacySeeds.has(fact.factId) ? "approved" : "draft";
+      if (legacySeeds.has(fact.factId)) {
+        fact.cardTitle = "这是一条经过质量筛选的测试卡片标题";
+        fact.cardBody = fact.factText;
+        fact.cardQualityStatus = "approved";
+        fact.photoApplicability = "category";
+      } else {
+        delete fact.cardQualityStatus;
+      }
       delete fact.aiReview;
       delete fact.review;
     }
@@ -73,7 +81,7 @@ describe("knowledge catalog safety gates", () => {
     for (const topicId of ["washing_machine", "usb_flash_drive"]) {
       const extendedTopic = service.findTopic(topicId);
       expect(extendedTopic, topicId).not.toBeNull();
-      expect(extendedTopic!.facts).toHaveLength(4);
+      expect(extendedTopic!.facts.length).toBeGreaterThanOrEqual(4);
       expect(extendedTopic!.facts.every((fact) => fact.reviewStatus === "draft" && fact.review === undefined)).toBe(true);
       expect(service.selectApprovedFact(extendedTopic!, "candidate"), topicId).toBeNull();
       expect(service.selectApprovedFact(extendedTopic!, "candidate", true), topicId).toBeNull();
@@ -141,7 +149,7 @@ describe("knowledge catalog safety gates", () => {
     ]) {
       const batchTopic = service.findTopic(topicId);
       expect(batchTopic, topicId).not.toBeNull();
-      expect(batchTopic!.facts).toHaveLength(3);
+      expect(batchTopic!.facts.length).toBeGreaterThanOrEqual(3);
       expect(batchTopic!.facts.every((fact) => fact.reviewStatus === "draft" && fact.review === undefined)).toBe(true);
       expect(service.selectApprovedFact(batchTopic!, "candidate"), topicId).toBeNull();
       expect(service.selectApprovedFact(batchTopic!, "candidate", true), topicId).toBeNull();
@@ -149,9 +157,10 @@ describe("knowledge catalog safety gates", () => {
 
     const bicycle = service.findTopic("bicycle");
     expect(bicycle).not.toBeNull();
-    expect(bicycle!.facts).toHaveLength(3);
-    expect(bicycle!.facts.filter((fact) => fact.reviewStatus === "draft")).toHaveLength(2);
-    expect(bicycle!.facts.filter((fact) => fact.reviewStatus === "draft")
+    expect(bicycle!.facts).toHaveLength(4);
+    expect(bicycle!.facts.filter((fact) => fact.reviewStatus === "draft")).toHaveLength(3);
+    expect(bicycle!.facts.filter((fact) => fact.reviewStatus === "draft" && fact.riskLevel === "safety")).toHaveLength(2);
+    expect(bicycle!.facts.filter((fact) => fact.reviewStatus === "draft" && fact.riskLevel === "safety")
       .every((fact) => fact.riskLevel === "safety" && new Set(fact.sourceIds).size === 2 && fact.review === undefined)).toBe(true);
     expect(service.selectApprovedFact(bicycle!, "candidate")).toBeNull();
     expect(service.selectApprovedFact(bicycle!, "candidate", true)?.fact.factId).toBe("bicycle-001");
@@ -208,7 +217,7 @@ describe("knowledge catalog safety gates", () => {
     ]) {
       const extendedDraftTopic = service.findTopic(topicId);
       expect(extendedDraftTopic, topicId).not.toBeNull();
-      expect(extendedDraftTopic!.facts).toHaveLength(4);
+      expect(extendedDraftTopic!.facts.length).toBeGreaterThanOrEqual(4);
       expect(extendedDraftTopic!.facts.every((fact) => fact.reviewStatus === "draft" && fact.review === undefined)).toBe(true);
       expect(service.selectApprovedFact(extendedDraftTopic!, "candidate"), topicId).toBeNull();
       expect(service.selectApprovedFact(extendedDraftTopic!, "candidate", true), topicId).toBeNull();
@@ -306,8 +315,32 @@ describe("knowledge catalog safety gates", () => {
 
   it("requires an approved fact to be publishable verbatim as the card body", () => {
     const catalog = reviewedCatalog("human-editor-01");
-    catalog.topics[0]!.facts[0]!.factText = "这条审核事实太短，不能原样发布。";
+    catalog.topics[0]!.facts[0]!.cardBody = "正文太短。";
     expect(() => validateCatalog(catalog)).toThrow(/28-80 字卡片正文/);
+
+    const evidenceRichCatalog = reviewedCatalog("human-editor-01");
+    evidenceRichCatalog.topics[0]!.facts[0]!.factText = "证据摘要可以比用户看到的卡片正文更完整。".repeat(5);
+    expect(() => validateCatalog(evidenceRichCatalog)).not.toThrow();
+  });
+
+  it("keeps approved facts out of production until their card copy passes the quality gate", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "jianwei-card-quality-"));
+    const file = path.join(directory, "catalog.json");
+    const catalog = reviewedCatalog("human-editor-01");
+    const fact = catalog.topics[0]!.facts[0]!;
+    delete fact.cardQualityStatus;
+    await writeFile(file, JSON.stringify(catalog), "utf8");
+    try {
+      const service = await KnowledgeCatalogService.fromFile(file);
+      expect(service.selectApprovedFact(service.findTopic("broom")!, "candidate", false)).toBeNull();
+      fact.cardQualityStatus = "approved";
+      await writeFile(file, JSON.stringify(catalog), "utf8");
+      const approved = await KnowledgeCatalogService.fromFile(file);
+      expect(approved.selectApprovedFact(approved.findTopic("broom")!, "candidate", false)?.fact.factId)
+        .toBe("broom-reviewed");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("bounds canonical object names to the persisted card contract", () => {
@@ -338,6 +371,10 @@ function reviewedCatalog(reviewerId: string): KnowledgeCatalog {
       facts: [{
         factId: "broom-reviewed",
         topicId: "broom",
+        cardTitle: "扫帚测试卡片的具体标题",
+        cardBody: "这是一条已经由受控人工审核者核验并批准发布的普通物件测试事实。",
+        cardQualityStatus: "approved",
+        photoApplicability: "category",
         factText: "这是一条已经由受控人工审核者核验并批准发布的普通物件测试事实。",
         sourceIds: ["source-one"],
         riskLevel: "general",

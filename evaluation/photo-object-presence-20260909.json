@@ -1,0 +1,13 @@
+{
+  "scope": "Photo association only. Human-authored fixtures, not generated or publishable knowledge.",
+  "cases": [
+    {"id":"washer-screen","fileName":"web-059.jpg","expected":true,"objectName":"显示屏","title":"能显示画面不等于能感应触摸","body":"显示和触摸是两套功能：有些显示屏另加触摸感应层来接收手指的位置，屏幕能显示画面并不证明它一定能触摸。","photoRequirement":"显示屏","reason":"控制面板中的矩形显示屏清晰可见，不要求整台机器是一块显示屏。"},
+    {"id":"scissors-screw","fileName":"web-011.jpg","expected":true,"objectName":"螺钉","title":"螺纹就像绕着柱子盘旋的斜坡","body":"螺纹把斜坡绕在柱子周围，所以旋转螺钉能让它沿轴向前进，把转动变成压紧连接处的力量。","photoRequirement":"螺钉","reason":"剪刀轴心处的一字槽螺钉头清晰可见，无需把螺纹内部拆开。"},
+    {"id":"controller-stick","fileName":"web-022.jpg","expected":true,"objectName":"摇杆","title":"一个摇杆同时表达两个方向","body":"摇杆把前后与左右两条方向上的位移变成控制信号，斜着推时两个方向一起变化，就能连续地表达移动方向。","photoRequirement":"摇杆","reason":"手柄上的两个摇杆都清晰可见；没有断言编码器类型。"},
+    {"id":"cable-plug","fileName":"web-035.jpg","expected":true,"objectName":"HDMI插头","title":"接口的外形也能提醒你方向","body":"HDMI插头上下并不对称，插口与它配合的外形限制了插入方向，不用通电就能靠形状区分正反。","photoRequirement":"HDMI插头","reason":"线缆两端的HDMI插头可见，不要求照片只有单个插头。"},
+    {"id":"washer-absent-stick","fileName":"web-059.jpg","expected":false,"objectName":"摇杆","title":"一个摇杆同时表达两个方向","body":"摇杆把前后与左右两条方向上的位移变成控制信号，斜着推时两个方向一起变化，就能连续地表达移动方向。","photoRequirement":"摇杆","reason":"洗衣机照片没有可辨认的摇杆；候选文字不能证明它存在。"},
+    {"id":"scissors-hidden-material","fileName":"web-011.jpg","expected":false,"objectName":"剪刀","title":"图中剪刀的纯钛刀刃更轻","body":"图中这把剪刀的刀刃是纯钛制造的，因此比同样形状的钢制刀刃更轻；你的这把剪刀采用的正是这种材料。","photoRequirement":"剪刀","reason":"刀片材料无法由照片确认，不能从金属外观推断纯钛。"},
+    {"id":"controller-hidden-sensor","fileName":"web-022.jpg","expected":false,"objectName":"摇杆","title":"图中摇杆用霍尔传感器定位","body":"图中这只摇杆使用霍尔传感器，通过检测磁场变化确定位置；你的这个手柄内部装有这种非接触式结构。","photoRequirement":"摇杆","reason":"照片不能辨认霍尔传感器，透明外壳不是具体内部器件的证据。"},
+    {"id":"cable-wrong-subtype","fileName":"web-035.jpg","expected":false,"objectName":"插头","title":"这种插头翻过来也能插进去","body":"USB-C插头的外形上下对称，使用时不必先辨认正反方向，翻转插头仍能与相应插口配合。","photoRequirement":"USB-C圆角椭圆形金属插头","reason":"照片为HDMI插头，不满足USB-C必要外观。"}
+  ]
+}

@@ -53,18 +53,19 @@ struct DailyKnowledgeProvider: TimelineProvider {
             )
         }
         let day = ChinaDay.string(from: date)
-        let card = state.card(for: day)
+        let exactCard = state.card(for: day)
+        // Keep the last card visible across midnight until the next daily card
+        // is prepared. A prebuilt seven-day timeline must not schedule seven
+        // empty widget entries when future cards do not exist yet.
+        let card = exactCard ?? state.mostRecentCard(onOrBefore: day)
         let image = card.flatMap { try? Data(contentsOf: store.thumbnailURL(for: $0.candidateToken)) }
-        let remaining = max(
-            0,
-            SharedConstants.maximumDailySwaps - state.swapCounts[day, default: 0]
-        )
+        let remaining = exactCard == nil ? 0 : state.remainingSwaps(on: day)
         return DailyKnowledgeEntry(
             date: date,
             card: card,
             imageData: image,
             remainingSwaps: remaining,
-            canAdvance: state.canAdvance(on: day)
+            canAdvance: exactCard != nil && state.canAdvance(on: day)
         )
     }
 
@@ -73,8 +74,8 @@ struct DailyKnowledgeProvider: TimelineProvider {
         candidateToken: UUID(uuidString: "20000000-0000-0000-0000-000000000001")!,
         topicID: "broom",
         objectName: "扫帚",
-        title: "扫帚为什么总有一点斜？",
-        body: "略带角度的扇形刷毛，更容易贴近墙角和家具边缘。",
+        title: "扫帚刷毛做成斜扇形，是为了更贴近墙角",
+        body: "有些扫帚把刷毛做成略带角度的扇形，让边缘更容易贴近墙角和家具边缘。",
         personalContext: "来自你最近拍下的清洁工具。",
         confidence: 0.96,
         scheduledDay: ChinaDay.string(from: Date()),
@@ -122,7 +123,9 @@ struct DailyKnowledgeWidgetView: View {
         .containerBackground(for: .widget) {
             WidgetPalette.paper
         }
-        .widgetURL(entry.card?.deepLink)
+        // Keep the recovery URL at the same level as card links. A nil URL on
+        // this outer view overrides the empty view's link in WidgetKit.
+        .widgetURL(entry.card?.deepLink ?? URL(string: "jianwei://start"))
         // Widgets have a fixed canvas. Preserve Dynamic Type through the largest
         // standard size, then keep the knowledge and source legible instead of
         // producing several unrelated ellipses at accessibility sizes.
@@ -160,13 +163,18 @@ struct DailyKnowledgeWidgetView: View {
                         .minimumScaleFactor(0.86)
                         .allowsTightening(true)
                         .shadow(color: .black.opacity(0.2), radius: 6, y: 2)
+                    Text(card.effectiveEvidenceKind == .modelKnowledge ? "AI 生成 · 未联网核实" : card.effectiveEvidenceKind.label)
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
+                        .padding(.top, 4)
                 }
                 .padding(13)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("已核验，\(card.objectName)。\(card.title)。\(card.body)")
+        .accessibilityLabel("\(card.effectiveEvidenceKind.label)，\(card.objectName)。\(card.title)。\(card.body)")
     }
 
     private func medium(_ card: WidgetCardSnapshot) -> some View {
@@ -216,7 +224,7 @@ struct DailyKnowledgeWidgetView: View {
                             .minimumScaleFactor(0.88)
                             .allowsTightening(true)
                             .layoutPriority(2)
-                        Text(card.body)
+                        Text(mediumSummary(card.body))
                             .font(.caption)
                             .foregroundStyle(WidgetPalette.ink.opacity(0.68))
                             .lineLimit(usesCompactMediumLayout ? 1 : 2)
@@ -229,8 +237,8 @@ struct DailyKnowledgeWidgetView: View {
                 .accessibilityLabel("打开\(card.objectName)知识卡详情")
                 Spacer(minLength: 0)
                 HStack(spacing: 6) {
-                    Image(systemName: "checkmark.seal.fill")
-                    Text(card.source.publisher)
+                    Image(systemName: card.effectiveEvidenceKind.symbol)
+                    Text(card.effectiveEvidenceKind == .modelKnowledge ? "AI 生成 · 未联网核实" : (card.source?.publisher ?? card.effectiveEvidenceKind.label))
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
                         .allowsTightening(true)
@@ -282,9 +290,25 @@ struct DailyKnowledgeWidgetView: View {
     }
 
     private var widgetPhoto: some View {
-        Group {
+        GeometryReader { geometry in
             if let data = entry.imageData, let image = UIImage(data: data) {
-                fullColorPhoto(image)
+                let fitted = CardPhotoLayout.fittedSize(image.size, in: geometry.size)
+                ZStack {
+                    if CardPhotoLayout.preservesWholeImage(image.size) {
+                        fullColorPhoto(image)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .blur(radius: 18)
+                            .overlay(.black.opacity(0.16))
+                        fullColorPhoto(image)
+                            .frame(width: fitted.width, height: fitted.height)
+                    } else {
+                        fullColorPhoto(image)
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                    }
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipped()
             } else {
                 ZStack {
                     LinearGradient(
@@ -298,17 +322,33 @@ struct DailyKnowledgeWidgetView: View {
                 }
             }
         }
+        .clipped()
+        .accessibilityHidden(true)
     }
 
     private var switchDisplayText: String {
         if entry.canAdvance {
             return "换一条"
         }
-        return entry.remainingSwaps == 0 ? "明天见" : "稍后"
+        return entry.remainingSwaps == 0 ? "明天见" : "就这条"
     }
 
     private var usesCompactMediumLayout: Bool {
         dynamicTypeSize >= .xxxLarge
+    }
+
+    private func mediumSummary(_ body: String) -> String {
+        let limit = usesCompactMediumLayout ? 18 : 38
+        let characters = Array(body.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard characters.count > limit else { return String(characters) }
+
+        let punctuation = Set<Character>(["，", "；", "。", "！", "？"])
+        guard let boundary = characters[..<min(limit, characters.count)].lastIndex(where: { punctuation.contains($0) }) else {
+            return String(characters)
+        }
+        let summary = String(characters[...boundary])
+            .trimmingCharacters(in: CharacterSet(charactersIn: "，；。！？"))
+        return summary.isEmpty ? String(characters) : "\(summary)。"
     }
 
     @ViewBuilder
@@ -317,11 +357,9 @@ struct DailyKnowledgeWidgetView: View {
             Image(uiImage: image)
                 .resizable()
                 .widgetAccentedRenderingMode(.fullColor)
-                .scaledToFill()
         } else {
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
         }
     }
 
@@ -345,15 +383,15 @@ struct DailyKnowledgeWidgetView: View {
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(WidgetPalette.rust)
                         Spacer(minLength: 0)
-                        Text("从一张照片开始")
+                        Text("开启自动发现")
                             .font(.system(.headline, design: .serif, weight: .bold))
                             .foregroundStyle(WidgetPalette.ink)
-                        Text("打开见微，选择一个你想重新认识的日常物件。")
+                        Text("打开见微，完成照片授权与 AI 服务设置。")
                             .font(.caption)
                             .foregroundStyle(WidgetPalette.ink.opacity(0.65))
                             .lineLimit(2)
                         Spacer(minLength: 0)
-                        Label("选择照片", systemImage: "arrow.up.right")
+                        Label("打开见微", systemImage: "arrow.up.right")
                             .font(.caption2.weight(.semibold))
                             .foregroundStyle(WidgetPalette.forest)
                     }
@@ -368,10 +406,10 @@ struct DailyKnowledgeWidgetView: View {
                             .foregroundStyle(WidgetPalette.forest)
                     }
                     Spacer()
-                    Text("从一张照片开始")
+                    Text("开启自动发现")
                         .font(.system(.headline, design: .serif, weight: .bold))
                         .foregroundStyle(WidgetPalette.ink)
-                    Text("选择一个你想重新认识的日常物件。")
+                    Text("打开见微，完成照片授权与 AI 服务设置。")
                         .font(.caption)
                         .foregroundStyle(WidgetPalette.ink.opacity(0.62))
                         .lineLimit(3)
@@ -379,7 +417,6 @@ struct DailyKnowledgeWidgetView: View {
                 .padding(15)
             }
         }
-        .widgetURL(URL(string: "jianwei://start"))
     }
 }
 

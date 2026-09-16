@@ -40,7 +40,7 @@ describe("configuration safety", () => {
     expect(config.maxGlobalCostMicroCnyPerDay).toBe(2500000);
   });
 
-  it("separates local Kimi Code validation from production Kimi Open Platform", () => {
+  it("allows Kimi only for local evaluation and rejects it in production", () => {
     expect(loadConfig({}).kimiBaseUrl).toBe("https://api.moonshot.cn/v1");
     expect(loadConfig({ KIMI_BASE_URL: "https://api.kimi.com/coding/v1/" }).kimiBaseUrl)
       .toBe("https://api.kimi.com/coding/v1");
@@ -61,13 +61,7 @@ describe("configuration safety", () => {
       KIMI_BASE_URL: "https://api.moonshot.cn/v1",
       KIMI_MODEL: "kimi-k3"
     };
-    expect(loadConfig(production).visionProvider).toBe("kimi");
-    expect(() => loadConfig({
-      ...production,
-      KIMI_BASE_URL: "https://api.kimi.com/coding/v1",
-      KIMI_MODEL: "k3"
-    })).toThrow(/China Kimi Open Platform/);
-    expect(() => loadConfig({ ...production, KIMI_API_KEY: "" })).toThrow(/KIMI_API_KEY/);
+    expect(() => loadConfig(production)).toThrow(/VISION_PROVIDER must be qwen/);
   });
 
   it("allows only the Beijing Model Studio compatible endpoint", () => {
@@ -84,6 +78,20 @@ describe("configuration safety", () => {
       "https://dashscope.aliyuncs.com/arbitrary"
     ]) {
       expect(() => loadConfig({ DASHSCOPE_BASE_URL: endpoint })).toThrow(/DASHSCOPE_BASE_URL/);
+    }
+  });
+
+  it("accepts only a canonical origin for public upload URLs", () => {
+    expect(loadConfig({ PUBLIC_BASE_URL: "http://127.0.0.1:8787/" }).publicBaseUrl)
+      .toBe("http://127.0.0.1:8787");
+    for (const endpoint of [
+      "https://user:password@api.example.test",
+      "https://api.example.test/proxy",
+      "https://api.example.test?redirect=1",
+      "https://api.example.test/#fragment",
+      "javascript:alert(1)"
+    ]) {
+      expect(() => loadConfig({ PUBLIC_BASE_URL: endpoint })).toThrow(/PUBLIC_BASE_URL/);
     }
   });
 

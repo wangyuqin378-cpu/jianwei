@@ -1,0 +1,62 @@
+{
+  "description": "Four observed model errors and manually source-corrected positive controls. Text-only source-support regressions, not photo or interestingness acceptance. Expected labels must never enter the model prompt.",
+  "sourceSnapshotPolicy": "Use the same retrieved original text for both members of a pair. Record input, prompt and code hashes, model version, finish status, usage, and all failed attempts. No user photos or identifiers belong in this dataset.",
+  "cases": [
+    {
+      "id": "sea-arch",
+      "objectName": "海蚀拱门",
+      "source": "https://serc.carleton.edu/integrate/teaching_materials/coastlines/student_materials/1007",
+      "errorClass": "refraction_mistranslated_as_diffraction",
+      "rejected": {
+        "title": "海浪绕射集中能量，掏空岩石形成拱门",
+        "body": "海浪遇到突出海面的岬角时会发生绕射，将侵蚀能量集中在特定弱点。海水不断冲刷裂缝，先形成洞穴，待两侧洞穴贯通便留下拱门结构 [ref_3]。"
+      },
+      "supported": {
+        "title": "海浪折射集中能量，掏空岩石形成拱门",
+        "body": "海浪遇到突出海面的岬角时会发生折射，将侵蚀能量集中在特定弱点。海水不断冲刷裂缝，先形成洞穴，待两侧洞穴贯通便留下拱门结构。"
+      }
+    },
+    {
+      "id": "cycad",
+      "objectName": "苏铁羽状叶",
+      "source": "https://ucmp.berkeley.edu/IB181/VPL/MedCyc/MedCyc3.html",
+      "errorClass": "question_and_habitat_mistaken_for_proven_purpose",
+      "rejected": {
+        "title": "苏铁叶片坚韧厚实是为抵御干旱环境",
+        "body": "触摸苏铁叶片若感觉硬挺厚重，这是其生存策略。叶片上下表皮拥有加厚的下皮层结构，这种强化构造能帮助植物在低营养或干燥地区锁住水分[ref_1]。"
+      },
+      "supported": {
+        "title": "苏铁的硬叶片，里头有两层加厚组织",
+        "body": "苏铁的小叶上下两面都有较厚的下皮层，这些加厚组织让叶片格外坚韧。平时摸到的硬挺，背后是叶片内部的结构。"
+      }
+    },
+    {
+      "id": "cloud-base",
+      "objectName": "积云",
+      "source": "https://wxguys.ssec.wisc.edu/2025/01/07/flat-bottom-clouds/",
+      "errorClass": "supported_part_expanded_to_unsupported_part",
+      "rejected": {
+        "title": "积云底部为何像被刀切过一样平",
+        "body": "地面暖湿空气上升时逐渐冷却，到达特定高度才达到饱和并凝结成云。因为这一凝结高度在局部大气中非常统一，所以所有云滴几乎在同一水平线开始形成，造就了平整的云顶或底面。[ref_1]"
+      },
+      "supported": {
+        "title": "积云底部为何像被刀切过一样平",
+        "body": "空气上升后膨胀冷却，到达凝结高度才形成云滴。附近几团云下面的温湿度常较接近，凝结高度也相差不大，因此云底看起来平整；近看却不是整齐的边界。"
+      }
+    },
+    {
+      "id": "coastal-weathering",
+      "objectName": "石灰岩海蚀崖",
+      "source": "https://www.nps.gov/articles/coastal-processes-shoreline-weathering.htm",
+      "errorClass": "unsupported_comparison_borrowed_from_another_process",
+      "rejected": {
+        "title": "潮汐干湿循环，加速海岸岩石破碎",
+        "body": "海浪拍打使岩石反复湿润，退潮后水分蒸发留下盐分结晶。这种干湿交替产生的物理压力，比单纯海水浸泡更能有效撕裂岩石结构，导致海岸快速风化。[ref_1]"
+      },
+      "supported": {
+        "title": "海边岩石的风化，还取决于它有多吸水",
+        "body": "潮汐让海岸岩石反复湿润、干燥，影响多种风化过程。盐风化有多明显，还取决于岩石能否吸收海水和浪花；不是所有海边岩石都同样容易被破坏。"
+      }
+    }
+  ]
+}

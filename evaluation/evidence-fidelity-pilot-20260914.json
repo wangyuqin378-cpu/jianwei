@@ -1,0 +1,27 @@
+{
+  "scope": "Frozen public or synthetic text only. No user photos or identifiers. Entailment labels are not publication approval or current scientific consensus.",
+  "preRegistration": "Compare unmodified production v19 with an isolated source-first counterexample prompt. Same fixed Plus model, temperature 0, thinking 1024, max tokens 2048, 45s deadline, strict schema. Old 8 relation controls plus these 4. One call per case per arm; no retries. Record all failures. Candidate must match all 12 labels with no invalid output before any product adoption; then require broader holdout and repeated runs. Do not deploy based on unit tests or this pilot alone.",
+  "existingFixture": "source-relations-pilot-20260909.json",
+  "cases": [
+    {
+      "id": "manatee-observed-amplification", "snapshot": "manatee", "expected": false, "objectName": "海牛",
+      "title": "船开越慢，海牛反而越难听见",
+      "body": "海牛听力对高频敏感，却听不清低频。慢速船只引擎声低沉，海牛难以定位声源；加上脖子僵硬无法转头确认，导致它们常在船靠近时才察觉，避让不及。"
+    },
+    {
+      "id": "manatee-limited-mobility-control", "snapshot": "manatee", "expected": true, "objectName": "海牛",
+      "title": "这篇科普提到，海牛的脖子活动受限",
+      "body": "这篇2003年的科普介绍，海牛的颈椎融合限制了脖子的活动。这里说的是活动受限，并没有说完全无法转头。"
+    },
+    {
+      "id": "synthetic-continuous-comparison-error", "snapshot": "comparison", "expected": false, "objectName": "合成装置",
+      "title": "装置转得越慢，就越不容易被检测到",
+      "body": "实验中低速组较难被检测到，所以只要继续降低转速，就能继续降低被检测到的概率。"
+    },
+    {
+      "id": "synthetic-bounded-comparison-control", "snapshot": "comparison", "expected": true, "objectName": "合成装置",
+      "title": "这次实验里，低速组更难被检测到",
+      "body": "在相同噪声条件下，这次实验的低速组被检测到的概率低于高速组。实验没有测试其他速度，不能据此断言转得越慢就越难被检测到。"
+    }
+  ]
+}

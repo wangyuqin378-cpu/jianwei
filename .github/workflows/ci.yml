@@ -81,6 +81,8 @@ jobs:
       - run: node scripts/ingest-topic-draft.mjs --self-test
       - run: node scripts/ingest-topic-batch.mjs --self-test
       - run: node scripts/apply-catalog-draft-correction.mjs --self-test
+      - name: Verify catalog source provenance and check-only seeding
+        run: node --test scripts/catalog-review-provenance.test.mjs
       - run: node scripts/create-rejected-fact-replacement-batch.mjs --self-test
       - run: node scripts/apply-rejected-fact-replacements.mjs --self-test
       - run: node scripts/build-knowledge-review-queue.mjs --self-test
@@ -111,6 +113,31 @@ jobs:
             .tooling/backend-e2e-postgres/result.txt
           if-no-files-found: error
           retention-days: 14
+
+  gateway:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare/gateway
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cloudflare/gateway/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm audit --omit=dev --audit-level high
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:runtime
+      - name: Verify full photo evaluation and daily selection evidence
+        run: node --test ../../scripts/run-product-photo-insight-eval.test.mjs ../../scripts/check-three-model-release-eval.test.mjs ../../scripts/lib/evaluation-retry-policy.test.mjs
+      - name: Verify BYOK evaluation billing and failure trace
+        run: node --test ../../scripts/lib/byok-eval-budget.test.mjs ../../scripts/lib/byok-eval-response.test.mjs ../../scripts/lib/calibration-budget-lock.test.mjs
+      - run: npm run deploy:dry
 
   android:
     runs-on: ubuntu-latest

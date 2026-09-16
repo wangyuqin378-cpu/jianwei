@@ -1,10 +1,13 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdtempSync,
   readdirSync,
   readFileSync,
+  rmSync,
   statSync
 } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isMainModule } from "./lib/main-module.mjs";
@@ -15,25 +18,10 @@ const DEFAULT_RELEASE_APP = ".tooling/ios-beta/widget-tinted-final-release/Build
 const EXPECTED_APP_ID = "cn.jianwei.ios";
 const EXPECTED_WIDGET_ID = "cn.jianwei.ios.widget";
 const EXPECTED_APP_GROUP = "group.cn.jianwei.shared";
+const EXPECTED_API_ORIGIN = "https://jianwei-api.yuqin.wang";
 
 function validTeamId(value) {
   return /^[A-Z0-9]{10}$/.test(value ?? "");
-}
-
-function validPublicHttpsOrigin(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" &&
-      !url.username &&
-      !url.password &&
-      !url.port &&
-      !url.search &&
-      !url.hash &&
-      (url.pathname === "" || url.pathname === "/") &&
-      !["localhost", "127.0.0.1", "::1"].includes(url.hostname.toLowerCase());
-  } catch {
-    return false;
-  }
 }
 
 export function assessIosBetaReadiness(input) {
@@ -46,7 +34,7 @@ export function assessIosBetaReadiness(input) {
   require(input.project.bundleIdsValid, "App or Widget bundle identifier does not match the release contract");
   require(input.project.appGroupsValid, "App and Widget must share group.cn.jianwei.shared");
   require(input.configuration.teamConfigured, "a 10-character Apple Development Team ID is required");
-  require(input.configuration.apiOriginConfigured, "JIANWEI_API_BASE_URL must be a public HTTPS origin");
+  require(input.configuration.apiOriginValid, "Release must configure the reviewed public Jianwei API origin");
   require(input.signing.validIdentityCount > 0, "no valid Apple code-signing identity is installed");
   require(input.device.inspectionSucceeded, "connected Apple devices could not be inspected");
   require(input.device.physicalDeviceCount > 0, "at least one connected physical iPhone or iPad is required");
@@ -64,18 +52,35 @@ export function assessIosBetaReadiness(input) {
   if (input.archive.present) {
     require(input.archive.appSigned, "the archived App is not code signed");
     require(input.archive.widgetSigned, "the archived Widget extension is not code signed");
-    require(
-      input.archive.appStoreDistributionProfiles,
-      "the archived App and Widget must use App Store distribution provisioning profiles"
-    );
     require(input.archive.privacyManifestValid, "the archived App has a missing or invalid privacy manifest");
     require(input.archive.exportComplianceDeclared, "the archived App does not declare exempt encryption use");
-    require(input.archive.apiOriginConfigured, "the archived App does not contain the production HTTPS API origin");
+    require(input.archive.apiOriginValid, "the archived App must use the reviewed public Jianwei API origin");
+  }
+  require(input.distribution.present, "an App Store Connect-exported Jianwei IPA is required");
+  if (input.distribution.present) {
+    require(input.distribution.appSigned, "the exported App is not code signed");
+    require(input.distribution.widgetSigned, "the exported Widget extension is not code signed");
+    require(
+      input.distribution.appStoreDistributionProfiles,
+      "the exported App and Widget must use App Store distribution provisioning profiles"
+    );
+    require(input.distribution.privacyManifestValid, "the exported App has a missing or invalid privacy manifest");
+    require(input.distribution.exportComplianceDeclared, "the exported App does not declare exempt encryption use");
+    require(input.distribution.apiOriginValid, "the exported App must use the reviewed public Jianwei API origin");
   }
 
   return {
     schemaVersion: 1,
     evidenceKind: "ios_installable_beta_readiness",
+    scope: "artifact-validation-only",
+    releaseApproval: false,
+    notAssessed: [
+      "current deployed AI quality and factual dissent resolution",
+      "real user photo automatic generation",
+      "real overnight widget transition and Mac-disconnected Wi-Fi/cellular operation",
+      "abuse resistance, monetary budget enforcement and production monitoring",
+      "App Store review and policy acceptance"
+    ],
     status: blockers.length === 0 ? "GO" : "NO_GO",
     releaseEvidence: blockers.length === 0,
     metrics: {
@@ -83,7 +88,7 @@ export function assessIosBetaReadiness(input) {
       bundleIdsValid: input.project.bundleIdsValid ? 1 : 0,
       appGroupsValid: input.project.appGroupsValid ? 1 : 0,
       developmentTeamConfigured: input.configuration.teamConfigured ? 1 : 0,
-      productionApiOriginConfigured: input.configuration.apiOriginConfigured ? 1 : 0,
+      jianweiApiOriginValid: input.configuration.apiOriginValid ? 1 : 0,
       validSigningIdentities: input.signing.validIdentityCount,
       connectedPhysicalAppleDevices: input.device.physicalDeviceCount,
       testsPassed: input.tests.passed,
@@ -97,10 +102,16 @@ export function assessIosBetaReadiness(input) {
       signedArchivePresent: input.archive.present ? 1 : 0,
       archivedAppSigned: input.archive.appSigned ? 1 : 0,
       archivedWidgetSigned: input.archive.widgetSigned ? 1 : 0,
-      archivedAppStoreDistributionProfiles: input.archive.appStoreDistributionProfiles ? 1 : 0,
       archivedPrivacyManifestValid: input.archive.privacyManifestValid ? 1 : 0,
       archivedExportComplianceDeclared: input.archive.exportComplianceDeclared ? 1 : 0,
-      archivedProductionApiOriginConfigured: input.archive.apiOriginConfigured ? 1 : 0
+      archivedJianweiApiOriginValid: input.archive.apiOriginValid ? 1 : 0,
+      exportedIpaPresent: input.distribution.present ? 1 : 0,
+      exportedAppSigned: input.distribution.appSigned ? 1 : 0,
+      exportedWidgetSigned: input.distribution.widgetSigned ? 1 : 0,
+      exportedAppStoreDistributionProfiles: input.distribution.appStoreDistributionProfiles ? 1 : 0,
+      exportedPrivacyManifestValid: input.distribution.privacyManifestValid ? 1 : 0,
+      exportedExportComplianceDeclared: input.distribution.exportComplianceDeclared ? 1 : 0,
+      exportedJianweiApiOriginValid: input.distribution.apiOriginValid ? 1 : 0
     },
     blockers
   };
@@ -111,7 +122,8 @@ function parseArgs(argv) {
     selfTest: false,
     xcresult: DEFAULT_XCRESULT,
     releaseApp: DEFAULT_RELEASE_APP,
-    archive: ""
+    archive: "",
+    ipa: ""
   };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
@@ -119,6 +131,7 @@ function parseArgs(argv) {
     else if (argument === "--xcresult") result.xcresult = argv[++index] ?? "";
     else if (argument === "--release-app") result.releaseApp = argv[++index] ?? "";
     else if (argument === "--archive") result.archive = argv[++index] ?? "";
+    else if (argument === "--ipa") result.ipa = argv[++index] ?? "";
     else throw new Error(`Unknown argument: ${argument}`);
   }
   return result;
@@ -173,7 +186,7 @@ function projectContract() {
     },
     configuration: {
       teamConfigured: validTeamId(team),
-      apiOriginConfigured: validPublicHttpsOrigin(apiOrigin)
+      apiOriginValid: apiOrigin === EXPECTED_API_ORIGIN
     }
   };
 }
@@ -324,10 +337,9 @@ function collectArchive(relativePath) {
       present: false,
       appSigned: false,
       widgetSigned: false,
-      appStoreDistributionProfiles: false,
       privacyManifestValid: false,
       exportComplianceDeclared: false,
-      apiOriginConfigured: false
+      apiOriginValid: false
     };
   }
   const archive = path.resolve(REPOSITORY_ROOT, relativePath);
@@ -338,20 +350,64 @@ function collectArchive(relativePath) {
     present,
     appSigned: present && codeSigned(app),
     widgetSigned: present && codeSigned(widget),
-    appStoreDistributionProfiles: present &&
-      appStoreDistributionProfile(app, EXPECTED_APP_ID) &&
-      appStoreDistributionProfile(widget, EXPECTED_WIDGET_ID),
     privacyManifestValid: present && validPrivacyManifest(app),
     exportComplianceDeclared: present && plistValue(path.join(app, "Info.plist"), "ITSAppUsesNonExemptEncryption") === "false",
-    apiOriginConfigured: present && validPublicHttpsOrigin(plistValue(path.join(app, "Info.plist"), "JianweiAPIBaseURL"))
+    apiOriginValid: present && plistValue(path.join(app, "Info.plist"), "JianweiAPIBaseURL") === EXPECTED_API_ORIGIN
   };
+}
+
+function missingDistribution() {
+  return {
+    present: false,
+    appSigned: false,
+    widgetSigned: false,
+    appStoreDistributionProfiles: false,
+    privacyManifestValid: false,
+    exportComplianceDeclared: false,
+    apiOriginValid: false
+  };
+}
+
+function collectDistribution(relativePath) {
+  if (!relativePath) return missingDistribution();
+  const ipa = path.resolve(REPOSITORY_ROOT, relativePath);
+  if (!existsSync(ipa)) return missingDistribution();
+  const temporaryDirectory = mkdtempSync(path.join(os.tmpdir(), "jianwei-ipa-"));
+  try {
+    const extracted = run("/usr/bin/unzip", ["-qq", "-o", ipa, "-d", temporaryDirectory], {
+      timeout: 60_000
+    });
+    if (extracted.status !== 0) return missingDistribution();
+    const payload = path.join(temporaryDirectory, "Payload");
+    const appNames = existsSync(payload)
+      ? readdirSync(payload).filter((name) => name.endsWith(".app"))
+      : [];
+    if (appNames.length !== 1) return missingDistribution();
+    const app = path.join(payload, appNames[0]);
+    const widget = path.join(app, "PlugIns/JianweiWidget.appex");
+    const present = existsSync(path.join(app, "Jianwei")) && existsSync(path.join(widget, "JianweiWidget"));
+    return {
+      present,
+      appSigned: present && codeSigned(app),
+      widgetSigned: present && codeSigned(widget),
+      appStoreDistributionProfiles: present &&
+        appStoreDistributionProfile(app, EXPECTED_APP_ID) &&
+        appStoreDistributionProfile(widget, EXPECTED_WIDGET_ID),
+      privacyManifestValid: present && validPrivacyManifest(app),
+      exportComplianceDeclared: present &&
+        plistValue(path.join(app, "Info.plist"), "ITSAppUsesNonExemptEncryption") === "false",
+      apiOriginValid: present && plistValue(path.join(app, "Info.plist"), "JianweiAPIBaseURL") === EXPECTED_API_ORIGIN
+    };
+  } finally {
+    rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
 }
 
 function validSyntheticInput() {
   return {
     tools: { xcode: true },
     project: { bundleIdsValid: true, appGroupsValid: true },
-    configuration: { teamConfigured: true, apiOriginConfigured: true },
+    configuration: { teamConfigured: true, apiOriginValid: true },
     signing: { validIdentityCount: 1 },
     device: { inspectionSucceeded: true, physicalDeviceCount: 1 },
     tests: { resultAvailable: true, passed: 9, failed: 0, skipped: 0, currentForSources: true },
@@ -365,10 +421,18 @@ function validSyntheticInput() {
       present: true,
       appSigned: true,
       widgetSigned: true,
+      privacyManifestValid: true,
+      exportComplianceDeclared: true,
+      apiOriginValid: true
+    },
+    distribution: {
+      present: true,
+      appSigned: true,
+      widgetSigned: true,
       appStoreDistributionProfiles: true,
       privacyManifestValid: true,
       exportComplianceDeclared: true,
-      apiOriginConfigured: true
+      apiOriginValid: true
     }
   };
 }
@@ -408,7 +472,7 @@ function runSelfTest() {
   }
   const cases = [
     ["team", { configuration: { ...valid.configuration, teamConfigured: false } }],
-    ["origin", { configuration: { ...valid.configuration, apiOriginConfigured: false } }],
+    ["managed origin", { configuration: { ...valid.configuration, apiOriginValid: false } }],
     ["identity", { signing: { validIdentityCount: 0 } }],
     ["device", { device: { inspectionSucceeded: true, physicalDeviceCount: 0 } }],
     ["tests", { tests: { ...valid.tests, failed: 1 } }],
@@ -424,17 +488,26 @@ function runSelfTest() {
         appStoreDistributionProfiles: false,
         privacyManifestValid: false,
         exportComplianceDeclared: false,
-        apiOriginConfigured: false
+        apiOriginValid: false
       }
     }],
     ["development profile", {
-      archive: { ...valid.archive, appStoreDistributionProfiles: false }
+      distribution: { ...valid.distribution, appStoreDistributionProfiles: false }
     }],
     ["archive privacy manifest", {
       archive: { ...valid.archive, privacyManifestValid: false }
     }],
     ["archive export compliance", {
       archive: { ...valid.archive, exportComplianceDeclared: false }
+    }],
+    ["distribution", {
+      distribution: missingDistribution()
+    }],
+    ["distribution privacy manifest", {
+      distribution: { ...valid.distribution, privacyManifestValid: false }
+    }],
+    ["distribution export compliance", {
+      distribution: { ...valid.distribution, exportComplianceDeclared: false }
     }]
   ];
   for (const [name, patch] of cases) {
@@ -460,7 +533,8 @@ async function main() {
     device: collectDevice(),
     tests: collectTestResult(options.xcresult, sourceMtime),
     release: collectRelease(options.releaseApp, sourceMtime),
-    archive: collectArchive(options.archive)
+    archive: collectArchive(options.archive),
+    distribution: collectDistribution(options.ipa)
   });
   console.log(JSON.stringify(result, null, 2));
   if (result.status !== "GO") process.exitCode = 1;

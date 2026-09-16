@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import UIKit
 
 struct SanitizedImage: Sendable {
@@ -8,21 +9,41 @@ struct SanitizedImage: Sendable {
 
 struct ImageSanitizer: Sendable {
     func sanitize(_ sourceData: Data, maximumSide: CGFloat = 1280) throws -> SanitizedImage {
-        guard let source = UIImage(data: sourceData), source.size.width > 0, source.size.height > 0 else {
+        guard maximumSide > 0,
+              let source = CGImageSourceCreateWithData(
+                sourceData as CFData,
+                [kCGImageSourceShouldCache: false] as CFDictionary
+              ),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let rawWidth = properties[kCGImagePropertyPixelWidth] as? NSNumber,
+              let rawHeight = properties[kCGImagePropertyPixelHeight] as? NSNumber,
+              rawWidth.doubleValue > 0,
+              rawHeight.doubleValue > 0 else {
             throw ProductError.photoUnavailable
         }
-        let scale = min(1, maximumSide / max(source.size.width, source.size.height))
-        let target = CGSize(
-            width: max(1, floor(source.size.width * scale)),
-            height: max(1, floor(source.size.height * scale))
-        )
+
+        // ImageIO creates the thumbnail while decoding. UIImage(data:) would
+        // first materialize the full-resolution photo, which can terminate the
+        // app on very large panoramas before the 1280 px resize is reached.
+        let sourceMaximumSide = max(rawWidth.doubleValue, rawHeight.doubleValue)
+        let thumbnailMaximumSide = max(1, min(Double(maximumSide), sourceMaximumSide))
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: Int(ceil(thumbnailMaximumSide)),
+            kCGImageSourceShouldCacheImmediately: true
+        ]
+        guard let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+            throw ProductError.photoUnavailable
+        }
+        let target = CGSize(width: thumbnail.width, height: thumbnail.height)
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         format.opaque = true
         let normalized = UIGraphicsImageRenderer(size: target, format: format).image { _ in
             UIColor.black.setFill()
             UIRectFill(CGRect(origin: .zero, size: target))
-            source.draw(in: CGRect(origin: .zero, size: target))
+            UIImage(cgImage: thumbnail).draw(in: CGRect(origin: .zero, size: target))
         }
         guard let encoded = normalized.jpegData(compressionQuality: 0.84) else {
             throw ProductError.photoUnavailable

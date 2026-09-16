@@ -15,9 +15,30 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(nil)
+        .allowsHitTesting(!model.isReadOnlyStateProbe)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.backgroundRefreshStatusDidChangeNotification)) { _ in
+            model.refreshBackgroundPreparationAvailability()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.NSProcessInfoPowerStateDidChange)) { _ in
+            model.refreshBackgroundPreparationAvailability()
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            Task { await model.synchronizeCards(showFailure: false) }
+            model.refreshBackgroundPreparationAvailability()
+            Task { await model.resumeFromBackground() }
+        }
+        .task(id: model.isReady && scenePhase == .active && !model.isReadOnlyStateProbe) {
+            guard model.isReady, scenePhase == .active, !model.isReadOnlyStateProbe else { return }
+            // Date() is not observable. Refresh the day-keyed selection even
+            // when the app stays open across Shanghai midnight.
+            while !Task.isCancelled {
+                let midnight = ChinaDay.adding(days: 1, to: Date())
+                do {
+                    try await Task.sleep(for: .seconds(max(0, midnight.timeIntervalSinceNow)))
+                } catch { return }
+                guard !Task.isCancelled else { return }
+                await model.dayDidChange()
+            }
         }
     }
 
@@ -49,11 +70,16 @@ struct MainTabView: View {
             .tag(AppSection.today)
             .tabItem { Label("今天", systemImage: "sparkles.rectangle.stack") }
 
-            NavigationStack {
-                SavedView()
+            ZStack {
+                // Reset history's navigation without replacing the tab itself
+                // while its selection is changing in the same update.
+                NavigationStack {
+                    SavedView()
+                }
+                .id(model.historyNavigationID)
             }
             .tag(AppSection.saved)
-            .tabItem { Label("收藏", systemImage: "bookmark") }
+            .tabItem { Label("回顾", systemImage: "clock.arrow.circlepath") }
 
             NavigationStack {
                 SettingsView()
@@ -62,6 +88,7 @@ struct MainTabView: View {
             .tabItem { Label("设置", systemImage: "slider.horizontal.3") }
         }
         .tint(JianweiBrand.forest)
+        .modifier(JianweiTabBarBehavior())
         .sheet(
             isPresented: Binding(
                 get: { model.presentedCardID != nil },
@@ -85,6 +112,27 @@ struct MainTabView: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 1), value: model.message)
+        .onChange(of: model.selectedSection) { _, _ in
+            // Toasts describe the action on the page where they were created.
+            // Carrying an undo message into “回顾” makes it look like a history
+            // status, so dismiss transient context when the user changes tabs.
+            model.clearMessage()
+        }
+    }
+}
+
+private struct JianweiTabBarBehavior: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            // These are the app's three primary destinations. Keeping all of
+            // them visible avoids turning a long settings scroll into a hidden
+            // navigation state, and the content views already reserve space
+            // above the tab bar.
+            content.tabBarMinimizeBehavior(.never)
+        } else {
+            content
+        }
     }
 }
 

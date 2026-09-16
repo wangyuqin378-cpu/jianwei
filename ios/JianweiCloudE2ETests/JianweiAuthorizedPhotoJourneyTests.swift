@@ -8,29 +8,26 @@ final class JianweiAuthorizedPhotoJourneyTests: XCTestCase {
     @MainActor
     func testAuthorizedPhotoBecomesARealKnowledgeWidget() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-JianweiAuthorizedFixtureE2E"]
+        app.launchArguments = ["-JianweiAuthorizedFixtureE2E", "-JianweiResetOnboarding"]
         app.launch()
 
         if app.buttons["继续"].waitForExistence(timeout: 8) {
             app.buttons["继续"].tap()
             XCTAssertTrue(app.buttons["继续"].waitForExistence(timeout: 5))
             app.buttons["继续"].tap()
-            let selectedOnly = app.buttons
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "仅选择照片"))
-                .firstMatch
             XCTAssertTrue(
-                selectedOnly.waitForExistence(timeout: 5),
-                "The selected-only start option is not accessible. \(app.debugDescription)"
+                app.buttons["授权并开始自动发现"].waitForExistence(timeout: 5),
+                "The automatic start action is not accessible. \(app.debugDescription)"
             )
-            selectedOnly.tap()
-            XCTAssertTrue(app.buttons["开始选择照片"].waitForExistence(timeout: 5))
-            app.buttons["开始选择照片"].tap()
-
-            selectFirstSystemPhoto(in: app)
+            app.buttons["授权并开始自动发现"].tap()
+            allowPhotoAccessIfRequested(in: app)
 
             XCTAssertTrue(
-                app.staticTexts["识别物件并匹配可靠知识"].waitForExistence(timeout: 8),
-                "The selected photo did not enter the real analysis pipeline. \(app.debugDescription)"
+                app.staticTexts
+                    .matching(NSPredicate(format: "label CONTAINS %@", "自动"))
+                    .firstMatch
+                    .waitForExistence(timeout: 8),
+                "Authorized access did not start automatic preparation. \(app.debugDescription)"
             )
         }
         XCTAssertTrue(
@@ -46,8 +43,8 @@ final class JianweiAuthorizedPhotoJourneyTests: XCTestCase {
             .firstMatch
         XCTAssertTrue(objectName.exists)
         XCTAssertTrue(
-            app.descendants(matching: .any)["扫帚的原照片"].exists,
-            "The real card completed without its local photo thumbnail. \(app.debugDescription)"
+            app.staticTexts["扫帚"].exists,
+            "The imported photo should produce a visible, identified card. \(app.debugDescription)"
         )
 
         let appAttachment = XCTAttachment(screenshot: app.screenshot())
@@ -58,20 +55,39 @@ final class JianweiAuthorizedPhotoJourneyTests: XCTestCase {
         addSmallWidgetAndAssertBroomCard(app: app)
     }
 
+    /// Read-only smoke test for an already-configured physical device. Unlike
+    /// the fixture journey, this must never reset onboarding or local history.
     @MainActor
-    private func selectFirstSystemPhoto(in app: XCUIApplication) {
-        let cancel = firstButton(in: app, labels: ["Cancel", "取消"])
-        XCTAssertTrue(
-            cancel.waitForExistence(timeout: 8),
-            "System Photos picker did not open. \(app.debugDescription)"
-        )
+    func testExistingDeviceStateSurvivesOverwriteInstallAndRemainsBrowsable() throws {
+        let app = XCUIApplication()
+        app.launch()
 
-        let firstPhoto = app.images.matching(identifier: "PXGGridLayout-Info").firstMatch
         XCTAssertTrue(
-            firstPhoto.waitForExistence(timeout: 20),
-            "No selectable image appeared in the system Photos picker. \(app.debugDescription)"
+            app.staticTexts["已核验来源"].waitForExistence(timeout: 20),
+            "The latest valid card was not retained after the overwrite install. \(app.debugDescription)"
         )
-        firstPhoto.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertFalse(app.staticTexts["当前真机构建没有配置 AI 服务地址，请重新安装正确的体验包。"].exists)
+        XCTAssertFalse(app.buttons["选择照片"].exists)
+
+        let reviewTab = app.tabBars.buttons["回顾"]
+        XCTAssertTrue(reviewTab.waitForExistence(timeout: 5))
+        reviewTab.tap()
+
+        XCTAssertTrue(app.navigationBars["回顾"].waitForExistence(timeout: 8))
+        XCTAssertFalse(app.staticTexts["还没有出现过的卡片"].exists)
+        XCTAssertTrue(
+            app.staticTexts["当前"].waitForExistence(timeout: 8),
+            "The retained current card was not visible in Review. \(app.debugDescription)"
+        )
+    }
+
+    @MainActor
+    private func allowPhotoAccessIfRequested(in app: XCUIApplication) {
+        let allow = firstButton(
+            in: app,
+            labels: ["Allow Full Access", "允许完全访问", "Allow Access to All Photos", "允许访问所有照片"]
+        )
+        if allow.waitForExistence(timeout: 5) { allow.tap() }
     }
 
     @MainActor

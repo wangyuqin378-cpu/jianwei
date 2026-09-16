@@ -1,0 +1,26 @@
+{
+  "purpose": "Fixed text-only pilot for complete-sentence evidence checks. Not a photo pipeline, daily supply, fresh holdout, or interestingness acceptance.",
+  "policy": "Freeze these labels before live calls; never send labels or rationale to the model. Same original source snapshots. One call per case, no retries, no searches or photos. Require all 8 valid judgments to match labels before considering broader regression. A parse failure is not a successful rejection. Stop on provider/transport failure. Do not adopt merely because unit tests pass.",
+  "cases": [
+    { "id": "hdmi-observed-crossed-cause", "snapshot": "web-005.jpg", "expected": false, "useObservedCard": true },
+    { "id": "hdmi-output-policy-control", "snapshot": "web-005.jpg", "expected": true,
+      "title": "有些老电视画质被限制，并不是播放器做不到",
+      "body": "文中以早期没有HDMI接口的高清电视为例，说明MovieBeam等设备即使能从其他接口输出更高清的内容，也可能因片方要求主动降低分辨率。" },
+    { "id": "hdmi-handshake-control", "snapshot": "web-005.jpg", "expected": true,
+      "title": "HDCP握手，还要确认对方是不是获授权设备",
+      "body": "HDCP握手让两台设备确认对方已获授权，并商定加密密钥。文中描述的未授权采集设备若无法完成握手，视频源就会拒绝向它发送内容。" },
+    { "id": "cup-observed-control", "snapshot": "web-008.jpg", "expected": true, "useObservedCard": true },
+    { "id": "scissors-observed-scope-error", "snapshot": "scissors", "expected": false,
+      "title": "剪厚物费力？刀刃曲线在省力",
+      "body": "剪刀刃口并非直线，而是带有弧度的曲线。剪切时，接触点随开合角度移动，这种几何设计改变了力臂长度，让手部施加的扭矩更有效地转化为切断物体的力，使切割更顺畅。[ref_2]" },
+    { "id": "scissors-source-supported-control", "snapshot": "scissors", "expected": true,
+      "title": "剪刀剪东西时先压变形再断裂，不是一碰就切开",
+      "body": "剪刀合拢时，被剪材料先被刀刃压出局部变形，变形积累到一定程度才发生断裂分离。刀刃的曲线形状会影响变形阶段你手上感受到的力的大小。[ref_2]" },
+    { "id": "synthetic-multi-source-positive", "snapshot": "synthetic", "expected": true,
+      "title": "合成设备的两种状态，会得到不同的结果",
+      "body": "合成设备甲断网时显示本地缓存，联网但鉴权失败时显示错误提示。" },
+    { "id": "synthetic-multi-source-crossed", "snapshot": "synthetic", "expected": false,
+      "title": "合成设备断网时，会显示鉴权错误",
+      "body": "合成设备甲断网时显示错误提示，联网但鉴权失败时显示本地缓存。" }
+  ]
+}

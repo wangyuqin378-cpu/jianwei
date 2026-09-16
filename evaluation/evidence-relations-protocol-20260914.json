@@ -1,0 +1,12 @@
+{
+  "purpose": "Isolated text-evidence experiment for condition/consequence fragmentation. No user photos, no image matching or interestingness claim, no deployment.",
+  "fixtures": ["source-relations-pilot-20260909.json", "evidence-fidelity-pilot-20260914.json"],
+  "baseline": "Historical frozen production-v19 run from 2026-09-14. This is not a concurrent randomized A/B trial. Reuse exactly the same candidate text, source snapshots, fixed model and generation parameters, but preserve comma-linked relations and allow multiple actual source quotations per complete statement.",
+  "hypothesis": "Keeping a condition and its result in one required judgment can reduce accepting individually supported fragments with an unsupported causal link. Multi-source evidence must remain possible for correct compound statements.",
+  "maxCalls": 12,
+  "maxRetries": 0,
+  "photos": 0,
+  "searches": 0,
+  "stopOnServiceFailure": true,
+  "adoptionGate": "All 12 original labels must match with valid complete quotations. Invalid output is not a successful rejection. Even a passing pilot requires fresh held-out controls and repeated complete evaluations before production adoption. Preserve every failure and never relabel fixtures after model output."
+}
