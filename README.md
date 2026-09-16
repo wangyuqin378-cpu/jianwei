@@ -1,27 +1,63 @@
-# 见微 / Jianwei
+# Jianwei · 见微
 
-见微是一款 iPhone 每日照片知识应用：它自动从尚未处理的照片中寻找日常物件，为每个日期最多将 9 张经过本机筛选和脱敏的候选交给 AI，留下最多 3 条合格知识，再把最好的一条放进 App 和桌面小组件。当天没有新知识时继续展示上一条，不会出现空白组件。
+[简体中文](README.zh-CN.md) · [Product story](https://yuqin.wang/#/project/jianwei)
 
-## 当前产品逻辑
+**Discover a little knowledge in your everyday photos.**
 
-1. 用户授权相册并选择兴趣方向。
-2. iPhone 本机排除人物、证件、截图、高文字密度、模糊和重复照片。
-3. 候选图缩至最长边 1280 px，并移除 EXIF、文件名和位置信息。
-4. 使用自己的百炼 Key，或使用见微托管服务，让 Qwen 从照片中寻找有趣知识。
-5. 自带 Key 不代开搜索：优先匹配知识库，未命中时用模型已有知识生成并标注“未联网核实”；托管服务使用平台 Key 调用内置搜索。两种模式都检查照片关联与趣味质量，不伪造来源。
-6. 每天展示一条，另外两条可用于“换一条”；出现过的卡片自动进入“回顾”。
-7. App 会提前准备今天及未来 6 天，首次补齐最多分析 63 张；网络失败或没有合格新卡时保留最近一条。
+Jianwei turns suitable photos from a personal photo library into daily knowledge cards for iPhone and its home-screen widget.
 
-自带 Key 保存在本机 Keychain，照片直接发送给百炼，费用由用户的百炼账号承担，不使用平台额度兜底。托管服务不将照片作为云端相册保存，只保留匿名凭证、用量记录和通用知识缓存。
+<img src="docs/images/jianwei-today.webp" width="260" alt="Jianwei development preview showing a broom photo, a knowledge card, and a source link">
 
-## 工程
+*Development preview, not evidence of a publicly released build.*
 
-- `ios/`：iPhone App、Widget 和测试。
-- `cloudflare/gateway/`：公网 Qwen 网关、用量限制和知识缓存。
-- `knowledge/`：经过审核的事实、来源和主题映射。
-- `evaluation/`、`scripts/`：公开图片评测与发布门槛。
-- `android/`、`backend/`：早期工程，当前发布范围不包含 Android。
+## How it works
 
-当前版本的真实AI内容质量评测尚未达标；也仍需完成真实跨日小组件、蜂窝网络、App Store 分发签名和最终审核材料验证，不能称为公开可上架版本。
+1. Authorize photo access; unsuitable images are filtered on the device.
+2. Analyze up to nine sanitized photos per date, keeping up to three eligible knowledge cards.
+3. Pick one card, retain alternatives and history, and prepare today plus the next six days.
+4. Show cached cards in the app and widget. If no new card is ready, keep the latest one.
 
-更多信息：[隐私说明](docs/PRIVACY.md) · [系统架构](docs/ARCHITECTURE.md) · [支持](docs/SUPPORT.md)
+Use your own Qwen key, stored in the device Keychain, or an authorized Jianwei managed service. BYOK does not force web search or fall back to a platform key: model-knowledge cards are labeled as not verified online. The managed path researches sources and checks evidence. Neither mode guarantees that AI is always correct.
+
+## Current stage
+
+**Latest development source; no public app download yet.** This snapshot includes the iOS app, Widget, Cloudflare gateway and regression tooling. Android and the Fastify backend remain as earlier engineering paths.
+
+Content quality, natural cross-day widget behavior, away-from-Mac device use and production distribution still require acceptance. Source sync does not deploy the service or update an installed phone. See the [snapshot and validation status](docs/SOURCE_SNAPSHOT_2026-09-17.md).
+
+## Run locally
+
+Requires macOS/Xcode for iOS, and Node.js 22+ for the gateway.
+
+```bash
+git clone https://github.com/wangyuqin378-cpu/jianwei.git
+cd jianwei/cloudflare/gateway
+npm ci --ignore-scripts
+npm run check
+npm test
+npm run test:runtime
+```
+
+The runtime tests intercept external calls and do not spend model credits. Opening `ios/Jianwei.xcodeproj` lets you build the app and Widget with your own signing configuration. For an unsigned compile check from the repository root:
+
+```bash
+xcodebuild -project ios/Jianwei.xcodeproj -scheme JianweiCore \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build-for-testing
+```
+
+Public source access does not include managed-service credentials. Use your own key or configure your own gateway; never commit keys, device grants or signing files. See [deployment](docs/DEPLOYMENT.md) and the [legacy backend/Android instructions](README.zh-CN.md#本地运行).
+
+## Repository map
+
+- `ios/`: iPhone app, Widget and tests.
+- `cloudflare/gateway/`: Qwen product API, D1 cache, access and usage controls.
+- `knowledge/`: topics, facts, sources and review state.
+- `evaluation/`, `scripts/`: evaluation fixtures and validation tools.
+- `android/`, `backend/`: earlier implementation paths.
+
+[Privacy](docs/PRIVACY.md) · [Architecture](docs/ARCHITECTURE.md) · [Support](docs/SUPPORT.md)
+
+## Source availability
+
+The source is public for inspection. This repository currently has no open-source license; public visibility does not grant an open-source license.
